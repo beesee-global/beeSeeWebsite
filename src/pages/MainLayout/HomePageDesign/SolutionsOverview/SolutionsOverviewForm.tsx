@@ -216,10 +216,10 @@ const SolutionsOverviewForm = () => {
     }, [formData, imagePreview, id]);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8">
+            <div className="w-full mx-auto px-3 sm:px-6 lg:px-8">
                 <Snackbar open={showAlert} type={snackBarType} message={message} onClose={() => setShowAlert(false)} />
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                     <Breadcrumb
                         items={[
                             { label: 'Home', href: '/beesee/dashboard', icon: <Home className="w-4 h-4" /> },
@@ -230,41 +230,42 @@ const SolutionsOverviewForm = () => {
                 </div>
 
                 {/* Header - actions (Cancel / Save) like CategoryForm */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{id ? 'Update Solution' : 'Create New Solution'}</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Create or update a solution with features and specifications</p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                        <div className="min-w-0">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 truncate">{id ? 'Update Solution' : 'Create New Solution'}</h1>
+                            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 line-clamp-2">Create or update a solution with features and specifications</p>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                             <button
                                 onClick={() => navigate('/beesee/solutions-overview')}
                                 disabled={isCreating || isUpdating}
-                                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                                className="px-3 sm:px-6 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-xs sm:text-base whitespace-nowrap"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={() => handleSubmit()}
                                 disabled={isCreating || isUpdating}
-                                className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
+                                className="flex items-center justify-center px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 text-xs sm:text-base whitespace-nowrap"
                             >
                                 {isCreating || isUpdating ? (
                                     <span>{id ? 'Updating...' : 'Creating...'}</span>
                                 ) : (
                                     <>
-                                        <Save className="w-5 h-5 mr-2" />
-                                        {id ? 'Update Solution' : 'Create Solution'}
+                                        <Save className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                                        <span className="hidden sm:inline">{id ? 'Update Solution' : 'Create Solution'}</span>
+                                        <span className="sm:hidden">{id ? 'Update' : 'Create'}</span>
                                     </>
                                 )}
                             </button>
                         </div>
                     </div>
                 </div>
-                <div className="grid lg:grid-cols-3 gap-8">
+                <div className="grid lg:grid-cols-3 gap-6 4 sm:space-y-lg:gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
                                 {id ? 'Edit Solution' : 'Create New Solution'}
                             </h1>
                             <form onSubmit={handleSubmit} className="space-y-6"> 
@@ -477,9 +478,9 @@ const SolutionsOverviewForm = () => {
                             </form>
                         </div>
                     </div>
-                    <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Form Completion</h3>
+                    <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">Form Completion</h3>
                             <div className="space-y-3">
                                 <div>
                                     <div className="flex justify-between text-sm mb-2">
@@ -521,8 +522,8 @@ const SolutionsOverviewForm = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Summary</h3>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">Summary</h3>
                             <div className="space-y-3 text-sm">
                                 <div>
                                     <p className="text-gray-600 dark:text-gray-400 mb-1">Title</p>

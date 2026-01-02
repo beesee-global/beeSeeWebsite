@@ -64,6 +64,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
       <div className="flex gap-2 items-center"> 
         {/* Mobile Menu Button */}
         <div 
+          data-menu-button
           onClick={() => setShowSidebar(true)}
           className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/10 cursor-pointer"
         >

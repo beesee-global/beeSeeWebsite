@@ -90,8 +90,8 @@ const SolutionsOverview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8">
+      <div className="w-full mx-auto px-3 sm:px-6 lg:px-8">
         <AlertDialog
           open={openModal}
           title={title}
@@ -115,29 +115,29 @@ const SolutionsOverview = () => {
           />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Solutions Overview
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                 Manage enterprise solutions with features and specifications
               </p>
             </div>
             <button
               onClick={() => navigate('/beesee/solutions-overview/form')}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold"
+              className="flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold whitespace-nowrap text-sm sm:text-base transition-all"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Solution
+              <Plus className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+              <span>Add Solution</span>
             </button>
           </div>
         </div>
          
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 p-6 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 dark:border-gray-700">
           {solutions.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 sm:p-12 text-center">
               <Zap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 No solutions yet
@@ -154,7 +154,7 @@ const SolutionsOverview = () => {
               </button>
             </div>
           ) : ( 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {solutions.map((solution, index) => (
                   <motion.div
                     key={solution.id}
@@ -164,7 +164,7 @@ const SolutionsOverview = () => {
                     className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300"
                   >
                     {/* Image Container */}
-                    <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
+                    <div className="relative h-40 sm:h-48 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
                       {solution.image_url ? (
                         <motion.img
                           src={solution.image_url}
@@ -216,32 +216,32 @@ const SolutionsOverview = () => {
                     </div>
 
                     {/* Content Container */}
-                    <div className="p-5">
+                    <div className="p-3 sm:p-5">
                       {/* Title */}
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {solution.title}
                       </h3>
 
                       {/* Description */}
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 leading-relaxed">
                         {solution.description}
                       </p>
 
                       {/* Features Preview (if available) */}
                       {solution.features && solution.features.length > 0 && (
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-1.5">
-                            {solution.features.slice(0, 3).map((feature, idx) => (
+                        <div className="mb-3 sm:mb-4 hidden sm:block">
+                          <div className="flex flex-wrap gap-1">
+                            {solution.features.slice(0, 2).map((feature, idx) => (
                               <span
                                 key={idx}
-                                className="inline-flex items-center px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-md border border-blue-200 dark:border-blue-800"
+                                className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-md border border-blue-200 dark:border-blue-800"
                               >
                                 {feature}
                               </span>
                             ))}
-                            {solution.features.length > 3 && (
-                              <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-md">
-                                +{solution.features.length - 3} more
+                            {solution.features.length > 2 && (
+                              <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-md">
+                                +{solution.features.length - 2} more
                               </span>
                             )}
                           </div>
@@ -266,20 +266,20 @@ const SolutionsOverview = () => {
                       )}
 
                       {/* Footer Actions (Always Visible on Mobile) */}
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 sm:hidden">
+                      <div className="flex items-center justify-between gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700 sm:hidden">
                         <button
                           onClick={() => handleRowEdit(solution.pid)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-sm font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          Edit
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
                         </button>
                         <button
                           onClick={() => handleVerifyDelete(solution.id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Delete
+                          <Trash2 className="w-3 h-3" />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>

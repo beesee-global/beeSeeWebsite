@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Navigation from "../components/ui/Navigation";
 import Sidebar from "../components/ui/Sidebar";
@@ -27,13 +27,60 @@ const MainLayout = () => {
     }
   }, [checked, token, userInfo, navigate]);
 
-  // Handle outside clicks
+  // Close sidebar when route changes
   useEffect(() => {
-    if (!userNav) return;
-    const handleClickOutside = () => setUserNav(false);
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [userNav, setUserNav]);
+    setShowSidebar(false);
+  }, [navigate]);
+
+  // Handle outside clicks for sidebar
+  useEffect(() => {
+    if (!showSidebar) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Don't close if clicking menu button
+      if (target.closest('[data-menu-button]')) {
+        return;
+      }
+      
+      // Close if clicking outside sidebar
+      const sidebar = document.querySelector('[data-sidebar]');
+      if (sidebar && !sidebar.contains(target)) {
+        setShowSidebar(false);
+      }
+    };
+
+    // Use capture phase for more reliable detection
+    document.addEventListener('click', handleClickOutside, true);
+    return () => document.removeEventListener('click', handleClickOutside, true);
+  }, [showSidebar]);
+
+  // Handle Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowSidebar(false);
+        setUserNav(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [setUserNav]);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (showSidebar) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [showSidebar]);
 
   if (!checked) {
     return (
@@ -45,11 +92,13 @@ const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="hidden md:block w-64">
+      <div className="hidden md:block w-64 overflow-y-auto">
         <Sidebar />
       </div>
 
+      {/* Mobile Sidebar */}
       <div
+        data-sidebar
         className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 transition-transform duration-300 ease-in-out md:hidden ${
           showSidebar ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -57,10 +106,12 @@ const MainLayout = () => {
         <Sidebar setShowSidebar={setShowSidebar} />
       </div>
 
+      {/* Overlay */}
       {showSidebar && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-300"
           onClick={() => setShowSidebar(false)}
+          aria-hidden="true"
         ></div>
       )}
 

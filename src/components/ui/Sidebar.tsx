@@ -13,7 +13,8 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import React, { 
   useEffect, 
   useState, 
-  type ReactNode 
+  type ReactNode,
+  useCallback
 } from "react";
 
 interface ChildItem {
@@ -82,11 +83,17 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     });
   }, [location.pathname, menuItems]);
 
-  const handleMenuItemClick = () => {
+  const handleMenuItemClick = useCallback(() => {
+    // Close sidebar immediately on mobile when clicking any menu item
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setShowSidebar?.(false);
     }
-  };
+  }, [setShowSidebar]);
+
+  const handleMenuToggle = useCallback((name: string) => {
+    // Toggle menu without closing sidebar
+    toggleMenu(name);
+  }, []);
 
   return (
     <div className="p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 overflow-y-auto">
@@ -110,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 // 🔽 Dropdown menu
                 <div>
                   <button
-                    onClick={() => toggleMenu(item.name)}
+                    onClick={() => handleMenuToggle(item.name)}
                     className={`flex items-center justify-between gap-3 px-3 py-3 w-full rounded-md transition-all duration-200 ${
                       openMenus[item.name]
                         ? "bg-yellow-500/20 text-yellow-400"
