@@ -25,7 +25,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
 
   const { data: userInformation } = useQuery({
     queryKey: ['users', id],
-    queryFn: () => fetchUserById(id),
+    queryFn: () => fetchUserById(String(id)),
     enabled: !!id
   });
 
@@ -132,6 +132,26 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             </button>
           </div>
         )}
+
+            {/* Logout */}
+            <button
+              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 transition text-red-600"
+              onClick={() => {
+                logout();
+                navigate("/sign-in", { replace: true });
+              }}
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Navigation;
       </div>
     </div>
   );

@@ -82,8 +82,14 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     });
   }, [location.pathname, menuItems]);
 
+  const handleMenuItemClick = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setShowSidebar?.(false);
+    }
+  };
+
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700">
+    <div className="p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 overflow-y-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-yellow-400">Menu</h2>
@@ -105,27 +111,27 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 <div>
                   <button
                     onClick={() => toggleMenu(item.name)}
-                    className={`flex items-center justify-between gap-3 px-3 py-3 w-full rounded-md transition-colors ${
+                    className={`flex items-center justify-between gap-3 px-3 py-3 w-full rounded-md transition-all duration-200 ${
                       openMenus[item.name]
                         ? "bg-yellow-500/20 text-yellow-400"
                         : "hover:bg-yellow-400/10 text-white"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1">
                       <span className="text-yellow-400">{item.icon}</span>
                       <span className="font-semibold">{item.name}</span>
                     </div>
                     <ChevronDown
                       size={18}
-                      className={`transition-transform text-yellow-400 ${
+                      className={`transition-transform duration-300 text-yellow-400 flex-shrink-0 ${
                         openMenus[item.name] ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      openMenus[item.name] ? "max-h-60" : "max-h-0"
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      openMenus[item.name] ? "max-h-96" : "max-h-0"
                     }`}
                   >
                     <ul className="ml-6 mt-1 space-y-1">
@@ -135,19 +141,17 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                           <li key={child.name}>
                             <NavLink
                               to={child.path}
-                              className={`flex items-center gap-2 px-3 py-3 rounded-md text-md transition-colors ${
+                              className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-sm transition-all duration-200 active:scale-95 ${
                                 childActive
                                   ? "bg-yellow-600 text-white"
                                   : "text-white hover:bg-yellow-400/10"
                               }`}
-                              onClick={() => {
-                                if (window.innerWidth < 768) setShowSidebar?.(false);
-                              }}
+                              onClick={handleMenuItemClick}
                             >
                               <span
                                 className={`${
                                   childActive ? "text-white" : "text-yellow-400"
-                                }`}
+                                } flex-shrink-0`}
                               >
                                 {child.icon}
                               </span>
@@ -163,16 +167,14 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 // Regular link
                 <NavLink
                   to={item.path || "#"}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200 active:scale-95 ${
                     isActive
                       ? "bg-yellow-600 text-white"
                       : "text-white hover:bg-yellow-400/10"
                   }`}
-                  onClick={() => {
-                    if (window.innerWidth < 768) setShowSidebar?.(false);
-                  }}
+                  onClick={handleMenuItemClick}
                 >
-                  <span className={`${isActive ? "text-white" : "text-yellow-400"}`}>
+                  <span className={`${isActive ? "text-white" : "text-yellow-400"} flex-shrink-0`}>
                     {item.icon}
                   </span>
                   <span className="font-semibold">{item.name}</span>
