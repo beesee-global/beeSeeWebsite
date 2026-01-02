@@ -1,0 +1,68 @@
+import { useLocation } from "react-router-dom";
+import FooterHomePage from "../components/ui/FooterHomePage";
+import FooterHomePageProducts from "../components/ui/FooterHomePageProducts";
+import HeaderHomePage from "../components/ui/HeaderHomePage";
+import { Outlet } from "react-router-dom"; 
+import { useEffect, useRef, useState } from "react";
+
+const HomePageLayout = () => {
+  const location = useLocation();
+  const [showHeader, setShowHeader] = useState(true);
+  const lastScrollY = useRef(0);
+
+  // Routes where layout should be hidden
+  const hideLayoutRoutes = ["/customer-support"];
+  const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
+
+  const shouldHideLayout = hideLayoutRoutes.some((path) =>
+    location.pathname.startsWith(path)
+  );
+  const hideHeader = hideHeaderRoutes.some((path) =>
+    location.pathname.startsWith(path)
+  );
+
+  // Detect product detail page using regex
+  const isProductDetailPage = /^\/product\/[^/]+$/.test(location.pathname);
+
+  // Scroll logic for header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY <= 0) setShowHeader(true);
+      else if (currentScrollY > lastScrollY.current) setShowHeader(false);
+      else setShowHeader(true);
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col relative">
+      {/* Header */}
+      <div
+        className={`fixed top-0 left-0 w-full z-50 bg-white shadow transition-transform duration-500 ${
+          showHeader ? "translate-y-0" : "translate-y-0"
+        }`}
+      >
+        {!hideHeader && <HeaderHomePage />}
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 pt-[80px]">
+        <Outlet />
+      </div>
+
+      {/* Footer */}
+      {!shouldHideLayout && (
+        <>
+          {isProductDetailPage ? <FooterHomePageProducts /> : <FooterHomePage />}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default HomePageLayout;

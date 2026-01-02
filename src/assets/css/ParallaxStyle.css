@@ -1,0 +1,51 @@
+/* styles/parallax.css
+   Subtle parallax text: lightweight, accessible, responsive.
+   Import this file where you need the styles (global or component import).
+*/
+
+.parallax-text {
+  display: inline-block; /* allow transform to affect only text block */
+  will-change: transform; /* hint for performance */
+  transform: translate3d(0, 0, 0);
+  transition: transform 300ms cubic-bezier(.22,1,.36,1); /* gentle smoothing on layout changes */
+  line-height: 1.06;
+  font-weight: 600; /* adjust to taste */
+  pointer-events: auto; /* set to none if decorative */
+}
+
+/* A few utility classes you can reuse */
+.parallax-large {
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: -0.02em;
+}
+
+.parallax-inline {
+  display: inline-block;
+}
+
+/* Dark / light theme helpers */
+.parallax-light {
+  color: #fff;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+.parallax-accent {
+  color: var(--beesee-gold, #d4af37); /* use your design token */
+  text-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+/* Accessibility: if user prefers reduced motion, neutralize transforms */
+@media (prefers-reduced-motion: reduce) {
+  .parallax-text {
+    transition: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* Minor responsive tweak to reduce movement on small screens */
+@media (max-width: 640px) {
+  .parallax-text {
+    transition-duration: 180ms;
+  }
+}

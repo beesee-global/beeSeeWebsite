@@ -1,0 +1,290 @@
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+/* Global Font Override */
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.font-bebas {
+    font-family: 'Bebas Neue', cursive;
+}
+
+/* Smooth drawer animation */
+.MuiDrawer-paper {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    border-left: 1px solid rgba(255, 215, 0, 0.1) !important;
+}
+
+/* Custom scrollbar for drawer */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.3);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 215, 0, 0.5);
+}
+
+/* Burger menu animation */
+.burger-line {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+
+.burger-open .burger-line-1 {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.burger-open .burger-line-2 {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.burger-open .burger-line-3 {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile nav item slide-in animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.mobile-nav-item {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Prevent layout shift and optimize performance */
+.header-container {
+    will-change: height;
+    transform: translateZ(0);
+}
+
+/* Drawer overlay fade-in animation */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+.drawer-overlay {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Desktop nav button glow effect */
+.nav-button-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    background: #FFD700;
+    filter: blur(20px);
+    border-radius: 9999px;
+}
+
+.nav-button:hover .nav-button-glow {
+    opacity: 0.2;
+}
+
+/* Active nav indicator */
+.nav-indicator {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 2px;
+    background: #FFD700;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+}
+
+.nav-indicator.active {
+    width: 100%;
+}
+
+.nav-indicator.inactive {
+    width: 0;
+}
+
+.nav-button:hover .nav-indicator.inactive {
+    width: 100%;
+}
+
+/* Logo hover effects */
+.logo-image {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-image:hover {
+    filter: brightness(1.25);
+    transform: scale(1.05);
+}
+
+/* Mobile drawer close button */
+.close-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.close-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.close-button svg {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease;
+}
+
+.close-button:hover svg {
+    color: rgba(255, 255, 255, 1);
+}
+
+/* Mobile nav item active indicator */
+.mobile-nav-active-indicator {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, #FFD700, transparent);
+    border-radius: 0 9999px 9999px 0;
+}
+
+/* Mobile nav item hover glow */
+.mobile-nav-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent);
+    border-radius: 12px;
+}
+
+.mobile-nav-item:hover .mobile-nav-glow {
+    opacity: 1;
+}
+
+/* Mobile nav arrow indicator */
+.mobile-nav-arrow {
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.mobile-nav-item:hover .mobile-nav-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+/* Decorative footer lines */
+.footer-line-left {
+    width: 32px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.3));
+}
+
+.footer-line-right {
+    width: 32px;
+    height: 1px;
+    background: linear-gradient(to left, transparent, rgba(255, 215, 0, 0.3));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-container {
+        backdrop-filter: none;
+    }
+}
+
+@media (min-width: 640px) {
+    .header-container {
+        backdrop-filter: blur(32px);
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+.nav-button,
+.mobile-nav-item,
+.burger-line,
+.logo-image {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on interactive elements */
+.nav-button,
+.mobile-nav-item,
+.close-button,
+.logo-image {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hardware acceleration for smooth animations */
+.header-container,
+.MuiDrawer-paper,
+.mobile-nav-item,
+.burger-line {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Accessibility - Focus states */
+.nav-button:focus-visible,
+.mobile-nav-item:focus-visible,
+.close-button:focus-visible {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Loading state optimization */
+.header-container.loading {
+    pointer-events: none;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

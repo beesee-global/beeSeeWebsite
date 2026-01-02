@@ -1,0 +1,527 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+
+/* ================================
+   FLOAT ANIMATIONS (WORKING 100%)
+   translate3d prevents layout issues
+================================== */
+
+@keyframes floatXY {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(0, -12px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes floatXYalt {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(0, -15px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ================================
+   VARIABLES
+================================== */
+:root {
+  --gold: #fdcc00;
+  --gold-dark: #de9f00;
+  --beige: #c7b897;
+  --black: #000000;
+}
+
+/* ================================
+   GLOBAL
+================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.featured-showcase-optimized {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: #000000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+}
+
+/* ================================
+   CONTENT GRID
+================================== */
+.featured-content-optimized {
+  position: relative;
+  z-index: 10;
+  max-width: 1500px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (min-width: 968px) {
+  .featured-content-optimized {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 6rem;
+  }
+}
+
+/* ================================
+   WATCH STAGE AREA
+================================== */
+.watches-stage-optimized {
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floor Glow */
+.floor-glow-simple {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 150px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(253, 204, 0, 0.15) 0%,
+    transparent 70%
+  );
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+/* ================================
+   WATCH ITEMS (FLOAT FIX APPLIED)
+================================== */
+.watch-item-optimized {
+  position: absolute;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.watch-img-optimized {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.8));
+  transition: filter 0.3s ease;
+}
+
+.watch-item-optimized:hover .watch-img-optimized {
+  filter: drop-shadow(0 30px 60px rgba(253, 204, 0, 0.3));
+}
+
+/* RED WATCH — now floats */
+.watch-red-optimized {
+  left: 5%;
+  top: 8%;
+  z-index: 30;
+  width: min(450px, 50vw);
+  animation: floatXY 4.5s ease-in-out infinite;
+}
+
+/* GREEN WATCH — now floats too */
+.watch-green-optimized {
+  right: 2%;
+  bottom: 10%;
+  z-index: 25;
+  width: min(400px, 45vw);
+  animation: floatXYalt 5.5s ease-in-out infinite;
+}
+
+/* ================================
+   BADGES
+================================== */
+.data-badge {
+  position: absolute;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 5px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(253, 204, 0, 0.4);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.badge-1 { top: 15%; right: -5%; }
+.badge-2 { bottom: 30%; left: 10%; }
+.badge-3 { top: 50%; right: 0%; }
+.badge-4 { top: 20%; left: -8%; }
+.badge-5 { bottom: 25%; right: -8%; }
+.badge-6 { top: 45%; left: 0%; }
+
+/* ================================
+   ORBITAL RINGS (COLOR FIXED)
+================================== */
+.orbital-ring {
+  position: absolute;
+  border: 1px solid #DE9F00; 
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ring-1 {
+  width: 500px;
+  height: 500px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: rotateRing 20s linear infinite;
+}
+
+.ring-2 {
+  width: 650px;
+  height: 650px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  animation: rotateRing 30s linear infinite reverse;
+}
+
+@keyframes rotateRing {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ================================
+   TEXT SECTION
+================================== */
+.text-content-optimized {
+  position: relative;
+  color: var(--beige);
+  max-width: 600px;
+}
+
+.featured-title-optimized {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 7vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  line-height: 1;
+  margin: 0 0 2rem 0;
+  background: linear-gradient(
+    120deg,
+    var(--gold) 0%,
+    #ffd700 50%,
+    var(--gold) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerTitle 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(253, 204, 0, 0.5));
+}
+
+@keyframes shimmerTitle {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 0%; }
+}
+
+.featured-description-optimized {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.9;
+  color: rgba(199, 184, 151, 0.95);
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+  padding-left: 20px;
+  border-left: 3px solid rgba(253, 204, 0, 0.4);
+}
+
+/* ================================
+   CTA BUTTON
+================================== */
+.cta-wrapper-optimized {
+  margin-bottom: 3rem;
+}
+
+.cta-button-optimized {
+  position: relative;
+  padding: 18px 48px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  letter-spacing: 0.3em;
+  color: #000;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  border: 2px solid rgba(253, 204, 0, 0.6);
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(253, 204, 0, 0.3);
+}
+
+.cta-button-optimized:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(253, 204, 0, 0.5);
+  border-color: rgba(253, 204, 0, 0.9);
+}
+
+.cta-button-optimized svg {
+  transition: transform 0.3s ease;
+}
+
+.cta-button-optimized:hover svg {
+  transform: translateX(5px);
+}
+
+/* ================================
+   TECH STATS — RESTORED
+================================== */
+
+.tech-stats-optimized {
+  display: flex;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.stat-item-optimized {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-value-optimized {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 15px rgba(253, 204, 0, 0.6);
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.stat-label-optimized {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(199, 184, 151, 0.7);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================== */
+@media (max-width: 967px) {
+  .featured-content-optimized {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE FIXES — MOBILE, TABLET, SMALL DEVICES
+   Makes the watches, rings, text, badges responsive
+============================================================ */
+
+/* 📱 TABLET */
+@media (max-width: 968px) {
+
+  .watches-stage-optimized {
+    min-height: 480px;
+  }
+
+  .watch-red-optimized {
+    width: 60vw;
+    left: 0%;
+    top: 5%;
+  }
+
+  .watch-green-optimized {
+    width: 55vw;
+    right: 0%;
+    bottom: 8%;
+  }
+
+  .orbital-ring.ring-1 {
+    width: 380px;
+    height: 380px;
+  }
+
+  .orbital-ring.ring-2 {
+    width: 500px;
+    height: 500px;
+  }
+
+  .featured-title-optimized {
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    letter-spacing: 0.25em;
+  }
+
+  .tech-stats-optimized {
+    gap: 2rem;
+  }
+
+  .stat-value-optimized {
+    font-size: 26px;
+  }
+}
+
+/* 📱 MOBILE MEDIUM */
+@media (max-width: 640px) {
+
+  .featured-showcase-optimized {
+    padding: 2rem 1rem;
+  }
+
+  .watches-stage-optimized {
+    min-height: 420px;
+  }
+
+  .watch-red-optimized {
+    width: 65vw;
+    left: -2%;
+    top: 6%;
+  }
+
+  .watch-green-optimized {
+    width: 60vw;
+    right: -2%;
+    bottom: 10%;
+  }
+
+  .orbital-ring.ring-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .orbital-ring.ring-2 {
+    width: 420px;
+    height: 420px;
+  }
+
+  .featured-description-optimized {
+    font-size: 14px;
+    padding-left: 12px;
+  }
+
+  .cta-button-optimized {
+    padding: 14px 32px;
+    font-size: 14px;
+  }
+
+  .tech-stats-optimized {
+    gap: 1.4rem;
+  }
+
+  .stat-value-optimized {
+    font-size: 22px;
+  }
+
+  .stat-label-optimized {
+    font-size: 9px;
+  }
+}
+
+/* 📱 MOBILE SMALL */
+@media (max-width: 480px) {
+
+  .watches-stage-optimized {
+    min-height: 380px;
+  }
+
+  .watch-red-optimized {
+    width: 70vw;
+    left: -4%;
+    top: 10%;
+  }
+
+  .watch-green-optimized {
+    width: 62vw;
+    right: -4%;
+    bottom: 12%;
+  }
+
+  .data-badge {
+    font-size: 8px;
+    padding: 3px 8px;
+  }
+
+  .badge-1 { right: -10%; }
+  .badge-2 { left: -12%; }
+  .badge-4 { left: -12%; }
+  .badge-5 { right: -12%; }
+
+  .orbital-ring.ring-1 {
+    width: 260px;
+    height: 260px;
+  }
+
+  .orbital-ring.ring-2 {
+    width: 350px;
+    height: 350px;
+  }
+
+  .featured-title-optimized {
+    font-size: clamp(2rem, 10vw, 3rem);
+    letter-spacing: 0.2em;
+  }
+
+  .cta-button-optimized {
+    padding: 12px 28px;
+    font-size: 13px;
+  }
+
+  .tech-stats-optimized {
+    gap: 1.1rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-value-optimized {
+    font-size: 20px;
+  }
+
+  .stat-label-optimized {
+    font-size: 8px;
+  }
+}
+
+/* ============================================
+   MAKE FEATURED PRODUCT ONE LINE
+============================================ */
+.single-line-title {
+  white-space: nowrap;
+  display: block;
+}
+
+/* Reduce spacing at mobile so hindi siksik */
+.safe-container {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+@media (max-width: 640px) {
+  .safe-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .featured-title-optimized.single-line-title {
+    letter-spacing: 0.15em;
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
+  }
+}
+
+/* Slightly adjust desktop spacing */
+@media (min-width: 968px) {
+  .safe-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+

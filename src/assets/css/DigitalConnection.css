@@ -1,0 +1,125 @@
+/* ==============
+   CONTAINER
+=============== */
+.carousel-container {
+  overflow: hidden;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 22px;
+}
+
+/* ==============
+   TRACK
+=============== */
+.carousel-track {
+  display: flex;
+  gap: 28px;
+  padding: 6px 0;
+  animation: scrollLoop 18s linear infinite;
+  align-items: center;
+}
+
+/* Corrected infinite distance: (380 + 28) * 5 = 2040 */
+@keyframes scrollLoop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-2040px); }
+}
+
+/* ==============
+   WRAPPER FIXED SIZE (prevents distortion)
+=============== */
+.carousel-item-wrapper {
+  position: relative;
+  width: 380px;
+  height: 420px;
+  border-radius: 22px;
+  overflow: hidden;
+  flex-shrink: 0;   /* 🔥 IMPORTANT FIX */
+}
+
+/* ==============
+   IMAGE LAYERS
+=============== */
+.carousel-img {
+  position: absolute;
+  inset: 0;                   /* fills wrapper perfectly */
+  width: 100%;                /* <— fixes distortion */
+  height: 100%;               /* <— fixes distortion */
+  object-fit: cover;
+  border-radius: 22px;
+  transition: opacity 0.45s ease, transform 0.5s ease;
+}
+
+.bw-image {
+  filter: grayscale(100%);
+  opacity: 1;
+}
+
+.color-image {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+/* HOVER CROSSFADE */
+.carousel-item-wrapper:hover .bw-image {
+  opacity: 0;
+}
+
+.carousel-item-wrapper:hover .color-image {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ==============
+   SHINE EFFECT
+=============== */
+.carousel-item-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.7s ease;
+}
+
+.carousel-item-wrapper:hover::after {
+  left: 140%;
+}
+
+/* ==============
+   RESPONSIVE
+=============== */
+
+@media (max-width: 1024px) {
+  .carousel-item-wrapper {
+    width: 300px;
+    height: 340px;
+  }
+}
+
+@media (max-width: 640px) {
+  .carousel-item-wrapper {
+    width: 240px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-item-wrapper {
+    width: 200px;
+    height: 240px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .carousel-container {
+    max-width: 720px;
+  }
+}

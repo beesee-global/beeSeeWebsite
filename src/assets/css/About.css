@@ -1,0 +1,229 @@
+/* src/pages/About/About.css */
+
+/* Root wrapper */
+.about-page {
+  background-color: var(--bg-black);
+  color: var(--muted);
+}
+
+/* Main layout */
+.about-main {
+  position: relative;
+  isolation: isolate;
+}
+
+/* =========================
+   HERO SECTION
+========================= */
+
+.about-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.about-hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.about-hero-orbit {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.4;
+  mix-blend-mode: screen;
+}
+
+.about-hero-orbit--left {
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle at 30% 30%, var(--beesee-gold), transparent 65%);
+  top: -40px;
+  left: -60px;
+  animation: about-float-slow 12s ease-in-out infinite;
+}
+
+.about-hero-orbit--right {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle at 70% 30%, var(--beesee-gold-soft), transparent 70%);
+  bottom: -40px;
+  right: -60px;
+  animation: about-float-slow 16s ease-in-out infinite;
+}
+
+.about-hero-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1px, transparent 0);
+  background-size: 6px 6px;
+  mix-blend-mode: soft-light;
+}
+
+.about-hero-card {
+  backdrop-filter: blur(26px);
+}
+
+/* Gold pill */
+.about-gold-pill {
+  background:
+    radial-gradient(circle at 0 0, rgba(253, 204, 0, 0.4), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(253, 204, 0, 0.2), transparent 55%),
+    rgba(15, 15, 15, 0.95);
+  border: 1px solid rgba(253, 204, 0, 0.6);
+  box-shadow: 0 0 28px rgba(253, 204, 0, 0.4);
+}
+
+/* Primary CTA button */
+.about-primary-btn {
+  position: relative;
+  padding: 0.85rem 2.4rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--beesee-gold-soft), var(--beesee-gold));
+  color: var(--text-dark);
+  box-shadow: 0 16px 40px rgba(253, 204, 0, 0.45);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.about-primary-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  transform: translateX(-120%);
+  opacity: 0;
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+.about-primary-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 22px 60px rgba(253, 204, 0, 0.7);
+}
+
+.about-primary-btn:hover::after {
+  opacity: 1;
+  transform: translateX(120%);
+}
+
+/* =========================
+   GENERIC SECTIONS
+========================= */
+
+.about-section {
+  position: relative;
+  isolation: isolate;
+}
+
+.about-section-gradient {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background:
+    radial-gradient(circle at 0 0, rgba(253, 204, 0, 0.08), transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(253, 204, 0, 0.06), transparent 65%);
+  pointer-events: none;
+}
+
+.about-section-gradient--bottom {
+  background:
+    radial-gradient(circle at 0 100%, rgba(253, 204, 0, 0.12), transparent 60%),
+    radial-gradient(circle at 100% 0, rgba(253, 204, 0, 0.08), transparent 65%);
+}
+
+.about-section--last {
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+/* Glass cards */
+.about-glass-card {
+  background:
+    radial-gradient(circle at 0 0, rgba(253, 204, 0, 0.06), transparent 55%),
+    rgba(10, 10, 10, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+/* Icon badge for mission/vision etc. */
+.about-icon-badge {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--beesee-gold-soft), var(--beesee-gold));
+  box-shadow: 0 10px 25px rgba(253, 204, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* =========================================================
+   PREMIUM GOLD BUTTON (from Digital Connection)
+   ========================================================= */
+
+.btn-gold {
+  @apply px-8 py-4 rounded-full font-segoe font-semibold 
+         text-black text-sm sm:text-base
+         tracking-wider cursor-pointer transition-all duration-300;
+
+  background: linear-gradient(
+    90deg,
+    var(--beesee-gold-soft),
+    var(--beesee-gold)
+  );
+
+  box-shadow: 0 0 18px rgba(253, 204, 0, 0.55),
+              0 8px 28px rgba(253, 204, 0, 0.35);
+}
+
+.btn-gold:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 0 26px rgba(253, 204, 0, 0.75),
+              0 10px 32px rgba(253, 204, 0, 0.45);
+}
+
+.btn-gold:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes about-float-slow {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* =========================
+   RESPONSIVE TWEAKS
+========================= */
+
+@media (max-width: 768px) {
+  .about-hero-orbit--left {
+    width: 200px;
+    height: 200px;
+    top: -60px;
+    left: -80px;
+  }
+  .about-hero-orbit--right {
+    width: 220px;
+    height: 220px;
+    bottom: -80px;
+    right: -100px;
+  }
+}
+

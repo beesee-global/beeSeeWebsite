@@ -1,0 +1,403 @@
+/* =========================================================
+   BEESEE — MASTER global.css (FINAL)
+   One source of truth for:
+   ✔ Colors
+   ✔ Typography
+   ✔ Spacing
+   ✔ Buttons
+   ✔ Cards
+   ✔ Inputs
+   ✔ Animations
+========================================================= */
+
+/* ------------------------------
+   FONT IMPORTS
+------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Georgia&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600&display=swap');
+
+/* ------------------------------
+   RESET
+------------------------------ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+  height: 100%;
+  background: #000;
+
+
+}
+
+
+
+
+
+
+/* ------------------------------
+   DESIGN TOKENS
+------------------------------ */
+:root {
+  --beesee-gold: #FDCC00;
+  --beesee-gold-soft: #FBD463;
+  --muted: #C7B897;
+  --text-light: #ffffff;
+  --text-dark: #0a0a0a;
+
+  --radius-xl: 20px;
+  --radius-md: 12px;
+
+  --shadow-heavy: 0 18px 60px rgba(0,0,0,0.9);
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+}
+
+/* ------------------------------
+   TYPOGRAPHY SCALE
+------------------------------ */
+.bee-title-lg {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 48px;
+  line-height: 1;
+}
+@media (min-width: 640px) { .bee-title-lg { font-size: 56px; } }
+@media (min-width: 1024px) { .bee-title-lg { font-size: 64px; } }
+
+.bee-title-md {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 40px;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (min-width: 640px) { .bee-title-md { font-size: 48px; } }
+@media (min-width: 1024px) { .bee-title-md { font-size: 56px; } }
+
+.bee-title-sm {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bee-body {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+@media (min-width: 768px) { .bee-body { font-size: 17px; } }
+@media (min-width: 1024px) { .bee-body { font-size: 18px; } }
+
+.bee-body-sm {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ------------------------------
+   BUTTON SYSTEM
+------------------------------ */
+.beesee-button {
+  width: 100%;
+  padding: 14px 0;
+  background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
+  color: #383120;
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 650;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: 0.25s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.beesee-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px rgba(253, 204, 0, 0.45);
+  color: white;
+}
+
+.beesee-button--small {
+  width: auto !important;
+  padding: 12px 35px !important;
+  font-size: 1.05rem !important;
+  border-radius: 10px !important;
+}
+
+/* ------------------------------
+   CARD SYSTEM
+------------------------------ */
+
+/* TYPE A — IMAGE CARD (Section Two) */
+.beesee-card-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(253, 204, 0, 0.25);
+  box-shadow: 0 0 45px rgba(253, 204, 0, 0.18);
+  transition: 0.4s ease;
+}
+
+.beesee-card-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-image:hover img {
+  transform: scale(1.05);
+}
+
+.beesee-card-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  pointer-events: none;
+}
+
+/* TYPE B — CONTENT CARD (Services style, Section Three) */
+/* ================================================
+   TYPE B — CONTENT CARD (UPDATED TO MOTION STYLE)
+================================================ */
+
+.beesee-card-content {
+  position: relative;
+  background: rgba(255, 255, 255, 0.06); /* glass */
+  backdrop-filter: blur(12px);
+  border-radius: 22px;
+  padding: 2rem;
+  border: 1px solid rgba(253, 204, 0, 0.22);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  transition: 
+      transform 0.45s ease,
+      box-shadow 0.45s ease,
+      border-color 0.45s ease,
+      background 0.35s ease;
+  text-align: center;
+  overflow: hidden; /* allow glow layer */
+}
+
+.beesee-card-content:hover {
+  transform: translateY(-10px);
+  border-color: rgba(253, 204, 0, 0.55);
+  box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
+              0 18px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Hover Glow Layer */
+.beesee-card-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.12),
+    transparent,
+    rgba(255, 215, 0, 0.12)
+  );
+  border-radius: 22px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.beesee-card-content img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-content:hover img {
+  transform: scale(1.05);
+}
+
+.beesee-card-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  pointer-events: none;
+}
+
+.beesee-card-content:hover::before {
+  opacity: 1;
+}
+
+/* Icon Circle */
+.beesee-card-content .icon-wrap {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  margin: 0 auto 1.75rem;
+  border: 2px solid rgba(253, 204, 0, 0.30);
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.20),
+    rgba(255, 215, 0, 0.10)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--beesee-gold);
+  transition: 
+      transform 0.45s ease,
+      border-color 0.35s ease,
+      background 0.35s ease;
+}
+
+.beesee-card-content:hover .icon-wrap {
+  transform: scale(1.12) rotate(6deg);
+  border-color: rgba(253, 204, 0, 0.55);
+}
+
+/* Title */
+.beesee-card-content-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  color: var(--text-light);
+  margin: 0.4rem 0 1rem;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content:hover .beesee-card-content-title {
+  color: var(--beesee-gold);
+}
+
+/* Description */
+.beesee-card-content-desc {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content:hover .beesee-card-content-desc {
+  color: #C7B897;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .beesee-card-content {
+    padding: 22px;
+  }
+  .beesee-card-content-title {
+    font-size: 20px;
+  }
+  .beesee-card-content .icon-wrap {
+    width: 62px;
+    height: 62px;
+  }
+}
+
+/* ------------------------------
+   INPUTS
+------------------------------ */
+.input-default {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(37,37,37,0.65);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: var(--text-light);
+  transition: 0.25s ease;
+  font-size: 16px;
+}
+
+.input-default:focus {
+  border-color: var(--beesee-gold);
+  box-shadow: 0 6px 20px rgba(253,204,0,.18);
+}
+
+.input-default::placeholder {
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+}
+
+/* ------------------------------
+   ANIMATIONS
+------------------------------ */
+.fade-up-init {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.fade-up {
+  opacity: 1;
+  transform: translateY(0);
+  transition: 0.6s ease-out;
+}
+/* ——————————————— CONTACT FORM HOVER INTERACTIONS ——————————————— */
+/* Input hover */
+#contact-section input:hover,
+#contact-section textarea:hover {
+  border-color: var(--beesee-gold);
+  box-shadow: 0 0 10px rgba(253,204,0,0.25);
+  background: rgba(255,255,255,0.04);
+  transition: 0.25s ease;
+}
+
+/* Label micro-hover brightness */
+#contact-section label:hover {
+  color: #ffe37e;
+  transition: 0.25s ease;
+}
+
+/* Button hover enhancement */
+#contact-section button:hover {
+  box-shadow: 0 0 25px rgba(253,204,0,0.45);
+  transform: scale(1.06) translateY(-2px);
+}
+
+/* Gold sweep animation on hover */
+#contact-section button {
+  position: relative;
+  overflow: hidden;
+}
+
+#contact-section button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.35) 50%,
+    transparent 100%
+  );
+  transition: 0.5s ease-out;
+}
+
+#contact-section button:hover::after {
+  left: 100%;
+}
+
+/* Very subtle section hover responsiveness */
+#contact-section:hover {
+  filter: brightness(1.03);
+  transition: 0.4s ease;
+}
