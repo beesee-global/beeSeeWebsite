@@ -158,7 +158,7 @@ const Products = () => {
             setMessage(`${status === "Active" ? "The product has been deactivated successfully." : "The product has been activated successfully."}`) 
 
             // trigger refetch
-            queryClient.invalidateQueries(["product"])
+            queryClient.invalidateQueries({ queryKey: ["product"] })
         } catch (error) {
             setSnackBarType("error");
             setMessage("Failed to disabled the product. Please try again.");

@@ -115,7 +115,7 @@ const SolutionsOverviewForm = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleImageSelect = (e) => {
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 10485760) {
@@ -143,11 +143,11 @@ const SolutionsOverviewForm = () => {
         setFormData((prev) => ({ ...prev, features: [...prev.features, ''] }));
     };
 
-    const handleRemoveFeature = (index) => {
+    const handleRemoveFeature = (index: number) => {
         setFormData((prev) => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
     };
 
-    const handleFeatureChange = (index, value) => {
+    const handleFeatureChange = (index: number, value: string) => {
         setFormData((prev) => ({
             ...prev,
             features: prev.features.map((f, i) => (i === index ? value : f)),
@@ -179,7 +179,7 @@ const SolutionsOverviewForm = () => {
             data.append('description', formData.description);
             data.append('icon', formData.icon);
             data.append('features', JSON.stringify(formData.features.filter((f) => f.trim())));
-            const specsObj = formData.specs.filter((s) => s.key.trim() && s.value.trim()).reduce((acc, spec) => {
+            const specsObj = formData.specs.filter((s) => s.key.trim() && s.value.trim()).reduce((acc: any, spec) => {
                 acc[spec.key] = spec.value;
                 return acc;
             }, {});
@@ -331,6 +331,7 @@ const SolutionsOverviewForm = () => {
                                                     multiline={false}
                                                     rows={1}
                                                     type="text"
+                                                    maxLength={255}
                                                     onChange={(e) => handleFeatureChange(index, e.target.value)}
                                                 />
                                                 {formData.features.length > 1 && (
@@ -371,6 +372,7 @@ const SolutionsOverviewForm = () => {
                                                     multiline={false}
                                                     rows={1}
                                                     type="text"
+                                                    maxLength={255}
                                                     onChange={(e) => handleSpecChange(index, 'key', e.target.value)}
                                                 />
                                                 <div className="flex gap-2">
@@ -381,6 +383,7 @@ const SolutionsOverviewForm = () => {
                                                         multiline={false}
                                                         rows={1}
                                                         type="text"
+                                                        maxLength={255}
                                                         onChange={(e) => handleSpecChange(index, 'value', e.target.value)}
                                                     />
                                                     {formData.specs.length > 1 && (

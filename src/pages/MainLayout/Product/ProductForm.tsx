@@ -28,7 +28,13 @@ import {
 } from '../../../services/productServices'
 import Snackbar from '../../../components/feedback/Snackbar'; 
 import { AlertColor } from '@mui/material/Alert';
-import { FormProductData } from "../../../assets/models/FormProductMode";
+
+interface FormProductData {
+  product_name: string;
+  tagline: string;
+  category: number;
+  stock: string;
+}
 
 interface FormError {
   product_name?: string;
@@ -149,7 +155,7 @@ const ProductForm: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    setProductData((prev) => ({
+    setProductData((prev: FormProductData) => ({
       ...prev,
       [name] : value
     }));
@@ -350,7 +356,7 @@ const ProductForm: React.FC = () => {
   // --- fetch specific product params id ---
   const { data: productInfo } = useQuery({
     queryKey: ["product", id],
-    queryFn: () => fetchSpecificProduct(id),
+    queryFn: () => fetchSpecificProduct(id as string),
     enabled: !!id,
   });
 
@@ -361,7 +367,7 @@ const ProductForm: React.FC = () => {
         product_name: productInfo.name || "",
         tagline: productInfo.tagline || "",
         category: productInfo.category_id || 0,
-        stock: productInfo.stock || ""
+        stock: String(productInfo.stock || "0")
       });
 
       const initialGallery = (productInfo.images || []).map((img: any) => ({

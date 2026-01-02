@@ -214,7 +214,7 @@ const MyAccount = () => {
   // fetching data from backend
   const { data: userInformation } = useQuery({
     queryKey: ['users', id],
-    queryFn: () => fetchUserById(id), 
+    queryFn: () => fetchUserById(String(id)), 
   });
 
   // --- close modal ---
@@ -568,7 +568,7 @@ const MyAccount = () => {
                     <div className="flex items-center">
                       <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
                       <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {accountData.image.name}
+                        {accountData.image instanceof File ? accountData.image.name : typeof accountData.image === 'string' ? accountData.image : 'Image'}
                       </span>
                     </div>
                     {/* <span className="text-xs text-gray-500 dark:text-gray-400">
