@@ -1,9 +1,4 @@
-/* =========================================================
-   UNIFIED HOME SECTIONS WITH ADVANCED SCROLL EFFECTS
-   Section Two + Section Three + Digital Connection
-   All Original Branding & Classes Preserved
-   Enhanced with consistent left/right slide-in transitions
-========================================================== */
+
 
 import React, { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +11,7 @@ import {
 } from "framer-motion";
 import { GraduationCap, Briefcase, MapPin, ArrowRight } from "lucide-react";
 
-/* MOCK IMAGES - Replace with your actual imports */
+/* MOCK IMAGES -*/
 const honey1 = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80";
 const honey10 = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80";
 const honey10BW = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80&sat=-100";

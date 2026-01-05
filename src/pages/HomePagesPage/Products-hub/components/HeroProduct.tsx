@@ -1,4 +1,4 @@
-/* FULL FILE — FIXED OVERFLOW TO PREVENT DIVIDER FROM BEING CUT */
+
 "use client";
 
 import React, { useEffect, useState } from "react";

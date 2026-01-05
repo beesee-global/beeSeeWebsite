@@ -1,9 +1,3 @@
-/* =========================================================
-   UNIFIED SCROLLING PAGE - MOBILE RESPONSIVE VERSION
-   Hero + Company Story (No Timeline) + Stepper
-   Advanced Parallax with Mobile Optimization
-========================================================== */
-
 import React, { useRef, useState, useEffect } from "react";
 import {
   motion,
@@ -15,7 +9,7 @@ import {
 } from "framer-motion";
 import { Heart, Target } from "lucide-react";
 
-// Mock images - replace with your actual imports
+// Mock images 
 const buildingBeesee = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80";
 const ictPictue = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80";
 const digitalContent = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80";

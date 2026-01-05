@@ -12,9 +12,7 @@ import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduc
 import "../../../assets/css/Product.css";
 import "../../../assets/css/MimicStyles.css";
 
-/* ===========================
-   UNIVERSAL FADE REVEAL
-=========================== */
+
 const FadeReveal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <motion.div
