@@ -126,9 +126,9 @@ const UnifiedScrollingPage: React.FC = () => {
           y: heroY,
           opacity: heroOpacity,
         }}
-        className="relative h-screen flex items-center z-10 px-6 md:px-10 lg:px-12"
+        className="relative min-h-screen flex items-center z-10 px-6 md:px-10 lg:px-12 pt-24 md:pt-0"
       >
-        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-20 items-center pt-40 pb-32">
+        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-8 md:gap-20 items-center py-20 md:py-32">
           
           {/* LEFT */}
           <motion.div
@@ -226,6 +226,7 @@ const UnifiedScrollingPage: React.FC = () => {
                       src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&modestbranding=1&rel=0"
                       allowFullScreen
                       className="w-full h-full"
+                      title="BeeSee Global Technologies Story"
                     />
                   </motion.div>
                 ) : (
@@ -240,6 +241,7 @@ const UnifiedScrollingPage: React.FC = () => {
                   >
                     <motion.img
                       src={buildingBeesee}
+                      alt="Building BeeSee"
                       className="w-full h-full object-cover"
                       whileHover={{ scale: 1.1 }}
                       transition={{ duration: 0.6 }}
@@ -273,7 +275,7 @@ const UnifiedScrollingPage: React.FC = () => {
           y: storyY,
           opacity: storyOpacity,
         }}
-        className="relative h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
+        className="relative min-h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
           
@@ -359,7 +361,7 @@ const UnifiedScrollingPage: React.FC = () => {
           y: stepperY,
           opacity: stepperOpacity,
         }}
-        className="relative h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
+        className="relative min-h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
           
@@ -389,23 +391,18 @@ const UnifiedScrollingPage: React.FC = () => {
             <div className="space-y-6">
               {steps.map((step, i) => {
                 const isActive = i === activeStep;
-                const stepRef = useRef<HTMLDivElement | null>(null);
-                const stepInView = useInView(stepRef, { amount: 0.5 });
 
                 return (
                   <motion.div 
                     key={i}
-                    ref={stepRef}
                     initial={{ opacity: 0, x: -20 }}
                     animate={stepperInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ 
                       duration: 0.5, 
                       delay: i * 0.1,
-                      when: "beforeChildren" 
                     }}
                     whileHover={{ scale: 1.03, x: 8 }}
-                    transition={{ type: "spring", stiffness: 200 }}
                     className="cursor-pointer flex gap-4 items-start group"
                     onClick={() => setActiveStep(i)}
                   >
@@ -414,7 +411,7 @@ const UnifiedScrollingPage: React.FC = () => {
                         scale: 1.25, 
                         boxShadow: "0 0 20px #FDCC00aa" 
                       } : { scale: 1 }}
-                      className={`h-8 w-8 rounded-full flex items-center justify-center border transition
+                      className={`h-8 w-8 rounded-full flex items-center justify-center border transition flex-shrink-0
                         ${isActive 
                           ? "bg-[#FDCC00] text-black border-[#FDCC00]" 
                           : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"
@@ -450,7 +447,8 @@ const UnifiedScrollingPage: React.FC = () => {
               >
                 <motion.div className="relative overflow-hidden group">
                   <motion.img 
-                    src={currentStep.image} 
+                    src={currentStep.image}
+                    alt={currentStep.title}
                     className="w-full h-64 object-cover transition duration-700 group-hover:scale-[1.08]" 
                   />
                   <div className="absolute inset-0 bg-black/40" />

@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { motion, useScroll, useTransform, useSpring, useAnimation, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useAnimation, useInView } from "framer-motion";
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
 
 import "../../../../assets/css/Solutions.css";
-import "../../../../assets/css/global.css"; // Ensure global typography applies
+import "../../../../assets/css/global.css";
 
 /* Dummy image for SupportServices */
 import image from "../../../../../public/assets/images/elleAssets/1.jpg";
@@ -262,7 +262,7 @@ const UnifiedPage: React.FC = () => {
                   className={`${index % 2 === 1 ? "lg:col-start-1" : ""}`}
                 >
                   <div className="relative backdrop-blur-md rounded-lg sm:rounded-2xl p-3 sm:p-6 border border-[#FDCC00]/25">
-                    <img src={solution.image_url} className="w-full h-40 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg sm:rounded-xl" />
+                    <img src={solution.image_url} className="w-full h-40 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg sm:rounded-xl" alt={solution.title} />
                   </div>
                 </motion.div>
               </motion.div>
@@ -292,24 +292,22 @@ const UnifiedPage: React.FC = () => {
             variants={supportLeftVariants}
           >
             <motion.div
-              style={{ y: supportTitleY }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              style={{ fontFamily: "Georgia, serif" }}
+              style={{ y: supportTitleY, fontFamily: "Georgia, serif" }}
               className="text-[#FDCC00]/80 text-xs sm:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase mb-3 sm:mb-4"
             >
               We're Here for You
             </motion.div>
 
             <motion.h2
-              style={{ y: supportTitleY }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+              style={{ y: supportTitleY, fontFamily: "'Bebas Neue', sans-serif" }}
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#FDCC00] tracking-wide leading-tight mb-4 sm:mb-6"
             >
               INTEGRATED SUPPORT & SERVICES

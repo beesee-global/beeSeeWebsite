@@ -65,15 +65,25 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [userNav, setUserNav]);
 
+  // Cleanup object URL when component unmounts or image changes
+  useEffect(() => {
+    return () => {
+      if (preview && user.image instanceof File) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview, user.image]);
+
   return (
     <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 w-full border-b border-gray-300">
       <div className="flex gap-2 items-center">
-        <div
+        <button
           onClick={() => setShowSidebar(true)}
-          className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/10 cursor-pointer"
+          className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/10 cursor-pointer transition-colors"
+          aria-label="Open sidebar"
         >
           <Menu className="text-white" />
-        </div>
+        </button>
 
         <img
           src={beeseeGoldLogo}
@@ -88,7 +98,9 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             e.stopPropagation();
             setUserNav((prev) => !prev);
           }}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white"
+          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white transition-colors"
+          aria-label="User menu"
+          aria-expanded={userNav}
         >
           {user.image ? (
             <img
@@ -98,7 +110,9 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             />
           ) : (
             <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-white font-semibold">
-              {`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}
+              {user.first_name && user.last_name
+                ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
+                : "U"}
             </div>
           )}
 
@@ -110,7 +124,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
         {userNav && (
           <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-20">
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-100"
+              className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-100 rounded-t-lg transition-colors"
               onClick={() => {
                 navigate("/beesee/my-account");
                 setUserNav(false);
@@ -123,7 +137,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             <div className="border-t my-1" />
 
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 text-red-600 hover:bg-gray-100"
+              className="flex items-center gap-2 w-full px-3 py-2 text-red-600 hover:bg-gray-100 rounded-b-lg transition-colors"
               onClick={() => {
                 logout();
                 navigate("/sign-in", { replace: true });
