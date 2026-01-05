@@ -1,17 +1,41 @@
 "use client";
 
 import { useScroll } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Hero from "./components/Hero";
 import ContactSection from "./components/ContactSection";
 import SectionTwo from "./components/SectionTwo";
 
 export default function HomePage() {
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-	target: containerRef,
-	offset: ["start start", "end start"],
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll();
+
+  useEffect(() => {
+	// Force reflow to ensure scroll is registered
+	window.scrollTo(0, 0);
+	
+	// Ensure document is scrollable
+	document.documentElement.style.overflow = "auto";
+	document.documentElement.style.height = "auto";
+	document.body.style.overflow = "auto";
+	document.body.style.height = "auto";
+	
+	if (containerRef.current) {
+	  containerRef.current.style.overflow = "visible";
+	}
+
+	// Force a small scroll trigger to initialize the scroll listener
+	setTimeout(() => {
+	  window.dispatchEvent(new Event("scroll"));
+	}, 10);
+
+	return () => {
+	  document.documentElement.style.overflow = "";
+	  document.documentElement.style.height = "";
+	  document.body.style.overflow = "";
+	  document.body.style.height = "";
+	};
+  }, []);
 
   return (
 	<div ref={containerRef} className="relative w-full overflow-x-hidden">
