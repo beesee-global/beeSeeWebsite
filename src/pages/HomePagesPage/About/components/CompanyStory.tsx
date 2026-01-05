@@ -1,8 +1,4 @@
-/* =========================================================
-   COMPANY STORY — PURE GOLD BRAND (NO GRADIENT)
-   Visible Background Parallax + Subtle Foreground Lift
-   NO TEXT MODIFIED — design only.
-========================================================== */
+
 
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
