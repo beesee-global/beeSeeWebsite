@@ -1,12 +1,12 @@
-import React, { useContext, useMemo, useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { LogOut, User, Menu } from "lucide-react";
-import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png';
+import beeseeGoldLogo from "../../../public/beeseeGoldLogo.png";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserById } from "../../services/myAccountServices";
-import { userAuth } from '../../hooks/userAuth';
+import { userAuth } from "../../hooks/userAuth";
 
-interface NavigationProps { 
+interface NavigationProps {
   setShowSidebar: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -24,30 +24,36 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
   const id = userInfo?.id;
 
   const { data: userInformation } = useQuery({
-    queryKey: ['users', id],
+    queryKey: ["users", id],
     queryFn: () => fetchUserById(String(id)),
-    enabled: !!id
+    enabled: !!id,
   });
 
-  const user: UserData = useMemo(() => ({
-    first_name: userInformation?.first_name || "Loading...",
-    last_name: userInformation?.last_name || "",
-    image: userInformation?.image || null,
-  }), [userInformation]);
+  const user: UserData = useMemo(
+    () => ({
+      first_name: userInformation?.first_name || "Loading...",
+      last_name: userInformation?.last_name || "",
+      image: userInformation?.image || null,
+    }),
+    [userInformation]
+  );
 
   const preview = useMemo(() => {
     if (user.image instanceof File) {
       return URL.createObjectURL(user.image);
-    } else if (typeof user.image === "string" && user.image.trim() !== "") {
+    }
+    if (typeof user.image === "string" && user.image.trim() !== "") {
       return user.image;
     }
     return undefined;
   }, [user.image]);
 
-  // ✅ Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setUserNav(false);
       }
     };
@@ -61,98 +67,73 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
 
   return (
     <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 w-full border-b border-gray-300">
-      <div className="flex gap-2 items-center"> 
-        {/* Mobile Menu Button */}
-        <div 
-          data-menu-button
+      <div className="flex gap-2 items-center">
+        <div
           onClick={() => setShowSidebar(true)}
           className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/10 cursor-pointer"
         >
-          <Menu className="text-white"/>
+          <Menu className="text-white" />
         </div>
 
-        {/* Logo */}
-        <img 
-          src={beeseeGoldLogo} 
-          alt="BeeSee Logo" 
-          className="w-[150px] h-auto hover:cursor-pointer" 
+        <img
+          src={beeseeGoldLogo}
+          alt="BeeSee Logo"
+          className="w-[150px] h-auto cursor-pointer"
         />
       </div>
 
-      {/* Profile Dropdown */}
-      <div className="relative flex flex-col" ref={dropdownRef}>
+      <div className="relative" ref={dropdownRef}>
         <button
           onClick={(e) => {
-            e.stopPropagation(); // ✅ Prevent outside click from firing immediately
-            setUserNav(prev => !prev);
+            e.stopPropagation();
+            setUserNav((prev) => !prev);
           }}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white transition"
+          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white"
         >
           {user.image ? (
             <img
               src={preview}
               alt={`${user.first_name} ${user.last_name}`}
-              className="w-8 h-8 rounded-full bg-white object-cover"
+              className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
             <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-white font-semibold">
               {`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}
             </div>
           )}
-          <span className="font-semibold max-w-[120px] text-sm md:text-md truncate">
+
+          <span className="font-semibold max-w-[120px] text-sm truncate">
             {user.first_name} {user.last_name}
           </span>
         </button>
 
         {userNav && (
-          <div className="absolute top-full right-0 mt-2 w-40 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border border-white/20 text-gray-800 z-20">
-            {/* My Account */}
+          <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-20">
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 transition"
+              className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-100"
               onClick={() => {
                 navigate("/beesee/my-account");
                 setUserNav(false);
               }}
             >
-              <User size={18} className="text-gray-700" />
-              <span>My Account</span>
+              <User size={18} />
+              My Account
             </button>
 
-            <div className="border-t border-gray-200 my-1" />
+            <div className="border-t my-1" />
 
-            {/* Logout */}
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 transition text-red-600"
+              className="flex items-center gap-2 w-full px-3 py-2 text-red-600 hover:bg-gray-100"
               onClick={() => {
                 logout();
                 navigate("/sign-in", { replace: true });
               }}
             >
               <LogOut size={18} />
-              <span>Logout</span>
+              Logout
             </button>
           </div>
         )}
-
-            {/* Logout */}
-            <button
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-100 transition text-red-600"
-              onClick={() => {
-                logout();
-                navigate("/sign-in", { replace: true });
-              }}
-            >
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default Navigation;
       </div>
     </div>
   );
