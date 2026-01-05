@@ -60,7 +60,6 @@ const HeroSection = () => {
     offset: ["start end", "end start"],
   });
 
-  // Subtle vertical movement layers - DISABLED ON MOBILE
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
   const headerY = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"]);
   const cardY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
@@ -89,11 +88,11 @@ const HeroSection = () => {
     <section
       ref={sectionRef}
       id="services"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden py-20 sm:py-24 md:py-28"
+      className="relative min-h-screen flex items-center justify-center py-20 sm:py-24 md:py-28"
     >
       {/* ================= BACKGROUND ================= */}
       <motion.div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 overflow-hidden"
         style={{ y: isMobile ? 0 : bgY }}
       >
         <video

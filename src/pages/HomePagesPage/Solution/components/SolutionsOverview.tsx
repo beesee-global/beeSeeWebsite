@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useAnimation, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useAnimation, useInView, useSpring } from "framer-motion";
+
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import image from "../../../../../public/assets/images/elleAssets/1.jpg";
 
 const UnifiedPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -24,6 +26,27 @@ const UnifiedPage: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Fix for mobile scrolling
+  useEffect(() => {
+    const fixMobileScrolling = () => {
+      // Reset any overflow hidden on body and html
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+      document.documentElement.style.overflow = 'auto';
+      document.documentElement.style.height = 'auto';
+      
+      // Make sure the container allows scrolling
+      if (containerRef.current) {
+        containerRef.current.style.minHeight = '100vh';
+        containerRef.current.style.overflow = 'visible';
+      }
+    };
+    
+    fixMobileScrolling();
+    window.addEventListener('resize', fixMobileScrolling);
+    return () => window.removeEventListener('resize', fixMobileScrolling);
   }, []);
 
   /** ==================== SOLUTIONS SECTION ==================== */
@@ -154,12 +177,12 @@ const UnifiedPage: React.FC = () => {
   };
 
   return (
-    <div className="relative bg-[#000000] overflow-x-hidden">
+    <div ref={containerRef} className="relative bg-[#000000] min-h-screen w-full overflow-visible">
 
       {/* ==================== SOLUTIONS SECTION ==================== */}
       <section
         ref={solutionsRef}
-        className="relative pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12 overflow-hidden"
+        className="relative w-full pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12"
         style={{
           backgroundImage: "url('/live-background/randomBg2.png')",
           backgroundSize: "cover",
@@ -179,45 +202,60 @@ const UnifiedPage: React.FC = () => {
           }}
         />
 
-        {/* HEADER */}
-        <motion.div 
-          style={{ y: isMobile ? 0 : contentY_Solutions }} 
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16 md:mb-20"
-        >
-          <motion.div
-            style={{ y: isMobile ? 0 : titleY_Solutions }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full mb-4 sm:mb-6 bee-body-sm text-[var(--beesee-gold)] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-xs sm:text-sm"
-          >
-            <Layers size={16} className="sm:w-[18px] sm:h-[18px] text-[#FDCC00]" />
-            Enterprise Solutions Portfolio
-          </motion.div>
+        <motion.div
+  style={{
+    y: useSpring(contentY_Solutions, { stiffness: 120, damping: 20 }), // smooth parallax
+    opacity: useSpring(
+      useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
+      { stiffness: 120, damping: 20 }
+    ), // smooth fade in/out
+  }}
+  className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 text-center mb-20"
+>
+  {/* Badge */}
+  <motion.div
+    style={{
+      y: useSpring(useTransform(solutionsProgress, [0, 1], [20, 0]), { stiffness: 120, damping: 20 }),
+      opacity: useSpring(
+        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
+        { stiffness: 120, damping: 20 }
+      ),
+    }}
+    className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-5 py-2 rounded-full mb-6 bee-body-sm text-[var(--beesee-gold)] uppercase tracking-[0.18em]"
+  >
+    <Layers size={18} className="text-[#FDCC00]" />
+    Enterprise Solutions Portfolio
+  </motion.div>
 
-          <motion.h2
-            style={{ y: isMobile ? 0 : titleY_Solutions }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.3 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--beesee-gold)] tracking-wide leading-tight px-4"
-          >
-            COMPLETE INFRASTRUCTURE SOLUTIONS
-          </motion.h2>
+  {/* Title */}
+  <motion.h2
+    style={{
+      y: useSpring(titleY_Solutions, { stiffness: 120, damping: 20 }),
+      opacity: useSpring(
+        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
+        { stiffness: 120, damping: 20 }
+      ),
+    }}
+    className="bee-title-lg text-[var(--beesee-gold)] tracking-wide"
+  >
+    COMPLETE INFRASTRUCTURE SOLUTIONS
+  </motion.h2>
 
-          <motion.p
-            style={{ y: isMobile ? 0 : contentY_Solutions }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base md:text-lg max-w-3xl mx-auto mt-3 sm:mt-6 leading-relaxed text-white/85 px-4"
-          >
-            From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
-          </motion.p>
-        </motion.div>
+  {/* Paragraph */}
+  <motion.p
+    style={{
+      y: useSpring(contentY_Solutions, { stiffness: 120, damping: 20 }),
+      opacity: useSpring(
+        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
+        { stiffness: 120, damping: 20 }
+      ),
+    }}
+    className="bee-body max-w-3xl mx-auto mt-6 leading-relaxed"
+  >
+    From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
+  </motion.p>
+</motion.div>
+
 
         {/* SOLUTION BLOCKS */}
         <motion.div 
@@ -307,7 +345,7 @@ const UnifiedPage: React.FC = () => {
       {/* ==================== SUPPORT SERVICES SECTION ==================== */}
       <section
         ref={supportRef}
-        className="relative py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#000000] overflow-hidden"
+        className="relative w-full py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#000000]"
       >
         {/* Animated Background Effects */}
         <div className="absolute inset-0 opacity-30 pointer-events-none">

@@ -1,44 +1,67 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 import HeroSection from "./components/HeroSection";
 import SolutionsOverview from "./components/SolutionsOverview";
-import SupportServices from "./components/SupportServices";
-import ContactCTA from "./components/ContactCTA";
+
 
 const LandingPage: React.FC = () => {
+  const heroRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [heroHeight, setHeroHeight] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
+  /** ------------------ Detect Mobile ------------------ */
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-  /* EXACT COPY FROM HOMEPAGE LOGIC */
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  /** ------------------ Hero Height ------------------ */
+  useEffect(() => {
+    const updateHeight = () => {
+      if (heroRef.current) setHeroHeight(heroRef.current.scrollHeight);
+    };
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
+  /** ------------------ Hero Scroll Effect ------------------ */
+  const { scrollY } = useScroll({ container: containerRef });
+  // Fade out over the full hero height
+  const heroOpacity = useTransform(scrollY, [0, heroHeight], [1, 0]);
+  const heroY = useTransform(scrollY, [0, heroHeight], [0, -50]); // optional parallax
 
   useEffect(() => {
     document.title = "Solutions - Beesee Global Technology Inc.";
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full overflow-x-hidden">
-
-      {/* HERO FIXED */}
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-x-hidden scroll-smooth"
+    >
+      {/* ==================== HERO ==================== */}
       <motion.div
-        style={{ opacity: heroOpacity }}
-        className="fixed top-0 left-0 w-full h-screen z-[1]"
+        ref={heroRef}
+        style={{ opacity: heroOpacity, y: isMobile ? 0 : heroY }}
+        className={`${isMobile ? "relative" : "fixed"} top-0 left-0 w-full ${isMobile ? "h-auto" : "h-screen"} z-[10]`}
       >
         <HeroSection />
       </motion.div>
 
-      {/* NORMAL CONTENT — starts after 1.5 scroll */}
-      <div className="mt-[150vh] w-full bg-black relative z-[20]">
+      {/* ==================== PAGE CONTENT ==================== */}
+      <div
+        className="relative z-[20] w-full"
+        style={{ marginTop: isMobile ? 0 : heroHeight }}
+      >
         <SolutionsOverview />
       </div>
-
     </div>
   );
 };
