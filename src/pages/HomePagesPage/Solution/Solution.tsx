@@ -16,11 +16,56 @@ const LandingPage: React.FC = () => {
     offset: ["start start", "end start"],
   });
 
+<<<<<<< Updated upstream
   /* EXACT COPY FROM HOMEPAGE LOGIC */
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+=======
+  /** ------------------ Hero Height ------------------ */
+  useEffect(() => {
+    const updateHeight = () => {
+      if (heroRef.current) setHeroHeight(heroRef.current.scrollHeight);
+    };
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
+  /** ------------------ Hero Scroll Effect ------------------ */
+  const { scrollY } = useScroll();
+  // Fade out over the full hero height
+  const heroOpacity = useTransform(scrollY, [0, heroHeight], [1, 0]);
+  const heroY = useTransform(scrollY, [0, heroHeight], [0, -50]); // optional parallax
+>>>>>>> Stashed changes
 
   useEffect(() => {
     document.title = "Solutions - Beesee Global Technology Inc.";
+  }, []);
+
+  useEffect(() => {
+    // Force reflow to ensure scroll is registered
+    window.scrollTo(0, 0);
+    
+    // Ensure document is scrollable
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    
+    if (containerRef.current) {
+      containerRef.current.style.overflow = "visible";
+    }
+
+    // Force a small scroll trigger to initialize the scroll listener
+    setTimeout(() => {
+      window.dispatchEvent(new Event("scroll"));
+    }, 10);
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+    };
   }, []);
 
   return (

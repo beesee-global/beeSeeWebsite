@@ -291,12 +291,13 @@ const ProductDetail: React.FC = () => {
         <div className="container">
           <div className="nav-content">
             <button
-              className="go-back"
-              onClick={() => navigate("/products")}
-              aria-label="Go back to products"
+              type="button"
+              className="beesee-button beesee-button--small inline-flex items-center gap-2"
+              onClick={() => navigate("/")}
+              aria-label="Back to home"
             >
               <ArrowLeft size={18} />
-              Back to Products
+              Back to Home
             </button>
           </div>
         </div>
