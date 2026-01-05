@@ -12,7 +12,7 @@ const HomePageLayout = () => {
 
   // Routes where layout should be hidden
   const hideLayoutRoutes = ["/customer-support"];
-    const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password", "/product"];
+  const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
