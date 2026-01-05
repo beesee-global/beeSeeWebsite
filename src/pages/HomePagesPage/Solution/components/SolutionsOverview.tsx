@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform, useAnimation, useInView } from "framer-motion";
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/solutionsOverviewServices";
@@ -13,6 +13,19 @@ import "../../../../assets/css/global.css";
 import image from "../../../../../public/assets/images/elleAssets/1.jpg";
 
 const UnifiedPage: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   /** ==================== SOLUTIONS SECTION ==================== */
   const solutionsRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: solutionsProgress } = useScroll({
@@ -46,7 +59,7 @@ const UnifiedPage: React.FC = () => {
   const supportLeftControls = useAnimation();
   const supportLeftInView = useInView(supportLeftRef, { 
     once: false, 
-    amount: 0.2,
+    amount: 0.1,
     margin: "-50px"
   });
 
@@ -54,7 +67,7 @@ const UnifiedPage: React.FC = () => {
   const supportRightControls = useAnimation();
   const supportRightInView = useInView(supportRightRef, { 
     once: false, 
-    amount: 0.2,
+    amount: 0.1,
     margin: "-50px"
   });
 
@@ -84,7 +97,7 @@ const UnifiedPage: React.FC = () => {
   const supportLeftVariants = {
     hidden: { 
       opacity: 0, 
-      x: -100,
+      x: isMobile ? 0 : -100,
       transition: {
         duration: 0.6,
         ease: [0.43, 0.13, 0.23, 0.96]
@@ -105,7 +118,7 @@ const UnifiedPage: React.FC = () => {
   const supportRightVariants = {
     hidden: { 
       opacity: 0, 
-      x: 100,
+      x: isMobile ? 0 : 100,
       transition: {
         duration: 0.6,
         ease: [0.43, 0.13, 0.23, 0.96]
@@ -125,7 +138,7 @@ const UnifiedPage: React.FC = () => {
   const supportFeatureVariants = {
     hidden: { 
       opacity: 0, 
-      x: -50,
+      x: isMobile ? 0 : -50,
       transition: {
         duration: 0.4
       }
@@ -146,7 +159,7 @@ const UnifiedPage: React.FC = () => {
       {/* ==================== SOLUTIONS SECTION ==================== */}
       <section
         ref={solutionsRef}
-        className="relative pt-20 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12 overflow-hidden"
+        className="relative pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12 overflow-hidden"
         style={{
           backgroundImage: "url('/live-background/randomBg2.png')",
           backgroundSize: "cover",
@@ -167,46 +180,56 @@ const UnifiedPage: React.FC = () => {
         />
 
         {/* HEADER */}
-        <motion.div style={{ y: contentY_Solutions }} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 sm:mb-20">
+        <motion.div 
+          style={{ y: isMobile ? 0 : contentY_Solutions }} 
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16 md:mb-20"
+        >
           <motion.div
-            style={{ y: titleY_Solutions }}
+            style={{ y: isMobile ? 0 : titleY_Solutions }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
             transition={{ delay: 0.2 }}
             className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full mb-4 sm:mb-6 bee-body-sm text-[var(--beesee-gold)] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-xs sm:text-sm"
           >
-            <Layers size={18} className="text-[#FDCC00]" />
+            <Layers size={16} className="sm:w-[18px] sm:h-[18px] text-[#FDCC00]" />
             Enterprise Solutions Portfolio
           </motion.div>
 
           <motion.h2
-            style={{ y: titleY_Solutions }}
+            style={{ y: isMobile ? 0 : titleY_Solutions }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--beesee-gold)] tracking-wide leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--beesee-gold)] tracking-wide leading-tight px-4"
           >
             COMPLETE INFRASTRUCTURE SOLUTIONS
           </motion.h2>
 
           <motion.p
-            style={{ y: contentY_Solutions }}
+            style={{ y: isMobile ? 0 : contentY_Solutions }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
             transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base md:text-lg max-w-3xl mx-auto mt-3 sm:mt-6 leading-relaxed text-white/85"
+            className="text-sm sm:text-base md:text-lg max-w-3xl mx-auto mt-3 sm:mt-6 leading-relaxed text-white/85 px-4"
           >
             From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
           </motion.p>
         </motion.div>
 
         {/* SOLUTION BLOCKS */}
-        <motion.div style={{ y: blocksY_Solutions }} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-20 md:space-y-28">
+        <motion.div 
+          style={{ y: isMobile ? 0 : blocksY_Solutions }} 
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-28"
+        >
           {solutions.map((solution, index) => {
             const IconComponent = iconMap[solution.icon] || Network;
 
             return (
-              <motion.div key={solution.id}
+              <motion.div 
+                key={solution.id}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
@@ -215,10 +238,11 @@ const UnifiedPage: React.FC = () => {
               >
                 {/* TEXT SIDE */}
                 <motion.div
-                  initial={{ opacity: 0, x: index % 2 === 1 ? 60 : -60 }}
+                  initial={{ opacity: 0, x: isMobile ? 0 : (index % 2 === 1 ? 60 : -60) }}
                   whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.8 }}
-                  className={`space-y-8 ${index % 2 === 1 ? "lg:col-start-2" : ""}`}
+                  className={`space-y-6 sm:space-y-8 ${index % 2 === 1 ? "lg:col-start-2" : ""}`}
                 >
                   <div className="flex items-center gap-3 sm:gap-5">
                     <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-lg sm:rounded-xl border border-[#FDCC00]/35 flex items-center justify-center bg-[#FDCC00]/10 flex-shrink-0">
@@ -233,7 +257,11 @@ const UnifiedPage: React.FC = () => {
                     <h4 className="text-sm sm:text-base md:text-lg font-semibold text-white">Key Features</h4>
                     <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
                       {solution.features.map((feature, i) => (
-                        <motion.div key={i} whileHover={{ x: 5 }} className="flex items-start gap-2 sm:gap-3">
+                        <motion.div 
+                          key={i} 
+                          whileHover={{ x: isMobile ? 0 : 5 }} 
+                          className="flex items-start gap-2 sm:gap-3"
+                        >
                           <CheckCircle size={16} className="sm:w-5 sm:h-5 text-[var(--beesee-gold)] mt-0.5 sm:mt-1 flex-shrink-0" />
                           <span className="text-xs sm:text-sm md:text-base text-white/70">{feature}</span>
                         </motion.div>
@@ -258,11 +286,16 @@ const UnifiedPage: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.92 }}
                   whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.8 }}
                   className={`${index % 2 === 1 ? "lg:col-start-1" : ""}`}
                 >
                   <div className="relative backdrop-blur-md rounded-lg sm:rounded-2xl p-3 sm:p-6 border border-[#FDCC00]/25">
-                    <img src={solution.image_url} className="w-full h-40 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg sm:rounded-xl" alt={solution.title} />
+                    <img 
+                      src={solution.image_url} 
+                      className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg sm:rounded-xl" 
+                      alt={solution.title} 
+                    />
                   </div>
                 </motion.div>
               </motion.div>
@@ -277,16 +310,16 @@ const UnifiedPage: React.FC = () => {
         className="relative py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#000000] overflow-hidden"
       >
         {/* Animated Background Effects */}
-        <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 opacity-30 pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-[#FDCC00]/20 blur-3xl rounded-full animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#FFD700]/15 blur-3xl rounded-full animate-pulse" style={{ animationDelay: "1s" }}></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-16 items-center">
-          {/* Left Content - Slides IN FROM LEFT, OUT TO LEFT */}
+        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
+          {/* Left Content */}
           <motion.div 
             ref={supportLeftRef}
-            style={{ y: supportContentY }}
+            style={{ y: isMobile ? 0 : supportContentY }}
             initial="hidden"
             animate={supportLeftControls}
             variants={supportLeftVariants}
@@ -294,9 +327,9 @@ const UnifiedPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.3 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              style={{ y: supportTitleY, fontFamily: "Georgia, serif" }}
+              style={{ y: isMobile ? 0 : supportTitleY, fontFamily: "Georgia, serif" }}
               className="text-[#FDCC00]/80 text-xs sm:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase mb-3 sm:mb-4"
             >
               We're Here for You
@@ -305,18 +338,19 @@ const UnifiedPage: React.FC = () => {
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.3 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              style={{ y: supportTitleY, fontFamily: "'Bebas Neue', sans-serif" }}
+              style={{ y: isMobile ? 0 : supportTitleY, fontFamily: "'Bebas Neue', sans-serif" }}
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#FDCC00] tracking-wide leading-tight mb-4 sm:mb-6"
             >
               INTEGRATED SUPPORT & SERVICES
             </motion.h2>
 
             <motion.p
-              style={{ y: supportContentY }}
+              style={{ y: isMobile ? 0 : supportContentY }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.9, delay: 0.25 }}
               className="text-sm sm:text-base md:text-lg mb-6 sm:mb-9 max-w-xl text-white/85"
             >
@@ -324,7 +358,7 @@ const UnifiedPage: React.FC = () => {
             </motion.p>
 
             {/* Feature Cards */}
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               {supportFeatures.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
@@ -354,18 +388,18 @@ const UnifiedPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right Image - Slides IN FROM RIGHT, OUT TO RIGHT */}
+          {/* Right Image */}
           <motion.div
             ref={supportRightRef}
             initial="hidden"
             animate={supportRightControls}
             variants={supportRightVariants}
-            className="flex justify-center lg:justify-end"
+            className="flex justify-center lg:justify-end mt-8 lg:mt-0"
           >
-            <div className="relative group">
+            <div className="relative group w-full max-w-md lg:max-w-none">
               <div className="absolute inset-0 bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/20 rounded-lg sm:rounded-2xl blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500 scale-105"></div>
               <div className="relative rounded-lg sm:rounded-2xl overflow-hidden border-2 border-[#FDCC00]/30 shadow-2xl shadow-[#FDCC00]/20 group-hover:border-[#FDCC00]/50 transition-all duration-500 group-hover:scale-[1.02]">
-                <img src={image} alt="Customer Support" className="w-full h-auto object-cover min-h-80 sm:min-h-96" />
+                <img src={image} alt="Customer Support" className="w-full h-auto object-cover min-h-64 sm:min-h-80 md:min-h-96" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000000]/60 via-transparent to-transparent pointer-events-none"></div>
               </div>
               <div className="absolute top-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-l-2 border-[#FDCC00]/0 group-hover:border-[#FDCC00]/70 rounded-tl-lg sm:rounded-tl-2xl transition-all duration-500"></div>

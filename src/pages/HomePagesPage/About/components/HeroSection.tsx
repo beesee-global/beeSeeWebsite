@@ -1,10 +1,10 @@
 /* =========================================================
-   UNIFIED SCROLLING PAGE - CLEAN VERSION
+   UNIFIED SCROLLING PAGE - MOBILE RESPONSIVE VERSION
    Hero + Company Story (No Timeline) + Stepper
-   Advanced Parallax with Original Branding
+   Advanced Parallax with Mobile Optimization
 ========================================================== */
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   motion,
   AnimatePresence,
@@ -56,6 +56,7 @@ const steps = [
 const UnifiedScrollingPage: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
   // Refs for each section to detect when they're in view
@@ -63,10 +64,30 @@ const UnifiedScrollingPage: React.FC = () => {
   const storySectionRef = useRef<HTMLDivElement | null>(null);
   const stepperSectionRef = useRef<HTMLDivElement | null>(null);
   
-  // InView detection for each section
-  const heroInView = useInView(heroSectionRef, { amount: 0.3 });
-  const storyInView = useInView(storySectionRef, { amount: 0.3 });
-  const stepperInView = useInView(stepperSectionRef, { amount: 0.3 });
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // InView detection for each section - MORE SENSITIVE ON MOBILE
+  const heroInView = useInView(heroSectionRef, { 
+    amount: 0.1,
+    once: false 
+  });
+  const storyInView = useInView(storySectionRef, { 
+    amount: 0.1,
+    once: false 
+  });
+  const stepperInView = useInView(stepperSectionRef, { 
+    amount: 0.1,
+    once: false 
+  });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -76,12 +97,12 @@ const UnifiedScrollingPage: React.FC = () => {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
   const smoothProgress = useSpring(scrollYProgress, springConfig);
 
-  // Background video parallax
+  // Background video parallax - ALWAYS CREATE TRANSFORMS
   const bgY = useTransform(smoothProgress, [0, 1], [0, -400]);
   const bgScale = useTransform(smoothProgress, [0, 0.5, 1], [1, 1.1, 1.2]);
   const bgOpacity = useTransform(smoothProgress, [0, 0.3, 0.6, 1], [0.6, 0.5, 0.4, 0.3]);
 
-  // Section-specific parallax - TIGHTER TRANSITIONS
+  // Section-specific parallax - ALWAYS CREATE TRANSFORMS
   const heroY = useTransform(smoothProgress, [0, 0.25], [0, -100]);
   const heroOpacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 0.5, 0]);
 
@@ -99,8 +120,8 @@ const UnifiedScrollingPage: React.FC = () => {
       {/* ================= GLOBAL BACKGROUND VIDEO ================= */}
       <motion.div
         style={{ 
-          y: bgY,
-          scale: bgScale,
+          y: isMobile ? 0 : bgY,
+          scale: isMobile ? 1 : bgScale,
         }}
         className="fixed inset-0 z-0"
       >
@@ -123,31 +144,28 @@ const UnifiedScrollingPage: React.FC = () => {
       <motion.section
         ref={heroSectionRef}
         style={{ 
-          y: heroY,
-          opacity: heroOpacity,
+          y: isMobile ? 0 : heroY,
+          opacity: isMobile ? 1 : heroOpacity,
         }}
-        className="relative min-h-screen flex items-center z-10 px-6 md:px-10 lg:px-12 pt-24 md:pt-0"
+        className="relative min-h-screen flex items-center z-10 px-4 sm:px-6 md:px-10 lg:px-12 pt-32 sm:pt-24 md:pt-0"
       >
-        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-8 md:gap-20 items-center py-20 md:py-32">
+        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 lg:gap-20 items-center py-12 sm:py-16 md:py-24 lg:py-32">
           
           {/* LEFT */}
           <motion.div
-            className="space-y-5"
+            className="space-y-4 sm:space-y-5"
             initial={{ opacity: 0, x: -50 }}
             animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-            exit={{ opacity: 0, x: -50 }}
             transition={{ 
               duration: 0.8, 
               ease: "easeOut",
-              when: "beforeChildren"
             }}
           >
             <motion.h1
               initial={{ opacity: 0, y: 22 }}
               animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-              exit={{ opacity: 0, y: 22 }}
               transition={{ duration: 0.8, delay: 0.15 }}
-              className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl"
+              className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl"
             >
               PHILIPPINE-BORN INNOVATION ENGINEERED FOR THE GLOBAL STAGE.
             </motion.h1>
@@ -155,9 +173,8 @@ const UnifiedScrollingPage: React.FC = () => {
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              exit={{ opacity: 0, y: 20 }}
               transition={{ delay: 0.3 }}
-              className="bee-body max-w-xl text-[#C7B897] leading-relaxed"
+              className="bee-body max-w-xl text-[#C7B897] leading-relaxed text-sm sm:text-base"
             >
               BeeSee Global Technologies creates hardware, software, and scalable
               learning ecosystems built for Philippine environments and deployed
@@ -167,13 +184,12 @@ const UnifiedScrollingPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 25 }}
               animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 25 }}
-              exit={{ opacity: 0, y: 25 }}
               transition={{ delay: 0.45 }}
-              className="flex flex-wrap gap-7 items-center"
+              className="flex flex-wrap gap-4 sm:gap-7 items-center pt-2"
             >
               <motion.button
                 onClick={() => setShowVideo(true)}
-                className="beesee-button beesee-button--small flex items-center gap-3"
+                className="beesee-button beesee-button--small flex items-center gap-3 text-sm sm:text-base"
                 whileHover={{ 
                   scale: 1.05,
                   boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)',
@@ -184,7 +200,7 @@ const UnifiedScrollingPage: React.FC = () => {
               </motion.button>
 
               <motion.div 
-                className="space-y-1 bee-body-sm text-[#C7B897]"
+                className="space-y-1 bee-body-sm text-[#C7B897] text-xs sm:text-sm"
                 whileHover={{ x: 5 }}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
@@ -201,13 +217,12 @@ const UnifiedScrollingPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
-            exit={{ opacity: 0, x: 50 }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
           >
             <motion.div 
-              className="beesee-card-content section-two-card p-6 bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-2xl backdrop-blur-lg shadow-[0_0_40px_rgba(253,204,0,0.08)]"
+              className="beesee-card-content section-two-card p-4 sm:p-6 bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-2xl backdrop-blur-lg shadow-[0_0_40px_rgba(253,204,0,0.08)]"
               whileHover={{
-                scale: 1.02,
+                scale: isMobile ? 1 : 1.02,
                 borderColor: 'rgba(253, 204, 0, 0.6)',
                 boxShadow: '0 0 60px rgba(253, 204, 0, 0.15)',
               }}
@@ -237,13 +252,13 @@ const UnifiedScrollingPage: React.FC = () => {
                     exit={{ opacity: 0, scale: 0.94 }}
                     transition={{ duration: 0.45 }}
                     className="rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer"
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: isMobile ? 1 : 1.02 }}
                   >
                     <motion.img
                       src={buildingBeesee}
                       alt="Building BeeSee"
                       className="w-full h-full object-cover"
-                      whileHover={{ scale: 1.1 }}
+                      whileHover={{ scale: isMobile ? 1 : 1.1 }}
                       transition={{ duration: 0.6 }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
@@ -254,7 +269,7 @@ const UnifiedScrollingPage: React.FC = () => {
               {showVideo && (
                 <motion.button
                   onClick={() => setShowVideo(false)}
-                  className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-4"
+                  className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-4 text-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ scale: 1.05, x: 5 }}
@@ -272,25 +287,24 @@ const UnifiedScrollingPage: React.FC = () => {
       <motion.section
         ref={storySectionRef}
         style={{ 
-          y: storyY,
-          opacity: storyOpacity,
+          y: isMobile ? 0 : storyY,
+          opacity: isMobile ? 1 : storyOpacity,
         }}
-        className="relative min-h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
+        className="relative min-h-screen z-10 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
           
           {/* ========= HEADER ========= */}
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-10 md:mb-12"
             initial={{ opacity: 0, y: 26 }}
             animate={storyInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 26 }}
-            exit={{ opacity: 0, y: 26 }}
             transition={{ duration: 0.7 }}
           >
-            <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1]">
+            <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
               From Local Vision to Global Footprint
             </h2>
-            <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 mt-4">
+            <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 mt-3 sm:mt-4 text-sm sm:text-base px-4">
               We started as a small team solving pain points in Philippine schools.
               Today, we build devices, content, and programs trusted by institutions
               nationwide—and ready for the world.
@@ -298,54 +312,52 @@ const UnifiedScrollingPage: React.FC = () => {
           </motion.div>
 
           {/* ========= MISSION + VISION ========= */}
-          <div className="grid md:grid-cols-2 gap-10">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
             <motion.div 
-              className="beesee-card-content p-10 text-left"
+              className="beesee-card-content p-6 sm:p-8 md:p-10 text-left"
               initial={{ opacity: 0, x: -40 }}
               animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
-              exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.7, delay: 0.1 }}
               whileHover={{ 
-                scale: 1.03,
+                scale: isMobile ? 1 : 1.03,
                 borderColor: 'rgba(253, 204, 0, 0.4)',
                 boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)',
               }}
             >
               <motion.div 
-                className="flex items-center gap-3 mb-4"
-                whileHover={{ x: 5 }}
+                className="flex items-center gap-3 mb-3 sm:mb-4"
+                whileHover={{ x: isMobile ? 0 : 5 }}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
-                <Heart className="text-[var(--beesee-gold)] w-6 h-6" />
-                <h3 className="bee-title-sm text-[var(--beesee-gold)]">MISSION</h3>
+                <Heart className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
+                <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">MISSION</h3>
               </motion.div>
-              <p className="bee-body text-[#C7B897]/90">
+              <p className="bee-body text-[#C7B897]/90 text-sm sm:text-base">
                 To democratize advanced, human-centered technology for education and enterprise
                 — making premium solutions accessible, sustainable, and rooted in real Philippine needs.
               </p>
             </motion.div>
 
             <motion.div 
-              className="beesee-card-content p-10 text-left"
+              className="beesee-card-content p-6 sm:p-8 md:p-10 text-left"
               initial={{ opacity: 0, x: 40 }}
               animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-              exit={{ opacity: 0, x: 40 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               whileHover={{ 
-                scale: 1.03,
+                scale: isMobile ? 1 : 1.03,
                 borderColor: 'rgba(253, 204, 0, 0.4)',
                 boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)',
               }}
             >
               <motion.div 
-                className="flex items-center gap-3 mb-4"
-                whileHover={{ x: 5 }}
+                className="flex items-center gap-3 mb-3 sm:mb-4"
+                whileHover={{ x: isMobile ? 0 : 5 }}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
-                <Target className="text-[var(--beesee-gold)] w-6 h-6" />
-                <h3 className="bee-title-sm text-[var(--beesee-gold)]">VISION</h3>
+                <Target className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
+                <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">VISION</h3>
               </motion.div>
-              <p className="bee-body text-[#C7B897]/90">
+              <p className="bee-body text-[#C7B897]/90 text-sm sm:text-base">
                 To establish Philippine-designed technologies as globally trusted — powering
                 future-ready classrooms, campuses, and workplaces across Asia and beyond.
               </p>
@@ -358,19 +370,18 @@ const UnifiedScrollingPage: React.FC = () => {
       <motion.section
         ref={stepperSectionRef}
         style={{ 
-          y: stepperY,
-          opacity: stepperOpacity,
+          y: isMobile ? 0 : stepperY,
+          opacity: isMobile ? 1 : stepperOpacity,
         }}
-        className="relative min-h-screen z-10 py-20 px-6 lg:px-10 flex items-center"
+        className="relative min-h-screen z-10 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
           
           <motion.h2 
             initial={{ opacity: 0, y: 20 }} 
             animate={stepperInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} 
-            exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.7 }}
-            className="bee-title-md text-center text-[var(--beesee-gold)]"
+            className="bee-title-md text-center text-[var(--beesee-gold)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
           >
             SCHOOL PROCESS
           </motion.h2>
@@ -378,17 +389,16 @@ const UnifiedScrollingPage: React.FC = () => {
           <motion.p 
             initial={{ opacity: 0 }} 
             animate={stepperInView ? { opacity: 1 } : { opacity: 0 }}
-            exit={{ opacity: 0 }}
             transition={{ delay: 0.4 }}
-            className="bee-body text-[#C7B897]/80 max-w-3xl mx-auto text-center mt-4 mb-12"
+            className="bee-body text-[#C7B897]/80 max-w-3xl mx-auto text-center mt-3 sm:mt-4 mb-8 sm:mb-10 md:mb-12 text-sm sm:text-base px-4"
           >
             A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
           </motion.p>
 
-          <div className="grid lg:grid-cols-2 gap-14 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-14 items-start lg:items-center">
             
             {/* LEFT — Step Selector */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {steps.map((step, i) => {
                 const isActive = i === activeStep;
 
@@ -397,13 +407,12 @@ const UnifiedScrollingPage: React.FC = () => {
                     key={i}
                     initial={{ opacity: 0, x: -20 }}
                     animate={stepperInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                    exit={{ opacity: 0, x: -20 }}
                     transition={{ 
                       duration: 0.5, 
                       delay: i * 0.1,
                     }}
-                    whileHover={{ scale: 1.03, x: 8 }}
-                    className="cursor-pointer flex gap-4 items-start group"
+                    whileHover={{ scale: isMobile ? 1 : 1.03, x: isMobile ? 0 : 8 }}
+                    className="cursor-pointer flex gap-3 sm:gap-4 items-start group"
                     onClick={() => setActiveStep(i)}
                   >
                     <motion.div
@@ -411,7 +420,7 @@ const UnifiedScrollingPage: React.FC = () => {
                         scale: 1.25, 
                         boxShadow: "0 0 20px #FDCC00aa" 
                       } : { scale: 1 }}
-                      className={`h-8 w-8 rounded-full flex items-center justify-center border transition flex-shrink-0
+                      className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center border transition flex-shrink-0 text-sm sm:text-base
                         ${isActive 
                           ? "bg-[#FDCC00] text-black border-[#FDCC00]" 
                           : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"
@@ -420,15 +429,15 @@ const UnifiedScrollingPage: React.FC = () => {
                       {step.id}
                     </motion.div>
 
-                    <div>
-                      <p className={`bee-body font-semibold transition
+                    <div className="flex-1">
+                      <p className={`bee-body font-semibold transition text-sm sm:text-base
                         ${isActive 
                           ? "text-[#FDCC00]" 
                           : "text-white group-hover:text-[#FDCC00]"
                         }`}>
                         {step.title}
                       </p>
-                      <p className="bee-body text-xs text-[#C7B897]/70">{step.short}</p>
+                      <p className="bee-body text-xs sm:text-sm text-[#C7B897]/70 mt-1">{step.short}</p>
                     </div>
                   </motion.div>
                 );
@@ -449,17 +458,17 @@ const UnifiedScrollingPage: React.FC = () => {
                   <motion.img 
                     src={currentStep.image}
                     alt={currentStep.title}
-                    className="w-full h-64 object-cover transition duration-700 group-hover:scale-[1.08]" 
+                    className="w-full h-48 sm:h-56 md:h-64 object-cover transition duration-700 group-hover:scale-[1.08]" 
                   />
                   <div className="absolute inset-0 bg-black/40" />
-                  <div className="absolute bottom-3 left-5 text-[#FDCC00] text-sm font-semibold">
+                  <div className="absolute bottom-2 sm:bottom-3 left-3 sm:left-5 text-[#FDCC00] text-xs sm:text-sm font-semibold">
                     Step {currentStep.id} / {steps.length}
                   </div>
                 </motion.div>
 
-                <div className="p-7">
-                  <h3 className="bee-title-sm text-[#FDCC00]">{currentStep.title}</h3>
-                  <p className="bee-body text-[#C7B897]/90 mt-2">{currentStep.description}</p>
+                <div className="p-5 sm:p-6 md:p-7">
+                  <h3 className="bee-title-sm text-[#FDCC00] text-lg sm:text-xl">{currentStep.title}</h3>
+                  <p className="bee-body text-[#C7B897]/90 mt-2 text-sm sm:text-base">{currentStep.description}</p>
                 </div>
               </motion.div>
             </AnimatePresence>
