@@ -12,7 +12,7 @@ const HomePageLayout = () => {
 
   // Routes where layout should be hidden
   const hideLayoutRoutes = ["/customer-support"];
-  const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
+    const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password", "/product"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
@@ -43,7 +43,7 @@ const HomePageLayout = () => {
     <div className="min-h-screen flex flex-col relative">
       {/* Header */}
       <div
-        className={`fixed top-0 left-0 w-full z-50 bg-white shadow transition-transform duration-500 ${
+        className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
           showHeader ? "translate-y-0" : "translate-y-0"
         }`}
       >

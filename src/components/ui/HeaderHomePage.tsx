@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
     Toolbar,
     Button,
@@ -9,11 +9,9 @@ import {
     ListItem,
     ListItemText,
 } from "@mui/material";
-
 import { motion } from "framer-motion";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-
 import { useLocation, useNavigate } from "react-router-dom";
 
 import logo2 from "../../../public/logo2.png";
@@ -23,54 +21,73 @@ const HeaderHomePage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const isInitialMount = useRef(true);
-
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isShrunk, setIsShrunk] = useState(false);
     const [menuHover, setMenuHover] = useState(false);
 
-    /* Header Shrink */
+    /* Optimized Header Shrink */
     useEffect(() => {
-        const handleScroll = () => setIsShrunk(window.scrollY > 20);
-        window.addEventListener("scroll", handleScroll);
+        let ticking = false;
+        
+        const handleScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    setIsShrunk(window.scrollY > 20);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    /* Improved Navigation Logic */
-    const handleNavClick = (target: string) => {
-        setDrawerOpen(false); // Close drawer first
-
-        // If it's an anchor link (#section)
-        if (target.startsWith("#")) {
-            const sectionId = target.substring(1); // Remove the #
-            
-            if (location.pathname === "/") {
-                // We're already on homepage, scroll smoothly to section
-                setTimeout(() => {
-                    const element = document.getElementById(sectionId);
-                    if (element) {
-                        // Smooth scroll with offset for header
-                        const headerOffset = isShrunk ? 60 : 100;
-                        const elementPosition = element.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
-                    }
-                }, 100);
-            } else {
-                // We're on another page, navigate to homepage first
-                sessionStorage.setItem("scrollAfterLoad", target);
-                navigate("/");
-            }
-        } else {
-            // Regular page navigation
-            navigate(target);
+    /* Smooth Scroll Helper */
+    const smoothScrollToElement = useCallback((sectionId: string, delay = 100) => {
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
         }
-    };
 
-    /* After page load, scroll if needed */
+        scrollTimeoutRef.current = setTimeout(() => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                const headerOffset = isShrunk ? 70 : 110;
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+            scrollTimeoutRef.current = null;
+        }, delay);
+    }, [isShrunk]);
+
+    /* Improved Navigation - Closes drawer immediately */
+    const handleNavClick = useCallback((target: string) => {
+        setDrawerOpen(false);
+
+        setTimeout(() => {
+            if (target.startsWith("#")) {
+                const sectionId = target.substring(1);
+                
+                if (location.pathname === "/") {
+                    smoothScrollToElement(sectionId, 150);
+                } else {
+                    sessionStorage.setItem("scrollAfterLoad", target);
+                    navigate("/");
+                }
+            } else {
+                navigate(target);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        }, 50);
+    }, [location.pathname, navigate, smoothScrollToElement]);
+
+    /* Handle scroll after page load */
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -79,27 +96,22 @@ const HeaderHomePage = () => {
 
         if (location.pathname === "/") {
             const target = sessionStorage.getItem("scrollAfterLoad");
-            if (target) {
-                setTimeout(() => {
-                    const sectionId = target.substring(1);
-                    const element = document.getElementById(sectionId);
-                    if (element) {
-                        // Smooth scroll with offset
-                        const headerOffset = isShrunk ? 60 : 100;
-                        const elementPosition = element.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
-                        
-                        sessionStorage.removeItem("scrollAfterLoad");
-                    }
-                }, 300); // Increased delay to ensure page is fully rendered
+            if (target && target.startsWith("#")) {
+                const sectionId = target.substring(1);
+                sessionStorage.removeItem("scrollAfterLoad");
+                smoothScrollToElement(sectionId, 400);
             }
         }
-    }, [location.pathname, isShrunk]);
+    }, [location.pathname, smoothScrollToElement]);
+
+    /* Cleanup timeouts */
+    useEffect(() => {
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, []);
 
     /* Navigation Items */
     const navLeft = [
@@ -114,29 +126,28 @@ const HeaderHomePage = () => {
         { label: "SUPPORT", to: "/customer-support" },
     ];
 
-    const mobileNavItems = [{ label: "HOME", to: "/" }, ...navLeft, ...navRight];
+    const mobileNavItems = [
+        { label: "HOME", to: "/" }, 
+        ...navLeft, 
+        ...navRight
+    ];
 
     return (
         <>
             {/* HEADER */}
-            <div
+            <header
                 id="main-header"
-                className={`
-                    fixed top-0 left-0 right-0 z-50
-                    bg-transparent sm:backdrop-blur-2xl
-                    transition-all duration-700
-                `}
+                className="fixed top-0 left-0 right-0 z-50 bg-transparent sm:backdrop-blur-2xl transition-all duration-700 ease-in-out"
+                role="banner"
             >
                 <Toolbar
-                    className={`
-                        flex justify-between items-center w-full
-                        transition-all duration-700
-                        ${isShrunk ? "h-[60px] px-4" : "h-[100px] px-6"}
-                    `}
+                    className={`flex justify-between items-center w-full transition-all duration-700 ease-in-out ${
+                        isShrunk ? "h-[60px] px-4 sm:px-6" : "h-[100px] px-4 sm:px-6"
+                    }`}
                 >
-                    {/* LEFT NAV */}
-                    <Box className="flex flex-1 justify-end">
-                        <div className="hidden md:flex items-center gap-16 mr-20">
+                    {/* LEFT NAV - Desktop */}
+                    <Box className="hidden md:flex flex-1 justify-end">
+                        <nav className="flex items-center gap-8 lg:gap-16 mr-8 lg:mr-20">
                             {navLeft.map((item) => {
                                 const active = location.pathname.startsWith(item.to);
                                 return (
@@ -144,75 +155,66 @@ const HeaderHomePage = () => {
                                         key={item.label}
                                         disableRipple
                                         onClick={() => handleNavClick(item.to)}
-                                        className={`
-                                            !font-bold font-segoe !normal-case relative group
-                                            ${active ? "!text-[#FFD700]" : "!text-white"}
-                                            ${isShrunk ? "!text-[0.8rem]" : "!text-[1rem]"}
-                                        `}
+                                        aria-label={`Navigate to ${item.label}`}
+                                        className={`!font-bold font-segoe !normal-case relative group !transition-all !duration-300 ${
+                                            active ? "!text-[#FFD700]" : "!text-white"
+                                        } ${
+                                            isShrunk ? "!text-[0.75rem] lg:!text-[0.8rem]" : "!text-[0.9rem] lg:!text-[1rem]"
+                                        }`}
                                     >
                                         {item.label}
-                                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-[#FFD700] rounded-full group-hover:w-full transition-all"></span>
+                                        <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
+                                            active ? "w-full" : "w-0 group-hover:w-full"
+                                        }`} />
                                     </Button>
                                 );
                             })}
-                        </div>
+                        </nav>
                     </Box>
 
-                    {/* CENTER LOGO */}
-                    <Box
-                        className={`
-                            hidden sm:flex flex-shrink-0 justify-center
-                            ${isShrunk ? "py-1" : "py-4"}
-                        `}
-                    >
+                    {/* CENTER LOGO - Desktop Only */}
+                    <Box className={`hidden md:flex flex-shrink-0 justify-center ${isShrunk ? "py-1" : "py-2 sm:py-4"}`}>
                         <img
                             src={logo2}
-                            onClick={() => navigate("/")}
-                            className={`
-                                cursor-pointer transition-all
-                                hover:brightness-125 hover:scale-105
-                                ${isShrunk ? "w-[40px]" : "w-[78px]"}
-                            `}
+                            onClick={() => handleNavClick("/")}
+                            className={`cursor-pointer transition-all duration-300 hover:brightness-125 hover:scale-105 ${
+                                isShrunk ? "w-[40px]" : "w-[78px]"
+                            }`}
                             alt="BeeSee Logo"
+                            role="button"
+                            aria-label="Navigate to home"
                         />
                     </Box>
 
-                    {/* RIGHT NAV */}
-                    <Box className="flex flex-1 justify-start">
-                        <div className="hidden md:flex items-center gap-20 ml-20">
+                    {/* RIGHT NAV - Desktop */}
+                    <Box className="hidden md:flex flex-1 justify-start">
+                        <nav className="flex items-center gap-8 lg:gap-20 ml-8 lg:ml-20">
                             {navRight.map((item) => (
                                 <Button
                                     key={item.label}
                                     disableRipple
                                     onClick={() => handleNavClick(item.to)}
-                                    className={`
-                                        !flex !items-center !font-bold font-segoe tracking-wide !normal-case
-                                        group relative transition-all duration-500
-                                        !text-white
-                                        ${isShrunk ? "!text-[0.8rem]" : "!text-[1rem]"}
-                                    `}
+                                    aria-label={`Navigate to ${item.label}`}
+                                    className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 !text-white ${
+                                        isShrunk ? "!text-[0.75rem] lg:!text-[0.8rem]" : "!text-[0.9rem] lg:!text-[1rem]"
+                                    }`}
                                 >
-                                    <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full"></span>
+                                    <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full" />
                                     {item.label}
-                                    <span
-                                        className={`
-                                            absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px]
-                                            bg-[#FFD700] rounded-full transition-all duration-300
-                                            w-0 group-hover:w-full
-                                        `}
-                                    />
+                                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 w-0 group-hover:w-full" />
                                 </Button>
                             ))}
-                        </div>
+                        </nav>
                     </Box>
 
-                    {/* ANIMATED BURGER */}
+                    {/* MOBILE MENU BUTTON - Left Side */}
                     <IconButton
-                        edge="end"
+                        edge="start"
                         onClick={() => setDrawerOpen(true)}
-                        className="sm:!hidden !text-white"
+                        className="md:!hidden !text-white"
                         onMouseEnter={() => setMenuHover(true)}
                         onMouseLeave={() => setMenuHover(false)}
+                        aria-label="Open navigation menu"
                     >
                         <motion.div
                             animate={menuHover ? { rotate: 10, scale: 1.15 } : { rotate: 0, scale: 1 }}
@@ -222,33 +224,36 @@ const HeaderHomePage = () => {
                         </motion.div>
                     </IconButton>
                 </Toolbar>
-            </div>
+            </header>
 
-            {/* MOBILE DRAWER */}
+            {/* MOBILE DRAWER - Left Side */}
             <Drawer
-                anchor="right"
+                anchor="left"
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 PaperProps={{
                     sx: {
                         backgroundColor: "#181717",
-                        width: "260px",
-                        maxWidth: "260px",
+                        width: "280px",
+                        maxWidth: "85vw",
                         overflowX: "hidden",
-                        boxShadow:
-                            "0 0 25px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.15)",
-                        borderLeft: "1px solid rgba(255,215,0,0.2)",
+                        overflowY: "auto",
+                        boxShadow: "0 0 25px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.15)",
+                        borderRight: "1px solid rgba(255,215,0,0.2)",
                         display: "flex",
                         flexDirection: "column",
                     },
                 }}
                 transitionDuration={{ enter: 350, exit: 250 }}
+                ModalProps={{
+                    keepMounted: false,
+                }}
             >
                 {/* LOGO + CLOSE */}
-                <div className="flex justify-between items-center px-6 py-6 border-b border-gray-700">
+                <div className="flex justify-between items-center px-6 py-5 border-b border-gray-700 sticky top-0 bg-[#181717] z-10">
                     <img 
                         src={beeseeGoldLogo} 
-                        className="w-[170px]" 
+                        className="w-[170px] h-auto" 
                         alt="BeeSee Gold Logo" 
                     />
 
@@ -261,6 +266,7 @@ const HeaderHomePage = () => {
                             onClick={() => setDrawerOpen(false)}
                             className="!text-white"
                             sx={{ p: "6px" }}
+                            aria-label="Close navigation menu"
                         >
                             <CloseIcon fontSize="medium" />
                         </IconButton>
@@ -268,23 +274,66 @@ const HeaderHomePage = () => {
                 </div>
 
                 {/* NAV ITEMS */}
-                <List className="py-2">
-                    {mobileNavItems.map((item) => (
-                        <ListItem
-                            key={item.label}
-                            onClick={() => handleNavClick(item.to)}
-                            className="hover:!bg-[#2A2A2A] transition-all duration-300 py-4 pl-6 cursor-pointer"
-                        >
-                            <ListItemText
-                                primary={item.label}
-                                className="
-                                    text-white text-[1.05rem] tracking-wide font-bebas
-                                    bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent
-                                "
-                            />
-                        </ListItem>
-                    ))}
-                </List>
+                <nav>
+                    <List className="py-2">
+                        {mobileNavItems.map((item, index) => {
+                            const isActive = item.to.startsWith("#") 
+                                ? false 
+                                : location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+                            
+                            return (
+                                <motion.div
+                                    key={item.label}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ 
+                                        delay: drawerOpen ? index * 0.05 : 0,
+                                        duration: 0.3,
+                                        ease: "easeOut" 
+                                    }}
+                                >
+                                    <ListItem
+                                        onClick={() => handleNavClick(item.to)}
+                                        className={`
+                                            hover:!bg-[#2A2A2A] transition-all duration-300 
+                                            py-4 pl-6 cursor-pointer relative
+                                            ${isActive ? "!bg-[#2A2A2A]" : ""}
+                                        `}
+                                        sx={{
+                                            '&::before': isActive ? {
+                                                content: '""',
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                width: '4px',
+                                                height: '60%',
+                                                backgroundColor: '#FFD700',
+                                                borderRadius: '0 4px 4px 0',
+                                            } : {}
+                                        }}
+                                    >
+                                        <ListItemText
+                                            primary={item.label}
+                                            sx={{
+                                                '& .MuiListItemText-primary': {
+                                                    fontSize: '1.05rem',
+                                                    fontFamily: 'bebas, sans-serif',
+                                                    letterSpacing: '0.05em',
+                                                    fontWeight: isActive ? 600 : 400,
+                                                    background: 'linear-gradient(to right, #fbbf24, #d97706)',
+                                                    WebkitBackgroundClip: 'text',
+                                                    WebkitTextFillColor: 'transparent',
+                                                    backgroundClip: 'text',
+                                                }
+                                            }}
+                                        />
+                                    </ListItem>
+                                </motion.div>
+                            );
+                        })}
+                    </List>
+                </nav>
             </Drawer>
         </>
     );
