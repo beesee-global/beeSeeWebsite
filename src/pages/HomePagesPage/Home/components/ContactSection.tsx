@@ -337,17 +337,13 @@ const ContactSection = () => {
           initial={{ opacity: 0, x: 100 }}
           animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-2xl p-8 shadow-xl"
-          style={{ 
-            background: '#ffffff',
-            color: '#0a0a0a'
-          }}
+          className="beesee-card-content"
         >
           <h3 
             className="bee-title-sm" 
             style={{ 
               marginBottom: '1.5rem', 
-              color: '#0a0a0a',
+              color: '#FDCC00',
               fontSize: '32px'
             }}
           >

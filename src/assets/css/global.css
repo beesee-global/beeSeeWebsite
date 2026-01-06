@@ -174,33 +174,34 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* TYPE B — CONTENT CARD (Services style, Section Three) */
-/* ================================================
-   TYPE B — CONTENT CARD (UPDATED TO MOTION STYLE)
-================================================ */
+/* =========================================================
+   TYPE B — CONTENT CARD (Services style, Section Three)
+   OPTIMIZED FOR READABILITY & FULL EFFECTS
+========================================================= */
 
 .beesee-card-content {
   position: relative;
-  background: rgba(255, 255, 255, 0.06); /* glass */
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.08); /* frosted glass */
+  backdrop-filter: blur(12px); /* blur effect */
   border-radius: 22px;
   padding: 2rem;
   border: 1px solid rgba(253, 204, 0, 0.22);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); /* lighter shadow for readability */
+  text-align: center;
+  overflow: hidden; /* allow glow layers */
   transition: 
       transform 0.45s ease,
       box-shadow 0.45s ease,
       border-color 0.45s ease,
       background 0.35s ease;
-  text-align: center;
-  overflow: hidden; /* allow glow layer */
 }
 
+/* Hover effect */
 .beesee-card-content:hover {
   transform: translateY(-10px);
   border-color: rgba(253, 204, 0, 0.55);
   box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
-              0 18px 40px rgba(0, 0, 0, 0.8);
+              0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
 /* Hover Glow Layer */
@@ -219,6 +220,17 @@ html, body, #root {
   transition: opacity 0.5s ease;
   pointer-events: none;
 }
+
+/* Light top gradient (was dark previously) */
+.beesee-card-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.15), transparent); /* lighter black for readability */
+  pointer-events: none;
+}
+
+/* Image inside card */
 .beesee-card-content img {
   width: 100%;
   height: auto;
@@ -228,18 +240,6 @@ html, body, #root {
 
 .beesee-card-content:hover img {
   transform: scale(1.05);
-}
-
-.beesee-card-content::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
-  pointer-events: none;
-}
-
-.beesee-card-content:hover::before {
-  opacity: 1;
 }
 
 /* Icon Circle */
@@ -302,13 +302,20 @@ html, body, #root {
 @media (max-width: 768px) {
   .beesee-card-content {
     padding: 22px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* lighter for mobile */
   }
+
   .beesee-card-content-title {
     font-size: 20px;
   }
+
   .beesee-card-content .icon-wrap {
     width: 62px;
     height: 62px;
+  }
+
+  .beesee-card-content::after {
+    background: linear-gradient(to top, rgba(0,0,0,0.1), transparent); /* lighter gradient on mobile */
   }
 }
 
