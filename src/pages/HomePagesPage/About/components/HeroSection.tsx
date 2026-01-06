@@ -53,12 +53,10 @@ const UnifiedScrollingPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
-  // Refs for each section to detect when they're in view
   const heroSectionRef = useRef<HTMLDivElement | null>(null);
   const storySectionRef = useRef<HTMLDivElement | null>(null);
   const stepperSectionRef = useRef<HTMLDivElement | null>(null);
   
-  // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -69,19 +67,9 @@ const UnifiedScrollingPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // InView detection for each section - MORE SENSITIVE ON MOBILE
-  const heroInView = useInView(heroSectionRef, { 
-    amount: 0.1,
-    once: false 
-  });
-  const storyInView = useInView(storySectionRef, { 
-    amount: 0.1,
-    once: false 
-  });
-  const stepperInView = useInView(stepperSectionRef, { 
-    amount: 0.1,
-    once: false 
-  });
+  const heroInView = useInView(heroSectionRef, { amount: 0.1, once: false });
+  const storyInView = useInView(storySectionRef, { amount: 0.1, once: false });
+  const stepperInView = useInView(stepperSectionRef, { amount: 0.1, once: false });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -91,12 +79,10 @@ const UnifiedScrollingPage: React.FC = () => {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
   const smoothProgress = useSpring(scrollYProgress, springConfig);
 
-  // Background video parallax - ALWAYS CREATE TRANSFORMS
   const bgY = useTransform(smoothProgress, [0, 1], [0, -400]);
   const bgScale = useTransform(smoothProgress, [0, 0.5, 1], [1, 1.1, 1.2]);
   const bgOpacity = useTransform(smoothProgress, [0, 0.3, 0.6, 1], [0.6, 0.5, 0.4, 0.3]);
 
-  // Section-specific parallax - ALWAYS CREATE TRANSFORMS
   const heroY = useTransform(smoothProgress, [0, 0.25], [0, -100]);
   const heroOpacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 0.5, 0]);
 
@@ -111,38 +97,25 @@ const UnifiedScrollingPage: React.FC = () => {
   return (
     <div ref={containerRef} className="relative bg-[#000000]">
       
-      {/* ================= GLOBAL BACKGROUND VIDEO ================= */}
+      {/* GLOBAL BACKGROUND VIDEO */}
       <motion.div
-        style={{ 
-          y: isMobile ? 0 : bgY,
-          scale: isMobile ? 1 : bgScale,
-        }}
+        style={{ y: isMobile ? 0 : bgY, scale: isMobile ? 1 : bgScale }}
         className="fixed inset-0 z-0"
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
+        <video autoPlay loop muted playsInline className="w-full h-full object-cover">
           <source src="/live-background/sectionThree.mp4" type="video/mp4" />
         </video>
-        <motion.div 
-          className="absolute inset-0 bg-[#000000]"
-          style={{ opacity: bgOpacity }}
-        />
+        <motion.div className="absolute inset-0 bg-[#000000]" style={{ opacity: bgOpacity }} />
       </motion.div>
 
-      {/* ================= HERO SECTION ================= */}
-      <motion.section
-        ref={heroSectionRef}
-        style={{ 
-          y: isMobile ? 0 : heroY,
-          opacity: isMobile ? 1 : heroOpacity,
-        }}
-        className="relative min-h-screen flex items-center z-10 px-4 sm:px-6 md:px-10 lg:px-12 pt-32 sm:pt-24 md:pt-0"
-      >
+<motion.section
+  ref={heroSectionRef}
+  style={{ y: isMobile ? 0 : heroY, opacity: isMobile ? 1 : heroOpacity }}
+  className={`relative min-h-screen flex items-start z-10 px-4 sm:px-6 md:px-10 lg:px-12 ${
+    isMobile ? "-mt-24 pt-0" : "pt-32 sm:pt-24 md:pt-0"
+  }`}
+>
+
         <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 lg:gap-20 items-center py-12 sm:py-16 md:py-24 lg:py-32">
           
           {/* LEFT */}
@@ -150,10 +123,7 @@ const UnifiedScrollingPage: React.FC = () => {
             className="space-y-4 sm:space-y-5"
             initial={{ opacity: 0, x: -50 }}
             animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-            transition={{ 
-              duration: 0.8, 
-              ease: "easeOut",
-            }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <motion.h1
               initial={{ opacity: 0, y: 22 }}
@@ -184,10 +154,7 @@ const UnifiedScrollingPage: React.FC = () => {
               <motion.button
                 onClick={() => setShowVideo(true)}
                 className="beesee-button beesee-button--small flex items-center gap-3 text-sm sm:text-base"
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)',
-                }}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)' }}
                 whileTap={{ scale: 0.95 }}
               >
                 WATCH OUR STORY
@@ -277,18 +244,13 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* ================= COMPANY STORY SECTION (NO TIMELINE) ================= */}
+      {/* COMPANY STORY SECTION */}
       <motion.section
         ref={storySectionRef}
-        style={{ 
-          y: isMobile ? 0 : storyY,
-          opacity: isMobile ? 1 : storyOpacity,
-        }}
+        style={{ y: isMobile ? 0 : storyY, opacity: isMobile ? 1 : storyOpacity }}
         className="relative min-h-screen z-10 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
-          
-          {/* ========= HEADER ========= */}
           <motion.div
             className="text-center mb-8 sm:mb-10 md:mb-12"
             initial={{ opacity: 0, y: 26 }}
@@ -305,24 +267,15 @@ const UnifiedScrollingPage: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* ========= MISSION + VISION ========= */}
           <div className="grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
             <motion.div 
               className="beesee-card-content p-6 sm:p-8 md:p-10 text-left"
               initial={{ opacity: 0, x: -40 }}
               animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              whileHover={{ 
-                scale: isMobile ? 1 : 1.03,
-                borderColor: 'rgba(253, 204, 0, 0.4)',
-                boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)',
-              }}
+              whileHover={{ scale: isMobile ? 1 : 1.03, borderColor: 'rgba(253, 204, 0, 0.4)', boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)' }}
             >
-              <motion.div 
-                className="flex items-center gap-3 mb-3 sm:mb-4"
-                whileHover={{ x: isMobile ? 0 : 5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
+              <motion.div className="flex items-center gap-3 mb-3 sm:mb-4" whileHover={{ x: isMobile ? 0 : 5 }} transition={{ type: 'spring', stiffness: 300 }}>
                 <Heart className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
                 <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">MISSION</h3>
               </motion.div>
@@ -337,17 +290,9 @@ const UnifiedScrollingPage: React.FC = () => {
               initial={{ opacity: 0, x: 40 }}
               animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              whileHover={{ 
-                scale: isMobile ? 1 : 1.03,
-                borderColor: 'rgba(253, 204, 0, 0.4)',
-                boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)',
-              }}
+              whileHover={{ scale: isMobile ? 1 : 1.03, borderColor: 'rgba(253, 204, 0, 0.4)', boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)' }}
             >
-              <motion.div 
-                className="flex items-center gap-3 mb-3 sm:mb-4"
-                whileHover={{ x: isMobile ? 0 : 5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
+              <motion.div className="flex items-center gap-3 mb-3 sm:mb-4" whileHover={{ x: isMobile ? 0 : 5 }} transition={{ type: 'spring', stiffness: 300 }}>
                 <Target className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
                 <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">VISION</h3>
               </motion.div>
@@ -360,75 +305,44 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* ================= STEPPER SECTION ================= */}
+      {/* STEPPER SECTION */}
       <motion.section
         ref={stepperSectionRef}
-        style={{ 
-          y: isMobile ? 0 : stepperY,
-          opacity: isMobile ? 1 : stepperOpacity,
-        }}
+        style={{ y: isMobile ? 0 : stepperY, opacity: isMobile ? 1 : stepperOpacity }}
         className="relative min-h-screen z-10 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10 flex items-center"
       >
         <div className="max-w-7xl mx-auto w-full">
-          
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={stepperInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} 
-            transition={{ duration: 0.7 }}
-            className="bee-title-md text-center text-[var(--beesee-gold)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
-          >
+          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={stepperInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} transition={{ duration: 0.7 }} className="bee-title-md text-center text-[var(--beesee-gold)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
             SCHOOL PROCESS
           </motion.h2>
-
-          <motion.p 
-            initial={{ opacity: 0 }} 
-            animate={stepperInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bee-body text-[#C7B897]/80 max-w-3xl mx-auto text-center mt-3 sm:mt-4 mb-8 sm:mb-10 md:mb-12 text-sm sm:text-base px-4"
-          >
+          <motion.p initial={{ opacity: 0 }} animate={stepperInView ? { opacity: 1 } : { opacity: 0 }} transition={{ delay: 0.4 }} className="bee-body text-[#C7B897]/80 max-w-3xl mx-auto text-center mt-3 sm:mt-4 mb-8 sm:mb-10 md:mb-12 text-sm sm:text-base px-4">
             A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
           </motion.p>
 
           <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-14 items-start lg:items-center">
-            
-            {/* LEFT — Step Selector */}
             <div className="space-y-4 sm:space-y-6">
               {steps.map((step, i) => {
                 const isActive = i === activeStep;
-
                 return (
                   <motion.div 
                     key={i}
                     initial={{ opacity: 0, x: -20 }}
                     animate={stepperInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      delay: i * 0.1,
-                    }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
                     whileHover={{ scale: isMobile ? 1 : 1.03, x: isMobile ? 0 : 8 }}
                     className="cursor-pointer flex gap-3 sm:gap-4 items-start group"
                     onClick={() => setActiveStep(i)}
                   >
                     <motion.div
-                      animate={isActive ? { 
-                        scale: 1.25, 
-                        boxShadow: "0 0 20px #FDCC00aa" 
-                      } : { scale: 1 }}
+                      animate={isActive ? { scale: 1.25, boxShadow: "0 0 20px #FDCC00aa" } : { scale: 1 }}
                       className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center border transition flex-shrink-0 text-sm sm:text-base
-                        ${isActive 
-                          ? "bg-[#FDCC00] text-black border-[#FDCC00]" 
-                          : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"
-                        }`}
+                        ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}
                     >
                       {step.id}
                     </motion.div>
 
                     <div className="flex-1">
-                      <p className={`bee-body font-semibold transition text-sm sm:text-base
-                        ${isActive 
-                          ? "text-[#FDCC00]" 
-                          : "text-white group-hover:text-[#FDCC00]"
-                        }`}>
+                      <p className={`bee-body font-semibold transition text-sm sm:text-base ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
                         {step.title}
                       </p>
                       <p className="bee-body text-xs sm:text-sm text-[#C7B897]/70 mt-1">{step.short}</p>
@@ -438,7 +352,6 @@ const UnifiedScrollingPage: React.FC = () => {
               })}
             </div>
 
-            {/* RIGHT — Animated Card */}
             <AnimatePresence mode="wait">
               <motion.div 
                 key={currentStep.id}
@@ -470,7 +383,6 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* Bottom fade */}
       <div className="pointer-events-none fixed bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#000] z-[1]" />
     </div>
   );
