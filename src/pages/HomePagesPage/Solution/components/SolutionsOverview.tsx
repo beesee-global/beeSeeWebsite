@@ -189,17 +189,48 @@ const UnifiedPage: React.FC = () => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        {/* GOLD + BLACK FADE LAYERS */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none"
-          style={{
-            background: `
-              linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 5%, rgba(0,0,0,0.35) 10%, rgba(0,0,0,0) 15%, transparent 20%),
-              linear-gradient(to bottom, rgba(253,204,0,0.35) 0%, rgba(253,204,0,0.25) 15%, rgba(253,204,0,0.15) 35%, rgba(253,204,0,0.08) 55%, rgba(253,204,0,0.03) 75%, rgba(253,204,0,0) 100%),
-              linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 5%, rgba(0,0,0,0.55) 25%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.08) 78%, rgba(0,0,0,0) 100%)
-            `,
-          }}
-        />
+{/* GOLD + BLACK FADE LAYERS */}
+<div
+  className="absolute inset-0 z-0 pointer-events-none"
+  style={{
+    background: `
+      /* STRONGER TOP BLACK FADE */
+      linear-gradient(
+        to bottom,
+        rgba(0,0,0,1) 0%,
+        rgba(0,0,0,0.95) 6%,
+        rgba(0,0,0,0.85) 12%,
+        rgba(0,0,0,0.65) 18%,
+        rgba(0,0,0,0.4) 25%,
+        rgba(0,0,0,0.15) 32%,
+        rgba(0,0,0,0) 40%
+      ),
+
+      /* GOLD OVERLAY */
+      linear-gradient(
+        to bottom,
+        rgba(253,204,0,0.35) 0%,
+        rgba(253,204,0,0.25) 15%,
+        rgba(253,204,0,0.15) 35%,
+        rgba(253,204,0,0.08) 55%,
+        rgba(253,204,0,0.03) 75%,
+        rgba(253,204,0,0) 100%
+      ),
+
+      /* BOTTOM BLACK FADE */
+      linear-gradient(
+        to top,
+        rgba(0,0,0,1) 0%,
+        rgba(0,0,0,0.85) 5%,
+        rgba(0,0,0,0.55) 25%,
+        rgba(0,0,0,0.25) 40%,
+        rgba(0,0,0,0.08) 78%,
+        rgba(0,0,0,0) 100%
+      )
+    `,
+  }}
+/>
+
 
         <motion.div
   style={{
