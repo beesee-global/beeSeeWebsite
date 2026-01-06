@@ -1,9 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  motion,
-  useInView,
-} from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { GraduationCap, Briefcase, MapPin, ArrowRight } from "lucide-react";
 
 /* MOCK IMAGES */
@@ -33,31 +30,42 @@ const UnifiedHomeSections: React.FC = () => {
 
   // Detect screen size
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Section 2 refs
-  const section2LeftRef = useRef<HTMLDivElement | null>(null);
-  const section2RightRef = useRef<HTMLDivElement | null>(null);
-  const inView2Left = useInView(section2LeftRef, { once: isMobile, amount: 0.3 });
-  const inView2Right = useInView(section2RightRef, { once: isMobile, amount: 0.3 });
+  // Animation variants
+  const textAnimation = {
+    desktop: {
+      left: { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0 } },
+      right: { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0 } },
+      up: { hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0 } }
+    },
+    mobile: {
+      left: { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0 } },
+      right: { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0 } },
+      up: { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+    }
+  };
 
-  // Section 3 refs
-  const section3TitleRef = useRef<HTMLDivElement | null>(null);
-  const inView3Title = useInView(section3TitleRef, { once: isMobile, amount: 0.3 });
+  const transition = isMobile ? { duration: 0 } : { duration: 1.2, ease: [0.22, 1, 0.36, 1] };
+  const cardTransition = isMobile ? { duration: 0 } : { duration: 1.0, ease: "easeOut" };
 
-  // Section 4 refs
-  const section4LeftRef = useRef<HTMLDivElement | null>(null);
-  const section4RightRef = useRef<HTMLDivElement | null>(null);
-  const inView4Left = useInView(section4LeftRef, { once: isMobile, amount: 0.3 });
-  const inView4Right = useInView(section4RightRef, { once: isMobile, amount: 0.3 });
+  // Section refs
+  const section2LeftRef = useRef<HTMLDivElement>(null);
+  const section2RightRef = useRef<HTMLDivElement>(null);
+  const section3TitleRef = useRef<HTMLDivElement>(null);
+  const section4LeftRef = useRef<HTMLDivElement>(null);
+  const section4RightRef = useRef<HTMLDivElement>(null);
+
+  // InView hooks - always trigger once for mobile to show content immediately
+  const inView2Left = useInView(section2LeftRef, { once: true, amount: 0.1 });
+  const inView2Right = useInView(section2RightRef, { once: true, amount: 0.1 });
+  const inView3Title = useInView(section3TitleRef, { once: true, amount: 0.1 });
+  const inView4Left = useInView(section4LeftRef, { once: true, amount: 0.1 });
+  const inView4Right = useInView(section4RightRef, { once: true, amount: 0.1 });
 
   const items = [
     {
@@ -77,6 +85,11 @@ const UnifiedHomeSections: React.FC = () => {
     },
   ];
 
+  // Get animation variants based on device
+  const getTextVariants = (direction: 'left' | 'right' | 'up') => {
+    return isMobile ? textAnimation.mobile[direction] : textAnimation.desktop[direction];
+  };
+
   return (
     <div className="relative bg-[#000000]">
       {/* ================= SECTION TWO ================= */}
@@ -84,13 +97,14 @@ const UnifiedHomeSections: React.FC = () => {
         <div className="section-two-wrapper w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
           <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center">
             
-            {/* LEFT TEXT BLOCK - Slide from LEFT */}
+            {/* LEFT TEXT BLOCK - No animation on mobile */}
             <motion.div
               ref={section2LeftRef}
               className="section-two-text"
-              initial={{ opacity: 0, x: -100 }}
-              animate={inView2Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              initial="hidden"
+              animate={inView2Left ? "visible" : "hidden"}
+              variants={getTextVariants('left')}
+              transition={transition}
             >
               <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
                 BSG TECHNOLOGIES INC.
@@ -109,18 +123,18 @@ const UnifiedHomeSections: React.FC = () => {
               </p>
             </motion.div>
 
-            {/* RIGHT IMAGE BLOCK - Slide from RIGHT */}
+            {/* RIGHT IMAGE BLOCK - Keep animation for images on all devices */}
             <motion.div
               ref={section2RightRef}
               className="section-two-image"
               initial={{ opacity: 0, x: 100 }}
               animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.div 
                 className="beesee-card-content section-two-card"
                 whileHover={{ 
-                  scale: 1.03,
+                  scale: isMobile ? 1 : 1.03,
                   boxShadow: '0 0 40px rgba(253, 204, 0, 0.2)',
                 }}
                 transition={{ type: 'spring', stiffness: 300 }}
@@ -129,7 +143,7 @@ const UnifiedHomeSections: React.FC = () => {
                   src={buildingBeeSeeImage}
                   alt="Building BeeSee"
                   className="w-full h-full object-cover rounded-2xl"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: isMobile ? 1 : 1.05 }}
                   transition={{ duration: 0.6 }}
                 />
               </motion.div>
@@ -187,12 +201,13 @@ const UnifiedHomeSections: React.FC = () => {
 
         {/* CONTENT WRAPPER */}
         <div className="relative z-10 max-w-7xl mx-auto w-full">
-          {/* TITLE - Fade and Scale In */}
+          {/* TITLE - No animation on mobile */}
           <motion.div
             ref={section3TitleRef}
-            initial={{ opacity: 0, y: 80 }}
-            animate={inView3Title ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
-            transition={{ duration: 1.1, ease: "easeOut" }}
+            initial="hidden"
+            animate={inView3Title ? "visible" : "hidden"}
+            variants={getTextVariants('up')}
+            transition={transition}
             className="text-center mb-12"
           >
             <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
@@ -205,26 +220,23 @@ const UnifiedHomeSections: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* CARDS - Upward Animation */}
+          {/* CARDS - No animation on mobile */}
           <div className="grid md:grid-cols-3 gap-8">
             {items.map((item, index) => {
-              const cardRef = useRef<HTMLDivElement | null>(null);
-              const inViewCard = useInView(cardRef, { once: true, amount: 0.3 });
+              const cardRef = useRef<HTMLDivElement>(null);
+              const inViewCard = useInView(cardRef, { once: true, amount: 0.1 });
 
               return (
                 <motion.div
                   key={index}
                   ref={cardRef}
-                  initial={{ opacity: 0, y: 80 }}
-                  animate={inViewCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
-                  transition={{
-                    duration: 1.0,
-                    delay: index * 0.2,
-                    ease: "easeOut",
-                  }}
+                  initial="hidden"
+                  animate={inViewCard ? "visible" : "hidden"}
+                  variants={getTextVariants('up')}
+                  transition={isMobile ? { duration: 0 } : { duration: 1.0, delay: index * 0.2, ease: "easeOut" }}
                   className="beesee-card-content card-glow p-6"
                   whileHover={{ 
-                    y: -10,
+                    y: isMobile ? 0 : -10,
                     boxShadow: '0 20px 60px rgba(253, 204, 0, 0.15)',
                   }}
                 >
@@ -244,12 +256,12 @@ const UnifiedHomeSections: React.FC = () => {
       <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12">
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           
-          {/* LEFT — CAROUSEL - Slide from LEFT */}
+          {/* LEFT — CAROUSEL - Keep animation for images */}
           <motion.div
             ref={section4LeftRef}
             initial={{ opacity: 0, x: -100 }}
             animate={inView4Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative overflow-hidden rounded-2xl"
             style={{ height: '360px' }}
           >
@@ -264,7 +276,7 @@ const UnifiedHomeSections: React.FC = () => {
                 ease: 'linear',
               }}
             >
-              {images.concat(images).concat(images).map((img, i) => (
+              {[...images, ...images, ...images].map((img, i) => (
                 <div 
                   key={i} 
                   className="relative w-64 h-96 flex-shrink-0 rounded-xl overflow-hidden group"
@@ -286,12 +298,13 @@ const UnifiedHomeSections: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* RIGHT — TEXT - Slide from RIGHT */}
+          {/* RIGHT — TEXT - No animation on mobile */}
           <motion.div
             ref={section4RightRef}
-            initial={{ opacity: 0, x: 100 }}
-            animate={inView4Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            initial="hidden"
+            animate={inView4Right ? "visible" : "hidden"}
+            variants={getTextVariants('right')}
+            transition={transition}
             className="flex flex-col gap-5 md:gap-6"
           >
             <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
@@ -308,7 +321,7 @@ const UnifiedHomeSections: React.FC = () => {
               className="beesee-button beesee-button--small self-start flex items-center gap-3"
               onClick={() => navigate('/solution')}
               whileHover={{ 
-                scale: 1.05,
+                scale: isMobile ? 1 : 1.05,
                 boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)',
               }}
               whileTap={{ scale: 0.95 }}
