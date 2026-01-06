@@ -1,17 +1,12 @@
-
-
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   motion,
-  useScroll,
-  useTransform,
-  useSpring,
   useInView,
 } from "framer-motion";
 import { GraduationCap, Briefcase, MapPin, ArrowRight } from "lucide-react";
 
-/* MOCK IMAGES -*/
+/* MOCK IMAGES */
 const honey1 = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80";
 const honey10 = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80";
 const honey10BW = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80&sat=-100";
@@ -34,52 +29,35 @@ const images = [
 
 const UnifiedHomeSections: React.FC = () => {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const section2Ref = useRef<HTMLDivElement | null>(null);
-  const section3Ref = useRef<HTMLDivElement | null>(null);
-  const section4Ref = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Section 2 - Text from left, Image from right
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Section 2 refs
   const section2LeftRef = useRef<HTMLDivElement | null>(null);
   const section2RightRef = useRef<HTMLDivElement | null>(null);
-  const inView2Left = useInView(section2LeftRef, { amount: 0.25 });
-  const inView2Right = useInView(section2RightRef, { amount: 0.25 });
+  const inView2Left = useInView(section2LeftRef, { once: isMobile, amount: 0.3 });
+  const inView2Right = useInView(section2RightRef, { once: isMobile, amount: 0.3 });
 
-  // Section 3 - Title and Cards
+  // Section 3 refs
   const section3TitleRef = useRef<HTMLDivElement | null>(null);
-  const inView3Title = useInView(section3TitleRef, { amount: 0.25 });
+  const inView3Title = useInView(section3TitleRef, { once: isMobile, amount: 0.3 });
 
-  // Section 4 - Carousel from left, Text from right
+  // Section 4 refs
   const section4LeftRef = useRef<HTMLDivElement | null>(null);
   const section4RightRef = useRef<HTMLDivElement | null>(null);
-  const inView4Left = useInView(section4LeftRef, { amount: 0.25 });
-  const inView4Right = useInView(section4RightRef, { amount: 0.25 });
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
-  const smoothProgress = useSpring(scrollYProgress, springConfig);
-
-  // Section-specific parallax - Adjusted for tighter spacing
-  const section2Y = useTransform(smoothProgress, [0, 0.2], [0, -80]);
-  const section2Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 0.5, 0]);
-
-  const section3Y = useTransform(smoothProgress, [0.2, 0.55], [80, -80]);
-  const section3Opacity = useTransform(smoothProgress, [0.2, 0.3, 0.6, 0.7], [0, 1, 1, 0]);
-
-  const section4Y = useTransform(smoothProgress, [0.55, 1], [80, -40]);
-  const section4Opacity = useTransform(smoothProgress, [0.55, 0.65, 1], [0, 1, 1]);
-
-  const { scrollYProgress: section2Progress } = useScroll({
-    target: section2Ref,
-    offset: ["start end", "end start"],
-  });
-
-  const textParallaxY = useTransform(section2Progress, [0, 1], [70, -90]);
-  const imageParallaxY = useTransform(section2Progress, [0, 1], [40, -50]);
+  const inView4Left = useInView(section4LeftRef, { once: isMobile, amount: 0.3 });
+  const inView4Right = useInView(section4RightRef, { once: isMobile, amount: 0.3 });
 
   const items = [
     {
@@ -100,18 +78,9 @@ const UnifiedHomeSections: React.FC = () => {
   ];
 
   return (
-    <div ref={containerRef} className="relative bg-[#000000]">
-      
-
+    <div className="relative bg-[#000000]">
       {/* ================= SECTION TWO ================= */}
-      <motion.section
-        ref={section2Ref}
-        style={{ 
-          y: section2Y,
-          opacity: section2Opacity,
-        }}
-        className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10"
-      >
+      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10">
         <div className="section-two-wrapper w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
           <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center">
             
@@ -122,7 +91,6 @@ const UnifiedHomeSections: React.FC = () => {
               initial={{ opacity: 0, x: -100 }}
               animate={inView2Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ y: textParallaxY }}
             >
               <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
                 BSG TECHNOLOGIES INC.
@@ -148,7 +116,6 @@ const UnifiedHomeSections: React.FC = () => {
               initial={{ opacity: 0, x: 100 }}
               animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ y: imageParallaxY }}
             >
               <motion.div 
                 className="beesee-card-content section-two-card"
@@ -169,17 +136,10 @@ const UnifiedHomeSections: React.FC = () => {
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ================= SECTION THREE ================= */}
-      <motion.section
-        ref={section3Ref}
-        style={{ 
-          y: section3Y,
-          opacity: section3Opacity,
-        }}
-        className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12"
-      >
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12">
         {/* Background with overlay */}
         <div 
           className="absolute inset-0 z-0"
@@ -249,7 +209,7 @@ const UnifiedHomeSections: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {items.map((item, index) => {
               const cardRef = useRef<HTMLDivElement | null>(null);
-              const inViewCard = useInView(cardRef, { amount: 0.25 });
+              const inViewCard = useInView(cardRef, { once: true, amount: 0.3 });
 
               return (
                 <motion.div
@@ -278,17 +238,10 @@ const UnifiedHomeSections: React.FC = () => {
             })}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ================= DIGITAL CONNECTION SECTION ================= */}
-      <motion.section
-        ref={section4Ref}
-        style={{ 
-          y: section4Y,
-          opacity: section4Opacity,
-        }}
-        className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12"
-      >
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12">
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           
           {/* LEFT — CAROUSEL - Slide from LEFT */}
@@ -365,8 +318,7 @@ const UnifiedHomeSections: React.FC = () => {
             </motion.button>
           </motion.div>
         </div>
-      </motion.section>
-
+      </section>
     </div>
   );
 };
