@@ -56,8 +56,8 @@ const FooterHomePage = () => {
               </div>
             </div>
 
-            {/* ========== QUICK LINKS ========== */}
-            <div>
+            {/* ========== QUICK LINKS (HIDDEN ON MOBILE) ========== */}
+            <div className="hidden sm:block">
               <h6 className="text-gray-900 font-bold text-base mb-4 pb-2 border-b border-gray-200">
                 Quick Links
               </h6>

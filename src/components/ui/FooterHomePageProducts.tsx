@@ -59,14 +59,14 @@ const FooterHomePage = () => {
               </div>
             </div>
 
-            {/* ========== QUICK LINKS ========== */}
-            <div>
+            {/* ========== QUICK LINKS (HIDDEN ON MOBILE) ========== */}
+            <div className="hidden sm:block">
               <h6 className="text-[#FDCC00] font-bold text-base mb-4 pb-2 border-b border-[#FDCC00]/30">
                 Quick Links
               </h6>
 
               <div className="space-y-2.5">
-                {[
+                {[ 
                   { name: "Home", to: "/" },
                   { name: "About Us", to: "/about-beesee" },
                   { name: "Products", to: "/products" },
