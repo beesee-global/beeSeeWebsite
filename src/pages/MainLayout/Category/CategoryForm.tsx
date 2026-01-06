@@ -3,13 +3,8 @@ import {
   Save, 
   Home, 
   SquarePen, 
-  Tag, 
-  Upload, 
-  CheckCircle, 
-  Image as ImageIcon,
-  FileText,
-  Palette,
-  Package
+  Tag,   
+  Palette, 
 } from 'lucide-react';
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs';
 import { 
@@ -32,17 +27,13 @@ import {
 } from "react-router-dom"; 
 
 interface FormCategoryData {
-  name: string;
-  tagline: string;
-  icon?: string;
-  image?: File | null;
+  name: string; 
+  icon?: string; 
 }
 
 interface FormError {
-  name?: string;
-  tagline?: string;
-  icon?: string;
-  image?: string;
+  name?: string; 
+  icon?: string; 
 }
 
 const CategoryForm: React.FC = () => {
@@ -55,28 +46,15 @@ const CategoryForm: React.FC = () => {
   const [showAlert, setShowAlert] = useState<boolean>(false)   
 
   const [formCategoryData, setFormCategoryData] = useState<FormCategoryData>({
-    name: '',
-    tagline: '',
-    icon: '',
-    image: null,
+    name: '', 
+    icon: '', 
   });
   
   // ✅ Validation
   const validateForm = (): FormError => {
     const errors: FormError = {};
-    if (!formCategoryData.name.trim()) errors.name = 'Category name is required';
-    if (!formCategoryData.tagline.trim()) errors.tagline = 'Tagline is required';
-    if (!formCategoryData.icon) errors.icon = 'Please select an icon';
-    if (!formCategoryData.image) {
-      errors.image = 'Please upload an image';
-    } else {
-      if (formCategoryData.image instanceof File) {
-        const imageSizeMB = formCategoryData.image.size / 1024 / 1024;
-        if (imageSizeMB.toFixed(2) == "10") {
-          errors.image = "Maximum file size is 10 MB"
-        }
-      }
-    }
+    if (!formCategoryData.name.trim()) errors.name = 'Category name is required'; 
+    if (!formCategoryData.icon) errors.icon = 'Please select an icon'; 
     return errors;
   };
 
@@ -93,26 +71,11 @@ const CategoryForm: React.FC = () => {
       [name]: undefined
     }))
   };
-
-  const handleImageChange = (file: File | null) => {
-    setFormCategoryData((prev) => ({ 
-      ...prev, 
-      image: file 
-    }));
-    
-    // Clear image error when file is selected
-    if (file) {
-      setFormError((prev) => ({
-        ...prev,
-        image: undefined
-      }));
-    }
-  };
-
+  
   // Fetch data only when id exists
   const { data: categoryInfo } = useQuery({
     queryKey: ["category", id],
-    queryFn: () => fetchEmployeeByPid(id),
+    queryFn: () => fetchEmployeeByPid(String(id)),
     enabled: !!id // only fetch when id is defined
   })
 
@@ -149,15 +112,9 @@ const CategoryForm: React.FC = () => {
         if (value !== undefined && value !== null) {
           formDataToSend.append(key, value)
         }
-      }) 
-      console.log("error", formCategoryData)
+      })  
 
-      if (id) {
-        // remove image if not changed
-        if (typeof formCategoryData.image === "string") {
-          formDataToSend.delete("image")
-        }
-
+      if (id) {  
         // pass one object with both id and formData
         await updateCategoryAsync({ id: categoryInfo.id, categoryData: formDataToSend})
       } else {
@@ -165,8 +122,7 @@ const CategoryForm: React.FC = () => {
       }
       setSnackBarType('success');
       setMessage(id ? 'Category updated successfully!' : 'Category created successfully!');
- 
-      setTimeout(() => navigate('/beesee/category'), 2000); 
+      navigate('/beesee/category'); 
     } catch (error: any) {
       console.error('❌ Error creating category:', error); 
       setSnackBarType("error");
@@ -185,43 +141,17 @@ const CategoryForm: React.FC = () => {
         setShowAlert(true);  
     }
   };
-
-  // Memoized preview (perfect as you wrote)
-  const preview = useMemo(() => {
-    if (formCategoryData.image instanceof File) {
-      return URL.createObjectURL(formCategoryData.image)
-    } else if (typeof formCategoryData.image === "string" && formCategoryData.image.trim() !== "") {
-      return formCategoryData.image;
-    } else{
-      return AddImageIcon;
-    }
-  }, [formCategoryData.image])
-
+  
   // When user info arrives, update the form
   useEffect(() => {
     if (categoryInfo) {
       setFormCategoryData({
-        name: categoryInfo.name || "",
-        tagline: categoryInfo.tagline || "",
-        icon: categoryInfo.icon,
-        image: categoryInfo.image || ""
+        name: categoryInfo.name || "", 
+        icon: categoryInfo.icon, 
       })
     }
   }, [categoryInfo])
-
-  // Cleanup blob URLs if a File is selected
-  useEffect(() => {
-    let objectUrl: string | undefined;
-
-    if (formCategoryData.image instanceof File) {
-      objectUrl = URL.createObjectURL(formCategoryData.image)
-    }
-
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [formCategoryData.image])
-
+  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -285,7 +215,7 @@ const CategoryForm: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Form */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Information */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -319,26 +249,7 @@ const CategoryForm: React.FC = () => {
                       icon={<Tag className="w-4 h-4" />}
                     />
                   </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tagline  *
-                    </label>
-                    <CustomTextField
-                      name="tagline"
-                      placeholder="Brief tagline of the category"
-                      value={formCategoryData.tagline}
-                      multiline={true}
-                      rows={3}
-                      type="text"
-                      maxLength={150}
-                      onChange={handleInputChange}
-                      error={!!formError.tagline}
-                      helperText={formError.tagline}
-                      icon={<FileText className="w-4 h-4" />}
-                    />
-                  </div>
+ 
                 </div>
               </div>
 
@@ -366,167 +277,10 @@ const CategoryForm: React.FC = () => {
                   />
                 </div>
               </div>
-
-              {/* Image Upload */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center mb-6">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
-                    <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Category Image</h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Upload a representative image</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="relative group">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="image-upload"
-                      className="hidden"
-                      onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
-                    />
-
-                    <label
-                      htmlFor="image-upload"
-                      className="cursor-pointer block w-full"
-                    >
-                      <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden hover:border-[#FCD000] transition-colors group">
-                        <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                          <img
-                            src={preview}
-                            alt="Preview"
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-
-                        {/* Upload overlay for empty state */}
-                        {!formCategoryData.image && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
-                            <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
-                            <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
-                          </div>
-                        )}
-
-                        {/* Change image overlay */}
-                        {formCategoryData.image && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="text-white text-center">
-                              <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                              <p className="font-medium">Change Image</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                  </div>
-
-                  {/* File info */}
-                  {formCategoryData.image && (
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="flex items-center">
-                        <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {formCategoryData.image.name}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {(formCategoryData.image.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Error message */}
-                  {formError.image && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                      <p className="text-red-600 dark:text-red-400 text-sm">{formError.image}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+ 
             </form>
           </div>
-
-          {/* Right Column - Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Form Summary
-              </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Category Name:
-                  </span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formCategoryData.name || 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Tagline:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formCategoryData.tagline ? 'Added' : 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Icon:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formCategoryData.icon ? 'Selected' : 'Not selected'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Image:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formCategoryData.image ? 'Uploaded' : 'Not uploaded'}
-                  </span>
-                </div>
-              </div>
-
-{/*               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${formCategoryData.category ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="text-gray-600 dark:text-gray-400">Category name</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${formCategoryData.tagline ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="text-gray-600 dark:text-gray-400">Tagline</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${formCategoryData.icon ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="text-gray-600 dark:text-gray-400">Icon selected</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${formCategoryData.image ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="text-gray-600 dark:text-gray-400">Image uploaded</span>
-                  </div>
-                </div>
-              </div> */}
-
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                {/* <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Form Status</div>
-                  <div className={`text-sm font-medium ${
-                    formCategoryData.category && formCategoryData.tagline && formCategoryData.icon && formCategoryData.image
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-yellow-600 dark:text-yellow-400'
-                  }`}>
-                    {formCategoryData.category && formCategoryData.tagline && formCategoryData.icon && formCategoryData.image
-                      ? 'Ready to create'
-                      : 'Incomplete'
-                    }
-                  </div>
-                </div> */}
-              </div>
-            </div>
-          </div>
+ 
         </div>
       </div>
     </div>

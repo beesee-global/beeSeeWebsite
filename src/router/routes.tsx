@@ -33,8 +33,7 @@ const MainSolutionsOverview = lazy(() => import("../pages/MainLayout/HomePageDes
 const MainSolutionsOverviewForm = lazy(() => import("../pages/MainLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
 const MainSalesBanner = lazy(() => import("../pages/MainLayout/HomePageDesign/BannerManager/BannerManager"));
 const MainSalesBannerForm = lazy(() => import("../pages/MainLayout/HomePageDesign/BannerManager/BannerManagerForm"));
-const MainConsultation = lazy(() => import ("../../src/pages/MainLayout/Consultation/Consultation"));
-
+ 
 const routes = [
     {
         path: '/', // Catch-all route
@@ -93,10 +92,6 @@ const routes = [
             {
                 path:  "forget-password",
                 element: <ForgetPassword />
-            },
-            {
-                path: "solution",
-                element: <Solution />
             }, 
         ]
     },
@@ -166,11 +161,7 @@ const routes = [
             {
                 path: 'manage-banner/form/:id?',
                 element: <MainSalesBannerForm />
-            }, 
-            {
-                path: 'consultation',
-                element: <MainConsultation />
-            }
+            },  
         ]
     }, 
     

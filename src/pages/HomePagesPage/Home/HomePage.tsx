@@ -46,7 +46,7 @@ export default function HomePage() {
 
 	  {/* NORMAL CONTENT — starts after 1.5 scroll */}
 	  <div className="mt-[150vh] w-full bg-black relative z-[20]">
-    <SectionTwo />
+    	<SectionTwo />
 		<ContactSection />
 	  </div>
 	</div>

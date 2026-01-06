@@ -39,10 +39,8 @@ const Category = () => {
     const [title, setTitle] = useState<string>('');
     const [openModal, setOpenModal] = useState<boolean>(false);
 
-    const columns = [
-        { id: 'image_url', label: 'Image', numeric: false, disablePadding: false},
-        { id: 'name', label: 'Category Name', numeric: false, disablePadding: false },
-        { id: 'tagline', label: 'Description', numeric: false, disablePadding: false }, 
+    const columns = [ 
+        { id: 'name', label: 'Category Name', numeric: false, disablePadding: false }, 
     ];
 
     // fetch all data
