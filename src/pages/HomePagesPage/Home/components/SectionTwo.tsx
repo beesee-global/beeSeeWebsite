@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-import { GraduationCap, Briefcase, MapPin, ArrowRight } from "lucide-react";
+import { CircuitBoard, Briefcase, Laptop, ArrowRight } from "lucide-react";
 
 /* MOCK IMAGES */
 const honey1 = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80";
@@ -69,19 +69,19 @@ const UnifiedHomeSections: React.FC = () => {
 
   const items = [
     {
-      title: "We are Field Experts",
+      title: "FIELD EXPERTS",
       desc: "Our expertise spans ICT, STEM, Robotics, TechVoc, Wellness, Accounting, and Business Management—supported by years of hands-on industry experience.",
-      icon: <GraduationCap size={28} />,
+      icon: <CircuitBoard size={28} />,
     },
     {
-      title: "WE CREATE DIGITAL CONTENT",
+      title: "DEVELOPER EXPERTS",
       desc: "We develop polished, impactful digital content that blends creativity, technical accuracy, and user-centered design.",
-      icon: <Briefcase size={28} />,
+      icon: <Laptop size={28} />,
     },
     {
-      title: "WE DEVELOP PEOPLE & TEAMS",
+      title: "CAPACITY-BUILDING EXPERTS",
       desc: "We empower organizations through structured training, skills development, and capability-building programs.",
-      icon: <MapPin size={28} />,
+      icon: <Briefcase size={28} />,
     },
   ];
 
@@ -107,11 +107,11 @@ const UnifiedHomeSections: React.FC = () => {
               transition={transition}
             >
               <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-                BSG TECHNOLOGIES INC.
+                BEESEE GLOBAL TECHNOLOGIES INC.
               </h2>
 
               <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">
-                BeeSee Global Technologies Inc delivers scalable digital
+                 <i>BeeSee Global Technologies Inc.</i>, delivers scalable digital
                 solutions backed by a dedicated team. With a strong presence
                 and proven performance in Guam, USA, we provide strategic and
                 highly adaptable system solutions.
@@ -211,7 +211,7 @@ const UnifiedHomeSections: React.FC = () => {
             className="text-center mb-12"
           >
             <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-              BEESEE GLOBAL TECHNOLOGIES INC.
+              SYSTEM TECHNOLOGY EXPERTS
             </h3>
             <p className="bee-body max-w-3xl mx-auto mt-4 text-[#C7B897]">
               BeeSee Global Technologies is a trusted provider of digital
@@ -311,11 +311,12 @@ const UnifiedHomeSections: React.FC = () => {
               DIGITAL CONNECTION
             </h2>
 
-            <p className="bee-body max-w-lg text-[#C7B897]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Mauris non urna nec elit sollicitudin suscipit.
-              Sed at tortor lectus. Fusce feugiat rhoncus felis.
-            </p>
+            <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">
+                Affordable devices, seamless support, powerful networks, and intuitive softwares—everything you need in one connected ecosystem.
+                <br />
+                <br />
+                <i>"Smart. Reliable. Accessible."</i>
+              </p>
 
             <motion.button
               className="beesee-button beesee-button--small self-start flex items-center gap-3"
@@ -326,7 +327,7 @@ const UnifiedHomeSections: React.FC = () => {
               }}
               whileTap={{ scale: 0.95 }}
             >
-              EXPLORE SERVICES
+              START HERE
               <ArrowRight size={18} />
             </motion.button>
           </motion.div>
