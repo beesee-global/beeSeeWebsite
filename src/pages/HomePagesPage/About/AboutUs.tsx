@@ -46,7 +46,7 @@ const AboutUs: React.FC = () => {
   };
 
   return (
-    <div className="about-page pt-[80px]">  {/* ← FIXED, removed min-h-screen */}
+    <div className="about-page">  {/* ← REMOVED pt-[80px] */}
       <motion.main
         variants={pageVariants}
         initial="hidden"

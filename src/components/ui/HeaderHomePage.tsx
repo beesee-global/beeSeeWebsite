@@ -128,7 +128,7 @@ const HeaderHomePage = () => {
     const navRight = [
         { label: 'INQUIRIES', to: '#contact-section' },
         { label: 'FAQS', to: '/faqs' },
-        { label: 'SUPPORT', to: '/customer-support' },
+        { label: 'SUPPORT', to: 'http://192.168.1.104:5173/customer-support', external: true },
     ];
 
     const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];
