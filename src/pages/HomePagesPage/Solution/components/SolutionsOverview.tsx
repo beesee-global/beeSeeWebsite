@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useAnimation, useInView, useSpring } from "framer-motion";
+import { motion, useAnimation, useInView } from "framer-motion";
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/Ecommerce/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ const UnifiedPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fix for mobile scrolling
+  // Fix for mobile scrolling and prevent horizontal scroll
   useEffect(() => {
     const fixMobileScrolling = () => {
       // Reset any overflow hidden on body and html
@@ -35,6 +35,12 @@ const UnifiedPage: React.FC = () => {
       document.body.style.height = 'auto';
       document.documentElement.style.overflow = 'auto';
       document.documentElement.style.height = 'auto';
+      
+      // Prevent horizontal scroll on mobile
+      if (isMobile) {
+        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.overflowX = 'hidden';
+      }
       
       // Make sure the container allows scrolling
       if (containerRef.current) {
@@ -45,18 +51,31 @@ const UnifiedPage: React.FC = () => {
     
     fixMobileScrolling();
     window.addEventListener('resize', fixMobileScrolling);
-    return () => window.removeEventListener('resize', fixMobileScrolling);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', fixMobileScrolling);
+      document.body.style.overflowX = '';
+      document.documentElement.style.overflowX = '';
+    };
+  }, [isMobile]);
 
   /** ==================== SOLUTIONS SECTION ==================== */
   const solutionsRef = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress: solutionsProgress } = useScroll({
-    target: solutionsRef,
-    offset: ["start end", "end start"],
+  const solutionsControls = useAnimation();
+  const solutionsInView = useInView(solutionsRef, { 
+    once: false, 
+    amount: 0.1,
+    margin: "-50px"
   });
-  const titleY_Solutions = useTransform(solutionsProgress, [0, 1], [60, -60]);
-  const contentY_Solutions = useTransform(solutionsProgress, [0, 1], [40, -40]);
-  const blocksY_Solutions = useTransform(solutionsProgress, [0, 1], [20, -20]);
+
+  useEffect(() => {
+    if (isMobile) {
+      solutionsControls.start("visible"); // Immediately show on mobile
+    } else if (solutionsInView) {
+      solutionsControls.start("visible");
+    } else {
+      solutionsControls.start("hidden");
+    }
+  }, [solutionsInView, solutionsControls, isMobile]);
 
   const iconMap: Record<string, any> = { BatteryCharging, Network };
   const { data: solutionsResponse } = useQuery({
@@ -70,17 +89,10 @@ const UnifiedPage: React.FC = () => {
   const supportLeftRef = useRef<HTMLDivElement | null>(null);
   const supportRightRef = useRef<HTMLDivElement | null>(null);
   
-  const { scrollYProgress: supportProgress } = useScroll({
-    target: supportRef,
-    offset: ["start end", "end start"],
-  });
-  const supportTitleY = useTransform(supportProgress, [0, 1], [40, -40]);
-  const supportContentY = useTransform(supportProgress, [0, 1], [20, -20]);
-
   // Left side animation controls
   const supportLeftControls = useAnimation();
   const supportLeftInView = useInView(supportLeftRef, { 
-    once: false, 
+    once: isMobile, 
     amount: 0.1,
     margin: "-50px"
   });
@@ -88,26 +100,30 @@ const UnifiedPage: React.FC = () => {
   // Right side animation controls
   const supportRightControls = useAnimation();
   const supportRightInView = useInView(supportRightRef, { 
-    once: false, 
+    once: isMobile, 
     amount: 0.1,
     margin: "-50px"
   });
 
   useEffect(() => {
-    if (supportLeftInView) {
+    if (isMobile) {
+      supportLeftControls.start("visible"); // Immediately show on mobile
+    } else if (supportLeftInView) {
       supportLeftControls.start("visible");
     } else {
       supportLeftControls.start("hidden");
     }
-  }, [supportLeftInView, supportLeftControls]);
+  }, [supportLeftInView, supportLeftControls, isMobile]);
 
   useEffect(() => {
-    if (supportRightInView) {
+    if (isMobile) {
+      supportRightControls.start("visible"); // Immediately show on mobile
+    } else if (supportRightInView) {
       supportRightControls.start("visible");
     } else {
       supportRightControls.start("hidden");
     }
-  }, [supportRightInView, supportRightControls]);
+  }, [supportRightInView, supportRightControls, isMobile]);
 
   const supportFeatures = [
     { icon: PhoneCall, title: "Call Local Support", desc: "Talk directly with our local support experts." },
@@ -115,13 +131,50 @@ const UnifiedPage: React.FC = () => {
     { icon: Mail, title: "Ask-A-Question (After Hours)", desc: "Send your query anytime we'll reply by email promptly." },
   ];
 
-  /** ==================== ANIMATION VARIANTS FOR SUPPORT SECTION ==================== */
+  /** ==================== ANIMATION VARIANTS ==================== */
+  const solutionsVariants = {
+    hidden: { 
+      opacity: isMobile ? 1 : 0,
+      transition: {
+        duration: isMobile ? 0 : 0.6,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
+    },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: isMobile ? 0 : 0.8,
+        ease: [0.43, 0.13, 0.23, 0.96],
+        staggerChildren: isMobile ? 0 : 0.1
+      }
+    }
+  };
+
+  const solutionsChildVariants = {
+    hidden: { 
+      opacity: isMobile ? 1 : 0, 
+      y: isMobile ? 0 : 30,
+      transition: {
+        duration: isMobile ? 0 : 0.6,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: isMobile ? 0 : 0.8,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
+    }
+  };
+
   const supportLeftVariants = {
     hidden: { 
-      opacity: 0, 
-      x: isMobile ? 0 : -100,
+      opacity: isMobile ? 1 : 0, 
+      x: 0,
       transition: {
-        duration: 0.6,
+        duration: isMobile ? 0 : 0.6,
         ease: [0.43, 0.13, 0.23, 0.96]
       }
     },
@@ -129,20 +182,20 @@ const UnifiedPage: React.FC = () => {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.8,
+        duration: isMobile ? 0 : 0.8,
         ease: [0.43, 0.13, 0.23, 0.96],
         when: "beforeChildren",
-        staggerChildren: 0.15
+        staggerChildren: isMobile ? 0 : 0.15
       }
     }
   };
 
   const supportRightVariants = {
     hidden: { 
-      opacity: 0, 
-      x: isMobile ? 0 : 100,
+      opacity: isMobile ? 1 : 0, 
+      x: 0,
       transition: {
-        duration: 0.6,
+        duration: isMobile ? 0 : 0.6,
         ease: [0.43, 0.13, 0.23, 0.96]
       }
     },
@@ -150,38 +203,69 @@ const UnifiedPage: React.FC = () => {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.8,
+        duration: isMobile ? 0 : 0.8,
         ease: [0.43, 0.13, 0.23, 0.96],
-        delay: 0.2
+        delay: isMobile ? 0 : 0.2
       }
     }
   };
 
   const supportFeatureVariants = {
     hidden: { 
-      opacity: 0, 
-      x: isMobile ? 0 : -50,
+      opacity: isMobile ? 1 : 0, 
+      x: 0,
       transition: {
-        duration: 0.4
+        duration: isMobile ? 0 : 0.4
       }
     },
     visible: {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.6,
+        duration: isMobile ? 0 : 0.6,
         ease: "easeOut"
       }
     }
   };
 
+  // Helper function for solution block animations
+  const solutionBlockTextVariants = {
+    hidden: { 
+      opacity: isMobile ? 1 : 0, 
+      x: 0
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: isMobile ? 0 : 0.8,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
+    }
+  };
+
+  const solutionBlockImageVariants = {
+    hidden: { 
+      opacity: isMobile ? 1 : 0, 
+      scale: 1
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: isMobile ? 0 : 0.8,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
+    }
+  };
+
   return (
-    <div ref={containerRef} className="relative bg-[#000000] min-h-screen w-full overflow-visible">
+    <div ref={containerRef} className="relative bg-[#000000] min-h-screen w-full overflow-x-hidden">
 
       {/* ==================== SOLUTIONS SECTION ==================== */}
       <section
         ref={solutionsRef}
-        className="relative w-full pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12"
+        className="relative w-full pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-20 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12 overflow-x-hidden"
         style={{
           backgroundImage: "url('/live-background/randomBg2.png')",
           backgroundSize: "cover",
@@ -194,72 +278,81 @@ const UnifiedPage: React.FC = () => {
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
-              linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 5%, rgba(0,0,0,0.35) 10%, rgba(0,0,0,0) 15%, transparent 20%),
-              linear-gradient(to bottom, rgba(253,204,0,0.35) 0%, rgba(253,204,0,0.25) 15%, rgba(253,204,0,0.15) 35%, rgba(253,204,0,0.08) 55%, rgba(253,204,0,0.03) 75%, rgba(253,204,0,0) 100%),
-              linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 5%, rgba(0,0,0,0.55) 25%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.08) 78%, rgba(0,0,0,0) 100%)
+              /* STRONGER TOP BLACK FADE */
+              linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.95) 6%,
+                rgba(0,0,0,0.85) 12%,
+                rgba(0,0,0,0.65) 18%,
+                rgba(0,0,0,0.4) 25%,
+                rgba(0,0,0,0.15) 32%,
+                rgba(0,0,0,0) 40%
+              ),
+
+              /* GOLD OVERLAY */
+              linear-gradient(
+                to bottom,
+                rgba(253,204,0,0.35) 0%,
+                rgba(253,204,0,0.25) 15%,
+                rgba(253,204,0,0.15) 35%,
+                rgba(253,204,0,0.08) 55%,
+                rgba(253,204,0,0.03) 75%,
+                rgba(253,204,0,0) 100%
+              ),
+
+              /* BOTTOM BLACK FADE */
+              linear-gradient(
+                to top,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.85) 5%,
+                rgba(0,0,0,0.55) 25%,
+                rgba(0,0,0,0.25) 40%,
+                rgba(0,0,0,0.08) 78%,
+                rgba(0,0,0,0) 100%
+              )
             `,
           }}
         />
 
         <motion.div
-  style={{
-    y: useSpring(contentY_Solutions, { stiffness: 120, damping: 20 }), // smooth parallax
-    opacity: useSpring(
-      useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
-      { stiffness: 120, damping: 20 }
-    ), // smooth fade in/out
-  }}
-  className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 text-center mb-20"
->
-  {/* Badge */}
-  <motion.div
-    style={{
-      y: useSpring(useTransform(solutionsProgress, [0, 1], [20, 0]), { stiffness: 120, damping: 20 }),
-      opacity: useSpring(
-        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
-        { stiffness: 120, damping: 20 }
-      ),
-    }}
-    className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-5 py-2 rounded-full mb-6 bee-body-sm text-[var(--beesee-gold)] uppercase tracking-[0.18em]"
-  >
-    <Layers size={18} className="text-[#FDCC00]" />
-    Enterprise Solutions Portfolio
-  </motion.div>
+          initial="hidden"
+          animate={solutionsControls}
+          variants={solutionsVariants}
+          className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 text-center mb-20 w-full"
+        >
+          {/* Badge */}
+          <motion.div
+            variants={solutionsChildVariants}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-5 py-2 rounded-full mb-6 bee-body-sm text-[var(--beesee-gold)] uppercase tracking-[0.18em]"
+          >
+            <Layers size={18} className="text-[#FDCC00]" />
+            Enterprise Solutions Portfolio
+          </motion.div>
 
-  {/* Title */}
-  <motion.h2
-    style={{
-      y: useSpring(titleY_Solutions, { stiffness: 120, damping: 20 }),
-      opacity: useSpring(
-        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
-        { stiffness: 120, damping: 20 }
-      ),
-    }}
-    className="bee-title-lg text-[var(--beesee-gold)] tracking-wide"
-  >
-    COMPLETE INFRASTRUCTURE SOLUTIONS
-  </motion.h2>
+          {/* Title */}
+          <motion.h2
+            variants={solutionsChildVariants}
+            className="bee-title-lg text-[var(--beesee-gold)] tracking-wide"
+          >
+            COMPLETE INFRASTRUCTURE SOLUTIONS
+          </motion.h2>
 
-  {/* Paragraph */}
-  <motion.p
-    style={{
-      y: useSpring(contentY_Solutions, { stiffness: 120, damping: 20 }),
-      opacity: useSpring(
-        useTransform(solutionsProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
-        { stiffness: 120, damping: 20 }
-      ),
-    }}
-    className="bee-body max-w-3xl mx-auto mt-6 leading-relaxed"
-  >
-    From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
-  </motion.p>
-</motion.div>
-
+          {/* Paragraph */}
+          <motion.p
+            variants={solutionsChildVariants}
+            className="bee-body max-w-3xl mx-auto mt-6 leading-relaxed"
+          >
+            From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
+          </motion.p>
+        </motion.div>
 
         {/* SOLUTION BLOCKS */}
         <motion.div 
-          style={{ y: isMobile ? 0 : blocksY_Solutions }} 
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-28"
+          initial="hidden"
+          animate={solutionsControls}
+          variants={solutionsVariants}
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-28 w-full"
         >
           {solutions.map((solution, index) => {
             const IconComponent = iconMap[solution.icon] || Network;
@@ -267,19 +360,16 @@ const UnifiedPage: React.FC = () => {
             return (
               <motion.div 
                 key={solution.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                viewport={{ once: true, amount: 0.2 }}
-                className={`grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center ${index % 2 === 1 ? "lg:grid-flow-col-dense" : ""}`}
+                variants={solutionsChildVariants}
+                className={`grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center w-full ${index % 2 === 1 ? "lg:grid-flow-col-dense" : ""}`}
               >
                 {/* TEXT SIDE */}
                 <motion.div
-                  initial={{ opacity: 0, x: isMobile ? 0 : (index % 2 === 1 ? 60 : -60) }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial="hidden"
+                  whileInView={isMobile ? "visible" : "visible"}
                   viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.8 }}
-                  className={`space-y-6 sm:space-y-8 ${index % 2 === 1 ? "lg:col-start-2" : ""}`}
+                  variants={solutionBlockTextVariants}
+                  className={`space-y-6 sm:space-y-8 w-full ${index % 2 === 1 ? "lg:col-start-2" : ""}`}
                 >
                   <div className="flex items-center gap-3 sm:gap-5">
                     <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-lg sm:rounded-xl border border-[#FDCC00]/35 flex items-center justify-center bg-[#FDCC00]/10 flex-shrink-0">
@@ -290,25 +380,24 @@ const UnifiedPage: React.FC = () => {
 
                   <p className="text-sm sm:text-base md:text-lg leading-relaxed md:leading-[1.8] max-w-xl text-white/85">{solution.description}</p>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 w-full">
                     <h4 className="text-sm sm:text-base md:text-lg font-semibold text-white">Key Features</h4>
-                    <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
+                    <div className="grid sm:grid-cols-2 gap-2 sm:gap-3 w-full">
                       {solution.features.map((feature, i) => (
-                        <motion.div 
+                        <div 
                           key={i} 
-                          whileHover={{ x: isMobile ? 0 : 5 }} 
                           className="flex items-start gap-2 sm:gap-3"
                         >
                           <CheckCircle size={16} className="sm:w-5 sm:h-5 text-[var(--beesee-gold)] mt-0.5 sm:mt-1 flex-shrink-0" />
                           <span className="text-xs sm:text-sm md:text-base text-white/70">{feature}</span>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl border border-[#FDCC00]/25 p-4 sm:p-6">
+                  <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl border border-[#FDCC00]/25 p-4 sm:p-6 w-full">
                     <h4 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-3 sm:mb-4">Technical Specifications</h4>
-                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-5">
+                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-5 w-full">
                       {Object.entries(solution.specs).map(([key, value]) => (
                         <div key={key} className="flex flex-col">
                           <span className="text-xs sm:text-sm opacity-70 capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
@@ -321,13 +410,13 @@ const UnifiedPage: React.FC = () => {
 
                 {/* IMAGE SIDE */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  initial="hidden"
+                  whileInView={isMobile ? "visible" : "visible"}
                   viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.8 }}
-                  className={`${index % 2 === 1 ? "lg:col-start-1" : ""}`}
+                  variants={solutionBlockImageVariants}
+                  className={`w-full ${index % 2 === 1 ? "lg:col-start-1" : ""}`}
                 >
-                  <div className="relative backdrop-blur-md rounded-lg sm:rounded-2xl p-3 sm:p-6 border border-[#FDCC00]/25">
+                  <div className="relative backdrop-blur-md rounded-lg sm:rounded-2xl p-3 sm:p-6 border border-[#FDCC00]/25 w-full">
                     <img 
                       src={solution.image_url} 
                       className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg sm:rounded-xl" 
@@ -344,7 +433,7 @@ const UnifiedPage: React.FC = () => {
       {/* ==================== SUPPORT SERVICES SECTION ==================== */}
       <section
         ref={supportRef}
-        className="relative w-full py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#000000]"
+        className="relative w-full py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#000000] overflow-x-hidden"
       >
         {/* Animated Background Effects */}
         <div className="absolute inset-0 opacity-30 pointer-events-none">
@@ -352,57 +441,43 @@ const UnifiedPage: React.FC = () => {
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#FFD700]/15 blur-3xl rounded-full animate-pulse" style={{ animationDelay: "1s" }}></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center w-full">
           {/* Left Content */}
           <motion.div 
             ref={supportLeftRef}
-            style={{ y: isMobile ? 0 : supportContentY }}
             initial="hidden"
             animate={supportLeftControls}
             variants={supportLeftVariants}
+            className="w-full"
           >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              style={{ y: isMobile ? 0 : supportTitleY, fontFamily: "Georgia, serif" }}
+            <div
+              style={{ fontFamily: "Georgia, serif" }}
               className="text-[#FDCC00]/80 text-xs sm:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase mb-3 sm:mb-4"
             >
               We're Here for You
-            </motion.div>
+            </div>
 
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              style={{ y: isMobile ? 0 : supportTitleY, fontFamily: "'Bebas Neue', sans-serif" }}
+            <h2
+              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#FDCC00] tracking-wide leading-tight mb-4 sm:mb-6"
             >
               INTEGRATED SUPPORT & SERVICES
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              style={{ y: isMobile ? 0 : supportContentY }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.9, delay: 0.25 }}
+            <p
               className="text-sm sm:text-base md:text-lg mb-6 sm:mb-9 max-w-xl text-white/85"
             >
               Get the help you need, anytime, anywhere. BeeSee ensures you stay connected and supported because we believe great technology deserves great care.
-            </motion.p>
+            </p>
 
             {/* Feature Cards */}
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-4 sm:space-y-5 w-full">
               {supportFeatures.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
-                  <motion.div
+                  <div
                     key={i}
-                    variants={supportFeatureVariants}
-                    className="group relative flex items-start gap-3 sm:gap-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-[#FDCC00]/20 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl hover:border-[#FDCC00]/50 hover:shadow-xl hover:shadow-[#FDCC00]/20 hover:-translate-y-1 transition-all duration-300"
+                    className="group relative flex items-start gap-3 sm:gap-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-[#FDCC00]/20 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl hover:border-[#FDCC00]/50 hover:shadow-xl hover:shadow-[#FDCC00]/20 hover:-translate-y-1 transition-all duration-300 w-full"
                   >
                     <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#FDCC00]/5 via-transparent to-[#FFD700]/5 pointer-events-none"></div>
 
@@ -419,19 +494,15 @@ const UnifiedPage: React.FC = () => {
                         {item.desc}
                       </p>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
           </motion.div>
 
           {/* Right Image */}
-          <motion.div
-            ref={supportRightRef}
-            initial="hidden"
-            animate={supportRightControls}
-            variants={supportRightVariants}
-            className="flex justify-center lg:justify-end mt-8 lg:mt-0"
+          <div
+            className="flex justify-center lg:justify-end mt-8 lg:mt-0 w-full"
           >
             <div className="relative group w-full max-w-md lg:max-w-none">
               <div className="absolute inset-0 bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/20 rounded-lg sm:rounded-2xl blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500 scale-105"></div>
@@ -442,7 +513,7 @@ const UnifiedPage: React.FC = () => {
               <div className="absolute top-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-l-2 border-[#FDCC00]/0 group-hover:border-[#FDCC00]/70 rounded-tl-lg sm:rounded-tl-2xl transition-all duration-500"></div>
               <div className="absolute bottom-0 right-0 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-r-2 border-[#FDCC00]/0 group-hover:border-[#FDCC00]/70 rounded-br-lg sm:rounded-br-2xl transition-all duration-500"></div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

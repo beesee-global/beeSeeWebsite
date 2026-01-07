@@ -109,8 +109,16 @@ const Inquiries = () => {
   // Animation refs
   const leftColumnRef = useRef<HTMLDivElement | null>(null);
   const rightColumnRef = useRef<HTMLDivElement | null>(null);
-  const inViewLeft = useInView(leftColumnRef, { amount: 0.25 });
-  const inViewRight = useInView(rightColumnRef, { amount: 0.25 });
+  const inViewLeft = useInView(leftColumnRef, { amount: 0.25, once: isMobile });
+  const inViewRight = useInView(rightColumnRef, { amount: 0.25, once: isMobile });
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Slide-in animation effect
   useEffect(() => {
@@ -293,12 +301,12 @@ const Inquiries = () => {
       />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-        {/* Left Column - Slide from LEFT */}
+        {/* Left Column */}
         <motion.div
           ref={leftColumnRef}
-          initial={{ opacity: 0, x: -100 }}
-          animate={inViewLeft ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: isMobile ? 1 : 0, x: 0 }}
+          animate={inViewLeft ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : -100 }}
+          transition={{ duration: isMobile ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-8"
         >
           <div className="space-y-4">
@@ -362,7 +370,7 @@ const Inquiries = () => {
           </div>
         </motion.div>
 
-        {/* Right Column - Form (Solid White Card) - Slide from RIGHT */}
+        {/* Right Column - Form */}
         <motion.div
           ref={rightColumnRef}
           initial={{ opacity: 0, x: 100 }}

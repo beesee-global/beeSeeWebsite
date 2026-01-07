@@ -1,17 +1,9 @@
-
-
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useInView,
-} from "framer-motion";
-import { GraduationCap, Briefcase, MapPin, ArrowRight } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { CircuitBoard, Briefcase, Laptop, ArrowRight } from "lucide-react";
 
-/* MOCK IMAGES -*/
+/* MOCK IMAGES */
 const honey1 = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80";
 const honey10 = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80";
 const honey10BW = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80&sat=-100";
@@ -34,102 +26,106 @@ const images = [
 
 const UnifiedHomeSections: React.FC = () => {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const section2Ref = useRef<HTMLDivElement | null>(null);
-  const section3Ref = useRef<HTMLDivElement | null>(null);
-  const section4Ref = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Section 2 - Text from left, Image from right
-  const section2LeftRef = useRef<HTMLDivElement | null>(null);
-  const section2RightRef = useRef<HTMLDivElement | null>(null);
-  const inView2Left = useInView(section2LeftRef, { amount: 0.25 });
-  const inView2Right = useInView(section2RightRef, { amount: 0.25 });
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  // Section 3 - Title and Cards
-  const section3TitleRef = useRef<HTMLDivElement | null>(null);
-  const inView3Title = useInView(section3TitleRef, { amount: 0.25 });
+  // Prevent horizontal scroll on mobile
+  useEffect(() => {
+    if (isMobile) {
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+    }
+    return () => {
+      document.body.style.overflowX = '';
+      document.documentElement.style.overflowX = '';
+    };
+  }, [isMobile]);
 
-  // Section 4 - Carousel from left, Text from right
-  const section4LeftRef = useRef<HTMLDivElement | null>(null);
-  const section4RightRef = useRef<HTMLDivElement | null>(null);
-  const inView4Left = useInView(section4LeftRef, { amount: 0.25 });
-  const inView4Right = useInView(section4RightRef, { amount: 0.25 });
+  // Animation variants
+  const textAnimation = {
+    desktop: {
+      left: { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0 } },
+      right: { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0 } },
+      up: { hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0 } }
+    },
+    mobile: {
+      left: { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0 } },
+      right: { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0 } },
+      up: { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+    }
+  };
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
+  const transition = isMobile ? { duration: 0 } : { duration: 1.2, ease: [0.22, 1, 0.36, 1] };
+  const cardTransition = isMobile ? { duration: 0 } : { duration: 1.0, ease: "easeOut" };
 
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
-  const smoothProgress = useSpring(scrollYProgress, springConfig);
+  // Section refs
+  const section2LeftRef = useRef<HTMLDivElement>(null);
+  const section2RightRef = useRef<HTMLDivElement>(null);
+  const section3TitleRef = useRef<HTMLDivElement>(null);
+  const section4LeftRef = useRef<HTMLDivElement>(null);
+  const section4RightRef = useRef<HTMLDivElement>(null);
 
-  // Section-specific parallax - Adjusted for tighter spacing
-  const section2Y = useTransform(smoothProgress, [0, 0.2], [0, -80]);
-  const section2Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 0.5, 0]);
-
-  const section3Y = useTransform(smoothProgress, [0.2, 0.55], [80, -80]);
-  const section3Opacity = useTransform(smoothProgress, [0.2, 0.3, 0.6, 0.7], [0, 1, 1, 0]);
-
-  const section4Y = useTransform(smoothProgress, [0.55, 1], [80, -40]);
-  const section4Opacity = useTransform(smoothProgress, [0.55, 0.65, 1], [0, 1, 1]);
-
-  const { scrollYProgress: section2Progress } = useScroll({
-    target: section2Ref,
-    offset: ["start end", "end start"],
-  });
-
-  const textParallaxY = useTransform(section2Progress, [0, 1], [70, -90]);
-  const imageParallaxY = useTransform(section2Progress, [0, 1], [40, -50]);
+  // InView hooks - once: true for mobile, once: false for desktop (repeatable)
+  const inView2Left = useInView(section2LeftRef, { once: isMobile, amount: 0.1 });
+  const inView2Right = useInView(section2RightRef, { once: isMobile, amount: 0.1 });
+  const inView3Title = useInView(section3TitleRef, { once: isMobile, amount: 0.1 });
+  const inView4Left = useInView(section4LeftRef, { once: isMobile, amount: 0.1 });
+  const inView4Right = useInView(section4RightRef, { once: isMobile, amount: 0.1 });
 
   const items = [
     {
-      title: "We are Field Experts",
+      title: "FIELD EXPERTS",
       desc: "Our expertise spans ICT, STEM, Robotics, TechVoc, Wellness, Accounting, and Business Management—supported by years of hands-on industry experience.",
-      icon: <GraduationCap size={28} />,
+      icon: <CircuitBoard size={28} />,
     },
     {
-      title: "WE CREATE DIGITAL CONTENT",
+      title: "DEVELOPER EXPERTS",
       desc: "We develop polished, impactful digital content that blends creativity, technical accuracy, and user-centered design.",
-      icon: <Briefcase size={28} />,
+      icon: <Laptop size={28} />,
     },
     {
-      title: "WE DEVELOP PEOPLE & TEAMS",
+      title: "CAPACITY-BUILDING EXPERTS",
       desc: "We empower organizations through structured training, skills development, and capability-building programs.",
-      icon: <MapPin size={28} />,
+      icon: <Briefcase size={28} />,
     },
   ];
 
-  return (
-    <div ref={containerRef} className="relative bg-[#000000]">
-      
+  // Get animation variants based on device
+  const getTextVariants = (direction: 'left' | 'right' | 'up') => {
+    return isMobile ? textAnimation.mobile[direction] : textAnimation.desktop[direction];
+  };
 
+  return (
+    <div className="relative bg-[#000000] overflow-x-hidden w-full">
       {/* ================= SECTION TWO ================= */}
-      <motion.section
-        ref={section2Ref}
-        style={{ 
-          y: section2Y,
-          opacity: section2Opacity,
-        }}
-        className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10"
-      >
+      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10 w-full">
         <div className="section-two-wrapper w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
-          <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center">
+          <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center w-full">
             
-            {/* LEFT TEXT BLOCK - Slide from LEFT */}
+            {/* LEFT TEXT BLOCK - No animation on mobile */}
             <motion.div
               ref={section2LeftRef}
-              className="section-two-text"
-              initial={{ opacity: 0, x: -100 }}
-              animate={inView2Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ y: textParallaxY }}
+              className="section-two-text w-full"
+              initial="hidden"
+              animate={inView2Left ? "visible" : "hidden"}
+              variants={getTextVariants('left')}
+              transition={transition}
             >
               <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-                BSG TECHNOLOGIES INC.
+                BEESEE GLOBAL 
+                <br>
+                </br>TECHNOLOGIES INC.
               </h2>
 
               <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">
-                BeeSee Global Technologies Inc delivers scalable digital
+                 <i>BeeSee Global Technologies Inc.</i>, delivers scalable digital
                 solutions backed by a dedicated team. With a strong presence
                 and proven performance in Guam, USA, we provide strategic and
                 highly adaptable system solutions.
@@ -141,19 +137,18 @@ const UnifiedHomeSections: React.FC = () => {
               </p>
             </motion.div>
 
-            {/* RIGHT IMAGE BLOCK - Slide from RIGHT */}
+            {/* RIGHT IMAGE BLOCK - Keep animation for images on all devices */}
             <motion.div
               ref={section2RightRef}
-              className="section-two-image"
-              initial={{ opacity: 0, x: 100 }}
-              animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ y: imageParallaxY }}
+              className="section-two-image w-full"
+              initial={{ opacity: 0, x: isMobile ? 0 : 100 }}
+              animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : 100 }}
+              transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.div 
-                className="beesee-card-content section-two-card"
+                className="beesee-card-content section-two-card w-full"
                 whileHover={{ 
-                  scale: 1.03,
+                  scale: isMobile ? 1 : 1.03,
                   boxShadow: '0 0 40px rgba(253, 204, 0, 0.2)',
                 }}
                 transition={{ type: 'spring', stiffness: 300 }}
@@ -162,24 +157,17 @@ const UnifiedHomeSections: React.FC = () => {
                   src={buildingBeeSeeImage}
                   alt="Building BeeSee"
                   className="w-full h-full object-cover rounded-2xl"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: isMobile ? 1 : 1.05 }}
                   transition={{ duration: 0.6 }}
                 />
               </motion.div>
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ================= SECTION THREE ================= */}
-      <motion.section
-        ref={section3Ref}
-        style={{ 
-          y: section3Y,
-          opacity: section3Opacity,
-        }}
-        className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12"
-      >
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12 w-full">
         {/* Background with overlay */}
         <div 
           className="absolute inset-0 z-0"
@@ -227,16 +215,17 @@ const UnifiedHomeSections: React.FC = () => {
 
         {/* CONTENT WRAPPER */}
         <div className="relative z-10 max-w-7xl mx-auto w-full">
-          {/* TITLE - Fade and Scale In */}
+          {/* TITLE - No animation on mobile */}
           <motion.div
             ref={section3TitleRef}
-            initial={{ opacity: 0, y: 80 }}
-            animate={inView3Title ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
-            transition={{ duration: 1.1, ease: "easeOut" }}
+            initial="hidden"
+            animate={inView3Title ? "visible" : "hidden"}
+            variants={getTextVariants('up')}
+            transition={transition}
             className="text-center mb-12"
           >
             <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-              BEESEE GLOBAL TECHNOLOGIES INC.
+              SYSTEM TECHNOLOGY EXPERTS
             </h3>
             <p className="bee-body max-w-3xl mx-auto mt-4 text-[#C7B897]">
               BeeSee Global Technologies is a trusted provider of digital
@@ -245,26 +234,23 @@ const UnifiedHomeSections: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* CARDS - Upward Animation */}
-          <div className="grid md:grid-cols-3 gap-8">
+          {/* CARDS - No animation on mobile */}
+          <div className="grid md:grid-cols-3 gap-8 w-full">
             {items.map((item, index) => {
-              const cardRef = useRef<HTMLDivElement | null>(null);
-              const inViewCard = useInView(cardRef, { amount: 0.25 });
+              const cardRef = useRef<HTMLDivElement>(null);
+              const inViewCard = useInView(cardRef, { once: isMobile, amount: 0.1 });
 
               return (
                 <motion.div
                   key={index}
                   ref={cardRef}
-                  initial={{ opacity: 0, y: 80 }}
-                  animate={inViewCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
-                  transition={{
-                    duration: 1.0,
-                    delay: index * 0.2,
-                    ease: "easeOut",
-                  }}
-                  className="beesee-card-content card-glow p-6"
+                  initial="hidden"
+                  animate={inViewCard ? "visible" : "hidden"}
+                  variants={getTextVariants('up')}
+                  transition={isMobile ? { duration: 0 } : { duration: 1.0, delay: index * 0.2, ease: "easeOut" }}
+                  className="beesee-card-content card-glow p-6 w-full"
                   whileHover={{ 
-                    y: -10,
+                    y: isMobile ? 0 : -10,
                     boxShadow: '0 20px 60px rgba(253, 204, 0, 0.15)',
                   }}
                 >
@@ -278,26 +264,19 @@ const UnifiedHomeSections: React.FC = () => {
             })}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ================= DIGITAL CONNECTION SECTION ================= */}
-      <motion.section
-        ref={section4Ref}
-        style={{ 
-          y: section4Y,
-          opacity: section4Opacity,
-        }}
-        className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12"
-      >
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12 w-full">
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           
-          {/* LEFT — CAROUSEL - Slide from LEFT */}
+          {/* LEFT — CAROUSEL - Keep animation for images */}
           <motion.div
             ref={section4LeftRef}
-            initial={{ opacity: 0, x: -100 }}
-            animate={inView4Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative overflow-hidden rounded-2xl"
+            initial={{ opacity: 0, x: isMobile ? 0 : -100 }}
+            animate={inView4Left ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : -100 }}
+            transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative overflow-hidden rounded-2xl w-full"
             style={{ height: '360px' }}
           >
             <motion.div
@@ -311,7 +290,7 @@ const UnifiedHomeSections: React.FC = () => {
                 ease: 'linear',
               }}
             >
-              {images.concat(images).concat(images).map((img, i) => (
+              {[...images, ...images, ...images].map((img, i) => (
                 <div 
                   key={i} 
                   className="relative w-64 h-96 flex-shrink-0 rounded-xl overflow-hidden group"
@@ -333,40 +312,41 @@ const UnifiedHomeSections: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* RIGHT — TEXT - Slide from RIGHT */}
+          {/* RIGHT — TEXT - No animation on mobile */}
           <motion.div
             ref={section4RightRef}
-            initial={{ opacity: 0, x: 100 }}
-            animate={inView4Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col gap-5 md:gap-6"
+            initial="hidden"
+            animate={inView4Right ? "visible" : "hidden"}
+            variants={getTextVariants('right')}
+            transition={transition}
+            className="flex flex-col gap-5 md:gap-6 w-full"
           >
             <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
               DIGITAL CONNECTION
             </h2>
 
-            <p className="bee-body max-w-lg text-[#C7B897]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Mauris non urna nec elit sollicitudin suscipit.
-              Sed at tortor lectus. Fusce feugiat rhoncus felis.
-            </p>
+            <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">
+                Affordable devices, seamless support, powerful networks, and intuitive softwares—everything you need in one connected ecosystem.
+                <br />
+                <br />
+                <i>"Smart. Reliable. Accessible."</i>
+              </p>
 
             <motion.button
               className="beesee-button beesee-button--small self-start flex items-center gap-3"
               onClick={() => navigate('/solution')}
               whileHover={{ 
-                scale: 1.05,
+                scale: isMobile ? 1 : 1.05,
                 boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)',
               }}
               whileTap={{ scale: 0.95 }}
             >
-              EXPLORE SERVICES
+              START HERE
               <ArrowRight size={18} />
             </motion.button>
           </motion.div>
         </div>
-      </motion.section>
-
+      </section>
     </div>
   );
 };

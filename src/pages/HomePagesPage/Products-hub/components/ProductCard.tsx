@@ -11,12 +11,30 @@ type ProductLike = {
   specs?: { [k: string]: string | undefined };
 };
 
+// Mobile detection hook for ProductCard
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 const ProductCard: React.FC<{
   product: ProductLike;
   index: number;
   onClick?: () => void;
 }> = ({ product, index, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   const specIcons: Record<string, any> = {
     cpu: Cpu,
@@ -41,12 +59,43 @@ const ProductCard: React.FC<{
   const topSpecs = Object.entries(product.specs || {})
     .slice(0, 4);
 
+  // MOBILE VERSION - No hover effects, simple clickable card, NO VIEW BUTTON
+  if (isMobile) {
+    return (
+      <div
+        onClick={onClick}
+        className="product-card-glow-master relative cursor-pointer active:scale-[0.98] transition-transform duration-200"
+      >
+        {/* SIMPLIFIED GLOW FOR MOBILE */}
+        <div className="glow-container">
+          <div className="glow-orbit glow-orbit-1"></div>
+        </div>
+
+        {/* CARD CONTENT */}
+        <div className="card-content-glow">
+          {/* IMAGE */}
+          <div className="product-image-container">
+            <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
+            {/* REMOVED VIEW BUTTON - ENTIRE CARD IS CLICKABLE */}
+          </div>
+
+          {/* TEXT */}
+          <div className="product-info">
+            <h3 className="product-name">{product.name}</h3>
+            <p className="product-tagline">{product.tagline}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // DESKTOP VERSION - With hover effects
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="product-card-glow-master"
+      className="product-card-glow-master cursor-pointer"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -66,7 +115,7 @@ const ProductCard: React.FC<{
         <div className="product-image-container">
           <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
 
-          {/* SPECS */}
+          {/* SPECS - Only show on hover */}
           <AnimatePresence>
             {isHovered && topSpecs.length > 0 && (
               <motion.div

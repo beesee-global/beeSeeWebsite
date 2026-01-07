@@ -6,12 +6,22 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import HeroSection from "./components/HeroSection";
 import SolutionsOverview from "./components/SolutionsOverview";
 
-
 const LandingPage: React.FC = () => {
   const heroRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [heroHeight, setHeroHeight] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+
+  /** ------------------ FORCE SCROLL TO TOP ON LOAD ------------------ */
+  useEffect(() => {
+    // reset browser scroll
+    window.scrollTo(0, 0);
+
+    // reset container scroll (IMPORTANT)
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, []);
 
   /** ------------------ Detect Mobile ------------------ */
   useEffect(() => {
@@ -24,18 +34,23 @@ const LandingPage: React.FC = () => {
   /** ------------------ Hero Height ------------------ */
   useEffect(() => {
     const updateHeight = () => {
-      if (heroRef.current) setHeroHeight(heroRef.current.scrollHeight);
+      if (heroRef.current) {
+        setHeroHeight(heroRef.current.scrollHeight);
+      }
     };
+
     updateHeight();
     window.addEventListener("resize", updateHeight);
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
   /** ------------------ Hero Scroll Effect ------------------ */
-  const { scrollY } = useScroll({ container: containerRef });
-  // Fade out over the full hero height
+  const { scrollY } = useScroll({
+    container: containerRef,
+  });
+
   const heroOpacity = useTransform(scrollY, [0, heroHeight], [1, 0]);
-  const heroY = useTransform(scrollY, [0, heroHeight], [0, -50]); // optional parallax
+  const heroY = useTransform(scrollY, [0, heroHeight], [0, -50]);
 
   useEffect(() => {
     document.title = "Solutions - Beesee Global Technology Inc.";
@@ -50,7 +65,9 @@ const LandingPage: React.FC = () => {
       <motion.div
         ref={heroRef}
         style={{ opacity: heroOpacity, y: isMobile ? 0 : heroY }}
-        className={`${isMobile ? "relative" : "fixed"} top-0 left-0 w-full ${isMobile ? "h-auto" : "h-screen"} z-[10]`}
+        className={`${isMobile ? "relative" : "fixed"} top-0 left-0 w-full ${
+          isMobile ? "h-auto" : "h-screen"
+        } z-[10]`}
       >
         <HeroSection />
       </motion.div>
