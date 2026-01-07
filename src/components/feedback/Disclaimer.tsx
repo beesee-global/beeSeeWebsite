@@ -36,19 +36,14 @@ const  Disclaimer: React.FC<DisclaimerProps> = ({
             id="alert-dialog-description"
             sx={{ whiteSpace: "pre-line" }}
           >
-            {`
-In compliance with the Data Privacy Act of 2012 (RA 10173), we are committed to protecting any personal information you provide. All data collected through this system will be used solely for legitimate business, verification, and administrative purposes.
+          {`
+          In compliance with the Data Privacy Act of 2012 (RA 10173), we protect your personal information and use it only for legitimate business and administrative purposes.
 
-We ensure that:
-• Your personal information is kept strictly confidential and accessed only by authorized personnel.
-• No data will be shared, sold, or disclosed to third parties without your explicit consent, unless required by law, court order, or government regulation.
-• Appropriate organizational, physical, and technical security measures are implemented to safeguard your information from unauthorized access, alteration, disclosure, or loss.
-• Your data will be processed fairly and lawfully in accordance with the Data Privacy Act of 2012 (RA 10173).
-• You will be notified in case of any data breach that may compromise your rights or privacy, following NPC guidelines.
-• Your information will only be retained for as long as necessary to fulfill its intended purpose or to comply with legal requirements.
+          Your data is kept confidential, accessed only by authorized personnel, and secured using appropriate technical and organizational measures. We do not share or sell your information without consent, unless required by law. Data is processed lawfully, retained only as necessary, and you will be notified of any data breach in accordance with NPC guidelines.
 
-By proceeding, you acknowledge that you understand and agree to the collection and processing of your personal data in accordance with RA 10173.
-            `}
+          By proceeding, you agree to the collection and processing of your personal data in accordance with RA 10173.
+          `}
+
           </DialogContentText>
         </DialogContent>
 
