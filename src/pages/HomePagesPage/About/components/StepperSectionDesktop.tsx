@@ -206,7 +206,7 @@ const StepperSectionDesktop = () => {
                               fontStyle: 'italic'
                             }}
                           >
-                            {step.short}
+                            
                           </p>
                         </div>
                         {activeStep === index && (
