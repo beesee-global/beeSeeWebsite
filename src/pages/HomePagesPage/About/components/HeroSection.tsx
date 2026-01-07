@@ -4,57 +4,19 @@ import { Heart, Target } from "lucide-react";
 
 // Mock images 
 const buildingBeesee = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80";
-const ictPictue = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80";
-const digitalContent = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80";
-const revolunizing = "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80";
-const program = "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80";
 
-const steps = [
-  { 
-    id: 1, 
-    title: "Differentiated activities through ICT", 
-    short: "ICT-driven activities tailored to different learning styles and needs.", 
-    description: "Interactive tools and digital platforms help teachers reach visual, auditory, and kinesthetic learners in one ecosystem.",
-    image: ictPictue 
-  },
-  { 
-    id: 2, 
-    title: "Digital Content", 
-    short: "Curriculum-aligned media and modules, ready to deploy.",
-    description: "High-quality digital lessons, assessments, and simulations that fit existing programs while opening space for new approaches.",
-    image: digitalContent 
-  },
-  { 
-    id: 3, 
-    title: "Revolutionizing Curriculum", 
-    short: "Aligning subjects with emerging skills and industries.",
-    description: "We help schools integrate 21st-century competencies, STEM, and industry tools into their curriculum without losing structure.",
-    image: revolunizing 
-  },
-  { 
-    id: 4, 
-    title: "Professional Development Program", 
-    short: "Equipping teachers and leaders with future-ready skills.",
-    description: "Structured training, coaching, and certification ensure that people behind the systems can sustain innovation long-term.",
-    image: program 
-  },
-];
-
-const HeroSection: React.FC = () => {
+const UnifiedScrollingPage: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Refs for view detection
   const heroRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
-  const stepperRef = useRef<HTMLDivElement>(null);
   
   // Track if sections are in view
   const heroInView = useInView(heroRef, { once: false, amount: 0.3 });
   const storyInView = useInView(storyRef, { once: false, amount: 0.3 });
-  const stepperInView = useInView(stepperRef, { once: false, amount: 0.3 });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -63,9 +25,7 @@ const HeroSection: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const currentStep = steps[activeStep];
-
-  // PPT-style animation variants
+  // PPT-style animation variants (clean slide in/out)
   const slideInLeft = {
     hidden: { x: -100, opacity: 1 },
     visible: { 
@@ -94,6 +54,7 @@ const HeroSection: React.FC = () => {
     }
   };
 
+  // Company Story animation (reversed - pababa)
   const slideInDown = {
     hidden: { y: -50, opacity: 1 },
     visible: { 
@@ -108,6 +69,7 @@ const HeroSection: React.FC = () => {
     }
   };
 
+  // For mission/vision cards with staggered delay
   const slideInCard = {
     hidden: { y: -30, opacity: 1 },
     visible: (custom: number) => ({ 
@@ -126,6 +88,7 @@ const HeroSection: React.FC = () => {
     }
   };
 
+  // Helper function to determine animation based on view state
   const getAnimationState = (inView: boolean) => {
     if (isMobile) return "visible";
     return inView ? "visible" : "exit";
@@ -142,7 +105,7 @@ const HeroSection: React.FC = () => {
         <div className="absolute inset-0 bg-[#000000]/70" />
       </div>
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION - MOVED HIGHER IN BOTH MOBILE AND DESKTOP */}
       <section
         ref={heroRef}
         className={`relative flex items-start z-10 px-3 sm:px-4 md:px-8 lg:px-12 ${
@@ -153,7 +116,7 @@ const HeroSection: React.FC = () => {
           isMobile ? "gap-2 py-1" : "gap-10 md:gap-12 lg:gap-16 py-12 md:py-16 lg:py-20"
         }`}>
 
-          {/* LEFT */}
+          {/* LEFT - Slides from left on desktop */}
           <motion.div
             variants={slideInLeft}
             initial="hidden"
@@ -187,7 +150,7 @@ const HeroSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* RIGHT CARD */}
+          {/* RIGHT CARD - Slides from right on desktop */}
           <motion.div
             variants={slideInRight}
             initial="hidden"
@@ -231,14 +194,15 @@ const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      {/* COMPANY STORY SECTION */}
+      {/* COMPANY STORY SECTION - MOVED HIGHER */}
       <section 
         ref={storyRef}
         className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[35vh] py-8 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
+          isMobile ? "min-h-[35vh] py- px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
         }`}
       >
         <div className="max-w-7xl w-full">
+          {/* Header slides DOWN */}
           <motion.div
             variants={slideInDown}
             initial="hidden"
@@ -256,6 +220,7 @@ const HeroSection: React.FC = () => {
           </motion.div>
 
           <div className={`grid md:grid-cols-2 gap-3 md:gap-6 lg:gap-8`}>
+            {/* Mission card slides DOWN - CENTERED IN MOBILE */}
             <motion.div
               custom={0}
               variants={slideInCard}
@@ -263,6 +228,7 @@ const HeroSection: React.FC = () => {
               animate={getAnimationState(storyInView)}
             >
               <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
+                {/* CHANGED: Flex column and items-center for mobile */}
                 <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
                   <Heart className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
                   <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
@@ -276,6 +242,7 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
+            {/* Vision card slides DOWN with delay - CENTERED IN MOBILE */}
             <motion.div
               custom={1}
               variants={slideInCard}
@@ -283,6 +250,7 @@ const HeroSection: React.FC = () => {
               animate={getAnimationState(storyInView)}
             >
               <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
+                {/* CHANGED: Flex column and items-center for mobile */}
                 <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
                   <Target className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
                   <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
@@ -299,95 +267,9 @@ const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      {/* STEPPER SECTION - MOBILE ONLY */}
-      {isMobile && (
-        <section
-          ref={stepperRef}
-          className="relative z-10 flex flex-col items-center min-h-[40vh] py-8 px-3"
-        >
-          <div className="max-w-7xl w-full">
-            <motion.div
-              variants={slideInDown}
-              initial="hidden"
-              animate={getAnimationState(stepperInView)}
-              className="text-center mb-3"
-            >
-              <h2 className="bee-title-md text-[var(--beesee-gold)] text-base sm:text-lg mb-1">
-                SCHOOL PROCESS
-              </h2>
-              <p className="bee-body text-[#C7B897]/80 max-w-2xl mx-auto text-[11px] sm:text-sm leading-relaxed">
-                A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
-              </p>
-            </motion.div>
-
-            <div className="grid lg:grid-cols-2 items-start lg:items-center gap-3">
-              <motion.div
-                variants={slideInLeft}
-                initial="hidden"
-                animate={getAnimationState(stepperInView)}
-                className="space-y-2"
-              >
-                {steps.map((step, i) => {
-                  const isActive = i === activeStep;
-                  return (
-                    <div 
-                      key={i}
-                      className="cursor-pointer flex gap-1.5 items-start group p-1.5 rounded hover:bg-white/5 transition-all duration-300"
-                      onClick={() => setActiveStep(i)}
-                    >
-                      <div className={`h-6 w-6 rounded-full flex items-center justify-center border text-[10px] font-bold
-                        ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}>
-                        {step.id}
-                      </div>
-
-                      <div className="flex-1">
-                        <p className={`bee-body font-semibold text-xs ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
-                          {step.title}
-                        </p>
-                        <p className="bee-body text-[#C7B897]/70 mt-0.5 text-[10px]">{step.short}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </motion.div>
-
-              <motion.div
-                variants={slideInRight}
-                initial="hidden"
-                animate={getAnimationState(stepperInView)}
-              >
-                <AnimatePresence mode="wait">
-                  <div 
-                    key={currentStep.id}
-                    className="rounded overflow-hidden border border-[#FDCC00]/30 shadow-[0_0_15px_rgba(253,204,0,0.08)] bg-black/40 backdrop-blur-lg"
-                  >
-                    <div className="relative overflow-hidden group">
-                      <img 
-                        src={currentStep.image}
-                        alt={currentStep.title}
-                        className="w-full h-36 sm:h-40 object-cover transition-transform duration-700 group-hover:scale-[1.08]" 
-                      />
-                      <div className="absolute inset-0 bg-black/40" />
-                      <div className="absolute bottom-1 left-1.5 text-[#FDCC00] text-[9px] font-semibold">
-                        Step {currentStep.id} / {steps.length}
-                      </div>
-                    </div>
-
-                    <div className="p-2">
-                      <h3 className="bee-title-sm text-[#FDCC00] text-sm">{currentStep.title}</h3>
-                      <p className="bee-body text-[#C7B897]/90 mt-1 text-xs">{currentStep.description}</p>
-                    </div>
-                  </div>
-                </AnimatePresence>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-      )}
-
       <div className="pointer-events-none fixed bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#000] z-[1]" />
     </div>
   );
 };
 
-export default HeroSection;
+export default UnifiedScrollingPage;

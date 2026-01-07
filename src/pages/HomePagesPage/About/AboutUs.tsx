@@ -1,16 +1,34 @@
 // src/pages/About/AboutUs.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import HeroSection from "./components/HeroSection";
 import CompanyStory from "./components/CompanyStory";
-import StepperSection from "./components/StepperSection";
+import StepperSectionDesktop from "./components/StepperSectionDesktop";
+import StepperSectionMobile from "./components/StepperSectionMobile";
 import PhilippineHeritage from "./components/PhilippineHeritage";
 import "../../../assets/css/About.css";
 
-
 const AboutUs: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     document.title = "About - Beesee Global Technology Inc.";
+    
+    // Check if window is defined (for SSR compatibility)
+    if (typeof window !== 'undefined') {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+      
+      // Initial check
+      checkMobile();
+      
+      // Add resize listener
+      window.addEventListener('resize', checkMobile);
+      
+      // Cleanup
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
   const pageVariants = {
@@ -36,7 +54,17 @@ const AboutUs: React.FC = () => {
         className="about-main"
       >
         <HeroSection />
-        <StepperSection />
+        
+        {/* Conditionally render stepper section based on screen size */}
+        {isMobile ? (
+          <StepperSectionMobile />
+        ) : (
+          <StepperSectionDesktop />
+        )}
+        
+        {/* If you have other components, add them here */}
+        {/* <CompanyStory /> */}
+        {/* <PhilippineHeritage /> */}
       </motion.main>
     </div>
   );
