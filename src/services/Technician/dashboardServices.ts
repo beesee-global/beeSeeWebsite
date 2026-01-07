@@ -1,0 +1,39 @@
+import axiosClient from "../../axiosClient";
+
+const API_URL = '/dashboard';
+
+export const fetchGetStatsCategory = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/stats-category`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchGetOverview = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/overview`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchGetStatsDevice = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/stats-device`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchCountDashboard = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/count`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}

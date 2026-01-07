@@ -1,0 +1,160 @@
+import axiosClient from "../../axiosClient";
+
+const API_URL = '/tickets'
+
+export const getTicket = async (status: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}`, { params: { status } });
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
+export const updateStatusDelete = async (data: any) => {
+  try {
+      const response = await axiosClient.put(`${API_URL}/update-status-delete`, data);
+      return response.data
+  } catch (error) {
+      throw error
+  }
+}
+
+// permanently delete a ticket or multiple tickets
+export const deleteForever = async (idOrIds: number | number[]) => {
+    try {
+        let response;
+        if (Array.isArray(idOrIds)) {
+            // bulk delete - send ids in request body
+            response = await axiosClient.delete(`${API_URL}/delete-forever`, { data: { ids: idOrIds } });
+        } else {
+            // single delete - id in path
+            response = await axiosClient.delete(`${API_URL}/delete-forever/${idOrIds}`);
+        }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// --- Main ---
+export const fetchOpen = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}?status=open`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchResolve = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}?status=resolved,expired`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchDeviceType = async () => {
+    try {
+        const response = await axiosClient.get(`/categories`)
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchTicketDetails = async (pid: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${pid}`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchTicketDetailsPublic = async (pid: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${pid}/public`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+
+export const deleteTickets = async (ids: number[] | string[]) => {
+  try {
+    const response = await axiosClient.delete(`${API_URL}`, {
+      data: { ids }  // send payload in `data` for DELETE
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const fetchConversation = async(id: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${id}/conversations`);
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const insertConversation = async(conversationData: any) => {
+    try {
+        const response = await axiosClient.post(`${API_URL}/conversations/reply`, conversationData, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const insertConversationPublic = async(conversationData: any) => {
+    try {
+        const response = await axiosClient.post(`${API_URL}/conversations/reply/public`, conversationData, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const insertImageConversation = async() => {
+    try {
+        const response = await axiosClient.post(`${API_URL}/conversations/attachment/reply`, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const updateStatus = async(reference_number: string, payload: any) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${reference_number}/status`, payload, {
+            headers: {
+                "Content-Type" : "application/json"
+            }
+        })
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react'
+import { AlertColor } from '@mui/material/Alert';
 
 interface User {
     id: number;
@@ -18,6 +19,20 @@ interface AuthContextType {
     logout: () => void;
     userNav: boolean;
     setUserNav: React.Dispatch<React.SetStateAction<boolean>>;
+
+    // Snackbar
+    snackBarOpen: boolean;
+    setSnackBarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    snackBarType: AlertColor;
+    setSnackBarType: React.Dispatch<React.SetStateAction<AlertColor>>;
+    snackBarMessage: string;
+    setSnackBarMessage: React.Dispatch<React.SetStateAction<string>>;
+    
+    setStatusFilter: React.Dispatch<React.SetStateAction<string>>
+    statusFilter: string;
+
+    isCollapsed: boolean;
+    setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface AuthProviderProps {
@@ -34,11 +49,16 @@ export const AuthProvider: React.FC <AuthProviderProps> = ({ children }) => {
     });
 
     const [token, setToken] = useState<string | null>(localStorage.getItem("token") || null);
+    const [snackBarType, setSnackBarType] = useState<AlertColor>('success')
+    const [snackBarMessage, setSnackBarMessage] = useState<string>("")
+    const [snackBarOpen, setSnackBarOpen] = useState<boolean>(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string>("Pending");
 
     const login = (data: { token: string; userInfo: User }) => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.userInfo));
-        setUserInfo(data.userInfo);
+        setUserInfo(userInfo);
         setToken(data.token)
     }
 
@@ -68,7 +88,17 @@ export const AuthProvider: React.FC <AuthProviderProps> = ({ children }) => {
             login,
             logout,
             userNav, 
-            setUserNav 
+            setUserNav,
+            snackBarOpen,
+            setSnackBarOpen,
+            snackBarType,
+            setSnackBarType,
+            snackBarMessage,
+            setSnackBarMessage,
+            isCollapsed,
+            setIsCollapsed,
+            statusFilter,
+            setStatusFilter
         }}>
             { children }
         </AuthContext.Provider>

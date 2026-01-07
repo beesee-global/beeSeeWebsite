@@ -25,7 +25,7 @@ import {
 import { 
   createCustomerSupport, 
   fetchDevice 
-} from '../../../../services/customerSupportServices'
+} from '../../../../services/Ecommerce/customerSupportServices'
 
 interface CustomerType {
   first_name: string;

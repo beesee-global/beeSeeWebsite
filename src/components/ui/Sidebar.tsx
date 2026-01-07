@@ -48,18 +48,18 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
 
   const validating = () => {
     setMenuItems([
-      { name: "Dashboard", path: "/beesee/dashboard", icon: <Home size={20} /> },
+      /* { name: "Dashboard", path: "/beesee/dashboard", icon: <Home size={20} /> }, */
       { name: "Category", path: "/beesee/category", icon: <Tag size={20} /> },
       { name: "Product", path: "/beesee/product", icon: <Box size={20} /> },
-      { name: "Employee", path: "/beesee/employee", icon: <User2 size={20} /> },
-      { name: "Consultation", path: "/beesee/consultation", icon: <GroupsIcon /> },
+     /*  { name: "Employee", path: "/beesee/employee", icon: <User2 size={20} /> },  */
       {
         name: "Home display",
         icon: <Home size={20} />,
         children: [
-          { name: "Our Journey", path: "/beesee/our-journey", icon: <BookHeart size={16} /> }, 
+          { name: "School Process", path: "/beesee/school-process", icon: <BookHeart size={16} /> },
+          /* { name: "Our Journey", path: "/beesee/our-journey", icon: <BookHeart size={16} /> }, 
           { name: "Solutions Portfolio", path: "/beesee/solutions-overview", icon: <Lightbulb size={16} /> }, 
-          { name: "Manage banner", path: "/beesee/manage-banner", icon: <ViewCarouselIcon sx={{ fontSize: 20 }}/> }, 
+          { name: "Manage banner", path: "/beesee/manage-banner", icon: <ViewCarouselIcon sx={{ fontSize: 20 }}/> },  */
         ],
       }, 
     ]);

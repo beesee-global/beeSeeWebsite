@@ -1,7 +1,7 @@
 import { lazy } from 'react'; 
 import { Navigate, createBrowserRouter } from 'react-router-dom';  
-import OurJourney from '../pages/MainLayout/HomePageDesign/OurJourney/OurJourney';
-import OurJourneyForm from '../pages/MainLayout/HomePageDesign/OurJourney/OurJourneyForm';      
+import OurJourney from '../pages/EcommerceLayout/HomePageDesign/OurJourney/OurJourney';
+import OurJourneyForm from '../pages/EcommerceLayout/HomePageDesign/OurJourney/OurJourneyForm';      
 const NotFound = lazy(() => import('../pages/Error/404NotFound'));  
 
 /* Homepage */
@@ -14,26 +14,30 @@ const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndCon
 const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
 const ProductDetail = lazy(() => import('../pages/HomePagesPage/ProductDetails/ProductDetail'));
 const Loggedin = lazy(() => import('../pages/HomePagesPage/Login'));
+const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnician'));
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 
 /* MainLayout */
-const MainLayout = lazy(() => import ("../../src/layout/MainLayout"));
-const MainDashboard = lazy(() => import ('../../src/pages/MainLayout/Dashboard/Dashboard'));
-const MainProduct = lazy(() => import('../../src/pages/MainLayout/Product/Products'));
-const MainProductForm = lazy (() => import ('../../src/pages/MainLayout/Product/ProductForm'));
-const MainCategory = lazy(() => import('../../src/pages/MainLayout/Category/Category'));
-const MainCategoryForm = lazy (() => import ('../../src/pages/MainLayout/Category/CategoryForm'));
-const MainMyAccount = lazy(() => import("../pages/MainLayout/MyAccount/MyAccount")) 
-const Employee = lazy(() => import ('../../src/pages/MainLayout/Employee/Employee'));
-const EmployeeForm = lazy(() => import ('../../src/pages/MainLayout/Employee/EmployeeForm'));
-const MainSolutionsOverview = lazy(() => import("../pages/MainLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
-const MainSolutionsOverviewForm = lazy(() => import("../pages/MainLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
-const MainSalesBanner = lazy(() => import("../pages/MainLayout/HomePageDesign/BannerManager/BannerManager"));
-const MainSalesBannerForm = lazy(() => import("../pages/MainLayout/HomePageDesign/BannerManager/BannerManagerForm"));
-const MainConsultation = lazy(() => import ("../../src/pages/MainLayout/Consultation/Consultation"));
+const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
+const MainDashboard = lazy(() => import ('../pages/EcommerceLayout/Dashboard/Dashboard'));
+const MainProduct = lazy(() => import('../pages/EcommerceLayout/Product/Products'));
+const MainProductForm = lazy (() => import ('../pages/EcommerceLayout/Product/ProductForm'));
+const MainCategory = lazy(() => import('../pages/EcommerceLayout/Category/Category'));
+const MainCategoryForm = lazy (() => import ('../pages/EcommerceLayout/Category/CategoryForm'));
+const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount")) 
+const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
+const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
+const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
+const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
+const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
+const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
+ 
+/* Conversation */
+const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
+const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
 
 const routes = [
     {
@@ -87,16 +91,16 @@ const routes = [
                 element: <Loggedin />
             },
             {
+                path: "sign-in/tech",
+                element: <LoginTechnician />
+            },
+            {
                 path: "sign-up/2046",
                 element: <Register />
             }, 
             {
                 path:  "forget-password",
                 element: <ForgetPassword />
-            },
-            {
-                path: "solution",
-                element: <Solution />
             }, 
         ]
     },
@@ -166,23 +170,31 @@ const routes = [
             {
                 path: 'manage-banner/form/:id?',
                 element: <MainSalesBannerForm />
-            }, 
-            {
-                path: 'consultation',
-                element: <MainConsultation />
-            }
+            },  
         ]
     }, 
-    
-    /* Not found routes */
+       /* conversation */
     {
-        path: '*', // Catch-all route then navigate back to home if none
-        element: <Navigate to="/home" replace />,
+        path: '/c',
+        element: <ConversationLayout />,
         layout: 'blank',
         children: [
-            
+            {
+                path: '/c',     
+                element:<Navigate to="conversation" />,
+            },
+            {
+                path: 'conversation/:pid',
+                element: <ConversationDetails />
+            }, 
         ]
     },
+    /* Not found routes */ 
+    {
+        path: '*', // Catch-all route
+        element: <NotFound />,
+        layout: 'blank', 
+    },   
 ];
 
 export { routes };

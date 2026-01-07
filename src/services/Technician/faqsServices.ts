@@ -1,0 +1,68 @@
+import axiosClient from "../../axiosClient";
+
+const API_URL = '/faqs'
+
+export const createFaqs = async(faqsData: any) => {
+    try {
+        const response = await axiosClient.post(`${API_URL}`, faqsData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchFaqsAll = async() => {
+    try {
+        const response = await axiosClient.get(`${API_URL}`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+} 
+
+export const fetchAllDevices = async() => {
+    try {
+        const response = await axiosClient.get(`/categories`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchAllProducts = async () => {
+    try {
+        const response = await axiosClient.get(`/products`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const deleteFaqs = async(ids: number[] | string[]) => {
+    try {
+        const response = await axiosClient.delete(`${API_URL}`, {
+        data: { ids }
+        });
+        
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const updateFaqs = async(id: number, payload: any) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${id}`, payload, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}

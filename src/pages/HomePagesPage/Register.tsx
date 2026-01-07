@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion'; 
 import beeseeLogo from '../../../public/beeseelogo.png';  
-import { registerUser } from '../../services/userServices';
+import { registerUser } from '../../services/Ecommerce/userServices';
 import { useMutation } from "@tanstack/react-query";
 
 interface RegisterForm {

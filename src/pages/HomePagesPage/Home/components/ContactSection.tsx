@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
+import { userAuth } from '../../../../hooks/userAuth';
+import Snackbar from '../../../../components/feedback/Snackbar';
 import {
   CheckCircle,
   Clock,
@@ -17,46 +19,92 @@ import {
 } from 'lucide-react';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField' 
-import TextsmsIcon from '@mui/icons-material/Textsms';
-import LocalPhoneIcon from '@mui/icons-material/LocalPhone'; 
-import { createConsultation } from '../../../../services/consultationServices'
-import { useMutation } from '@tanstack/react-query' 
+import TextsmsIcon from '@mui/icons-material/Textsms'; 
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import { 
+  createConsultation, 
+  fetchCategory 
+} from '../../../../services/Technician/inquiriesServices'
+import { 
+  useMutation, 
+  useQuery 
+} from '@tanstack/react-query'  
 
 interface formData {
   name: string;
   email: string;
   company: string;
-  role: string;
-  phone: string;
-  solution: string;
-  message: string;
+  position: string;
+  contact_number: string;
+  subject: string;
+  description: string;
 }
 
 interface FormError {
   name?: string;
   email?: string;
   company?: string;
-  role?: string;
-  phone?: string;
-  solution?: string;
-  message?: string;
+  position?: string;
+  contact_number?: string;
+  subject?: string;
+  description?: string;
 }
 
-const ContactSection = () => {
-  const [isMobile, setIsMobile] = useState(false);
+const Inquiries = () => {
+  const {
+    setSnackBarOpen,
+    setSnackBarMessage, 
+    setSnackBarType, 
+    snackBarOpen,
+    snackBarMessage,
+    snackBarType
+  } = userAuth();
   const [formError, setFormError] = useState<FormError>({});
   const [formData, setFormData] = useState<formData>({
     name: '',
     email: '',
     company: '',
-    role: '',
-    phone: "",
-    solution: '',
-    message: '',
+    position: '',
+    contact_number: "",
+    subject: '',
+    description: '',
+  });
+ 
+  const [submitted, setSubmitted] = useState<boolean>(false);
+
+  const roleOptions = [
+    { value: 'cto', label: 'Chief Technology Officer' },
+    { value: 'cio', label: 'Chief Information Officer' },
+    { value: 'it-director', label: 'IT Director' },
+    { value: 'procurement', label: 'Procurement Manager' },
+    { value: 'operations', label: 'Operations Manager' },
+    { value: 'other', label: 'Other' },
+  ];
+ 
+  const { data: subjectOptions = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategory,
+    select: (res) => {
+      const mapped = res.data.map((item: any) => ({
+        value: item.name,
+        label: item.name
+      }));
+
+      mapped.push ({ 
+        value: 'general_inquiry', 
+        label: "General Inquiry" 
+      });
+      return mapped;
+    }
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  /* inserting data */
+  const {
+    mutateAsync: createInquiriesMutate,
+    isPending: isCreating,
+  } = useMutation({
+    mutationFn: createConsultation,
+  });
 
   // Animation refs
   const leftColumnRef = useRef<HTMLDivElement | null>(null);
@@ -80,25 +128,6 @@ const ContactSection = () => {
     }
   }, []);
 
-  const roleOptions = [
-    { value: 'cto', label: 'Chief Technology Officer' },
-    { value: 'cio', label: 'Chief Information Officer' },
-    { value: 'it-director', label: 'IT Director' },
-    { value: 'procurement', label: 'Procurement Manager' },
-    { value: 'operations', label: 'Operations Manager' },
-    { value: 'other', label: 'Other' },
-  ];
-
-  const solutionOptions = [
-    { value: 'charging_station', label: 'Charging Station' },
-    { value: 'workspaces', label: 'Digital Workspaces' },
-    { value: 'education', label: 'Educational Technology' },
-    { value: 'wearables', label: 'Wearable Solutions' },
-    { value: 'tablets', label: 'Tablet Solutions' },
-    { value: 'kiosk', label: 'Kiosk' },
-    { value: 'consultation', label: 'General Consultation' },
-  ];
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -114,44 +143,35 @@ const ContactSection = () => {
  
   const validateForm = (): FormError => {
     const errors: FormError = {};
-    if (!formData.name.trim()) errors.name = 'Full name is required.';
-    if (!formData.email.trim()) errors.email = 'Email is required.';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email format.';
-    if (!formData.company.trim()) errors.company = 'Company is required.';
-    if (!formData.role.trim()) errors.role = 'Role is required.';
-    if (!formData.phone.trim()) errors.phone = 'Phone number is required.';
-    if (!formData.solution.trim()) errors.solution = 'Solution is required.';
-    if (!formData.message.trim()) errors.message = 'Message is required.';
+    if (!formData?.name.trim()) errors.name = 'Full name is required.';
+    if (!formData?.email.trim()) errors.email = 'Email is required.';
+    else if (!/\S+@\S+\.\S+/.test(formData?.email)) errors.email = 'Invalid email format.';
+    if (!formData?.company.trim()) errors.company = 'Company is required.';
+    if (!formData?.position.trim()) errors.position = 'Role is required.';
+    if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.';
+    else if (!/^09\d{9}$/.test(formData?.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
+    if (!formData?.subject) errors.subject = 'Subject is required.';
+    if (!formData?.description.trim()) errors.description = 'Message is required.';
     return errors;
   };
 
-  const mutation = useMutation({
-    mutationFn: createConsultation,
-    onSuccess: (data) => {
-      console.log("Success:", data);
-      setSubmitted(true);
-      setIsSubmitting(false);
-    },
-    onError: (error: any) => {
-      console.error("Error:", error.message);
-      setIsSubmitting(false);
-    },
-  });
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const errors = validateForm();
-    setFormError(errors);
-    if (Object.keys(errors).length > 0) return;
-
-    setIsSubmitting(true);
-
     try {
-      await mutation.mutateAsync(formData);
+      e.preventDefault();
+
+      const errors = validateForm();
+      setFormError(errors);
+      if (Object.keys(errors).length > 0) return;
+
+      await createInquiriesMutate(formData)
+
+      setSubmitted(true)
+       
     } catch (err) {
       console.error(err);
-      setIsSubmitting(false);
+      setSnackBarMessage("Failed to submit, Please try again.")
+      setSnackBarType('error')
+      setSnackBarOpen(true) 
     }
   };
 
@@ -161,6 +181,14 @@ const ContactSection = () => {
       className="py-24 bg-[#000000] text-white fade-up-init"
       style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}
     >
+      {/* Snackbar */}
+      <Snackbar 
+        open={snackBarOpen} 
+        type={snackBarType} 
+        message={snackBarMessage} 
+        onClose={() => setSnackBarOpen(false)} 
+      />
+
       <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -255,12 +283,6 @@ const ContactSection = () => {
               <Home size={20} /> Return to Homepage
             </button>
           </Link>
-
-          <Link to="/products">
-            <button className="beesee-button beesee-button--small">
-              <Package size={20} /> Explore Products
-            </button>
-          </Link>
         </motion.div>
       </div>
     </section>
@@ -270,16 +292,13 @@ const ContactSection = () => {
       className="py-24 bg-[#000000] text-white fade-up-init"
       style={{ minHeight: '100vh' }}
     >
- {/* HEADER — MOVED UPWARD ONLY */}
-      <div className="text-center mb-12 px-6 -mt-16">
-        <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-          PLACEHOLDER TEXT
-        </h3>
-        <p className="bee-body max-w-3xl mx-auto mt-4 text-[#C7B897]">
-          lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua.
-        </p>
-      </div>
+      {/* Snackbar */}
+      <Snackbar 
+        open={snackBarOpen} 
+        type={snackBarType} 
+        message={snackBarMessage} 
+        onClose={() => setSnackBarOpen(false)} 
+      />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Column */}
@@ -354,9 +373,9 @@ const ContactSection = () => {
         {/* Right Column - Form */}
         <motion.div
           ref={rightColumnRef}
-          initial={{ opacity: isMobile ? 1 : 0, x: 0 }}
-          animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : 100 }}
-          transition={{ duration: isMobile ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, x: 100 }}
+          animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="beesee-card-content"
         >
           <h3 
@@ -375,28 +394,28 @@ const ContactSection = () => {
               <CustomTextField
                 name="name"
                 placeholder="Enter your name"
-                value={formData.name}
+                value={formData?.name}
                 onChange={handleInputChange}
                 icon={<User2 />}
                 rows={1}
                 maxLength={100}
                 type='text'
                 multiline={false}
-                error={!!formError.name}
-                helperText={formError.name}
+                error={!!formError?.name}
+                helperText={formError?.name}
               />
               <CustomTextField
                 name="email"
                 placeholder="Enter your email"
-                value={formData.email}
+                value={formData?.email}
                 onChange={handleInputChange}
                 rows={1}
                 maxLength={100}
                 type='text'
                 multiline={false}
                 icon={<Mail />}
-                error={!!formError.email}
-                helperText={formError.email}
+                error={!!formError?.email}
+                helperText={formError?.email}
               />
             </div>
 
@@ -404,73 +423,80 @@ const ContactSection = () => {
               <CustomTextField
                 name="company"
                 placeholder="Enter company name"
-                value={formData.company}
+                value={formData?.company}
                 onChange={handleInputChange}
                 icon={<Building2 />}
-                error={!!formError.company}
-                helperText={formError.company}
+                error={!!formError?.company}
+                helperText={formError?.company}
                 type='text'
                 multiline={false}
                 rows={1}
                 maxLength={100}
               />
 
-              <CustomSelectField
-                name="role"
-                value={formData.role}
-                placeholder="Select your role"
-                options={roleOptions}
+              <CustomTextField 
+                name='position'
+                placeholder='Enter your position'
+                value={formData?.position}
                 onChange={handleInputChange}
-                error={!!formError.role}
-                helperText={formError.role}
+                type='text'
+                icon={<ManageAccountsIcon />}
+                multiline={false}
+                rows={1}
+                maxLength={100}
+                helperText={formError?.position}
+                error={!!formError?.position}
               />
             </div>
 
             <CustomTextField
-              name="phone"
+              name="contact_number"
               placeholder="09XXXXXXXXX"
-              value={formData.phone}
+              value={formData?.contact_number}
               onChange={handleInputChange}
               multiline={false}
               maxLength={11}
               type="tel"
               rows={1}
               icon={<Phone className="w-4 h-4" />}
-              error={!!formError.phone}
-              helperText={formError.phone}
+              error={!!formError?.contact_number}
+              helperText={formError?.contact_number}
             />
 
-            <CustomSelectField
-              name="solution"
-              value={formData.solution}
-              placeholder="Select a solution"
-              options={solutionOptions}
+            <CustomTextField 
+              name="subject"
+              value={formData?.subject}
+              placeholder='Enter a subject'
               onChange={handleInputChange}
-              error={!!formError.solution}
-              helperText={formError.solution}
+              multiline={false}
+              maxLength={150}
+              type="text"
+              rows={1}
+              error={!!formError?.subject}
+              helperText={formError?.subject}
             />
 
             <CustomTextField
-              name="message"
+              name="description"
               placeholder="Tell us about your requirements..."
-              value={formData.message}
+              value={formData?.description}
               onChange={handleInputChange}
               multiline={true}
               maxLength={2550}
               rows={4}
               type='text'
               icon={<TextsmsIcon />}
-              error={!!formError.message}
-              helperText={formError.message}
+              error={!!formError?.description}
+              helperText={formError?.description}
             />
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isCreating}
               className="beesee-button"
               style={{ width: '100%' }}
             >
-              {isSubmitting ? (
+              {isCreating ? (
                 <span className="animate-pulse">Submitting...</span>
               ) : (
                 <>
@@ -496,4 +522,4 @@ const ContactSection = () => {
   );
 };
 
-export default ContactSection;
+export default Inquiries;
