@@ -8,8 +8,7 @@ const buildingBeesee = "https://images.unsplash.com/photo-1486406146926-c627a92a
 const UnifiedScrollingPage: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
+  
   // Refs for view detection
   const heroRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
@@ -25,7 +24,7 @@ const UnifiedScrollingPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // PPT-style animation variants (clean slide in/out)
+  // Animation variants
   const slideInLeft = {
     hidden: { x: -100, opacity: 1 },
     visible: { 
@@ -54,7 +53,6 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // Company Story animation (reversed - pababa)
   const slideInDown = {
     hidden: { y: -50, opacity: 1 },
     visible: { 
@@ -69,7 +67,6 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // For mission/vision cards with staggered delay
   const slideInCard = {
     hidden: { y: -30, opacity: 1 },
     visible: (custom: number) => ({ 
@@ -88,14 +85,228 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // Helper function to determine animation based on view state
+  // Helper function to determine animation
   const getAnimationState = (inView: boolean) => {
     if (isMobile) return "visible";
     return inView ? "visible" : "exit";
   };
 
+  // ========== RESPONSIVE TEXT SIZES ==========
+  const getTitleSize = () => {
+    if (isMobile) return "text-3xl md:text-4xl";
+    return "text-4xl md:text-5xl lg:text-6xl";
+  };
+
+  const getSubtitleSize = () => {
+    if (isMobile) return "text-2xl md:text-3xl";
+    return "text-3xl md:text-4xl lg:text-5xl";
+  };
+
+  const getBodySize = () => {
+    if (isMobile) return "text-sm md:text-base";
+    return "text-base md:text-lg";
+  };
+
+  const getSmallBodySize = () => {
+    if (isMobile) return "text-xs md:text-sm";
+    return "text-sm md:text-base";
+  };
+
+  // ========== RESPONSIVE SPACING ==========
+  const getSectionPadding = () => {
+    if (isMobile) return "px-4 py-8";
+    return "px-6 md:px-8 lg:px-12 py-12 md:py-16 lg:py-20";
+  };
+
+  const getCardPadding = () => {
+    if (isMobile) return "p-4 md:p-5";
+    return "p-5 md:p-6 lg:p-7";
+  };
+
+  const getButtonPadding = () => {
+    if (isMobile) return "px-4 py-2.5";
+    return "px-5 py-3 md:px-6 md:py-3.5";
+  };
+
+  const getGapSize = () => {
+    if (isMobile) return "gap-4 md:gap-5";
+    return "gap-5 md:gap-6 lg:gap-8";
+  };
+
+  const getVerticalSpacing = () => {
+    if (isMobile) return "space-y-4 md:space-y-5";
+    return "space-y-5 md:space-y-6";
+  };
+
+  const getIconSize = () => {
+    if (isMobile) return "w-5 h-5 md:w-6 md:h-6";
+    return "w-6 h-6 md:w-7 md:h-7";
+  };
+
+  // ========== RENDER COMPONENTS ==========
+  const renderHeroContent = () => {
+    const content = (
+      <>
+        <h1 className={`bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl ${getTitleSize()}`}>
+          PHILIPPINE-BORN<br />
+          INNOVATION ENGINEERED<br />
+          FOR THE GLOBAL STAGE
+        </h1>
+
+        <p className={`bee-body max-w-xl text-[#C7B897] leading-relaxed ${getBodySize()} mt-4 md:mt-6`}>
+          BeeSee Global Technologies creates hardware, software, and scalable
+          learning ecosystems built for Philippine environments and deployed
+          to the world.
+        </p>
+
+        <div className={`flex flex-wrap items-center ${getGapSize()} pt-4 md:pt-6`}>
+          <button
+            onClick={() => setShowVideo(true)}
+            className={`beesee-button beesee-button--small flex items-center gap-2 hover:scale-105 transition-transform duration-300 ${getButtonPadding()} ${getBodySize()}`}
+          >
+            WATCH OUR STORY
+          </button>
+
+          <div className={`space-y-1 bee-body-sm text-[#C7B897] ${getSmallBodySize()}`}>
+            <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
+            <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
+          </div>
+        </div>
+      </>
+    );
+
+    if (isMobile) {
+      return <div className={getVerticalSpacing()}>{content}</div>;
+    }
+
+    return (
+      <motion.div
+        variants={slideInLeft}
+        initial="hidden"
+        animate={getAnimationState(heroInView)}
+        className={getVerticalSpacing()}
+      >
+        {content}
+      </motion.div>
+    );
+  };
+
+  const renderHeroCard = () => {
+    const cardContent = (
+      <div className={`beesee-card-content section-two-card bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-xl md:rounded-2xl backdrop-blur-lg shadow-[0_0_15px_rgba(253,204,0,0.08)] hover:scale-105 hover:border-[#FDCC00]/60 hover:shadow-[0_0_50px_rgba(253,204,0,0.15)] transition-transform duration-300 ${getCardPadding()}`}>
+        <AnimatePresence mode="wait">
+          {showVideo ? (
+            <div className="rounded-lg md:rounded-xl overflow-hidden aspect-[16/9]">
+              <iframe
+                src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&modestbranding=1&rel=0"
+                allowFullScreen
+                className="w-full h-full"
+                title="BeeSee Global Technologies Story"
+              />
+            </div>
+          ) : (
+            <div className="rounded-lg md:rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer">
+              <img
+                src={buildingBeesee}
+                alt="Building BeeSee"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-600"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
+            </div>
+          )}
+        </AnimatePresence>
+
+        {showVideo && (
+          <button
+            onClick={() => setShowVideo(false)}
+            className={`bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-3 ${getSmallBodySize()}`}
+          >
+            ✕ Close Video
+          </button>
+        )}
+      </div>
+    );
+
+    if (isMobile) {
+      return <div className="mt-6 md:mt-8">{cardContent}</div>;
+    }
+
+    return (
+      <motion.div
+        variants={slideInRight}
+        initial="hidden"
+        animate={getAnimationState(heroInView)}
+        className="mt-6 md:mt-8"
+      >
+        {cardContent}
+      </motion.div>
+    );
+  };
+
+  const renderStoryHeader = () => {
+    const content = (
+      <div className="text-center mb-8 md:mb-12 lg:mb-16">
+        <h2 className={`bee-title-md text-[var(--beesee-gold)] leading-[1.1] ${getSubtitleSize()} mb-3 md:mb-4`}>
+          From Local Vision to Global Footprint
+        </h2>
+        <p className={`bee-body max-w-2xl mx-auto text-[#C7B897]/90 ${getBodySize()} mt-2 md:mt-3 leading-relaxed`}>
+          We started as a small team solving pain points in Philippine schools.
+          Today, we build devices, content, and programs trusted by institutions
+          nationwide—and ready for the world.
+        </p>
+      </div>
+    );
+
+    if (isMobile) {
+      return content;
+    }
+
+    return (
+      <motion.div
+        variants={slideInDown}
+        initial="hidden"
+        animate={getAnimationState(storyInView)}
+      >
+        {content}
+      </motion.div>
+    );
+  };
+
+  const renderMissionVisionCard = (icon: React.ReactNode, title: string, content: string, index: number) => {
+    const card = (
+      <div className={`beesee-card-content hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded-xl md:rounded-2xl ${getCardPadding()}`}>
+        <div className={`flex ${isMobile ? 'flex-col items-center text-center' : 'flex-row items-center gap-3'} mb-4 md:mb-6`}>
+          {React.cloneElement(icon as React.ReactElement, { 
+            className: `text-[var(--beesee-gold)] ${getIconSize()}`
+          })}
+          <h3 className={`bee-title-sm text-[var(--beesee-gold)] ${isMobile ? 'mt-2' : ''} text-lg md:text-xl`}>
+            {title}
+          </h3>
+        </div>
+        <p className={`bee-body text-[#C7B897]/90 ${getBodySize()} leading-relaxed ${isMobile ? 'text-center' : ''}`}>
+          {content}
+        </p>
+      </div>
+    );
+
+    if (isMobile) {
+      return <div>{card}</div>;
+    }
+
+    return (
+      <motion.div
+        custom={index}
+        variants={slideInCard}
+        initial="hidden"
+        animate={getAnimationState(storyInView)}
+      >
+        {card}
+      </motion.div>
+    );
+  };
+
   return (
-    <div ref={containerRef} className="relative bg-[#000000]">
+    <div className="relative bg-[#000000]">
 
       {/* GLOBAL BACKGROUND VIDEO */}
       <div className="fixed inset-0 z-0">
@@ -105,164 +316,43 @@ const UnifiedScrollingPage: React.FC = () => {
         <div className="absolute inset-0 bg-[#000000]/70" />
       </div>
 
-      {/* HERO SECTION - MOVED HIGHER IN BOTH MOBILE AND DESKTOP */}
+      {/* HERO SECTION */}
       <section
         ref={heroRef}
-        className={`relative flex items-start z-10 px-3 sm:px-4 md:px-8 lg:px-12 ${
-          isMobile ? "pt-0 min-h-[35vh]" : "min-h-[85vh] pt-50 md:pt-50"
+        className={`relative flex items-start z-10 ${getSectionPadding()} ${
+          isMobile ? "min-h-[60vh] md:min-h-[70vh]" : "min-h-[80vh] md:min-h-[85vh]"
         }`}
       >
-        <div className={`max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center ${
-          isMobile ? "gap-2 py-1" : "gap-10 md:gap-12 lg:gap-16 py-12 md:py-16 lg:py-20"
-        }`}>
-
-          {/* LEFT - Slides from left on desktop */}
-          <motion.div
-            variants={slideInLeft}
-            initial="hidden"
-            animate={getAnimationState(heroInView)}
-            className={`${isMobile ? "space-y-1" : "space-y-5 md:space-y-6"}`}
-          >
-            <h1 className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl text-lg sm:text-xl md:text-4xl lg:text-5xl xl:text-6xl">
-              PHILIPPINE-BORN<br />
-              INNOVATION ENGINEERED<br />
-              FOR THE GLOBAL STAGE
-            </h1>
-
-            <p className="bee-body max-w-xl text-[#C7B897] leading-relaxed text-[11px] sm:text-sm md:text-base lg:text-lg mt-1">
-              BeeSee Global Technologies creates hardware, software, and scalable
-              learning ecosystems built for Philippine environments and deployed
-              to the world.
-            </p>
-
-            <div className={`flex flex-wrap items-center ${isMobile ? "gap-1 pt-0.5" : "gap-5 md:gap-6 pt-3 md:pt-4"}`}>
-              <button
-                onClick={() => setShowVideo(true)}
-                className="beesee-button beesee-button--small flex items-center gap-1 text-[10px] sm:text-xs md:text-base lg:text-lg hover:scale-105 transition-transform duration-300 px-2 py-1 md:px-5 md:py-2.5"
-              >
-                WATCH OUR STORY
-              </button>
-
-              <div className="space-y-0 bee-body-sm text-[#C7B897] text-[9px] sm:text-xs md:text-sm">
-                <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
-                <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* RIGHT CARD - Slides from right on desktop */}
-          <motion.div
-            variants={slideInRight}
-            initial="hidden"
-            animate={getAnimationState(heroInView)}
-            className={isMobile ? "mt-2" : ""}
-          >
-            <div className="beesee-card-content section-two-card p-1.5 sm:p-2 md:p-5 bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded md:rounded-2xl backdrop-blur-lg shadow-[0_0_15px_rgba(253,204,0,0.08)] hover:scale-105 hover:border-[#FDCC00]/60 hover:shadow-[0_0_50px_rgba(253,204,0,0.15)] transition-transform duration-300">
-              <AnimatePresence mode="wait">
-                {showVideo ? (
-                  <div className="rounded md:rounded-xl overflow-hidden aspect-[16/9]">
-                    <iframe
-                      src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&modestbranding=1&rel=0"
-                      allowFullScreen
-                      className="w-full h-full"
-                      title="BeeSee Global Technologies Story"
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded md:rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer">
-                    <img
-                      src={buildingBeesee}
-                      alt="Building BeeSee"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-600"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
-                  </div>
-                )}
-              </AnimatePresence>
-
-              {showVideo && (
-                <button
-                  onClick={() => setShowVideo(false)}
-                  className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-1 text-[9px] sm:text-xs"
-                >
-                  ✕ Close Video
-                </button>
-              )}
-            </div>
-          </motion.div>
-
+        <div className={`max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center ${getGapSize()}`}>
+          {renderHeroContent()}
+          {renderHeroCard()}
         </div>
       </section>
 
-      {/* COMPANY STORY SECTION - MOVED HIGHER */}
+      {/* COMPANY STORY SECTION */}
       <section 
         ref={storyRef}
         className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[35vh] py- px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
-        }`}
+          isMobile ? "min-h-[60vh] md:min-h-[70vh]" : "min-h-[70vh] md:min-h-[80vh]"
+        } ${getSectionPadding()}`}
       >
         <div className="max-w-7xl w-full">
-          {/* Header slides DOWN */}
-          <motion.div
-            variants={slideInDown}
-            initial="hidden"
-            animate={getAnimationState(storyInView)}
-            className="text-center mb-3 md:mb-10 lg:mb-14"
-          >
-            <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-5xl mb-1 md:mb-3">
-              From Local Vision to Global Footprint
-            </h2>
-            <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base lg:text-lg mt-1 md:mt-2 leading-relaxed">
-              We started as a small team solving pain points in Philippine schools.
-              Today, we build devices, content, and programs trusted by institutions
-              nationwide—and ready for the world.
-            </p>
-          </motion.div>
-
-          <div className={`grid md:grid-cols-2 gap-3 md:gap-6 lg:gap-8`}>
-            {/* Mission card slides DOWN - CENTERED IN MOBILE */}
-            <motion.div
-              custom={0}
-              variants={slideInCard}
-              initial="hidden"
-              animate={getAnimationState(storyInView)}
-            >
-              <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
-                {/* CHANGED: Flex column and items-center for mobile */}
-                <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
-                  <Heart className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
-                  <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
-                    MISSION
-                  </h3>
-                </div>
-                <p className={`bee-body text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base leading-relaxed ${isMobile ? "text-center" : ""}`}>
-                  To democratize advanced, human-centered technology for education and enterprise
-                  — making premium solutions accessible, sustainable, and rooted in real Philippine needs.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Vision card slides DOWN with delay - CENTERED IN MOBILE */}
-            <motion.div
-              custom={1}
-              variants={slideInCard}
-              initial="hidden"
-              animate={getAnimationState(storyInView)}
-            >
-              <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
-                {/* CHANGED: Flex column and items-center for mobile */}
-                <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
-                  <Target className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
-                  <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
-                    VISION
-                  </h3>
-                </div>
-                <p className={`bee-body text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base leading-relaxed ${isMobile ? "text-center" : ""}`}>
-                  To establish Philippine-designed technologies as globally trusted — powering
-                  future-ready classrooms, campuses, and workplaces across Asia and beyond.
-                </p>
-              </div>
-            </motion.div>
+          {renderStoryHeader()}
+          
+          <div className={`grid md:grid-cols-2 ${getGapSize()}`}>
+            {renderMissionVisionCard(
+              <Heart />,
+              "MISSION",
+              "To democratize advanced, human-centered technology for education and enterprise — making premium solutions accessible, sustainable, and rooted in real Philippine needs.",
+              0
+            )}
+            
+            {renderMissionVisionCard(
+              <Target />,
+              "VISION",
+              "To establish Philippine-designed technologies as globally trusted — powering future-ready classrooms, campuses, and workplaces across Asia and beyond.",
+              1
+            )}
           </div>
         </div>
       </section>
