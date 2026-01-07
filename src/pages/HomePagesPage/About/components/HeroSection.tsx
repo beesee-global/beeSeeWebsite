@@ -91,83 +91,34 @@ const UnifiedScrollingPage: React.FC = () => {
     return inView ? "visible" : "exit";
   };
 
-  // ========== RESPONSIVE TEXT SIZES ==========
-  const getTitleSize = () => {
-    if (isMobile) return "text-3xl md:text-4xl";
-    return "text-4xl md:text-5xl lg:text-6xl";
-  };
-
-  const getSubtitleSize = () => {
-    if (isMobile) return "text-2xl md:text-3xl";
-    return "text-3xl md:text-4xl lg:text-5xl";
-  };
-
-  const getBodySize = () => {
-    if (isMobile) return "text-sm md:text-base";
-    return "text-base md:text-lg";
-  };
-
-  const getSmallBodySize = () => {
-    if (isMobile) return "text-xs md:text-sm";
-    return "text-sm md:text-base";
-  };
-
-  // ========== RESPONSIVE SPACING ==========
-  const getSectionPadding = () => {
-    if (isMobile) return "px-4 py-8";
-    return "px-6 md:px-8 lg:px-12 py-12 md:py-16 lg:py-20";
-  };
-
-  const getCardPadding = () => {
-    if (isMobile) return "p-4 md:p-5";
-    return "p-5 md:p-6 lg:p-7";
-  };
-
-  const getButtonPadding = () => {
-    if (isMobile) return "px-4 py-2.5";
-    return "px-5 py-3 md:px-6 md:py-3.5";
-  };
-
-  const getGapSize = () => {
-    if (isMobile) return "gap-4 md:gap-5";
-    return "gap-5 md:gap-6 lg:gap-8";
-  };
-
-  const getVerticalSpacing = () => {
-    if (isMobile) return "space-y-4 md:space-y-5";
-    return "space-y-5 md:space-y-6";
-  };
-
-  const getIconSize = () => {
-    if (isMobile) return "w-5 h-5 md:w-6 md:h-6";
-    return "w-6 h-6 md:w-7 md:h-7";
-  };
-
-  // ========== RENDER COMPONENTS ==========
+  // ========== FIXED: Use consistent classes like Home page ==========
   const renderHeroContent = () => {
     const content = (
       <>
-        <h1 className={`bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl ${getTitleSize()}`}>
+        {/* FIXED: Use bee-title-lg consistently */}
+        <h1 className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl">
           PHILIPPINE-BORN<br />
           INNOVATION ENGINEERED<br />
           FOR THE GLOBAL STAGE
         </h1>
 
-        <p className={`bee-body max-w-xl text-[#C7B897] leading-relaxed ${getBodySize()} mt-4 md:mt-6`}>
+        {/* FIXED: Consistent body styling like Home page */}
+        <p className="bee-body max-w-xl text-[#C7B897] leading-relaxed mt-6 md:mt-8">
           BeeSee Global Technologies creates hardware, software, and scalable
           learning ecosystems built for Philippine environments and deployed
           to the world.
         </p>
 
-        <div className={`flex flex-wrap items-center ${getGapSize()} pt-4 md:pt-6`}>
+        <div className="flex flex-wrap items-center gap-6 -pt-8">
           <button
             onClick={() => setShowVideo(true)}
-            className={`beesee-button beesee-button--small flex items-center gap-2 hover:scale-105 transition-transform duration-300 ${getButtonPadding()} ${getBodySize()}`}
+            className="beesee-button beesee-button--small flex items-center gap-3 hover:scale-105 transition-transform duration-300 px-6 py-3"
           >
             WATCH OUR STORY
           </button>
 
-          <div className={`space-y-1 bee-body-sm text-[#C7B897] ${getSmallBodySize()}`}>
+          {/* FIXED: Use bee-body-sm like Home page */}
+          <div className="space-y-1 bee-body-sm text-[#C7B897]">
             <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
             <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
           </div>
@@ -176,7 +127,7 @@ const UnifiedScrollingPage: React.FC = () => {
     );
 
     if (isMobile) {
-      return <div className={getVerticalSpacing()}>{content}</div>;
+      return <div className="space-y-6">{content}</div>;
     }
 
     return (
@@ -184,7 +135,7 @@ const UnifiedScrollingPage: React.FC = () => {
         variants={slideInLeft}
         initial="hidden"
         animate={getAnimationState(heroInView)}
-        className={getVerticalSpacing()}
+        className="space-y-6 md:space-y-8"
       >
         {content}
       </motion.div>
@@ -193,10 +144,10 @@ const UnifiedScrollingPage: React.FC = () => {
 
   const renderHeroCard = () => {
     const cardContent = (
-      <div className={`beesee-card-content section-two-card bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-xl md:rounded-2xl backdrop-blur-lg shadow-[0_0_15px_rgba(253,204,0,0.08)] hover:scale-105 hover:border-[#FDCC00]/60 hover:shadow-[0_0_50px_rgba(253,204,0,0.15)] transition-transform duration-300 ${getCardPadding()}`}>
+      <div className="beesee-card-content section-two-card bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-2xl backdrop-blur-lg shadow-[0_0_15px_rgba(253,204,0,0.08)] hover:scale-105 hover:border-[#FDCC00]/60 hover:shadow-[0_0_50px_rgba(253,204,0,0.15)] transition-transform duration-300 p-8">
         <AnimatePresence mode="wait">
           {showVideo ? (
-            <div className="rounded-lg md:rounded-xl overflow-hidden aspect-[16/9]">
+            <div className="rounded-xl overflow-hidden aspect-[16/9]">
               <iframe
                 src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&modestbranding=1&rel=0"
                 allowFullScreen
@@ -205,7 +156,7 @@ const UnifiedScrollingPage: React.FC = () => {
               />
             </div>
           ) : (
-            <div className="rounded-lg md:rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer">
+            <div className="rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer">
               <img
                 src={buildingBeesee}
                 alt="Building BeeSee"
@@ -219,7 +170,7 @@ const UnifiedScrollingPage: React.FC = () => {
         {showVideo && (
           <button
             onClick={() => setShowVideo(false)}
-            className={`bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-3 ${getSmallBodySize()}`}
+            className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-4"
           >
             ✕ Close Video
           </button>
@@ -228,7 +179,7 @@ const UnifiedScrollingPage: React.FC = () => {
     );
 
     if (isMobile) {
-      return <div className="mt-6 md:mt-8">{cardContent}</div>;
+      return <div className="mt-8">{cardContent}</div>;
     }
 
     return (
@@ -236,7 +187,7 @@ const UnifiedScrollingPage: React.FC = () => {
         variants={slideInRight}
         initial="hidden"
         animate={getAnimationState(heroInView)}
-        className="mt-6 md:mt-8"
+        className="mt-8"
       >
         {cardContent}
       </motion.div>
@@ -245,11 +196,13 @@ const UnifiedScrollingPage: React.FC = () => {
 
   const renderStoryHeader = () => {
     const content = (
-      <div className="text-center mb-8 md:mb-12 lg:mb-16">
-        <h2 className={`bee-title-md text-[var(--beesee-gold)] leading-[1.1] ${getSubtitleSize()} mb-3 md:mb-4`}>
+      <div className="text-center mb-12 md:mb-16">
+        {/* FIXED: Use bee-title-md like Home page */}
+        <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] mb-4 md:mb-6">
           From Local Vision to Global Footprint
         </h2>
-        <p className={`bee-body max-w-2xl mx-auto text-[#C7B897]/90 ${getBodySize()} mt-2 md:mt-3 leading-relaxed`}>
+        {/* FIXED: Consistent body styling */}
+        <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 mt-4 md:mt-6 leading-relaxed">
           We started as a small team solving pain points in Philippine schools.
           Today, we build devices, content, and programs trusted by institutions
           nationwide—and ready for the world.
@@ -274,16 +227,19 @@ const UnifiedScrollingPage: React.FC = () => {
 
   const renderMissionVisionCard = (icon: React.ReactNode, title: string, content: string, index: number) => {
     const card = (
-      <div className={`beesee-card-content hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded-xl md:rounded-2xl ${getCardPadding()}`}>
-        <div className={`flex ${isMobile ? 'flex-col items-center text-center' : 'flex-row items-center gap-3'} mb-4 md:mb-6`}>
+      <div className="beesee-card-content hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded-2xl p-8">
+        {/* FIXED: Align like Home page cards */}
+        <div className={`flex ${isMobile ? 'flex-col items-center text-center' : 'flex-row items-center gap-4'} mb-6`}>
           {React.cloneElement(icon as React.ReactElement, { 
-            className: `text-[var(--beesee-gold)] ${getIconSize()}`
+            className: "text-[var(--beesee-gold)] w-8 h-8 md:w-10 md:h-10"
           })}
-          <h3 className={`bee-title-sm text-[var(--beesee-gold)] ${isMobile ? 'mt-2' : ''} text-lg md:text-xl`}>
+          {/* FIXED: Use bee-title-sm like Home page */}
+          <h3 className={`bee-title-sm text-[var(--beesee-gold)] ${isMobile ? 'mt-3' : ''}`}>
             {title}
           </h3>
         </div>
-        <p className={`bee-body text-[#C7B897]/90 ${getBodySize()} leading-relaxed ${isMobile ? 'text-center' : ''}`}>
+        {/* FIXED: Consistent body styling */}
+        <p className="bee-body text-[#C7B897]/90 leading-relaxed">
           {content}
         </p>
       </div>
@@ -316,30 +272,31 @@ const UnifiedScrollingPage: React.FC = () => {
         <div className="absolute inset-0 bg-[#000000]/70" />
       </div>
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION - FIXED: Consistent padding */}
       <section
         ref={heroRef}
-        className={`relative flex items-start z-10 ${getSectionPadding()} ${
-          isMobile ? "min-h-[60vh] md:min-h-[70vh]" : "min-h-[80vh] md:min-h-[85vh]"
+        className={`relative flex items-start z-10 px-6 md:px-10 lg:px-14 py-20 md:py-24 ${
+          isMobile ? "min-h-[70vh]" : "min-h-[85vh]"
         }`}
       >
-        <div className={`max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center ${getGapSize()}`}>
+        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center gap-10 md:gap-14">
           {renderHeroContent()}
           {renderHeroCard()}
         </div>
       </section>
 
-      {/* COMPANY STORY SECTION */}
+      {/* COMPANY STORY SECTION - FIXED: Consistent padding */}
       <section 
         ref={storyRef}
-        className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[60vh] md:min-h-[70vh]" : "min-h-[70vh] md:min-h-[80vh]"
-        } ${getSectionPadding()}`}
+        className={`relative z-10 flex flex-col items-center px-6 md:px-10 lg:px-14 py-20 md:py-24 ${
+          isMobile ? "min-h-[70vh]" : "min-h-[80vh]"
+        }`}
       >
         <div className="max-w-7xl w-full">
           {renderStoryHeader()}
           
-          <div className={`grid md:grid-cols-2 ${getGapSize()}`}>
+          {/* FIXED: Consistent gap */}
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
             {renderMissionVisionCard(
               <Heart />,
               "MISSION",
