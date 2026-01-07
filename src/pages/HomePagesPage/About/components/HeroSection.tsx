@@ -40,7 +40,7 @@ const steps = [
   },
 ];
 
-const UnifiedScrollingPage: React.FC = () => {
+const HeroSection: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -65,7 +65,7 @@ const UnifiedScrollingPage: React.FC = () => {
 
   const currentStep = steps[activeStep];
 
-  // PPT-style animation variants (clean slide in/out)
+  // PPT-style animation variants
   const slideInLeft = {
     hidden: { x: -100, opacity: 1 },
     visible: { 
@@ -94,7 +94,6 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // Company Story animation (reversed - pababa)
   const slideInDown = {
     hidden: { y: -50, opacity: 1 },
     visible: { 
@@ -109,7 +108,6 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // For mission/vision cards with staggered delay
   const slideInCard = {
     hidden: { y: -30, opacity: 1 },
     visible: (custom: number) => ({ 
@@ -128,7 +126,6 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  // Helper function to determine animation based on view state
   const getAnimationState = (inView: boolean) => {
     if (isMobile) return "visible";
     return inView ? "visible" : "exit";
@@ -145,7 +142,7 @@ const UnifiedScrollingPage: React.FC = () => {
         <div className="absolute inset-0 bg-[#000000]/70" />
       </div>
 
-      {/* HERO SECTION - MOVED HIGHER IN BOTH MOBILE AND DESKTOP */}
+      {/* HERO SECTION */}
       <section
         ref={heroRef}
         className={`relative flex items-start z-10 px-3 sm:px-4 md:px-8 lg:px-12 ${
@@ -156,7 +153,7 @@ const UnifiedScrollingPage: React.FC = () => {
           isMobile ? "gap-2 py-1" : "gap-10 md:gap-12 lg:gap-16 py-12 md:py-16 lg:py-20"
         }`}>
 
-          {/* LEFT - Slides from left on desktop */}
+          {/* LEFT */}
           <motion.div
             variants={slideInLeft}
             initial="hidden"
@@ -190,7 +187,7 @@ const UnifiedScrollingPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* RIGHT CARD - Slides from right on desktop */}
+          {/* RIGHT CARD */}
           <motion.div
             variants={slideInRight}
             initial="hidden"
@@ -234,15 +231,14 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* COMPANY STORY SECTION - MOVED HIGHER */}
+      {/* COMPANY STORY SECTION */}
       <section 
         ref={storyRef}
         className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[35vh] py- px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
+          isMobile ? "min-h-[35vh] py-8 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
         }`}
       >
         <div className="max-w-7xl w-full">
-          {/* Header slides DOWN */}
           <motion.div
             variants={slideInDown}
             initial="hidden"
@@ -260,7 +256,6 @@ const UnifiedScrollingPage: React.FC = () => {
           </motion.div>
 
           <div className={`grid md:grid-cols-2 gap-3 md:gap-6 lg:gap-8`}>
-            {/* Mission card slides DOWN - CENTERED IN MOBILE */}
             <motion.div
               custom={0}
               variants={slideInCard}
@@ -268,7 +263,6 @@ const UnifiedScrollingPage: React.FC = () => {
               animate={getAnimationState(storyInView)}
             >
               <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
-                {/* CHANGED: Flex column and items-center for mobile */}
                 <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
                   <Heart className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
                   <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
@@ -282,7 +276,6 @@ const UnifiedScrollingPage: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Vision card slides DOWN with delay - CENTERED IN MOBILE */}
             <motion.div
               custom={1}
               variants={slideInCard}
@@ -290,7 +283,6 @@ const UnifiedScrollingPage: React.FC = () => {
               animate={getAnimationState(storyInView)}
             >
               <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
-                {/* CHANGED: Flex column and items-center for mobile */}
                 <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
                   <Target className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
                   <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
@@ -307,98 +299,95 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* STEPPER SECTION - MOVED HIGHER */}
-      <section
-        ref={stepperRef}
-        className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[40vh] py-8 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
-        }`}
-      >
-        <div className="max-w-7xl w-full">
-          {/* Header slides DOWN */}
-          <motion.div
-            variants={slideInDown}
-            initial="hidden"
-            animate={getAnimationState(stepperInView)}
-            className="text-center mb-3 md:mb-10 lg:mb-14"
-          >
-            <h2 className="bee-title-md text-[var(--beesee-gold)] text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-5xl mb-1">
-              SCHOOL PROCESS
-            </h2>
-            <p className="bee-body text-[#C7B897]/80 max-w-2xl mx-auto text-[11px] sm:text-sm md:text-base lg:text-lg leading-relaxed">
-              A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
-            </p>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-2 items-start lg:items-center gap-3 md:gap-8 lg:gap-10">
-            {/* Steps list - Slides from left on desktop */}
+      {/* STEPPER SECTION - MOBILE ONLY */}
+      {isMobile && (
+        <section
+          ref={stepperRef}
+          className="relative z-10 flex flex-col items-center min-h-[40vh] py-8 px-3"
+        >
+          <div className="max-w-7xl w-full">
             <motion.div
-              variants={slideInLeft}
+              variants={slideInDown}
               initial="hidden"
               animate={getAnimationState(stepperInView)}
-              className="space-y-2"
+              className="text-center mb-3"
             >
-              {steps.map((step, i) => {
-                const isActive = i === activeStep;
-                return (
+              <h2 className="bee-title-md text-[var(--beesee-gold)] text-base sm:text-lg mb-1">
+                SCHOOL PROCESS
+              </h2>
+              <p className="bee-body text-[#C7B897]/80 max-w-2xl mx-auto text-[11px] sm:text-sm leading-relaxed">
+                A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-2 items-start lg:items-center gap-3">
+              <motion.div
+                variants={slideInLeft}
+                initial="hidden"
+                animate={getAnimationState(stepperInView)}
+                className="space-y-2"
+              >
+                {steps.map((step, i) => {
+                  const isActive = i === activeStep;
+                  return (
+                    <div 
+                      key={i}
+                      className="cursor-pointer flex gap-1.5 items-start group p-1.5 rounded hover:bg-white/5 transition-all duration-300"
+                      onClick={() => setActiveStep(i)}
+                    >
+                      <div className={`h-6 w-6 rounded-full flex items-center justify-center border text-[10px] font-bold
+                        ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}>
+                        {step.id}
+                      </div>
+
+                      <div className="flex-1">
+                        <p className={`bee-body font-semibold text-xs ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
+                          {step.title}
+                        </p>
+                        <p className="bee-body text-[#C7B897]/70 mt-0.5 text-[10px]">{step.short}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </motion.div>
+
+              <motion.div
+                variants={slideInRight}
+                initial="hidden"
+                animate={getAnimationState(stepperInView)}
+              >
+                <AnimatePresence mode="wait">
                   <div 
-                    key={i}
-                    className="cursor-pointer flex gap-1.5 md:gap-3 items-start group p-1.5 rounded hover:bg-white/5 transition-all duration-300"
-                    onClick={() => setActiveStep(i)}
+                    key={currentStep.id}
+                    className="rounded overflow-hidden border border-[#FDCC00]/30 shadow-[0_0_15px_rgba(253,204,0,0.08)] bg-black/40 backdrop-blur-lg"
                   >
-                    <div className={`h-6 w-6 md:h-8 md:w-8 rounded-full flex items-center justify-center border text-[10px] md:text-sm font-bold
-                      ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}>
-                      {step.id}
+                    <div className="relative overflow-hidden group">
+                      <img 
+                        src={currentStep.image}
+                        alt={currentStep.title}
+                        className="w-full h-36 sm:h-40 object-cover transition-transform duration-700 group-hover:scale-[1.08]" 
+                      />
+                      <div className="absolute inset-0 bg-black/40" />
+                      <div className="absolute bottom-1 left-1.5 text-[#FDCC00] text-[9px] font-semibold">
+                        Step {currentStep.id} / {steps.length}
+                      </div>
                     </div>
 
-                    <div className="flex-1">
-                      <p className={`bee-body font-semibold text-xs md:text-sm ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
-                        {step.title}
-                      </p>
-                      <p className="bee-body text-[#C7B897]/70 mt-0.5 text-[10px] md:text-sm">{step.short}</p>
+                    <div className="p-2">
+                      <h3 className="bee-title-sm text-[#FDCC00] text-sm">{currentStep.title}</h3>
+                      <p className="bee-body text-[#C7B897]/90 mt-1 text-xs">{currentStep.description}</p>
                     </div>
                   </div>
-                );
-              })}
-            </motion.div>
-
-            {/* Step details - Slides from right on desktop */}
-            <motion.div
-              variants={slideInRight}
-              initial="hidden"
-              animate={getAnimationState(stepperInView)}
-            >
-              <AnimatePresence mode="wait">
-                <div 
-                  key={currentStep.id}
-                  className="rounded md:rounded-xl overflow-hidden border border-[#FDCC00]/30 shadow-[0_0_15px_rgba(253,204,0,0.08)] bg-black/40 backdrop-blur-lg"
-                >
-                  <div className="relative overflow-hidden group">
-                    <img 
-                      src={currentStep.image}
-                      alt={currentStep.title}
-                      className="w-full h-36 sm:h-40 md:h-52 lg:h-60 object-cover transition-transform duration-700 group-hover:scale-[1.08]" 
-                    />
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="absolute bottom-1 left-1.5 md:bottom-2 md:left-3 text-[#FDCC00] text-[9px] md:text-sm font-semibold">
-                      Step {currentStep.id} / {steps.length}
-                    </div>
-                  </div>
-
-                  <div className="p-2 md:p-4 lg:p-5">
-                    <h3 className="bee-title-sm text-[#FDCC00] text-sm md:text-lg">{currentStep.title}</h3>
-                    <p className="bee-body text-[#C7B897]/90 mt-1 text-xs md:text-base">{currentStep.description}</p>
-                  </div>
-                </div>
-              </AnimatePresence>
-            </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <div className="pointer-events-none fixed bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#000] z-[1]" />
     </div>
   );
 };
 
-export default UnifiedScrollingPage;
+export default HeroSection;

@@ -1,6 +1,23 @@
 import React from "react";
 import ProductCard, { Product } from "./ProductCard";
 
+// Mobile detection hook for ProductGrid
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 interface ProductGridProps {
   products: Product[];
   onProductClick?: (product: Product) => void;
@@ -10,8 +27,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   onProductClick,
 }) => {
+  const isMobile = useIsMobile();
+
+  // Different grid layout for mobile vs desktop
+  const gridClasses = isMobile 
+    ? "grid grid-cols-1 gap-6 mb-12"  // Single column on mobile
+    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"; // Multi-column on desktop
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+    <div className={gridClasses}>
       {products.map((product, index) => (
         <ProductCard
           key={product.id}

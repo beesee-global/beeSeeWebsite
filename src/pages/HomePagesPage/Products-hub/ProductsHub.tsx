@@ -1,10 +1,11 @@
+"use client";
+
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import CategoryFilter, { Category } from "./components/CategoryFilter";
-import ImageSlider from "./components/ImageSlider";
 import SearchAndFilters from "./components/SearchAndFilters";
 import ProductGrid, { Product } from "./components/ProductGrid";
 import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduct";
@@ -12,8 +13,29 @@ import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduc
 import "../../../assets/css/Product.css";
 import "../../../assets/css/MimicStyles.css";
 
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
-const FadeReveal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
+// FadeReveal component - returns plain div on mobile
+const FadeReveal: React.FC<{ children: React.ReactNode; isMobile: boolean }> = ({ children, isMobile }) => {
+  if (isMobile) {
+    return <div>{children}</div>;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -28,6 +50,7 @@ const FadeReveal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const ProductsHub: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   /* ===========================
       DEMO PRODUCTS
@@ -133,7 +156,6 @@ const ProductsHub: React.FC = () => {
         ram: "1GB",
       },
     },
-    
   ];
 
   const categories: Category[] = [
@@ -221,43 +243,38 @@ const ProductsHub: React.FC = () => {
   return (
     <div className="products-hub min-h-screen bg-[#000000]">
 
-      {/* 🔥 NEW HERO SECTION */}
+      {/* 🔥 HERO SECTION */}
       <HeroProducts />
 
-
-      {/* ===========================
-         MAIN SECTION
-      ============================ */}
+      {/* MAIN SECTION */}
       <section className="py-16 px-4 md:px-8 lg:px-16 bg-[#000000]">
         <div className="max-w-7xl mx-auto">
-          <motion.div variants={containerVariants} initial="hidden" animate="visible">
+          {isMobile ? (
+            // MOBILE VERSION - No animations
+            <div>
+              <div>
+                <SearchAndFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={(v) => {
+                    setSearchQuery(v);
+                    setCurrentPage(1);
+                  }}
+                  sortBy={sortBy}
+                  onSortChange={(v) => {
+                    setSortBy(v);
+                    setCurrentPage(1);
+                  }}
+                  showFilters={showFilters}
+                  onToggleFilters={() => setShowFilters(!showFilters)}
+                  onClearFilters={handleClearFilters}
+                  priceRange={priceRange}
+                  onPriceRangeChange={(v) => {
+                    setPriceRange(v);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
 
-            {/* SEARCH & FILTERS */}
-            <FadeReveal>
-              <SearchAndFilters
-                searchQuery={searchQuery}
-                onSearchChange={(v) => {
-                  setSearchQuery(v);
-                  setCurrentPage(1);
-                }}
-                sortBy={sortBy}
-                onSortChange={(v) => {
-                  setSortBy(v);
-                  setCurrentPage(1);
-                }}
-                showFilters={showFilters}
-                onToggleFilters={() => setShowFilters(!showFilters)}
-                onClearFilters={handleClearFilters}
-                priceRange={priceRange}
-                onPriceRangeChange={(v) => {
-                  setPriceRange(v);
-                  setCurrentPage(1);
-                }}
-              />
-            </FadeReveal>
-
-            {/* CATEGORY FILTER */}
-            <FadeReveal>
               <div className="mb-8">
                 <CategoryFilter
                   categories={categories}
@@ -268,36 +285,23 @@ const ProductsHub: React.FC = () => {
                   }}
                 />
               </div>
-            </FadeReveal>
 
-            {/* RESULTS COUNT */}
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={`results-${filteredProducts.length}-${currentPage}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
-                className="text-[#C7B897] text-sm mt-6 mb-4"
-              >
+              <p className="text-[#C7B897] text-sm mt-6 mb-4">
                 Showing {paginatedProducts.length} of {filteredProducts.length} products
                 {searchQuery && ` for "${searchQuery}"`}
                 {selectedCategory !== "all" &&
                   ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
-              </motion.p>
-            </AnimatePresence>
+              </p>
 
-            {/* GRID */}
-            <FadeReveal>
-              <ProductGrid
-                products={paginatedProducts}
-                onProductClick={(p) => navigate(`/product/${p.pid}`)}
-              />
-            </FadeReveal>
+              <div>
+                <ProductGrid
+                  products={paginatedProducts}
+                  onProductClick={(p) => navigate(`/product/${p.pid}`)}
+                />
+              </div>
 
-            {/* PAGINATION */}
-            {totalPages > 1 && (
-              <FadeReveal>
+              {/* PAGINATION - Mobile */}
+              {totalPages > 1 && (
                 <div className="pagination-container">
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -325,10 +329,94 @@ const ProductsHub: React.FC = () => {
                     <ChevronRight size={20} />
                   </button>
                 </div>
+              )}
+            </div>
+          ) : (
+            // DESKTOP VERSION - With animations
+            <motion.div variants={containerVariants} initial="hidden" animate="visible">
+              <FadeReveal isMobile={isMobile}>
+                <SearchAndFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={(v) => {
+                    setSearchQuery(v);
+                    setCurrentPage(1);
+                  }}
+                  sortBy={sortBy}
+                  onSortChange={(v) => {
+                    setSortBy(v);
+                    setCurrentPage(1);
+                  }}
+                  showFilters={showFilters}
+                  onToggleFilters={() => setShowFilters(!showFilters)}
+                  onClearFilters={handleClearFilters}
+                  priceRange={priceRange}
+                  onPriceRangeChange={(v) => {
+                    setPriceRange(v);
+                    setCurrentPage(1);
+                  }}
+                />
               </FadeReveal>
-            )}
 
-          </motion.div>
+              <FadeReveal isMobile={isMobile}>
+                <div className="mb-8">
+                  <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={(c) => {
+                      setSelectedCategory(c);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
+              </FadeReveal>
+
+              <p className="text-[#C7B897] text-sm mt-6 mb-4">
+                Showing {paginatedProducts.length} of {filteredProducts.length} products
+                {searchQuery && ` for "${searchQuery}"`}
+                {selectedCategory !== "all" &&
+                  ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
+              </p>
+
+              <FadeReveal isMobile={isMobile}>
+                <ProductGrid
+                  products={paginatedProducts}
+                  onProductClick={(p) => navigate(`/product/${p.pid}`)}
+                />
+              </FadeReveal>
+
+              {totalPages > 1 && (
+                <FadeReveal isMobile={isMobile}>
+                  <div className="pagination-container">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="pagination-btn"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`pagination-page ${currentPage === i + 1 ? "active" : ""}`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="pagination-btn"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </FadeReveal>
+              )}
+            </motion.div>
+          )}
         </div>
       </section>
     </div>
