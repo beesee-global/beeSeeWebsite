@@ -43,6 +43,7 @@ interface FormError {
 }
 
 const ContactSection = () => {
+  const [isMobile, setIsMobile] = useState(false);
   const [formError, setFormError] = useState<FormError>({});
   const [formData, setFormData] = useState<formData>({
     name: '',
@@ -60,8 +61,16 @@ const ContactSection = () => {
   // Animation refs
   const leftColumnRef = useRef<HTMLDivElement | null>(null);
   const rightColumnRef = useRef<HTMLDivElement | null>(null);
-  const inViewLeft = useInView(leftColumnRef, { amount: 0.25 });
-  const inViewRight = useInView(rightColumnRef, { amount: 0.25 });
+  const inViewLeft = useInView(leftColumnRef, { amount: 0.25, once: isMobile });
+  const inViewRight = useInView(rightColumnRef, { amount: 0.25, once: isMobile });
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Slide-in animation effect
   useEffect(() => {
@@ -261,13 +270,24 @@ const ContactSection = () => {
       className="py-24 bg-[#000000] text-white fade-up-init"
       style={{ minHeight: '100vh' }}
     >
+ {/* HEADER — MOVED UPWARD ONLY */}
+      <div className="text-center mb-12 px-6 -mt-16">
+        <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
+          PLACEHOLDER TEXT
+        </h3>
+        <p className="bee-body max-w-3xl mx-auto mt-4 text-[#C7B897]">
+          lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua.
+        </p>
+      </div>
+
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-        {/* Left Column - Slide from LEFT */}
+        {/* Left Column */}
         <motion.div
           ref={leftColumnRef}
-          initial={{ opacity: 0, x: -100 }}
-          animate={inViewLeft ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: isMobile ? 1 : 0, x: 0 }}
+          animate={inViewLeft ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : -100 }}
+          transition={{ duration: isMobile ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-8"
         >
           <div className="space-y-4">
@@ -331,12 +351,12 @@ const ContactSection = () => {
           </div>
         </motion.div>
 
-        {/* Right Column - Form (Solid White Card) - Slide from RIGHT */}
+        {/* Right Column - Form */}
         <motion.div
           ref={rightColumnRef}
-          initial={{ opacity: 0, x: 100 }}
-          animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: isMobile ? 1 : 0, x: 0 }}
+          animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : 100 }}
+          transition={{ duration: isMobile ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="beesee-card-content"
         >
           <h3 
