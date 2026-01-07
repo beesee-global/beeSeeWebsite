@@ -18,6 +18,13 @@ const HeaderHomePage = () => {
     const [isShrunk, setIsShrunk] = useState(false);
     const [menuHover, setMenuHover] = useState(false);
 
+    /* Reset menu hover state when drawer closes */
+    useEffect(() => {
+        if (!drawerOpen) {
+            setMenuHover(false);
+        }
+    }, [drawerOpen]);
+
     /* Optimized Header Shrink */
     useEffect(() => {
         let ticking = false;
@@ -192,18 +199,14 @@ const HeaderHomePage = () => {
                             </nav>
                         </Box>
 
-                        {/* MOBILE MENU BUTTON - Left Side */}
+                        {/* MOBILE MENU BUTTON - Left Side - NO ANIMATION */}
                         <IconButton
                             edge="start"
                             onClick={() => setDrawerOpen(true)}
                             className="md:!hidden !text-white"
-                            onMouseEnter={() => setMenuHover(true)}
-                            onMouseLeave={() => setMenuHover(false)}
                             aria-label="Open navigation menu"
                         >
-                            <motion.div animate={menuHover ? { rotate: 10, scale: 1.15 } : { rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 240, damping: 16 }}>
-                                <MenuIcon fontSize="large" />
-                            </motion.div>
+                            <MenuIcon fontSize="large" />
                         </IconButton>
                     </Toolbar>
                 )}
