@@ -60,12 +60,12 @@ const UnifiedHomeSections: React.FC = () => {
   const section4LeftRef = useRef<HTMLDivElement>(null);
   const section4RightRef = useRef<HTMLDivElement>(null);
 
-  // InView hooks - always trigger once for mobile to show content immediately
-  const inView2Left = useInView(section2LeftRef, { once: true, amount: 0.1 });
-  const inView2Right = useInView(section2RightRef, { once: true, amount: 0.1 });
-  const inView3Title = useInView(section3TitleRef, { once: true, amount: 0.1 });
-  const inView4Left = useInView(section4LeftRef, { once: true, amount: 0.1 });
-  const inView4Right = useInView(section4RightRef, { once: true, amount: 0.1 });
+  // InView hooks - once: true for mobile, once: false for desktop (repeatable)
+  const inView2Left = useInView(section2LeftRef, { once: isMobile, amount: 0.1 });
+  const inView2Right = useInView(section2RightRef, { once: isMobile, amount: 0.1 });
+  const inView3Title = useInView(section3TitleRef, { once: isMobile, amount: 0.1 });
+  const inView4Left = useInView(section4LeftRef, { once: isMobile, amount: 0.1 });
+  const inView4Right = useInView(section4RightRef, { once: isMobile, amount: 0.1 });
 
   const items = [
     {
@@ -224,7 +224,7 @@ const UnifiedHomeSections: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {items.map((item, index) => {
               const cardRef = useRef<HTMLDivElement>(null);
-              const inViewCard = useInView(cardRef, { once: true, amount: 0.1 });
+              const inViewCard = useInView(cardRef, { once: isMobile, amount: 0.1 });
 
               return (
                 <motion.div
