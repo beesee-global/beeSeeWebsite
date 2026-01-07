@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform, useAnimation, useInView, useSpring } from "framer-motion";
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
-import { fetchAllSolutions } from "../../../../services/solutionsOverviewServices";
+import { fetchAllSolutions } from "../../../../services/Ecommerce/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
 
 import "../../../../assets/css/Solutions.css";

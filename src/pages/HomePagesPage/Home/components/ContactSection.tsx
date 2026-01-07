@@ -19,7 +19,7 @@ import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField' 
 import TextsmsIcon from '@mui/icons-material/Textsms';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone'; 
-import { createConsultation } from '../../../../services/consultationServices'
+import { createConsultation } from '../../../../services/Ecommerce/consultationServices'
 import { useMutation } from '@tanstack/react-query' 
 
 interface formData {

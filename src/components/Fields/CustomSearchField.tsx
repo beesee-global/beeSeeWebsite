@@ -4,16 +4,21 @@ import { Search } from 'lucide-react'; // Font Awesome search icon
 interface CustomSearchFieldProps { 
   value: string; 
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string; // ✅ optional placeholder
 }
 
-const CustomSearchField: React.FC<CustomSearchFieldProps> = ({ value, onChange }) => {
+const CustomSearchField: React.FC<CustomSearchFieldProps> = ({ 
+  value, 
+  onChange, 
+  placeholder 
+}) => {
   return (
     <div className="relative w-full max-w-xs">
       <input
         type="text" 
         value={value}
         onChange={onChange}
-        placeholder="Search..."
+        placeholder={placeholder}
         className="w-full pl-10 pr-4 py-3 rounded-md bg-gray-100 text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
       />
       {/* Icon inside input field */}

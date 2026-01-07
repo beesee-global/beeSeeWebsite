@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchActiveBanners } from "../../../../services/bannerServices";
+import { fetchActiveBanners } from "../../../../services/Ecommerce/bannerServices";
 
 const ImageSlider: React.FC = () => {
   const [current, setCurrent] = useState(0);

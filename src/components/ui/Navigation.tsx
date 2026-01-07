@@ -3,7 +3,7 @@ import { LogOut, User, Menu } from "lucide-react";
 import beeseeGoldLogo from "../../../public/beeseeGoldLogo.png";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserById } from "../../services/myAccountServices";
+import { fetchUserById } from "../../services/Ecommerce/myAccountServices";
 import { userAuth } from "../../hooks/userAuth";
 
 interface NavigationProps {

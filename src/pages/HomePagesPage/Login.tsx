@@ -5,7 +5,7 @@ import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Snackbar from '../../components/feedback/Snackbar';
 import { useMutation } from '@tanstack/react-query';
-import { loggedInUser } from '../../services/userServices';
+import { loggedInUser } from '../../services/Ecommerce/userServices';
 import { AlertColor } from '@mui/material/Alert';
 import { userAuth } from '../../hooks/userAuth'
 
