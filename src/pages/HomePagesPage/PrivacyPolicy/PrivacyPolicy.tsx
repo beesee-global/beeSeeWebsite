@@ -186,7 +186,7 @@ export default function PrivacyPolicy() {
             </p>
           </motion.div>
 
-          {/* 9. Contact Us */}
+          {/* 9. Data Privacy Act of 2012 (RA 10173) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -194,7 +194,60 @@ export default function PrivacyPolicy() {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              9. Contact Us
+              9. Compliance with the Data Privacy Act of 2012 (RA 10173)
+            </h2>
+
+            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+              In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, 
+              we are committed to protecting any personal information you provide. All data collected 
+              through this website and our systems will be used solely for legitimate business, 
+              verification, and administrative purposes.
+            </p>
+
+            <ul className="list-disc pl-6 text-gray-700 space-y-3 text-md sm:text-lg">
+              <li>
+                Your personal information is kept strictly confidential and is accessed only by
+                authorized personnel.
+              </li>
+              <li>
+                No personal data will be shared, sold, or disclosed to third parties without your
+                explicit consent, unless required by law, court order, or government regulation.
+              </li>
+              <li>
+                We implement appropriate <strong>organizational, physical, and technical security measures</strong>
+                to protect your data from unauthorized access, alteration, disclosure, or loss.
+              </li>
+              <li>
+                Your data is processed fairly and lawfully in accordance with the Data Privacy Act
+                of 2012 (RA 10173) and applicable regulations of the National Privacy Commission (NPC).
+              </li>
+              <li>
+                You will be notified in the event of a personal data breach that may compromise your
+                rights or privacy, in accordance with NPC breach notification guidelines.
+              </li>
+              <li>
+                Personal data is retained only for as long as necessary to fulfill its intended
+                purpose or to comply with legal and regulatory requirements.
+              </li>
+            </ul>
+
+            <p className="mt-4 text-gray-700 leading-relaxed text-md sm:text-lg">
+              By using our services, you acknowledge that you understand and agree to the collection,
+              processing, and storage of your personal data in accordance with the Data Privacy Act
+              of 2012 (RA 10173).
+            </p>
+          </motion.div>
+
+
+          {/* 10. Contact Us */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              10. Contact Us
             </h2>
             <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
               If you have any questions about this Privacy Policy, please contact us at:

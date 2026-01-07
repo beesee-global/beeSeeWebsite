@@ -14,6 +14,7 @@ const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndCon
 const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
 const ProductDetail = lazy(() => import('../pages/HomePagesPage/ProductDetails/ProductDetail'));
 const Loggedin = lazy(() => import('../pages/HomePagesPage/Login'));
+const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnician'));
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
@@ -34,6 +35,10 @@ const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/Ho
 const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
 const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
  
+/* Conversation */
+const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
+const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
+
 const routes = [
     {
         path: '/', // Catch-all route
@@ -84,6 +89,10 @@ const routes = [
             {
                 path: "sign-in",
                 element: <Loggedin />
+            },
+            {
+                path: "sign-in/tech",
+                element: <LoginTechnician />
             },
             {
                 path: "sign-up/2046",
@@ -164,7 +173,22 @@ const routes = [
             },  
         ]
     }, 
-    
+       /* conversation */
+    {
+        path: '/c',
+        element: <ConversationLayout />,
+        layout: 'blank',
+        children: [
+            {
+                path: '/c',     
+                element:<Navigate to="conversation" />,
+            },
+            {
+                path: 'conversation/:pid',
+                element: <ConversationDetails />
+            }, 
+        ]
+    },
     /* Not found routes */ 
     {
         path: '*', // Catch-all route

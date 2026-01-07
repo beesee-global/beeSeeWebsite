@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
-import { userAuth } from '../../../../hooks/userAuth';
-import Snackbar from '../../../../components/feedback/Snackbar';
+import { userAuth } from '../../../hooks/userAuth';
+import Snackbar from '../../../components/feedback/Snackbar';
 import {
   CheckCircle,
   Clock,
@@ -17,14 +17,14 @@ import {
   User2, 
   Building2
 } from 'lucide-react';
-import CustomTextField from '../../../../components/Fields/CustomTextField';
-import CustomSelectField from '../../../../components/Fields/CustomSelectField' 
+import CustomTextField from '../../../components/Fields/CustomTextField';
+import CustomSelectField from '../../../components/Fields/CustomSelectField' 
 import TextsmsIcon from '@mui/icons-material/Textsms'; 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { 
   createConsultation, 
   fetchCategory 
-} from '../../../../services/Technician/inquiriesServices'
+} from '../../../services/Technician/inquiriesServices'
 import { 
   useMutation, 
   useQuery 
