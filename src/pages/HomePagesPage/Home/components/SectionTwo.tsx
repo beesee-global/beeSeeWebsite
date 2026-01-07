@@ -36,6 +36,18 @@ const UnifiedHomeSections: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Prevent horizontal scroll on mobile
+  useEffect(() => {
+    if (isMobile) {
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+    }
+    return () => {
+      document.body.style.overflowX = '';
+      document.documentElement.style.overflowX = '';
+    };
+  }, [isMobile]);
+
   // Animation variants
   const textAnimation = {
     desktop: {
@@ -91,16 +103,16 @@ const UnifiedHomeSections: React.FC = () => {
   };
 
   return (
-    <div className="relative bg-[#000000]">
+    <div className="relative bg-[#000000] overflow-x-hidden w-full">
       {/* ================= SECTION TWO ================= */}
-      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10">
+      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10 w-full">
         <div className="section-two-wrapper w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
-          <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center">
+          <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center w-full">
             
             {/* LEFT TEXT BLOCK - No animation on mobile */}
             <motion.div
               ref={section2LeftRef}
-              className="section-two-text"
+              className="section-two-text w-full"
               initial="hidden"
               animate={inView2Left ? "visible" : "hidden"}
               variants={getTextVariants('left')}
@@ -126,13 +138,13 @@ const UnifiedHomeSections: React.FC = () => {
             {/* RIGHT IMAGE BLOCK - Keep animation for images on all devices */}
             <motion.div
               ref={section2RightRef}
-              className="section-two-image"
-              initial={{ opacity: 0, x: 100 }}
-              animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              className="section-two-image w-full"
+              initial={{ opacity: 0, x: isMobile ? 0 : 100 }}
+              animate={inView2Right ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : 100 }}
               transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.div 
-                className="beesee-card-content section-two-card"
+                className="beesee-card-content section-two-card w-full"
                 whileHover={{ 
                   scale: isMobile ? 1 : 1.03,
                   boxShadow: '0 0 40px rgba(253, 204, 0, 0.2)',
@@ -153,7 +165,7 @@ const UnifiedHomeSections: React.FC = () => {
       </section>
 
       {/* ================= SECTION THREE ================= */}
-      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12">
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12 w-full">
         {/* Background with overlay */}
         <div 
           className="absolute inset-0 z-0"
@@ -221,7 +233,7 @@ const UnifiedHomeSections: React.FC = () => {
           </motion.div>
 
           {/* CARDS - No animation on mobile */}
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 w-full">
             {items.map((item, index) => {
               const cardRef = useRef<HTMLDivElement>(null);
               const inViewCard = useInView(cardRef, { once: isMobile, amount: 0.1 });
@@ -234,7 +246,7 @@ const UnifiedHomeSections: React.FC = () => {
                   animate={inViewCard ? "visible" : "hidden"}
                   variants={getTextVariants('up')}
                   transition={isMobile ? { duration: 0 } : { duration: 1.0, delay: index * 0.2, ease: "easeOut" }}
-                  className="beesee-card-content card-glow p-6"
+                  className="beesee-card-content card-glow p-6 w-full"
                   whileHover={{ 
                     y: isMobile ? 0 : -10,
                     boxShadow: '0 20px 60px rgba(253, 204, 0, 0.15)',
@@ -253,16 +265,16 @@ const UnifiedHomeSections: React.FC = () => {
       </section>
 
       {/* ================= DIGITAL CONNECTION SECTION ================= */}
-      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12">
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12 w-full">
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           
           {/* LEFT — CAROUSEL - Keep animation for images */}
           <motion.div
             ref={section4LeftRef}
-            initial={{ opacity: 0, x: -100 }}
-            animate={inView4Left ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
+            initial={{ opacity: 0, x: isMobile ? 0 : -100 }}
+            animate={inView4Left ? { opacity: 1, x: 0 } : { opacity: isMobile ? 1 : 0, x: isMobile ? 0 : -100 }}
             transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative overflow-hidden rounded-2xl"
+            className="relative overflow-hidden rounded-2xl w-full"
             style={{ height: '360px' }}
           >
             <motion.div
@@ -305,7 +317,7 @@ const UnifiedHomeSections: React.FC = () => {
             animate={inView4Right ? "visible" : "hidden"}
             variants={getTextVariants('right')}
             transition={transition}
-            className="flex flex-col gap-5 md:gap-6"
+            className="flex flex-col gap-5 md:gap-6 w-full"
           >
             <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
               DIGITAL CONNECTION
