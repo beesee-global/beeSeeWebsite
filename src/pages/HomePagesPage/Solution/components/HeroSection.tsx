@@ -53,7 +53,7 @@ const HeroSection = () => {
   }, []);
 
   /* -------------------------------
-     Scroll-based motion
+     Scroll-based motion (Desktop only)
   -------------------------------- */
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -65,9 +65,14 @@ const HeroSection = () => {
   const cardY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
 
   /* -------------------------------
-     Intersection fade-in
+     Intersection fade-in (Desktop only)
   -------------------------------- */
   useEffect(() => {
+    if (isMobile) {
+      setIsVisible(true); // Always visible on mobile
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -82,7 +87,59 @@ const HeroSection = () => {
     return () => {
       if (sectionRef.current) observer.unobserve(sectionRef.current);
     };
-  }, []);
+  }, [isMobile]);
+
+  // Helper to conditionally wrap with motion.div
+  const MotionWrapper = ({ 
+    children, 
+    style, 
+    initial, 
+    animate, 
+    transition,
+    className = "" 
+  }: any) => {
+    if (isMobile) {
+      return <div className={className}>{children}</div>;
+    }
+    
+    return (
+      <motion.div
+        className={className}
+        style={style}
+        initial={initial}
+        animate={animate}
+        transition={transition}
+      >
+        {children}
+      </motion.div>
+    );
+  };
+
+  // Helper for service cards
+  const ServiceCardWrapper = ({ 
+    children, 
+    index,
+    className = "" 
+  }: any) => {
+    if (isMobile) {
+      return <div className={className}>{children}</div>;
+    }
+    
+    return (
+      <motion.div
+        className={className}
+        initial={{ opacity: 0, y: 80 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : {}}
+        transition={{
+          duration: 1,
+          delay: 0.4 + index * 0.15,
+          ease: "easeOut",
+        }}
+      >
+        {children}
+      </motion.div>
+    );
+  };
 
   return (
     <section
@@ -91,7 +148,7 @@ const HeroSection = () => {
       className="relative min-h-screen flex items-center justify-center py-20 sm:py-24 md:py-28"
     >
       {/* ================= BACKGROUND ================= */}
-      <motion.div
+      <MotionWrapper
         className="absolute inset-0 z-0 overflow-hidden"
         style={{ y: isMobile ? 0 : bgY }}
       >
@@ -106,13 +163,13 @@ const HeroSection = () => {
         </video>
 
         <div className="absolute inset-0 bg-[#000000] opacity-75" />
-      </motion.div>
+      </MotionWrapper>
 
       {/* ================= CONTENT ================= */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
         {/* HEADER */}
-        <motion.div
+        <MotionWrapper
           className="text-center mb-12 sm:mb-14 md:mb-16"
           style={{ y: isMobile ? 0 : headerY }}
           initial={{ opacity: 0, y: 60 }}
@@ -164,10 +221,10 @@ const HeroSection = () => {
             your workflow, enhance productivity, and empower your digital
             experience.
           </p>
-        </motion.div>
+        </MotionWrapper>
 
         {/* SERVICES GRID */}
-        <motion.div
+        <MotionWrapper
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8"
           style={{ y: isMobile ? 0 : cardY }}
         >
@@ -175,19 +232,13 @@ const HeroSection = () => {
             const IconComponent = service.icon;
 
             return (
-              <motion.div
+              <ServiceCardWrapper
                 key={index}
-                initial={{ opacity: 0, y: 80 }}
-                animate={isVisible ? { opacity: 1, y: 0 } : {}}
-                transition={{
-                  duration: 1,
-                  delay: 0.4 + index * 0.15,
-                  ease: "easeOut",
-                }}
+                index={index}
                 className="group relative"
               >
                 <div
-                  className="
+                  className={`
                     relative h-full 
                     bg-gradient-to-br from-white/10 to-white/5
                     backdrop-blur-md 
@@ -195,31 +246,29 @@ const HeroSection = () => {
                     rounded-2xl 
                     p-6 sm:p-7 md:p-8 
                     shadow-lg shadow-black/20
-                    hover:shadow-2xl hover:shadow-[#FDCC00]/30
-                    transition-all duration-500
-                    hover:border-[#FDCC00]/50
-                    hover:-translate-y-2
+                    ${isMobile ? '' : 'hover:shadow-2xl hover:shadow-[#FDCC00]/30 transition-all duration-500 hover:border-[#FDCC00]/50 hover:-translate-y-2'}
                     flex flex-col items-center text-center 
                     min-h-[340px] sm:min-h-[360px] md:min-h-[380px]
-                  "
+                  `}
                 >
-                  <div className="
-                    absolute inset-0 rounded-2xl opacity-0
-                    group-hover:opacity-100 transition-opacity duration-500
-                    bg-gradient-to-br from-[#FDCC00]/10 via-transparent to-[#FFD700]/10
-                  " />
+                  {!isMobile && (
+                    <div className="
+                      absolute inset-0 rounded-2xl opacity-0
+                      group-hover:opacity-100 transition-opacity duration-500
+                      bg-gradient-to-br from-[#FDCC00]/10 via-transparent to-[#FFD700]/10
+                    " />
+                  )}
 
                   {/* Icon */}
                   <div
-                    className="
+                    className={`
                       relative mb-6 sm:mb-7 md:mb-8 
                       p-4 sm:p-5 
                       rounded-full
                       bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/10
                       border-2 border-[#FDCC00]/30
-                      group-hover:scale-110 group-hover:rotate-6
-                      transition-all duration-500
-                    "
+                      ${isMobile ? '' : 'group-hover:scale-110 group-hover:rotate-6 transition-all duration-500'}
+                    `}
                   >
                     <IconComponent className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 text-[#FDCC00]" />
                   </div>
@@ -227,13 +276,12 @@ const HeroSection = () => {
                   {/* Title */}
                   <h3
                     style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                    className="
+                    className={`
                       text-xl sm:text-2xl md:text-3xl 
                       tracking-wide 
                       text-white mb-3 sm:mb-4
-                      group-hover:text-[#FDCC00] 
-                      transition-colors duration-300
-                    "
+                      ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'}
+                    `}
                   >
                     {service.title}
                   </h3>
@@ -241,22 +289,21 @@ const HeroSection = () => {
                   {/* Description */}
                   <p
                     style={{ fontFamily: "Segoe UI, sans-serif" }}
-                    className="
+                    className={`
                       text-xs sm:text-sm md:text-base
                       text-[#C7B897]/80
                       leading-relaxed 
-                      group-hover:text-[#C7B897]/100 
-                      transition-colors duration-300 
+                      ${isMobile ? '' : 'group-hover:text-[#C7B897]/100 transition-colors duration-300'}
                       flex-grow
-                    "
+                    `}
                   >
                     {service.description}
                   </p>
                 </div>
-              </motion.div>
+              </ServiceCardWrapper>
             );
           })}
-        </motion.div>
+        </MotionWrapper>
       </div>
     </section>
   );
