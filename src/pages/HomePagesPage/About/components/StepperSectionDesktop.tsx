@@ -3,7 +3,7 @@ import { motion, useInView } from "framer-motion";
 import { ChevronRight, Check } from "lucide-react";
 
 // Mock images
-const ictPictue = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1600&q=80";
+const ictPicture = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1600&q=80";
 const digitalContent = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&q=80";
 const revolunizing = "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600&q=80";
 const program = "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1600&q=80";
@@ -14,7 +14,7 @@ const steps = [
     title: "Differentiated Activities through ICT", 
     short: "ICT-driven activities tailored to different learning styles",
     description: "Interactive tools and digital platforms enable teachers to address diverse learning styles—visual, auditory, and kinesthetic—within one unified ecosystem.",
-    image: ictPictue 
+    image: ictPicture 
   },
   { 
     id: 2, 
@@ -42,59 +42,63 @@ const steps = [
 const StepperSectionDesktop = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   
-  // Track if section is in view - CHANGED: amount: 0.1 for faster trigger
+  // Track if section is in view
   const sectionInView = useInView(sectionRef, { 
     once: false, 
-    amount: 0.1, // Reduced from 0.3 to 0.1 - appears sooner
-    margin: "-50px 0px" // Adds 50px trigger buffer before entering viewport
+    amount: 0.1,
+    margin: "-50px 0px"
   });
 
-  // Faster animations
-  const sectionAnimation = {
-    hidden: { y: 20, opacity: 0 }, // Reduced from 30px
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { 
-        duration: 0.4, // Faster: 0.4s instead of 0.6s
-        ease: "easeOut",
-        when: "beforeChildren"
-      }
-    },
-    exit: { 
-      y: -20, // Reduced from -30px
-      opacity: 0,
-      transition: { duration: 0.3, ease: "easeIn" } // Faster: 0.3s
-    }
-  };
-
-  // Child animation - faster
-  const childAnimation = {
-    hidden: { y: 10, opacity: 0 }, // Reduced from 20px
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" } // Faster: 0.3s
-    }
-  };
-
-  // Helper function - always returns "visible" once triggered
-  const getAnimationState = (inView: boolean) => {
-    // Once visible, stay visible (no exit on scroll up)
-    if (sectionInView) return "visible";
-    return inView ? "visible" : "hidden";
-  };
-
-  // Intersection Observer for step detection
+  // COMPLETE RESET on mount
   useEffect(() => {
-    if (isScrolling) return;
+    // Reset states
+    setActiveStep(0);
+    setIsScrolling(false);
     
-    const observer = new IntersectionObserver(
+    // Reset container scroll
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+    
+    // Mark as initialized after a short delay
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      // Clean up observer
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+      // Clear refs
+      stepRefs.current = [];
+    };
+  }, []);
+
+  // Set up Intersection Observer only when initialized and in view
+  useEffect(() => {
+    if (!isInitialized || !sectionInView || isScrolling) return;
+    
+    // Clean up existing observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    
+    // Create new observer
+    observerRef.current = new IntersectionObserver(
       (entries) => {
+        if (isScrolling) return;
+        
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = stepRefs.current.findIndex(ref => ref === entry.target);
@@ -104,30 +108,70 @@ const StepperSectionDesktop = () => {
           }
         });
       },
-      { threshold: 0.6, rootMargin: "-20% 0px -20% 0px" }
+      { 
+        threshold: 0.6, 
+        rootMargin: "-20% 0px -20% 0px",
+        root: containerRef.current 
+      }
     );
-
+    
+    // Observe all steps
     stepRefs.current.forEach(ref => {
-      if (ref) observer.observe(ref);
+      if (ref && observerRef.current) {
+        observerRef.current.observe(ref);
+      }
     });
-
+    
     return () => {
-      stepRefs.current.forEach(ref => {
-        if (ref) observer.unobserve(ref);
-      });
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
     };
-  }, [isScrolling]);
+  }, [isInitialized, sectionInView, isScrolling]);
 
   const handleStepClick = (index: number) => {
+    if (isScrolling || index === activeStep) return;
+    
     setIsScrolling(true);
     setActiveStep(index);
     
-    stepRefs.current[index]?.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
+    const targetElement = stepRefs.current[index];
+    if (targetElement && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const elementRect = targetElement.getBoundingClientRect();
+      const offset = elementRect.top - containerRect.top - 150;
+      
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollTop + offset,
+        behavior: "smooth"
+      });
+    }
     
-    setTimeout(() => setIsScrolling(false), 1000);
+    setTimeout(() => setIsScrolling(false), 800);
+  };
+
+  // Animation variants
+  const sectionAnimation = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        duration: 0.4,
+        ease: "easeOut",
+        when: "beforeChildren"
+      }
+    }
+  };
+
+  const childAnimation = {
+    hidden: { y: 10, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { duration: 0.3, ease: "easeOut" }
+    }
   };
 
   return (
@@ -135,11 +179,11 @@ const StepperSectionDesktop = () => {
       ref={sectionRef}
       variants={sectionAnimation}
       initial="hidden"
-      animate={sectionInView ? "visible" : "exit"} // Direct trigger, no helper function
+      animate={sectionInView ? "visible" : "hidden"}
       className="relative z-10 flex flex-col items-center py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
     >
       <div className="max-w-7xl w-full">
-        {/* Header - appears together with everything */}
+        {/* Header */}
         <motion.div
           variants={childAnimation}
           className="text-center mb-10 md:mb-14 lg:mb-16"
@@ -206,7 +250,7 @@ const StepperSectionDesktop = () => {
                               fontStyle: 'italic'
                             }}
                           >
-                            
+                          
                           </p>
                         </div>
                         {activeStep === index && (
@@ -217,7 +261,7 @@ const StepperSectionDesktop = () => {
                   ))}
                 </div>
 
-                {/* Progress Bar */}
+                {/* Progress Bar - RETAINED */}
                 <div className="mt-8 pt-6 border-t border-[var(--beesee-gold)]/20">
                   <div className="flex justify-between bee-body-sm text-[#C7B897] mb-2">
                     <span>Progress</span>
@@ -236,16 +280,33 @@ const StepperSectionDesktop = () => {
             </div>
           </motion.div>
 
-          {/* Right Panel - Step Details */}
+          {/* Right Panel - Step Details - HIDDEN SCROLLBAR */}
           <motion.div
             variants={childAnimation}
-            className="lg:col-span-8"
+            className="lg:col-span-8 relative"
           >
-            <div ref={containerRef} className="space-y-12 md:space-y-16">
+            <div 
+              ref={containerRef} 
+              className="space-y-12 md:space-y-16 overflow-y-auto max-h-[700px]"
+              style={{
+                scrollBehavior: 'smooth',
+                scrollbarWidth: 'none', // Firefox
+                msOverflowStyle: 'none', // IE/Edge
+              }}
+            >
+              {/* Hide scrollbar for Chrome, Safari and Opera */}
+              <style jsx>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              
               {steps.map((step, index) => (
                 <div
                   key={step.id}
-                  ref={el => stepRefs.current[index] = el}
+                  ref={el => {
+                    stepRefs.current[index] = el;
+                  }}
                   className="relative"
                 >
                   {/* Step Indicator Line */}
@@ -258,7 +319,7 @@ const StepperSectionDesktop = () => {
                     <div className="flex-shrink-0">
                       <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 ${
                         activeStep === index
-                          ? "bg-[var(--beesee-gold)] border-black/20 text-black"
+                          ? "bg-[var(--beesee-gold)] border-black/20 text-black shadow-lg shadow-[var(--beesee-gold)]/30"
                           : "bg-black/60 border-[var(--beesee-gold)]/30 text-[var(--beesee-gold)]"
                       }`}>
                         <span className="text-2xl font-bold">{step.id}</span>
@@ -266,7 +327,11 @@ const StepperSectionDesktop = () => {
                     </div>
 
                     {/* Content Card */}
-                    <div className="beesee-card-content flex-1 p-6 md:p-8 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300">
+                    <div className={`beesee-card-content flex-1 p-6 md:p-8 transition-all duration-300 ${
+                      activeStep === index 
+                        ? "border-[#FDCC00]/40 shadow-[0_0_15px_rgba(253,204,0,0.15)] transform scale-[1.02]"
+                        : "hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)]"
+                    }`}>
                       <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                         <div className="space-y-6">
                           {/* Title - Left aligned */}
@@ -314,7 +379,7 @@ const StepperSectionDesktop = () => {
                           <img
                             src={step.image}
                             alt={step.title}
-                            className="w-full h-48 md:h-64 object-cover"
+                            className="w-full h-48 md:h-64 object-cover transition-transform duration-500 hover:scale-110"
                           />
                           <div className="absolute bottom-3 left-3 bee-body-sm text-[var(--beesee-gold)] font-semibold">
                             Step {step.id} of {steps.length}
