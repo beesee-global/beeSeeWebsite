@@ -3,9 +3,10 @@ import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import HeroSection from "./components/HeroSection";
 import CompanyStory from "./components/CompanyStory";
-import StepperSection from "../../HomePagesPage/About/components/StepperSection ";
+import StepperSection from "./components/StepperSection";
 import PhilippineHeritage from "./components/PhilippineHeritage";
 import "../../../assets/css/About.css";
+
 
 const AboutUs: React.FC = () => {
   useEffect(() => {
@@ -35,6 +36,7 @@ const AboutUs: React.FC = () => {
         className="about-main"
       >
         <HeroSection />
+        <StepperSection />
       </motion.main>
     </div>
   );

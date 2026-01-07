@@ -238,7 +238,7 @@ const UnifiedScrollingPage: React.FC = () => {
       <section 
         ref={storyRef}
         className={`relative z-10 flex flex-col items-center ${
-          isMobile ? "min-h-[35vh] py-20 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
+          isMobile ? "min-h-[35vh] py- px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
         }`}
       >
         <div className="max-w-7xl w-full">
