@@ -119,7 +119,9 @@ const UnifiedHomeSections: React.FC = () => {
               transition={transition}
             >
               <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
-                BEESEE GLOBAL TECHNOLOGIES INC.
+                BEESEE GLOBAL 
+                <br>
+                </br>TECHNOLOGIES INC.
               </h2>
 
               <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">

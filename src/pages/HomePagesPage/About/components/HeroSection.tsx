@@ -1,12 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useTransform,
-  useSpring,
-  useInView,
-} from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Heart, Target } from "lucide-react";
 
 // Mock images 
@@ -52,345 +45,356 @@ const UnifiedScrollingPage: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Refs for view detection
+  const heroRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
+  const stepperRef = useRef<HTMLDivElement>(null);
   
-  const heroSectionRef = useRef<HTMLDivElement | null>(null);
-  const storySectionRef = useRef<HTMLDivElement | null>(null);
-  const stepperSectionRef = useRef<HTMLDivElement | null>(null);
-  
+  // Track if sections are in view
+  const heroInView = useInView(heroRef, { once: false, amount: 0.3 });
+  const storyInView = useInView(storyRef, { once: false, amount: 0.3 });
+  const stepperInView = useInView(stepperRef, { once: false, amount: 0.3 });
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
-  const heroInView = useInView(heroSectionRef, { amount: 0.1, once: false });
-  const storyInView = useInView(storySectionRef, { amount: 0.1, once: false });
-  const stepperInView = useInView(stepperSectionRef, { amount: 0.1, once: false });
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
-  const smoothProgress = useSpring(scrollYProgress, springConfig);
-
-  const bgY = useTransform(smoothProgress, [0, 1], [0, -400]);
-  const bgScale = useTransform(smoothProgress, [0, 0.5, 1], [1, 1.1, 1.2]);
-  const bgOpacity = useTransform(smoothProgress, [0, 0.3, 0.6, 1], [0.6, 0.5, 0.4, 0.3]);
-
-  const heroY = useTransform(smoothProgress, [0, 0.25], [0, -100]);
-  const heroOpacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 0.5, 0]);
-
-  const storyY = useTransform(smoothProgress, [0.15, 0.6], [80, -100]);
-  const storyOpacity = useTransform(smoothProgress, [0.15, 0.25, 0.55, 0.65], [0, 1, 1, 0]);
-
-  const stepperY = useTransform(smoothProgress, [0.5, 1], [80, -50]);
-  const stepperOpacity = useTransform(smoothProgress, [0.5, 0.6, 1], [0, 1, 1]);
 
   const currentStep = steps[activeStep];
 
+  // PPT-style animation variants (clean slide in/out)
+  const slideInLeft = {
+    hidden: { x: -100, opacity: 1 },
+    visible: { 
+      x: 0, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+    exit: { 
+      x: -100, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  };
+
+  const slideInRight = {
+    hidden: { x: 100, opacity: 1 },
+    visible: { 
+      x: 0, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+    exit: { 
+      x: 100, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  };
+
+  // Company Story animation (reversed - pababa)
+  const slideInDown = {
+    hidden: { y: -50, opacity: 1 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+    exit: { 
+      y: 50, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  };
+
+  // For mission/vision cards with staggered delay
+  const slideInCard = {
+    hidden: { y: -30, opacity: 1 },
+    visible: (custom: number) => ({ 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        duration: 0.5, 
+        ease: "easeOut",
+        delay: custom * 0.1 
+      }
+    }),
+    exit: { 
+      y: 30, 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  };
+
+  // Helper function to determine animation based on view state
+  const getAnimationState = (inView: boolean) => {
+    if (isMobile) return "visible";
+    return inView ? "visible" : "exit";
+  };
+
   return (
     <div ref={containerRef} className="relative bg-[#000000]">
-      
+
       {/* GLOBAL BACKGROUND VIDEO */}
-      <motion.div
-        style={{ y: isMobile ? 0 : bgY, scale: isMobile ? 1 : bgScale }}
-        className="fixed inset-0 z-0"
-      >
+      <div className="fixed inset-0 z-0">
         <video autoPlay loop muted playsInline className="w-full h-full object-cover">
           <source src="/live-background/sectionThree.mp4" type="video/mp4" />
         </video>
-        <motion.div className="absolute inset-0 bg-[#000000]" style={{ opacity: bgOpacity }} />
-      </motion.div>
+        <div className="absolute inset-0 bg-[#000000]/70" />
+      </div>
 
-      <motion.section
-        ref={heroSectionRef}
-        style={{ y: isMobile ? 0 : heroY, opacity: isMobile ? 1 : heroOpacity }}
-        className={`relative flex items-start z-10 px-4 sm:px-6 md:px-10 lg:px-12 ${
-          isMobile ? "-mt-24 pt-0 min-h-[70vh]" : "min-h-screen pt-32 sm:pt-24 md:pt-0"
+      {/* HERO SECTION - MOVED HIGHER IN BOTH MOBILE AND DESKTOP */}
+      <section
+        ref={heroRef}
+        className={`relative flex items-start z-10 px-3 sm:px-4 md:px-8 lg:px-12 ${
+          isMobile ? "pt-0 min-h-[35vh]" : "min-h-[85vh] pt-50 md:pt-50"
         }`}
       >
         <div className={`max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center ${
-          isMobile ? "gap-7 py-8" : "gap-8 sm:gap-12 md:gap-16 lg:gap-20 py-12 sm:py-16 md:py-24 lg:py-32"
+          isMobile ? "gap-2 py-1" : "gap-10 md:gap-12 lg:gap-16 py-12 md:py-16 lg:py-20"
         }`}>
-          
-          {/* LEFT */}
-          <motion.div
-            className={`${isMobile ? "space-y-3" : "space-y-4 sm:space-y-5"}`}
-            initial={{ opacity: 0, x: -50 }}
-            animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <motion.h1
-              initial={{ opacity: 0, y: 22 }}
-              animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-              transition={{ duration: 0.8, delay: 0.15 }}
-              className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl"
-            >
-              PHILIPPINE-BORN INNOVATION ENGINEERED FOR THE GLOBAL STAGE.
-            </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ delay: 0.3 }}
-              className="bee-body max-w-xl text-[#C7B897] leading-relaxed text-sm sm:text-base"
-            >
+          {/* LEFT - Slides from left on desktop */}
+          <motion.div
+            variants={slideInLeft}
+            initial="hidden"
+            animate={getAnimationState(heroInView)}
+            className={`${isMobile ? "space-y-1" : "space-y-5 md:space-y-6"}`}
+          >
+            <h1 className="bee-title-lg text-[var(--beesee-gold)] leading-[1.05] max-w-3xl text-lg sm:text-xl md:text-4xl lg:text-5xl xl:text-6xl">
+              PHILIPPINE-BORN<br />
+              INNOVATION ENGINEERED<br />
+              FOR THE GLOBAL STAGE
+            </h1>
+
+            <p className="bee-body max-w-xl text-[#C7B897] leading-relaxed text-[11px] sm:text-sm md:text-base lg:text-lg mt-1">
               BeeSee Global Technologies creates hardware, software, and scalable
               learning ecosystems built for Philippine environments and deployed
               to the world.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 25 }}
-              animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 25 }}
-              transition={{ delay: 0.45 }}
-              className={`flex flex-wrap items-center ${isMobile ? "gap-3 pt-1" : "gap-4 sm:gap-7 pt-2"}`}
-            >
-              <motion.button
+            <div className={`flex flex-wrap items-center ${isMobile ? "gap-1 pt-0.5" : "gap-5 md:gap-6 pt-3 md:pt-4"}`}>
+              <button
                 onClick={() => setShowVideo(true)}
-                className="beesee-button beesee-button--small flex items-center gap-3 text-sm sm:text-base"
-                whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(253, 204, 0, 0.5)' }}
-                whileTap={{ scale: 0.95 }}
+                className="beesee-button beesee-button--small flex items-center gap-1 text-[10px] sm:text-xs md:text-base lg:text-lg hover:scale-105 transition-transform duration-300 px-2 py-1 md:px-5 md:py-2.5"
               >
                 WATCH OUR STORY
-              </motion.button>
+              </button>
 
-              <motion.div 
-                className="space-y-1 bee-body-sm text-[#C7B897] text-xs sm:text-sm"
-                whileHover={{ x: 5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <span className="text-[var(--beesee-gold)] font-semibold">
-                  10+ Years in Innovation
-                </span>
-                <br />
-                ICT • STEM • Enterprise Development
-              </motion.div>
-            </motion.div>
+              <div className="space-y-0 bee-body-sm text-[#C7B897] text-[9px] sm:text-xs md:text-sm">
+                <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
+                <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
+              </div>
+            </div>
           </motion.div>
 
-          {/* RIGHT CARD */}
+          {/* RIGHT CARD - Slides from right on desktop */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+            variants={slideInRight}
+            initial="hidden"
+            animate={getAnimationState(heroInView)}
+            className={isMobile ? "mt-2" : ""}
           >
-            <motion.div 
-              className="beesee-card-content section-two-card p-4 sm:p-6 bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded-2xl backdrop-blur-lg shadow-[0_0_40px_rgba(253,204,0,0.08)]"
-              whileHover={{
-                scale: isMobile ? 1 : 1.02,
-                borderColor: 'rgba(253, 204, 0, 0.6)',
-                boxShadow: '0 0 60px rgba(253, 204, 0, 0.15)',
-              }}
-            >
+            <div className="beesee-card-content section-two-card p-1.5 sm:p-2 md:p-5 bg-[#000]/30 border border-[var(--beesee-gold)]/30 rounded md:rounded-2xl backdrop-blur-lg shadow-[0_0_15px_rgba(253,204,0,0.08)] hover:scale-105 hover:border-[#FDCC00]/60 hover:shadow-[0_0_50px_rgba(253,204,0,0.15)] transition-transform duration-300">
               <AnimatePresence mode="wait">
                 {showVideo ? (
-                  <motion.div
-                    key="video"
-                    initial={{ opacity: 0, scale: 0.94 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.94 }}
-                    transition={{ duration: 0.35 }}
-                    className="rounded-xl overflow-hidden aspect-[16/9]"
-                  >
+                  <div className="rounded md:rounded-xl overflow-hidden aspect-[16/9]">
                     <iframe
                       src="https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&modestbranding=1&rel=0"
                       allowFullScreen
                       className="w-full h-full"
                       title="BeeSee Global Technologies Story"
                     />
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div
-                    key="image"
-                    initial={{ opacity: 0, scale: 0.94 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.94 }}
-                    transition={{ duration: 0.45 }}
-                    className="rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer"
-                    whileHover={{ scale: isMobile ? 1 : 1.02 }}
-                  >
-                    <motion.img
+                  <div className="rounded md:rounded-xl overflow-hidden aspect-[16/9] relative group cursor-pointer">
+                    <img
                       src={buildingBeesee}
                       alt="Building BeeSee"
-                      className="w-full h-full object-cover"
-                      whileHover={{ scale: isMobile ? 1 : 1.1 }}
-                      transition={{ duration: 0.6 }}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-600"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
-                  </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
 
               {showVideo && (
-                <motion.button
+                <button
                   onClick={() => setShowVideo(false)}
-                  className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-4 text-sm"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.05, x: 5 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="bee-body-sm text-[var(--beesee-gold)] hover:text-white transition mt-1 text-[9px] sm:text-xs"
                 >
                   ✕ Close Video
-                </motion.button>
+                </button>
               )}
-            </motion.div>
+            </div>
           </motion.div>
-        </div>
-      </motion.section>
 
-      {/* COMPANY STORY SECTION */}
-      <motion.section
-        ref={storySectionRef}
-        style={{ y: isMobile ? 0 : storyY, opacity: isMobile ? 1 : storyOpacity }}
-        className={`relative z-10 flex items-center ${
-          isMobile 
-            ? "min-h-[60vh] py-6 px-4 mt-4" 
-            : "min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10"
+        </div>
+      </section>
+
+      {/* COMPANY STORY SECTION - MOVED HIGHER */}
+      <section 
+        ref={storyRef}
+        className={`relative z-10 flex flex-col items-center ${
+          isMobile ? "min-h-[35vh] py-20 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
         }`}
       >
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-7xl w-full">
+          {/* Header slides DOWN */}
           <motion.div
-            className={`text-center ${isMobile ? "mb-5" : "mb-8 sm:mb-10 md:mb-12"}`}
-            initial={{ opacity: 0, y: 26 }}
-            animate={storyInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 26 }}
-            transition={{ duration: 0.7 }}
+            variants={slideInDown}
+            initial="hidden"
+            animate={getAnimationState(storyInView)}
+            className="text-center mb-3 md:mb-10 lg:mb-14"
           >
-            <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-5xl mb-1 md:mb-3">
               From Local Vision to Global Footprint
             </h2>
-            <p className={`bee-body max-w-2xl mx-auto text-[#C7B897]/90 text-sm sm:text-base px-4 ${isMobile ? "mt-2" : "mt-3 sm:mt-4"}`}>
+            <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base lg:text-lg mt-1 md:mt-2 leading-relaxed">
               We started as a small team solving pain points in Philippine schools.
               Today, we build devices, content, and programs trusted by institutions
               nationwide—and ready for the world.
             </p>
           </motion.div>
 
-          <div className={`grid md:grid-cols-2 ${isMobile ? "gap-4" : "gap-6 sm:gap-8 md:gap-10"}`}>
-            <motion.div 
-              className={`beesee-card-content text-left ${isMobile ? "p-5" : "p-6 sm:p-8 md:p-10"}`}
-              initial={{ opacity: 0, x: -40 }}
-              animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              whileHover={{ scale: isMobile ? 1 : 1.03, borderColor: 'rgba(253, 204, 0, 0.4)', boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)' }}
+          <div className={`grid md:grid-cols-2 gap-3 md:gap-6 lg:gap-8`}>
+            {/* Mission card slides DOWN - CENTERED IN MOBILE */}
+            <motion.div
+              custom={0}
+              variants={slideInCard}
+              initial="hidden"
+              animate={getAnimationState(storyInView)}
             >
-              <motion.div className={`flex items-center gap-3 ${isMobile ? "mb-2" : "mb-3 sm:mb-4"}`} whileHover={{ x: isMobile ? 0 : 5 }} transition={{ type: 'spring', stiffness: 300 }}>
-                <Heart className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
-                <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">MISSION</h3>
-              </motion.div>
-              <p className="bee-body text-[#C7B897]/90 text-sm sm:text-base">
-                To democratize advanced, human-centered technology for education and enterprise
-                — making premium solutions accessible, sustainable, and rooted in real Philippine needs.
-              </p>
+              <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
+                {/* CHANGED: Flex column and items-center for mobile */}
+                <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
+                  <Heart className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
+                  <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
+                    MISSION
+                  </h3>
+                </div>
+                <p className={`bee-body text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base leading-relaxed ${isMobile ? "text-center" : ""}`}>
+                  To democratize advanced, human-centered technology for education and enterprise
+                  — making premium solutions accessible, sustainable, and rooted in real Philippine needs.
+                </p>
+              </div>
             </motion.div>
 
-            <motion.div 
-              className={`beesee-card-content text-left ${isMobile ? "p-5" : "p-6 sm:p-8 md:p-10"}`}
-              initial={{ opacity: 0, x: 40 }}
-              animate={storyInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              whileHover={{ scale: isMobile ? 1 : 1.03, borderColor: 'rgba(253, 204, 0, 0.4)', boxShadow: '0 0 40px rgba(253, 204, 0, 0.15)' }}
+            {/* Vision card slides DOWN with delay - CENTERED IN MOBILE */}
+            <motion.div
+              custom={1}
+              variants={slideInCard}
+              initial="hidden"
+              animate={getAnimationState(storyInView)}
             >
-              <motion.div className={`flex items-center gap-3 ${isMobile ? "mb-2" : "mb-3 sm:mb-4"}`} whileHover={{ x: isMobile ? 0 : 5 }} transition={{ type: 'spring', stiffness: 300 }}>
-                <Target className="text-[var(--beesee-gold)] w-5 h-5 sm:w-6 sm:h-6" />
-                <h3 className="bee-title-sm text-[var(--beesee-gold)] text-lg sm:text-xl">VISION</h3>
-              </motion.div>
-              <p className="bee-body text-[#C7B897]/90 text-sm sm:text-base">
-                To establish Philippine-designed technologies as globally trusted — powering
-                future-ready classrooms, campuses, and workplaces across Asia and beyond.
-              </p>
+              <div className="beesee-card-content p-3 sm:p-4 md:p-6 lg:p-7 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300 rounded md:rounded-xl">
+                {/* CHANGED: Flex column and items-center for mobile */}
+                <div className={`flex ${isMobile ? "flex-col items-center text-center" : "flex-row items-center gap-2"} mb-2`}>
+                  <Target className="text-[var(--beesee-gold)] w-4 h-4 md:w-5 md:h-5" />
+                  <h3 className="bee-title-sm text-[var(--beesee-gold)] text-sm md:text-lg mt-1">
+                    VISION
+                  </h3>
+                </div>
+                <p className={`bee-body text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base leading-relaxed ${isMobile ? "text-center" : ""}`}>
+                  To establish Philippine-designed technologies as globally trusted — powering
+                  future-ready classrooms, campuses, and workplaces across Asia and beyond.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      {/* STEPPER SECTION */}
-      <motion.section
-        ref={stepperSectionRef}
-        style={{ y: isMobile ? 0 : stepperY, opacity: isMobile ? 1 : stepperOpacity }}
-        className={`relative z-10 flex items-center ${
-          isMobile 
-            ? "min-h-[70vh] py-6 px-4 mt-4" 
-            : "min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-10"
+      {/* STEPPER SECTION - MOVED HIGHER */}
+      <section
+        ref={stepperRef}
+        className={`relative z-10 flex flex-col items-center ${
+          isMobile ? "min-h-[40vh] py-8 px-3" : "min-h-[75vh] py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
         }`}
       >
-        <div className="max-w-7xl mx-auto w-full">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={stepperInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} transition={{ duration: 0.7 }} className="bee-title-md text-center text-[var(--beesee-gold)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-            SCHOOL PROCESS
-          </motion.h2>
-          <motion.p initial={{ opacity: 0 }} animate={stepperInView ? { opacity: 1 } : { opacity: 0 }} transition={{ delay: 0.4 }} className={`bee-body text-[#C7B897]/80 max-w-3xl mx-auto text-center text-sm sm:text-base px-4 ${isMobile ? "mt-2 mb-5" : "mt-3 sm:mt-4 mb-8 sm:mb-10 md:mb-12"}`}>
-            A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
-          </motion.p>
+        <div className="max-w-7xl w-full">
+          {/* Header slides DOWN */}
+          <motion.div
+            variants={slideInDown}
+            initial="hidden"
+            animate={getAnimationState(stepperInView)}
+            className="text-center mb-3 md:mb-10 lg:mb-14"
+          >
+            <h2 className="bee-title-md text-[var(--beesee-gold)] text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-5xl mb-1">
+              SCHOOL PROCESS
+            </h2>
+            <p className="bee-body text-[#C7B897]/80 max-w-2xl mx-auto text-[11px] sm:text-sm md:text-base lg:text-lg leading-relaxed">
+              A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
+            </p>
+          </motion.div>
 
-          <div className={`grid lg:grid-cols-2 items-start lg:items-center ${isMobile ? "gap-5" : "gap-8 sm:gap-10 md:gap-14"}`}>
-            <div className={`${isMobile ? "space-y-3" : "space-y-4 sm:space-y-6"}`}>
+          <div className="grid lg:grid-cols-2 items-start lg:items-center gap-3 md:gap-8 lg:gap-10">
+            {/* Steps list - Slides from left on desktop */}
+            <motion.div
+              variants={slideInLeft}
+              initial="hidden"
+              animate={getAnimationState(stepperInView)}
+              className="space-y-2"
+            >
               {steps.map((step, i) => {
                 const isActive = i === activeStep;
                 return (
-                  <motion.div 
+                  <div 
                     key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={stepperInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                    whileHover={{ scale: isMobile ? 1 : 1.03, x: isMobile ? 0 : 8 }}
-                    className="cursor-pointer flex gap-3 sm:gap-4 items-start group"
+                    className="cursor-pointer flex gap-1.5 md:gap-3 items-start group p-1.5 rounded hover:bg-white/5 transition-all duration-300"
                     onClick={() => setActiveStep(i)}
                   >
-                    <motion.div
-                      animate={isActive ? { scale: 1.25, boxShadow: "0 0 20px #FDCC00aa" } : { scale: 1 }}
-                      className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center border transition flex-shrink-0 text-sm sm:text-base
-                        ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}
-                    >
+                    <div className={`h-6 w-6 md:h-8 md:w-8 rounded-full flex items-center justify-center border text-[10px] md:text-sm font-bold
+                      ${isActive ? "bg-[#FDCC00] text-black border-[#FDCC00]" : "border-[#9d9d9d] text-[#9d9d9d] group-hover:border-[#FDCC00] group-hover:text-[#FDCC00]"}`}>
                       {step.id}
-                    </motion.div>
+                    </div>
 
                     <div className="flex-1">
-                      <p className={`bee-body font-semibold transition text-sm sm:text-base ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
+                      <p className={`bee-body font-semibold text-xs md:text-sm ${isActive ? "text-[#FDCC00]" : "text-white group-hover:text-[#FDCC00]"}`}>
                         {step.title}
                       </p>
-                      <p className="bee-body text-xs sm:text-sm text-[#C7B897]/70 mt-1">{step.short}</p>
+                      <p className="bee-body text-[#C7B897]/70 mt-0.5 text-[10px] md:text-sm">{step.short}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
-            </div>
+            </motion.div>
 
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={currentStep.id}
-                initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                animate={stepperInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.96, y: 10 }}
-                exit={{ opacity: 0, scale: 0.94, y: -10 }}
-                transition={{ duration: 0.5 }}
-                className="rounded-2xl overflow-hidden border border-[#FDCC00]/30 shadow-[0_0_40px_rgba(253,204,0,0.08)] bg-black/40 backdrop-blur-xl"
-              >
-                <motion.div className="relative overflow-hidden group">
-                  <motion.img 
-                    src={currentStep.image}
-                    alt={currentStep.title}
-                    className="w-full h-48 sm:h-56 md:h-64 object-cover transition duration-700 group-hover:scale-[1.08]" 
-                  />
-                  <div className="absolute inset-0 bg-black/40" />
-                  <div className="absolute bottom-2 sm:bottom-3 left-3 sm:left-5 text-[#FDCC00] text-xs sm:text-sm font-semibold">
-                    Step {currentStep.id} / {steps.length}
+            {/* Step details - Slides from right on desktop */}
+            <motion.div
+              variants={slideInRight}
+              initial="hidden"
+              animate={getAnimationState(stepperInView)}
+            >
+              <AnimatePresence mode="wait">
+                <div 
+                  key={currentStep.id}
+                  className="rounded md:rounded-xl overflow-hidden border border-[#FDCC00]/30 shadow-[0_0_15px_rgba(253,204,0,0.08)] bg-black/40 backdrop-blur-lg"
+                >
+                  <div className="relative overflow-hidden group">
+                    <img 
+                      src={currentStep.image}
+                      alt={currentStep.title}
+                      className="w-full h-36 sm:h-40 md:h-52 lg:h-60 object-cover transition-transform duration-700 group-hover:scale-[1.08]" 
+                    />
+                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute bottom-1 left-1.5 md:bottom-2 md:left-3 text-[#FDCC00] text-[9px] md:text-sm font-semibold">
+                      Step {currentStep.id} / {steps.length}
+                    </div>
                   </div>
-                </motion.div>
 
-                <div className={`${isMobile ? "p-4" : "p-5 sm:p-6 md:p-7"}`}>
-                  <h3 className="bee-title-sm text-[#FDCC00] text-lg sm:text-xl">{currentStep.title}</h3>
-                  <p className="bee-body text-[#C7B897]/90 mt-2 text-sm sm:text-base">{currentStep.description}</p>
+                  <div className="p-2 md:p-4 lg:p-5">
+                    <h3 className="bee-title-sm text-[#FDCC00] text-sm md:text-lg">{currentStep.title}</h3>
+                    <p className="bee-body text-[#C7B897]/90 mt-1 text-xs md:text-base">{currentStep.description}</p>
+                  </div>
                 </div>
-              </motion.div>
-            </AnimatePresence>
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       <div className="pointer-events-none fixed bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#000] z-[1]" />
     </div>

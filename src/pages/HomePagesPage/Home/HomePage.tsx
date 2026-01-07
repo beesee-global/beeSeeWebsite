@@ -47,7 +47,7 @@ export default function HomePage() {
       {/* NORMAL CONTENT — minimal scrolling for mobile */}
       <div className="w-full bg-black relative z-[20] mt-[150vh] lg:mt-[150vh] md:mt-[105vh] sm:mt-[85vh] xs:mt-[75vh]">
         <SectionTwo />
-        <ContactSection />
+        
       </div>
     </div>
   );
