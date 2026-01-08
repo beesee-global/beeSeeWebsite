@@ -7,9 +7,9 @@ import { SxProps } from '@mui/system';
 import Avatar from '@mui/material/Avatar';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings'; 
-import { fetchUserById } from '../../services/myAccountServices'
+import { fetchUserById } from '../../services/Technician/myAccountServices'
 import { useQuery } from '@tanstack/react-query';
-import beeseeGoldLogo from '../../../public/assets/images/beeseeGoldLogo.png'
+import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png'
 import { Menu } from 'lucide-react'
 
 interface UserData {

@@ -1,7 +1,6 @@
 import { lazy } from 'react'; 
 import { Navigate, createBrowserRouter } from 'react-router-dom';  
-import OurJourney from '../pages/EcommerceLayout/HomePageDesign/OurJourney/OurJourney';
-import OurJourneyForm from '../pages/EcommerceLayout/HomePageDesign/OurJourney/OurJourneyForm';      
+   
 const NotFound = lazy(() => import('../pages/Error/404NotFound'));  
 
 /* Homepage */
@@ -18,6 +17,7 @@ const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnicia
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
+import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 
 /* MainLayout */
@@ -35,9 +35,28 @@ const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/Ho
 const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
 const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
  
+/* Technician */
+const TechnicianLayout = lazy(() => import ("../layout/TechnicianLayout")); 
+const TechnicianAccount = lazy(() => import('../pages/TechnicianPage/MyAccount/MyAccount')) 
+const TechnicianCategory = lazy(() => import ('../pages/TechnicianPage/Category/Category'))
+const TechnicianProduct = lazy(() => import('../pages/TechnicianPage/Product/Product'))
+const TechnicianDashboard = lazy(() => import("../pages/TechnicianPage/Dashboard/Dashboard"))
+const TechnicianUsers = lazy(() => import('../pages/TechnicianPage/Users/Users')); 
+const TechnicianFaqs = lazy(() => import('../pages/TechnicianPage/Faqs/faqs'))
+const TechnicianUsersForm = lazy(() => import('../pages/TechnicianPage/Users/UsersForm'))
+const TechnicianSchool = lazy(() => import("../pages/TechnicianPage/School/Schools"))
+const TechnicianPosition = lazy(() => import('../pages/TechnicianPage/Position/Position'))
+const TechnicianInquiries = lazy(() => import('../pages/TechnicianPage/Inquiries/Inquiries'))
+const TechnicianTicketForm = lazy(() => import('../pages/TechnicianPage/Ticket/TicketForm'))
+const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organization/Organization'))
+const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
+const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
+import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp'; 
+
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
 const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
+
 
 const routes = [
     {
@@ -88,11 +107,11 @@ const routes = [
             },
             {
                 path: "sign-in",
-                element: <Loggedin />
-            },
-            {
-                path: "sign-in/tech",
                 element: <LoginTechnician />
+            },
+            { 
+                path: "sign-in/tech",
+                element: <Loggedin />
             },
             {
                 path: "sign-up/2046",
@@ -106,7 +125,7 @@ const routes = [
     },
 
     /* Main Admin */
-    {
+/*     {
         path: '/beesee',
         element: <MainLayout />,
         layout: 'blank',
@@ -172,7 +191,84 @@ const routes = [
                 element: <MainSalesBannerForm />
             },  
         ]
-    }, 
+    },  */
+
+    /* technician */
+    {
+        path: '/beesee',
+        element: <TechnicianLayout />,
+        layout: 'blank',
+        children: [
+            {
+                path: '/beesee',     
+                element:<Navigate to="dashboard" />,
+            },
+            {
+                path: 'dashboard',
+                element: <TechnicianDashboard />
+            },
+            {
+                path: 'job-order',
+                element: <TechnicianHome />
+            },
+            {
+                path: 'device',
+                element: <TechnicianCategory />
+            },
+            {
+                path: 'model',
+                element: <TechnicianProduct />
+            },
+            {
+                path: 'issue',
+                element: <TechnicianIssueType />
+            },
+            {
+                path: 'position',
+                element: <TechnicianPosition />
+            },
+            {
+                path: 'users',
+                element: <TechnicianUsers />
+            },
+            {
+                path: 'users/form/:id?',
+                element: <TechnicianUsersForm />
+            },
+            {
+                path: 'faqs',
+                element: <TechnicianFaqs />
+            },
+            {
+                path: 'job-order/conversation/:pid',
+                element: <TechnicianEmailConversationApp />
+            }, 
+            {
+                path: 'my-account',
+                element: <TechnicianAccount />
+            },
+            {
+                path: 'inquiries',
+                element: <TechnicianInquiries />
+            },
+            {
+                path: "inquiries/reply/:pid",
+                element: <TechnicianInquiriesReply />
+            },
+            {
+                path: 'school',
+                element: <TechnicianSchool />
+            },
+            {
+                path: 'job-order/submit-ticket',
+                element: <TechnicianTicketForm />
+            },
+            {
+                path: 'organization',
+                element: <TechnicianOrganization />
+            }
+        ]
+    },
        /* conversation */
     {
         path: '/c',

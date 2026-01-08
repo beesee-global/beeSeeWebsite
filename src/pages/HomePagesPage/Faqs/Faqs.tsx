@@ -75,41 +75,24 @@ const FAQs = () => {
     document.title = 'Faqs - Beesee Global Technology Inc;';
   }, []);
 
-  // Helper function to conditionally wrap with motion.div
-  const MotionWrapper = ({ 
-    children, 
-    variants, 
-    className = "", 
-    initial = false,
-    animate = false 
-  }: any) => {
-    if (isMobile) {
-      return <div className={className}>{children}</div>;
-    }
-    
-    return (
-      <motion.div
-        className={className}
-        variants={variants}
-        initial={initial ? "hidden" : false}
-        animate={animate ? "visible" : false}
-      >
-        {children}
-      </motion.div>
-    );
-  };
+  /* Scroll fade animation */
+  const refs = useRef<HTMLDivElement[]>([]);
+  const [visible, setVisible] = useState<boolean[]>([]);
 
-  // Helper for FAQ items
-  const FAQItemWrapper = ({ 
-    children, 
-    f, 
-    index 
-  }: any) => {
-    if (isMobile) {
-      return (
-        <div className="beesee-card-content cursor-pointer transition-all duration-300 hover:border-[var(--beesee-gold)]/40 hover:shadow-lg">
-          {children}
-        </div>
+  useEffect(() => {
+    const obs = refs.current.map((el, i) => {
+      if (!el) return null;
+      const ob = new IntersectionObserver(
+        (e) => {
+          if (e[0].isIntersecting) {
+            setVisible((v) => {
+              const arr = [...v];
+              arr[i] = true;
+              return arr;
+            });
+          }
+        },
+        { threshold: 0.25 }
       );
       ob.observe(el);
       return ob;
@@ -125,7 +108,7 @@ const FAQs = () => {
     <section
       className="relative overflow-hidden pt-24 sm:pt-28 md:pt-36 lg:pt-48 pb-28 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12"
       style={{
-        backgroundImage: "url('/backgrounds/randomBg2Gray.png')",
+        backgroundImage: "url('/live-background/randomBg2Gray.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -388,6 +371,7 @@ const FAQs = () => {
               );
             })}
           </div>
+        </div>
 
         {/* FAQ LIST */}
         <div className="max-w-4xl mx-auto mt-12 sm:mt-16 space-y-4 sm:space-y-6">
@@ -433,24 +417,6 @@ const FAQs = () => {
                     </div>
                   )}
                 </div>
-                
-                {active === f.id && (
-                  <div className="mt-4">
-                    <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
-                      <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-white/95">
-                        {f.explanation}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--beesee-gold)]/10">
-                        <span className="px-3 py-1 rounded-full bg-[var(--beesee-gold)]/15 text-[var(--beesee-gold)] text-xs font-medium">
-                          {f.device}
-                        </span>
-                        <span className="px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs">
-                          {f.category}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             ))
           )}
