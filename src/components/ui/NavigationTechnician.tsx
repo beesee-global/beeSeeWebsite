@@ -11,7 +11,7 @@ import { userAuth } from '../../hooks/userAuth'
 import { useNavigate } from 'react-router-dom';
 import { fetchUserById } from '../../services/Ecommerce/myAccountServices'
 import { useQuery } from '@tanstack/react-query';
-import beeseeGoldLogo from '../../../public/assets/images/beeseeGoldLogo.png'
+import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png'
 import { Menu } from 'lucide-react'
 import { io } from 'socket.io-client'
 
