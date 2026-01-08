@@ -110,8 +110,8 @@ const Inquiries = () => {
   // Animation refs
   const leftColumnRef = useRef<HTMLDivElement | null>(null);
   const rightColumnRef = useRef<HTMLDivElement | null>(null);
-  const inViewLeft = useInView(leftColumnRef, { amount: 0.25, once: true });
-  const inViewRight = useInView(rightColumnRef, { amount: 0.25, once: true });
+  const inViewLeft = useInView(leftColumnRef, { amount: 0.25 });
+  const inViewRight = useInView(rightColumnRef, { amount: 0.25 });
 
   // Detect mobile
   useEffect(() => {
@@ -175,214 +175,6 @@ const Inquiries = () => {
       setSnackBarOpen(true) 
     }
   };
-
-  // Conditional rendering for animations
-  const LeftColumnContent = () => (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h2 className="bee-title-md" style={{ lineHeight: '1.1', color: 'var(--beesee-gold)' }}>
-          Ready to Transform Your Organization?
-        </h2>
-        <p className="bee-body" style={{ lineHeight: '1.7' }}>
-          Let our experts help you choose the perfect solution for your unique needs. Schedule a consultation or request a custom quote today.
-        </p>
-      </div>
-
-      {/* Contact Info Cards - BeeSee Card Style with Horizontal Layout */}
-      <div className="space-y-6">
-        <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
-          <div className="flex items-center space-x-4">
-            <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
-              <Phone size={24} />
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
-                SALES
-              </div>
-              <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                +63 912 345 6789
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
-          <div className="flex items-center space-x-4">
-            <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
-              <Mail size={24} />
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
-                SUPPORT
-              </div>
-              <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                info@beese.ph
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
-          <div className="flex items-center space-x-4">
-            <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
-              <MessageSquare size={24} />
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
-                LIVE CHAT SUPPORT
-              </div>
-              <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                Available 24/7 for clients
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const RightColumnContent = () => (
-    <div className="beesee-card-content">
-      <h3 
-        className="bee-title-sm" 
-        style={{ 
-          marginBottom: '1.5rem', 
-          color: '#FDCC00',
-          fontSize: '32px'
-        }}
-      >
-        Request Consultation
-      </h3>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-4">
-          <CustomTextField
-            name="name"
-            placeholder="Enter your name"
-            value={formData?.name}
-            onChange={handleInputChange}
-            icon={<User2 />}
-            rows={1}
-            maxLength={100}
-            type='text'
-            multiline={false}
-            error={!!formError?.name}
-            helperText={formError?.name}
-          />
-          <CustomTextField
-            name="email"
-            placeholder="Enter your email"
-            value={formData?.email}
-            onChange={handleInputChange}
-            rows={1}
-            maxLength={100}
-            type='text'
-            multiline={false}
-            icon={<Mail />}
-            error={!!formError?.email}
-            helperText={formError?.email}
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <CustomTextField
-            name="company"
-            placeholder="Enter company name"
-            value={formData?.company}
-            onChange={handleInputChange}
-            icon={<Building2 />}
-            error={!!formError?.company}
-            helperText={formError?.company}
-            type='text'
-            multiline={false}
-            rows={1}
-            maxLength={100}
-          />
-
-          <CustomTextField 
-            name='position'
-            placeholder='Enter your position'
-            value={formData?.position}
-            onChange={handleInputChange}
-            type='text'
-            icon={<ManageAccountsIcon />}
-            multiline={false}
-            rows={1}
-            maxLength={100}
-            helperText={formError?.position}
-            error={!!formError?.position}
-          />
-        </div>
-
-        <CustomTextField
-          name="contact_number"
-          placeholder="09XXXXXXXXX"
-          value={formData?.contact_number}
-          onChange={handleInputChange}
-          multiline={false}
-          maxLength={11}
-          type="tel"
-          rows={1}
-          icon={<Phone className="w-4 h-4" />}
-          error={!!formError?.contact_number}
-          helperText={formError?.contact_number}
-        />
-
-        <CustomTextField 
-          name="subject"
-          value={formData?.subject}
-          placeholder='Enter a subject'
-          onChange={handleInputChange}
-          multiline={false}
-          maxLength={150}
-          type="text"
-          rows={1}
-          error={!!formError?.subject}
-          helperText={formError?.subject}
-        />
-
-        <CustomTextField
-          name="description"
-          placeholder="Tell us about your requirements..."
-          value={formData?.description}
-          onChange={handleInputChange}
-          multiline={true}
-          maxLength={2550}
-          rows={4}
-          type='text'
-          icon={<TextsmsIcon />}
-          error={!!formError?.description}
-          helperText={formError?.description}
-        />
-
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="beesee-button"
-          style={{ width: '100%' }}
-        >
-          {isCreating ? (
-            <span className="animate-pulse">Submitting...</span>
-          ) : (
-            <>
-              <Send size={20} /> Submit Inquiry
-            </>
-          )}
-        </button>
-      </form>
-
-      <p className="bee-body-sm" style={{ marginTop: '1rem', textAlign: 'center', color: '#6b7280' }}>
-        By submitting this form, you agree to our{' '}
-        <Link to="/privacy" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
-          Privacy Policy
-        </Link>{' '}
-        and{' '}
-        <Link to="/terms" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
-          Terms of Service
-        </Link>
-      </p>
-    </div>
-  );
 
   return submitted ? (
     <section 
@@ -512,8 +304,66 @@ const Inquiries = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Column */}
         {isMobile ? (
-          <div ref={leftColumnRef}>
-            <LeftColumnContent />
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h2 className="bee-title-md" style={{ lineHeight: '1.1', color: 'var(--beesee-gold)' }}>
+                Ready to Transform Your Organization?
+              </h2>
+              <p className="bee-body" style={{ lineHeight: '1.7' }}>
+                Let our experts help you choose the perfect solution for your unique needs. Schedule a consultation or request a custom quote today.
+              </p>
+            </div>
+
+            {/* Contact Info Cards - BeeSee Card Style with Horizontal Layout */}
+            <div className="space-y-6">
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <Phone size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      SALES
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      +63 912 345 6789
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <Mail size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      SUPPORT
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      info@beese.ph
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <MessageSquare size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      LIVE CHAT SUPPORT
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      Available 24/7 for clients
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <motion.div
@@ -521,15 +371,211 @@ const Inquiries = () => {
             initial={{ opacity: 0, x: -100 }}
             animate={inViewLeft ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-8"
           >
-            <LeftColumnContent />
+            <div className="space-y-4">
+              <h2 className="bee-title-md" style={{ lineHeight: '1.1', color: 'var(--beesee-gold)' }}>
+                Ready to Transform Your Organization?
+              </h2>
+              <p className="bee-body" style={{ lineHeight: '1.7' }}>
+                Let our experts help you choose the perfect solution for your unique needs. Schedule a consultation or request a custom quote today.
+              </p>
+            </div>
+
+            {/* Contact Info Cards - BeeSee Card Style with Horizontal Layout */}
+            <div className="space-y-6">
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <Phone size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      SALES
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      +63 912 345 6789
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <Mail size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      SUPPORT
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      info@beese.ph
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
+                <div className="flex items-center space-x-4">
+                  <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
+                    <MessageSquare size={24} />
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
+                      LIVE CHAT SUPPORT
+                    </div>
+                    <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                      Available 24/7 for clients
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
         {/* Right Column - Form */}
         {isMobile ? (
-          <div ref={rightColumnRef}>
-            <RightColumnContent />
+          <div className="beesee-card-content">
+            <h3 
+              className="bee-title-sm" 
+              style={{ 
+                marginBottom: '1.5rem', 
+                color: '#FDCC00',
+                fontSize: '32px'
+              }}
+            >
+              Request Consultation
+            </h3>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <CustomTextField
+                  name="name"
+                  placeholder="Enter your name"
+                  value={formData?.name}
+                  onChange={handleInputChange}
+                  icon={<User2 />}
+                  rows={1}
+                  maxLength={100}
+                  type='text'
+                  multiline={false}
+                  error={!!formError?.name}
+                  helperText={formError?.name}
+                />
+                <CustomTextField
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData?.email}
+                  onChange={handleInputChange}
+                  rows={1}
+                  maxLength={100}
+                  type='text'
+                  multiline={false}
+                  icon={<Mail />}
+                  error={!!formError?.email}
+                  helperText={formError?.email}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <CustomTextField
+                  name="company"
+                  placeholder="Enter company name"
+                  value={formData?.company}
+                  onChange={handleInputChange}
+                  icon={<Building2 />}
+                  error={!!formError?.company}
+                  helperText={formError?.company}
+                  type='text'
+                  multiline={false}
+                  rows={1}
+                  maxLength={100}
+                />
+
+                <CustomTextField 
+                  name='position'
+                  placeholder='Enter your position'
+                  value={formData?.position}
+                  onChange={handleInputChange}
+                  type='text'
+                  icon={<ManageAccountsIcon />}
+                  multiline={false}
+                  rows={1}
+                  maxLength={100}
+                  helperText={formError?.position}
+                  error={!!formError?.position}
+                />
+              </div>
+
+              <CustomTextField
+                name="contact_number"
+                placeholder="09XXXXXXXXX"
+                value={formData?.contact_number}
+                onChange={handleInputChange}
+                multiline={false}
+                maxLength={11}
+                type="tel"
+                rows={1}
+                icon={<Phone className="w-4 h-4" />}
+                error={!!formError?.contact_number}
+                helperText={formError?.contact_number}
+              />
+
+              <CustomTextField 
+                name="subject"
+                value={formData?.subject}
+                placeholder='Enter a subject'
+                onChange={handleInputChange}
+                multiline={false}
+                maxLength={150}
+                type="text"
+                rows={1}
+                error={!!formError?.subject}
+                helperText={formError?.subject}
+              />
+
+              <CustomTextField
+                name="description"
+                placeholder="Tell us about your requirements..."
+                value={formData?.description}
+                onChange={handleInputChange}
+                multiline={true}
+                maxLength={2550}
+                rows={4}
+                type='text'
+                icon={<TextsmsIcon />}
+                error={!!formError?.description}
+                helperText={formError?.description}
+              />
+
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="beesee-button"
+                style={{ width: '100%' }}
+              >
+                {isCreating ? (
+                  <span className="animate-pulse">Submitting...</span>
+                ) : (
+                  <>
+                    <Send size={20} /> Submit Inquiry
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="bee-body-sm" style={{ marginTop: '1rem', textAlign: 'center', color: '#6b7280' }}>
+              By submitting this form, you agree to our{' '}
+              <Link to="/privacy" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link to="/terms" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
+                Terms of Service
+              </Link>
+            </p>
           </div>
         ) : (
           <motion.div
@@ -537,8 +583,146 @@ const Inquiries = () => {
             initial={{ opacity: 0, x: 100 }}
             animate={inViewRight ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="beesee-card-content"
           >
-            <RightColumnContent />
+            <h3 
+              className="bee-title-sm" 
+              style={{ 
+                marginBottom: '1.5rem', 
+                color: '#FDCC00',
+                fontSize: '32px'
+              }}
+            >
+              Request Consultation
+            </h3>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <CustomTextField
+                  name="name"
+                  placeholder="Enter your name"
+                  value={formData?.name}
+                  onChange={handleInputChange}
+                  icon={<User2 />}
+                  rows={1}
+                  maxLength={100}
+                  type='text'
+                  multiline={false}
+                  error={!!formError?.name}
+                  helperText={formError?.name}
+                />
+                <CustomTextField
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData?.email}
+                  onChange={handleInputChange}
+                  rows={1}
+                  maxLength={100}
+                  type='text'
+                  multiline={false}
+                  icon={<Mail />}
+                  error={!!formError?.email}
+                  helperText={formError?.email}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <CustomTextField
+                  name="company"
+                  placeholder="Enter company name"
+                  value={formData?.company}
+                  onChange={handleInputChange}
+                  icon={<Building2 />}
+                  error={!!formError?.company}
+                  helperText={formError?.company}
+                  type='text'
+                  multiline={false}
+                  rows={1}
+                  maxLength={100}
+                />
+
+                <CustomTextField 
+                  name='position'
+                  placeholder='Enter your position'
+                  value={formData?.position}
+                  onChange={handleInputChange}
+                  type='text'
+                  icon={<ManageAccountsIcon />}
+                  multiline={false}
+                  rows={1}
+                  maxLength={100}
+                  helperText={formError?.position}
+                  error={!!formError?.position}
+                />
+              </div>
+
+              <CustomTextField
+                name="contact_number"
+                placeholder="09XXXXXXXXX"
+                value={formData?.contact_number}
+                onChange={handleInputChange}
+                multiline={false}
+                maxLength={11}
+                type="tel"
+                rows={1}
+                icon={<Phone className="w-4 h-4" />}
+                error={!!formError?.contact_number}
+                helperText={formError?.contact_number}
+              />
+
+              <CustomTextField 
+                name="subject"
+                value={formData?.subject}
+                placeholder='Enter a subject'
+                onChange={handleInputChange}
+                multiline={false}
+                maxLength={150}
+                type="text"
+                rows={1}
+                error={!!formError?.subject}
+                helperText={formError?.subject}
+              />
+
+              <CustomTextField
+                name="description"
+                placeholder="Tell us about your requirements..."
+                value={formData?.description}
+                onChange={handleInputChange}
+                multiline={true}
+                maxLength={2550}
+                rows={4}
+                type='text'
+                icon={<TextsmsIcon />}
+                error={!!formError?.description}
+                helperText={formError?.description}
+              />
+
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="beesee-button"
+                style={{ width: '100%' }}
+              >
+                {isCreating ? (
+                  <span className="animate-pulse">Submitting...</span>
+                ) : (
+                  <>
+                    <Send size={20} /> Submit Inquiry
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="bee-body-sm" style={{ marginTop: '1rem', textAlign: 'center', color: '#6b7280' }}>
+              By submitting this form, you agree to our{' '}
+              <Link to="/privacy" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link to="/terms" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
+                Terms of Service
+              </Link>
+            </p>
           </motion.div>
         )}
       </div>
