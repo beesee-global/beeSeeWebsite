@@ -342,8 +342,8 @@ const HeroSection: React.FC = () => {
           onSubmit={handleImageSubmit} 
         />
 
-        {/* HERO SECTION */}
-        <section className="pt-32 sm:pt-36 md:pt-40 pb-16 sm:pb-20">
+        {/* HERO SECTION - Reduced top padding for mobile */}
+        <section className="pt-19 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -355,7 +355,7 @@ const HeroSection: React.FC = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
-                className="inline-flex items-center space-x-2 rounded-full px-4 py-2 mb-6"
+                className="inline-flex items-center space-x-2 rounded-full px-4 py-2 mb-4 sm:mb-6"
                 style={{
                   background: 'rgba(253, 204, 0, 0.1)',
                   border: '1px solid rgba(253, 204, 0, 0.3)'
@@ -369,7 +369,7 @@ const HeroSection: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.7 }}
-                className="bee-title-lg text-[var(--beesee-gold)] mb-6 leading-tight"
+                className="bee-title-lg text-[var(--beesee-gold)] mb-4 sm:mb-6 leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
               >
                 Connect with Our Technical Specialists
               </motion.h1>
@@ -378,7 +378,7 @@ const HeroSection: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.7 }}
-                className="bee-body text-[#C7B897] max-w-3xl mx-auto"
+                className="bee-body text-[#C7B897] max-w-3xl mx-auto px-2 sm:px-0 text-sm sm:text-base"
               >
                 Get expert consultation, technical support, and custom solutions from our team of specialists.
               </motion.p>
@@ -386,40 +386,40 @@ const HeroSection: React.FC = () => {
           </div>
         </section>
 
-        {/* FORM SECTION */}
-        <div className="flex justify-center w-full pb-20">
+        {/* FORM SECTION - Adjusted for mobile */}
+        <div className="flex justify-center w-full pb-10 sm:pb-16 md:pb-20">
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="px-6 w-full max-w-3xl"
+            className="px-4 sm:px-6 w-full max-w-3xl"
           > 
             {isSubmitted ? (
               <motion.section 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6 }}
-                className="py-20 beesee-card-content"
+                className="py-12 sm:py-16 md:py-20 beesee-card-content"
               >
-                <div className="max-w-4xl mx-auto px-6 text-center">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8"
                     style={{
                       background: 'rgba(34, 197, 94, 0.15)',
                       border: '2px solid rgb(34, 197, 94)'
                     }}
                   >
-                    <CheckCircle size={40} className="text-green-500" />
+                    <CheckCircle size={32} className="text-green-500" />
                   </motion.div> 
 
                   <motion.h2 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bee-title-md text-[var(--beesee-gold)] mb-4"
+                    className="bee-title-md text-[var(--beesee-gold)] mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl"
                   >
                     Thank You for Reporting Your Issue
                   </motion.h2>
@@ -428,7 +428,7 @@ const HeroSection: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bee-body text-white/90 mb-8 max-w-2xl mx-auto"
+                    className="bee-body text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto text-sm sm:text-base"
                   >
                     Your form has been successfully submitted. We will contact you as soon as possible to resolve your issue.
                   </motion.p>
@@ -437,14 +437,14 @@ const HeroSection: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="rounded-2xl p-6 mb-8 max-w-2xl mx-auto"
+                    className="rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 max-w-2xl mx-auto"
                     style={{
                       background: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid rgba(253, 204, 0, 0.2)'
                     }}
                   >
-                    <h3 className="bee-title-sm text-white mb-6">Next Steps</h3>
-                    <div className="space-y-4 text-left">
+                    <h3 className="bee-title-sm text-white mb-4 sm:mb-6">Next Steps</h3>
+                    <div className="space-y-3 sm:space-y-4 text-left">
                       {[
                         { icon: Clock, text: "Our support team will review your ticket within 24 hours" },
                         { icon: Mail, text: "You will receive an email confirmation with your ticket details" },
@@ -458,8 +458,8 @@ const HeroSection: React.FC = () => {
                           transition={{ delay: 0.6 + (index * 0.1) }}
                           className="flex items-center space-x-3"
                         >
-                          <item.icon size={18} className="text-[var(--beesee-gold)] flex-shrink-0" />
-                          <span className="bee-body-sm text-white/80">{item.text}</span>
+                          <item.icon size={16} className="text-[var(--beesee-gold)] flex-shrink-0" />
+                          <span className="bee-body-sm text-white/80 text-xs sm:text-sm">{item.text}</span>
                         </motion.div>
                       ))}
                     </div>
@@ -472,16 +472,16 @@ const HeroSection: React.FC = () => {
                   >
                     <button  
                       onClick={() => setIsSubmitted(false)}
-                      className="beesee-button"
+                      className="beesee-button py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base"
                     >
-                      <Send size={20} /> Submit Another Issue
+                      <Send size={18} className="mr-2" /> Submit Another Issue
                     </button>
                   </motion.div>
                 </div>
               </motion.section>
             ) : (
-              <div className="beesee-card-content p-6 sm:p-8">
-                <div className="space-y-5">
+              <div className="beesee-card-content p-4 sm:p-6 md:p-8">
+                <div className="space-y-4 sm:space-y-5">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -605,7 +605,7 @@ const HeroSection: React.FC = () => {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="space-y-5 mt-5"
+                    className="space-y-4 sm:space-y-5 mt-4 sm:mt-5"
                   >
                     <CustomSelectField 
                       name="device_id" 
@@ -659,14 +659,14 @@ const HeroSection: React.FC = () => {
                       <button 
                         type="button" 
                         onClick={() => setOpenUploadImageModal(true)} 
-                        className="w-full p-4 border-2 border-dashed rounded-lg transition-all duration-300"
+                        className="w-full p-3 sm:p-4 border-2 border-dashed rounded-lg transition-all duration-300"
                         style={{
                           borderColor: uploadedImages.length > 0 ? 'var(--beesee-gold)' : 'rgba(199, 184, 151, 0.3)',
                           background: uploadedImages.length > 0 ? 'rgba(253, 204, 0, 0.05)' : 'rgba(255, 255, 255, 0.02)',
                           color: uploadedImages.length > 0 ? 'var(--beesee-gold)' : '#C7B897'
                         }}
                       >
-                        <span className="bee-body-sm font-semibold">
+                        <span className="bee-body-sm font-semibold text-sm sm:text-base">
                           {uploadedImages.length > 0 ? `${uploadedImages.length} File(s) Uploaded ✓` : "File Upload (Optional)"}
                         </span>
                       </button>
@@ -677,7 +677,7 @@ const HeroSection: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="mt-4 rounded-lg p-4"
+                        className="mt-3 sm:mt-4 rounded-lg p-3 sm:p-4"
                         style={{
                           background: 'rgba(255, 255, 255, 0.03)',
                           border: '1px solid rgba(253, 204, 0, 0.2)'
@@ -694,9 +694,9 @@ const HeroSection: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleRemoveImage(uploadedImages[currentImageIndex].id)}
-                              className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                              className="absolute top-2 right-2 bg-red-500 text-white p-1 sm:p-2 rounded-full hover:bg-red-600 transition-colors"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-3 h-3 sm:w-4 sm:h-4" />
                             </button>
 
                             {uploadedImages.length > 1 && (
@@ -704,33 +704,33 @@ const HeroSection: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={handlePrevImage}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 text-white p-2 rounded-full hover:bg-black/90 transition-all"
+                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 text-white p-1 sm:p-2 rounded-full hover:bg-black/90 transition-all"
                                 >
-                                  <ChevronLeft className="w-5 h-5" />
+                                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={handleNextImage}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 text-white p-2 rounded-full hover:bg-black/90 transition-all"
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 text-white p-1 sm:p-2 rounded-full hover:bg-black/90 transition-all"
                                 >
-                                  <ChevronRight className="w-5 h-5" />
+                                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
                               </>
                             )}
 
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white px-2 py-1 rounded-full text-xs sm:text-sm">
                               {currentImageIndex + 1} / {uploadedImages.length}
                             </div>
                           </div>
 
                           {uploadedImages.length > 1 && (
-                            <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                            <div className="flex gap-2 mt-2 sm:mt-3 overflow-x-auto pb-2">
                               {uploadedImages.map((image, index) => (
                                 <button
                                   key={image.id}
                                   type="button"
                                   onClick={() => setCurrentImageIndex(index)}
-                                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                                  className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
                                     index === currentImageIndex
                                       ? 'border-[var(--beesee-gold)] scale-105'
                                       : 'border-gray-600 opacity-60 hover:opacity-100'
@@ -746,8 +746,8 @@ const HeroSection: React.FC = () => {
                             </div>
                           )}
 
-                          <div className="mt-3 text-sm text-[#C7B897]">
-                            <p className="font-medium truncate">
+                          <div className="mt-2 sm:mt-3 text-sm text-[#C7B897]">
+                            <p className="font-medium truncate text-xs sm:text-sm">
                               {uploadedImages[currentImageIndex]?.file?.name}
                             </p>
                             <p className="text-xs opacity-70">
@@ -762,7 +762,7 @@ const HeroSection: React.FC = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.3 }}
-                      className="flex justify-center"
+                      className="flex justify-center scale-90 sm:scale-100"
                     >
                       <ReCAPTCHA 
                         sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string} 
@@ -779,13 +779,13 @@ const HeroSection: React.FC = () => {
                         type="button"
                         disabled={isCreating || isCreatingImage}
                         onClick={handleSubmit} 
-                        className="beesee-button w-full"
+                        className="beesee-button w-full py-2 sm:py-3 text-sm sm:text-base"
                       >
                         {isCreating || isCreatingImage ? (
                           <span className="animate-pulse">Submitting...</span>
                         ) : (
                           <>
-                            <Send size={20} /> Submit
+                            <Send size={18} className="mr-2" /> Submit
                           </>
                         )}
                       </button>

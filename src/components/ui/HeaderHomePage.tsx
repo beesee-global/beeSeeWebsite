@@ -13,12 +13,18 @@ const HeaderHomePage = () => {
     const navigate = useNavigate();
     const isInitialMount = useRef(true);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const drawerRef = useRef<HTMLDivElement>(null);
     const drawerAnimationRef = useRef<NodeJS.Timeout | null>(null);
+    const savedScrollPosition = useRef<number>(0);
     
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isShrunk, setIsShrunk] = useState(false);
     const [isDrawerAnimating, setIsDrawerAnimating] = useState(false);
+    
+    // Swipe gesture state
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const [touchStartY, setTouchStartY] = useState<number | null>(null);
+    const [isSwiping, setIsSwiping] = useState(false);
 
     /* Cleanup all refs and timeouts */
     useEffect(() => {
@@ -28,10 +34,17 @@ const HeaderHomePage = () => {
                     clearTimeout(ref.current);
                 }
             });
+            
+            // Ensure body styles are cleaned up
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('position');
+            document.body.style.removeProperty('top');
+            document.body.style.removeProperty('width');
+            document.body.style.removeProperty('padding-right');
         };
     }, []);
 
-    /* Optimized Header Shrink - Debounced */
+    /* Optimized Header Shrink */
     useEffect(() => {
         let lastScrollY = window.scrollY;
         let ticking = false;
@@ -53,7 +66,7 @@ const HeaderHomePage = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* Smooth Scroll Helper - Fixed */
+    /* Smooth Scroll Helper */
     const smoothScrollToElement = useCallback(
         (sectionId: string, delay = 100) => {
             if (scrollTimeoutRef.current) {
@@ -78,12 +91,53 @@ const HeaderHomePage = () => {
         [isShrunk]
     );
 
-    /* Improved Drawer State Management */
+    /* FIXED: Prevent body scroll when drawer is open - OPTIMIZED METHOD */
+    useEffect(() => {
+        if (drawerOpen) {
+            // Save current scroll position
+            savedScrollPosition.current = window.scrollY;
+            
+            // Lock scroll - NO position fixed to prevent jumping
+            document.body.style.overflow = 'hidden';
+            document.body.style.height = '100vh';
+            document.body.style.touchAction = 'none';
+            
+            // Prevent iOS Safari bounce
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.height = '100vh';
+        } else {
+            // Unlock scroll
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('height');
+            document.body.style.removeProperty('touch-action');
+            document.documentElement.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('height');
+            
+            // Restore scroll position smoothly
+            requestAnimationFrame(() => {
+                window.scrollTo({
+                    top: savedScrollPosition.current,
+                    behavior: 'instant' // Use instant to prevent conflicts with smooth scroll
+                });
+            });
+        }
+        
+        return () => {
+            // Cleanup on unmount
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('height');
+            document.body.style.removeProperty('touch-action');
+            document.documentElement.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('height');
+        };
+    }, [drawerOpen]);
+
+    /* FIXED: Drawer Open Handler */
     const handleOpenDrawer = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
         
-        if (isDrawerAnimating) return;
+        if (isDrawerAnimating || drawerOpen) return;
         
         setIsDrawerAnimating(true);
         setDrawerOpen(true);
@@ -94,16 +148,17 @@ const HeaderHomePage = () => {
         
         drawerAnimationRef.current = setTimeout(() => {
             setIsDrawerAnimating(false);
-        }, 350);
-    }, [isDrawerAnimating]);
+        }, 450); // Match drawer transition duration
+    }, [isDrawerAnimating, drawerOpen]);
 
-    const handleCloseDrawer = useCallback((e?: React.MouseEvent) => {
+    /* FIXED: Drawer Close Handler */
+    const handleCloseDrawer = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
         if (e) {
             e.stopPropagation();
             e.preventDefault();
         }
         
-        if (isDrawerAnimating) return;
+        if (isDrawerAnimating || !drawerOpen) return;
         
         setIsDrawerAnimating(true);
         setDrawerOpen(false);
@@ -114,42 +169,59 @@ const HeaderHomePage = () => {
         
         drawerAnimationRef.current = setTimeout(() => {
             setIsDrawerAnimating(false);
-        }, 350);
-    }, [isDrawerAnimating]);
+        }, 450); // Match drawer transition duration
+    }, [isDrawerAnimating, drawerOpen]);
 
-    /* Improved Navigation - Fixed timing */
+    /* FIXED: Navigation Handler */
     const handleNavClick = useCallback(
         (target: string) => {
             if (isDrawerAnimating) return;
             
-            handleCloseDrawer();
-
-            setTimeout(() => {
-                if (target.startsWith('#')) {
-                    const sectionId = target.substring(1);
+            // Close drawer first if open
+            if (drawerOpen) {
+                setIsDrawerAnimating(true);
+                setDrawerOpen(false);
+                
+                // Wait for drawer to close before navigating
+                setTimeout(() => {
+                    setIsDrawerAnimating(false);
                     
-                    if (location.pathname === '/') {
-                        // Small delay to ensure drawer is fully closed
-                        setTimeout(() => {
-                            smoothScrollToElement(sectionId, 50);
-                        }, 200);
-                    } else {
-                        sessionStorage.setItem('scrollAfterLoad', target);
-                        navigate('/');
-                    }
-                } else if (target.startsWith('http')) {
-                    // External links
-                    window.open(target, '_blank');
-                } else {
-                    navigate(target);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }, 350); // Wait for drawer close animation to complete
+                    // Small delay to ensure drawer is fully closed
+                    setTimeout(() => {
+                        performNavigation(target);
+                    }, 50);
+                }, 450);
+            } else {
+                performNavigation(target);
+            }
         },
-        [location.pathname, navigate, smoothScrollToElement, isDrawerAnimating, handleCloseDrawer]
+        [drawerOpen, isDrawerAnimating, location.pathname, navigate, smoothScrollToElement]
     );
 
-    /* Handle scroll after page load - Improved */
+    /* Helper function for navigation */
+    const performNavigation = (target: string) => {
+        if (target.startsWith('#')) {
+            const sectionId = target.substring(1);
+            
+            if (location.pathname === '/') {
+                // Already on homepage, just scroll
+                setTimeout(() => {
+                    smoothScrollToElement(sectionId, 50);
+                }, 100);
+            } else {
+                // Navigate to homepage first, then scroll
+                sessionStorage.setItem('scrollAfterLoad', target);
+                navigate('/');
+            }
+        } else if (target.startsWith('http')) {
+            window.open(target, '_blank');
+        } else {
+            navigate(target);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    /* FIXED: Handle scroll after page load */
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -162,58 +234,109 @@ const HeaderHomePage = () => {
                 const sectionId = target.substring(1);
                 sessionStorage.removeItem('scrollAfterLoad');
                 
-                // Delay to ensure page is fully loaded
+                // Ensure body is unlocked before scrolling
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('height');
+                document.body.style.removeProperty('touch-action');
+                document.documentElement.style.removeProperty('overflow');
+                document.documentElement.style.removeProperty('height');
+                
+                // Wait for page to fully render
                 setTimeout(() => {
-                    smoothScrollToElement(sectionId, 500);
-                }, 300);
+                    smoothScrollToElement(sectionId, 100);
+                }, 600);
             }
         }
     }, [location.pathname, smoothScrollToElement]);
 
-    /* Prevent body scroll when drawer is open - Optimized */
+    /* FIXED: Handle click outside drawer */
     useEffect(() => {
-        if (drawerOpen) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.touchAction = 'none';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-        } else {
-            document.body.style.overflow = '';
-            document.body.style.touchAction = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-        }
-        
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.touchAction = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-        };
-    }, [drawerOpen]);
+        if (!drawerOpen || isDrawerAnimating) return;
 
-    /* Handle click outside of drawer - Improved */
-    useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-            if (isDrawerAnimating) return;
+            const target = event.target as HTMLElement;
             
-            if (drawerRef.current && 
-                !drawerRef.current.contains(event.target as Node) && 
-                drawerOpen) {
+            // Check if click is on backdrop (not drawer content)
+            const isBackdrop = target.classList.contains('backdrop-click-area');
+            const drawerElement = document.querySelector('.MuiDrawer-paper');
+            
+            if (isBackdrop || (drawerElement && !drawerElement.contains(target))) {
                 handleCloseDrawer();
             }
         };
 
-        if (drawerOpen) {
+        // Add slight delay to prevent immediate closing
+        const timeoutId = setTimeout(() => {
             document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('touchstart', handleClickOutside);
-        }
+            document.addEventListener('touchstart', handleClickOutside, { passive: true });
+        }, 150);
 
         return () => {
+            clearTimeout(timeoutId);
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('touchstart', handleClickOutside);
         };
     }, [drawerOpen, isDrawerAnimating, handleCloseDrawer]);
+
+    /* SWIPE GESTURE HANDLING */
+    useEffect(() => {
+        const minSwipeDistance = 50;
+        
+        const handleTouchStart = (e: TouchEvent) => {
+            if (isDrawerAnimating) return;
+            
+            const touch = e.touches[0];
+            setTouchStart(touch.clientX);
+            setTouchStartY(touch.clientY);
+            setTouchEnd(null);
+            setIsSwiping(false);
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!touchStart || !touchStartY || isDrawerAnimating) return;
+            
+            const touch = e.touches[0];
+            setTouchEnd(touch.clientX);
+            
+            const xDiff = Math.abs(touch.clientX - touchStart);
+            const yDiff = Math.abs(touch.clientY - touchStartY);
+            
+            if (xDiff > yDiff && xDiff > 10) {
+                setIsSwiping(true);
+            }
+        };
+
+        const handleTouchEnd = () => {
+            if (!touchStart || !touchEnd || !touchStartY || isDrawerAnimating) return;
+            
+            const distance = touchStart - touchEnd;
+            const isLeftSwipe = distance > minSwipeDistance;
+            const isRightSwipe = distance < -minSwipeDistance;
+            
+            if (Math.abs(distance) > minSwipeDistance && isSwiping) {
+                if (drawerOpen && isLeftSwipe) {
+                    handleCloseDrawer();
+                } else if (!drawerOpen && isRightSwipe && touchStart < 50) {
+                    handleOpenDrawer({ stopPropagation: () => {}, preventDefault: () => {} } as React.MouseEvent);
+                }
+            }
+            
+            setTouchStart(null);
+            setTouchEnd(null);
+            setTouchStartY(null);
+            setIsSwiping(false);
+        };
+
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchmove', handleTouchMove, { passive: true });
+        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [drawerOpen, isDrawerAnimating, handleCloseDrawer, handleOpenDrawer, touchStart, touchEnd, touchStartY, isSwiping]);
 
     /* Navigation Items */
     const navLeft = [
@@ -232,7 +355,7 @@ const HeaderHomePage = () => {
 
     return (
         <>
-            {/* HEADER - Always visible */}
+            {/* HEADER */}
             <header id="main-header" className="fixed top-0 left-0 right-0 z-50 bg-transparent sm:backdrop-blur-2xl transition-all duration-700 ease-in-out" role="banner">
                 <Toolbar className={`flex justify-between items-center w-full transition-all duration-700 ease-in-out ${isShrunk ? 'h-[60px] px-4 sm:px-6' : 'h-[100px] px-4 sm:px-6'}`}>
                     {/* LEFT NAV - Desktop */}
@@ -262,7 +385,7 @@ const HeaderHomePage = () => {
                         </nav>
                     </Box>
 
-                    {/* CENTER LOGO - Desktop Only */}
+                    {/* CENTER LOGO - Desktop */}
                     <Box className={`hidden md:flex flex-shrink-0 justify-center ${isShrunk ? 'py-1' : 'py-2 sm:py-4'}`}>
                         <img
                             src={logo2}
@@ -302,26 +425,20 @@ const HeaderHomePage = () => {
                         </nav>
                     </Box>
 
-                    {/* MOBILE MENU BUTTON - Fixed with better state management */}
+                    {/* MOBILE MENU BUTTON */}
                     <IconButton
                         edge="start"
                         onClick={handleOpenDrawer}
                         className="md:!hidden !text-white !ml-0"
                         aria-label="Open navigation menu"
-                        disabled={isDrawerAnimating}
+                        disabled={isDrawerAnimating || drawerOpen}
                         sx={{
                             opacity: drawerOpen ? 0 : 1,
-                            transition: 'opacity 0.3s ease',
+                            transition: 'opacity 0.2s ease',
                             pointerEvents: drawerOpen ? 'none' : 'auto',
-                            position: 'relative',
-                            zIndex: 50,
-                            backgroundColor: 'transparent',
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                             },
-                            '&.Mui-disabled': {
-                                opacity: 0.5,
-                            }
                         }}
                     >
                         <MenuIcon fontSize="large" />
@@ -329,71 +446,68 @@ const HeaderHomePage = () => {
                 </Toolbar>
             </header>
 
-            {/* MOBILE DRAWER - Fixed with proper layering and animations */}
+            {/* MOBILE DRAWER - FIXED SMOOTH ANIMATIONS */}
             <AnimatePresence mode="wait">
                 {drawerOpen && (
                     <>
-                        {/* Backdrop - Fixed z-index */}
+                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] md:hidden"
+                            transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+                            className="backdrop-click-area fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] md:hidden"
                             onClick={handleCloseDrawer}
-                            style={{ touchAction: 'none' }}
+                            style={{ 
+                                touchAction: 'none',
+                                WebkitTapHighlightColor: 'transparent'
+                            }}
                         />
                         
-                        {/* Drawer Container */}
+                        {/* Drawer */}
                         <Drawer
                             anchor="left"
                             open={drawerOpen}
                             onClose={handleCloseDrawer}
-                            ref={drawerRef}
                             variant="temporary"
                             PaperProps={{
                                 sx: {
                                     backgroundColor: '#181717',
                                     width: '280px',
                                     maxWidth: '85vw',
-                                    overflowX: 'hidden',
-                                    boxShadow: '0 0 25px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.15)',
+                                    boxShadow: '0 0 25px rgba(255,215,0,0.25)',
                                     borderRight: '1px solid rgba(255,215,0,0.2)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
                                     position: 'fixed',
                                     top: 0,
                                     left: 0,
                                     bottom: 0,
                                     zIndex: 9999,
                                     overflowY: 'auto',
-                                    WebkitOverflowScrolling: 'touch',
+                                    overflowX: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                 },
                             }}
-                            transitionDuration={300}
+                            transitionDuration={450}
                             ModalProps={{
                                 keepMounted: false,
                                 disableScrollLock: true,
                                 hideBackdrop: true,
                                 closeAfterTransition: true,
+                                disablePortal: false,
                             }}
                             sx={{
-                                position: 'fixed',
                                 zIndex: 9999,
                                 '& .MuiDrawer-paper': {
-                                    zIndex: 9999,
-                                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important',
+                                    transition: 'transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important',
                                 },
                             }}
-                            SlideProps={{
-                                timeout: 300,
-                            }}
                         >
-                            {/* LOGO + CLOSE - Fixed with proper event handling */}
-                            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-700 bg-[#181717] sticky top-0 z-10 min-h-[80px] flex-shrink-0">
+                            {/* LOGO + CLOSE */}
+                            <Box className="flex justify-between items-center px-6 py-5 border-b border-gray-700 bg-[#181717] sticky top-0 z-10 min-h-[80px]">
                                 <button
                                     onClick={() => handleNavClick('/')}
-                                    className="focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:ring-opacity-50 rounded"
+                                    className="focus:outline-none focus:ring-2 focus:ring-[#FFD700] rounded"
                                     aria-label="Navigate to home"
                                     style={{
                                         background: 'none',
@@ -410,110 +524,97 @@ const HeaderHomePage = () => {
                                     />
                                 </button>
 
-                                <div className="relative">
-                                    <motion.div 
-                                        whileHover={{ rotate: 90, scale: 1.15 }} 
-                                        whileTap={{ scale: 0.85 }} 
-                                        transition={{ type: 'spring', stiffness: 250, damping: 18 }}
+                                <motion.div 
+                                    whileHover={{ rotate: 90, scale: 1.1 }} 
+                                    whileTap={{ scale: 0.9 }} 
+                                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                >
+                                    <IconButton 
+                                        onClick={handleCloseDrawer} 
+                                        className="!text-white" 
+                                        aria-label="Close navigation menu"
+                                        disabled={isDrawerAnimating}
                                     >
-                                        <IconButton 
-                                            onClick={handleCloseDrawer} 
-                                            className="!text-white" 
-                                           
-                                            aria-label="Close navigation menu"
-                                            disabled={isDrawerAnimating}
-                                        >
-                                            <CloseIcon fontSize="medium" />
-                                        </IconButton>
-                                    </motion.div>
-                                </div>
-                            </div>
+                                        <CloseIcon fontSize="medium" />
+                                    </IconButton>
+                                </motion.div>
+                            </Box>
 
-                            {/* NAV ITEMS - With optimized performance */}
-                            <div className="flex-1 overflow-y-auto pt-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                <nav>
-                                    <List className="py-2">
-                                        <AnimatePresence>
-                                            {mobileNavItems.map((item, index) => {
-                                                const isActive = item.to.startsWith('#') 
-                                                    ? false 
-                                                    : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+                            {/* NAV ITEMS */}
+                            <Box className="flex-1 overflow-y-auto pt-2">
+                                <List className="py-2">
+                                    {mobileNavItems.map((item, index) => {
+                                        const isActive = item.to.startsWith('#') 
+                                            ? false 
+                                            : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
 
-                                                return (
-                                                    <motion.div
-                                                        key={item.label}
-                                                        initial={{ opacity: 0, x: 20 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        exit={{ opacity: 0, x: 20 }}
-                                                        transition={{
-                                                            delay: index * 0.05,
-                                                            duration: 0.3,
-                                                            ease: 'easeOut',
+                                        return (
+                                            <motion.div
+                                                key={item.label}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{
+                                                    delay: index * 0.05,
+                                                    duration: 0.25,
+                                                    ease: 'easeOut',
+                                                }}
+                                            >
+                                                <ListItem
+                                                    onClick={() => handleNavClick(item.to)}
+                                                    className={`
+                                                        hover:!bg-[#2A2A2A] transition-all duration-200
+                                                        py-4 pl-6 cursor-pointer relative
+                                                        ${isActive ? '!bg-[#2A2A2A]' : ''}
+                                                    `}
+                                                    sx={{
+                                                        '&::before': isActive
+                                                            ? {
+                                                                content: '""',
+                                                                position: 'absolute',
+                                                                left: 0,
+                                                                top: '50%',
+                                                                transform: 'translateY(-50%)',
+                                                                width: '4px',
+                                                                height: '60%',
+                                                                backgroundColor: '#FFD700',
+                                                                borderRadius: '0 4px 4px 0',
+                                                            }
+                                                            : {},
+                                                        minHeight: '56px',
+                                                        userSelect: 'none',
+                                                        WebkitTapHighlightColor: 'transparent',
+                                                    }}
+                                                    button
+                                                    disabled={isDrawerAnimating}
+                                                >
+                                                    <ListItemText
+                                                        primary={item.label}
+                                                        sx={{
+                                                            '& .MuiListItemText-primary': {
+                                                                fontSize: '1.05rem',
+                                                                fontFamily: 'bebas, sans-serif',
+                                                                letterSpacing: '0.05em',
+                                                                fontWeight: isActive ? 600 : 400,
+                                                                background: isActive 
+                                                                    ? 'linear-gradient(to right, #FFD700, #FFA500)' 
+                                                                    : 'linear-gradient(to right, #fbbf24, #d97706)',
+                                                                WebkitBackgroundClip: 'text',
+                                                                WebkitTextFillColor: 'transparent',
+                                                                transition: 'all 0.2s ease',
+                                                            },
                                                         }}
-                                                        style={{ willChange: 'transform, opacity' }}
-                                                    >
-                                                        <ListItem
-                                                            onClick={() => handleNavClick(item.to)}
-                                                            className={`
-                                                                hover:!bg-[#2A2A2A] transition-all duration-300 
-                                                                py-4 pl-6 cursor-pointer relative select-none
-                                                                ${isActive ? '!bg-[#2A2A2A]' : ''}
-                                                                active:!bg-[#3A3A3A]
-                                                            `}
-                                                            sx={{
-                                                                '&::before': isActive
-                                                                    ? {
-                                                                        content: '""',
-                                                                        position: 'absolute',
-                                                                        left: 0,
-                                                                        top: '50%',
-                                                                        transform: 'translateY(-50%)',
-                                                                        width: '4px',
-                                                                        height: '60%',
-                                                                        backgroundColor: '#FFD700',
-                                                                        borderRadius: '0 4px 4px 0',
-                                                                    }
-                                                                    : {},
-                                                                minHeight: '56px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                userSelect: 'none',
-                                                                WebkitTapHighlightColor: 'transparent',
-                                                            }}
-                                                            button
-                                                            disabled={isDrawerAnimating}
-                                                        >
-                                                            <ListItemText
-                                                                primary={item.label}
-                                                                sx={{
-                                                                    '& .MuiListItemText-primary': {
-                                                                        fontSize: '1.05rem',
-                                                                        fontFamily: 'bebas, sans-serif',
-                                                                        letterSpacing: '0.05em',
-                                                                        fontWeight: isActive ? 600 : 400,
-                                                                        background: isActive 
-                                                                            ? 'linear-gradient(to right, #FFD700, #FFA500)' 
-                                                                            : 'linear-gradient(to right, #fbbf24, #d97706)',
-                                                                        WebkitBackgroundClip: 'text',
-                                                                        WebkitTextFillColor: 'transparent',
-                                                                        backgroundClip: 'text',
-                                                                        transition: 'all 0.3s ease',
-                                                                    },
-                                                                }}
-                                                            />
-                                                        </ListItem>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </AnimatePresence>
-                                    </List>
-                                </nav>
-                            </div>
+                                                    />
+                                                </ListItem>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </List>
+                            </Box>
 
                             {/* Footer */}
-                            <div className="p-4 border-t border-gray-700 text-center text-gray-400 text-sm bg-[#181717] flex-shrink-0">
+                            <Box className="p-4 border-t border-gray-700 text-center text-gray-400 text-sm bg-[#181717]">
                                 BeeSee Global Technologies
-                            </div>
+                            </Box>
                         </Drawer>
                     </>
                 )}

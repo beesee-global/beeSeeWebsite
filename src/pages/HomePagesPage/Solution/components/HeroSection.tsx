@@ -162,7 +162,7 @@ const HeroSection = () => {
           <source src="/live-background/holo4.mp4" type="video/mp4" />
         </video>
 
-        <div className="absolute inset-0 bg-[#000000] opacity-75" />
+        <div className="absolute inset-0 bg-[#000000] opacity-70" />
       </MotionWrapper>
 
       {/* ================= CONTENT ================= */}
