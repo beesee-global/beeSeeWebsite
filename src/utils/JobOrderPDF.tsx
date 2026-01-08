@@ -1,0 +1,288 @@
+import React from "react";
+import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
+ 
+
+// Optional: custom font registration if needed
+// Font.register({ family: 'Helvetica-Bold', src: 'path/to/Helvetica-Bold.ttf' });
+
+interface JobOrderData { 
+  ticket_id: string;
+  company: string;
+  full_name: string;
+  city: string;
+  phone: string;
+  email: string;
+  device_type: string;
+  issue_type: string;
+  serial_number: string;
+  questions: string;
+  technician_name: string; 
+}
+
+const styles = StyleSheet.create({
+         page: {
+        fontSize: 10,
+        paddingTop: 50,
+        paddingBottom: 50,
+        paddingHorizontal: 50,
+        fontFamily: "Helvetica",
+    },
+    headerImage: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: 70,
+    },
+    footerImage: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        height: 180,
+    },
+    titleContainer: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        marginBottom: 5,
+    },
+    title: {
+        fontSize: 14,
+        fontFamily: "Helvetica-Bold",
+    },
+    subtitle: {
+        fontSize: 10,
+        fontFamily: "Helvetica-Bold",
+    },
+    section: {
+        borderWidth: 0.5, 
+        backgroundColor: "#e5e5e5",
+        padding: 6, 
+        alignItems: "center",
+    },
+  
+    sectiona: {
+        borderWidth: 0.5, 
+        backgroundColor: "#e5e5e5",
+        padding: 6, 
+        alignItems: "center",
+        marginTop: 10,
+    },
+  
+    sectionText: {
+        fontSize: 12,
+        fontFamily: "Helvetica-Bold",
+    },
+    row: {
+        flexDirection: "row",
+        borderWidth: 0.5, 
+        borderTopWidth: 0,
+        padding: 5,
+        minHeight: 20,
+    },
+    label: {
+        width: 150,
+        fontFamily: "Helvetica-Bold",
+        paddingRight: 5,
+        borderRightWidth: 0.5, 
+    },
+    dateLabel: {
+        width: 80,
+      	paddingLeft: 5,
+        borderLeftWidth: 0.5,
+        marginLeft: 100,
+    },
+    labelBold: {
+        fontFamily: "Helvetica-Bold",
+    },
+    value: {
+        flex: 1,
+        paddingLeft: 5,
+    },
+    issueBox: {
+        minHeight: 100,
+        alignItems: "flex-start",
+    },
+    statusRow: {
+        flexDirection: "row",
+        borderWidth: 0.5, 
+        borderTopWidth: 0,
+        padding: 5, 
+    },
+    statusContent: {
+        flex: 1,
+        paddingLeft: 5,
+    },
+    statusOption: {
+        fontSize: 10,
+        marginBottom: 2,
+    },
+    statusLine: {
+        borderBottomWidth: 0.5, 
+        marginVertical: 2,
+        marginTop: 10,
+        marginLeft: 10,
+    },
+    acknowledgmentBox: {
+        flexDirection: "row",
+        borderWidth: 0.5, 
+        borderTopWidth: 0,
+        minHeight: 0,
+        padding: 5,
+    },
+    acknowledgmentLabel: {
+        width: 150,
+        paddingRight: 5,
+        borderRightWidth: 0.5, 
+    },
+    acknowledgmentContent: {
+        flex: 1,
+        paddingLeft: 5,
+      	marginTop:40,
+        justifyContent: "space-between",
+    },
+    signatureText: {
+        fontSize: 10,
+        marginBottom: 10,
+    },
+    signatureLine: {
+        borderBottomWidth: 0.5, 
+        width: 110,
+        marginBottom: 5,
+    },
+    dateText: {
+        fontSize: 10,
+        paddingLeft: 40
+    },
+    acknowledgeLayout: {
+        flexDirection: "row",  
+        marginRight: 2 
+    },
+});
+
+const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
+  return (
+     <Document>
+        <Page size="A4" style={styles.page}>
+        {/* Header and Footer Images */}
+        <Image src="/assets/header.png" style={styles.headerImage} />
+        <Image src="/assets/footer.png" style={styles.footerImage} />
+
+        {/* Title */}
+        <View style={styles.titleContainer}>
+            <Text style={styles.title}>JOB ORDER</Text>
+        </View>
+        <View style={styles.titleContainer}>
+            <Text style={styles.subtitle}>{data.ticket_id}</Text>
+        </View>
+
+        {/* INFORMATION DETAILS */}
+        <View style={styles.section}>
+            <Text style={styles.sectionText}>INFORMATION DETAILS</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>COMPANY/ INSTITUTION:</Text>
+            <Text style={styles.value}>{data.company}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>NAME:</Text>
+            <Text style={styles.value}>{data.full_name}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>CITY:</Text>
+            <Text style={styles.value}>{data.city}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>CONTACT:</Text>
+            <Text style={styles.value}>{data.phone}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>EMAIL:</Text>
+            <Text style={styles.value}>{data.email}</Text>
+        </View>
+
+        {/* DEVICE DETAILS */}
+        <View style={styles.sectiona}>
+            <Text style={styles.sectionText}>DEVICE DETAILS</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>DEVICE TYPE:</Text>
+            <Text style={styles.value}>{data.device_type}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>DEVICE MODEL:</Text>
+            <Text style={styles.value}>{data.issue_type}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>SERIAL NUMBER:</Text>
+            <Text style={styles.value}>{data.serial_number}</Text>
+        </View>
+
+        {/* ISSUE REPORT */}
+        <View style={styles.sectiona}>
+            <Text style={styles.sectionText}>ISSUE REPORT</Text>
+        </View>
+        
+        {/* Description label */}
+        <View style={styles.row}>
+            <Text style={styles.labelBold}>
+            Please describe the issue you are experiencing with the device:
+            </Text>
+        </View>
+
+        {/* Issue text box */}
+        <View style={[styles.row, styles.issueBox]}>
+            <Text style={styles.value}>{data.questions}</Text>
+        </View>
+
+        {/* DIAGNOSTIC */}
+        <View style={styles.sectiona}>
+            <Text style={styles.sectionText}>DIAGNOSTIC</Text>
+        </View>
+
+        {/* Technician / Date Row */}
+        <View style={styles.row}>
+            <Text style={styles.label}>TECHNICIAN NAME:</Text>
+            <Text style={styles.value}>{data.technician_name}</Text>
+            <Text style={[styles.label, styles.dateLabel]}>Date Checked:</Text>
+            <Text style={styles.value}>{""}</Text>
+        </View>
+
+        <View style={styles.row}>
+            <Text style={styles.label}>INITIAL SOLUTION:</Text>
+            <Text style={styles.value}></Text>
+        </View>
+
+        {/* STATUS */}
+        <View style={styles.statusRow}>
+            <Text style={styles.label}>STATUS:</Text>
+            <View style={styles.statusContent}>
+            <Text style={styles.statusOption}>[ ] Repaired and in good physically condition:</Text>
+            <Text style={styles.statusOption}>[ ] Repaired but with deferred recommendations:</Text>
+            <View style={styles.statusLine} />
+            <Text style={styles.statusOption}>[ ] Unable to repair due to:</Text>
+            <View style={styles.statusLine} />
+            <Text style={styles.statusOption}>[ ] Pull out due to:</Text>
+            <View style={styles.statusLine} />
+            <Text style={styles.statusOption}>[ ] For replacement:</Text>
+            <View style={styles.statusLine} />
+            </View>
+        </View>
+
+        {/* ACKNOWLEDGMENT */}
+        <View style={styles.acknowledgmentBox}>
+            <View style={styles.acknowledgmentLabel}>
+            <Text style={styles.labelBold}>ACKNOWLEDGMENT:</Text>
+            </View>
+            <View style={styles.acknowledgmentContent}>
+            <Text style={styles.signatureText}>Signature Over Name</Text>
+            <View style={styles.signatureLine} />
+            <Text style={styles.dateText}>Date:</Text>
+            </View>
+        </View>
+        </Page>
+     </Document>
+  );
+};
+
+export default JobOrderPDF;
