@@ -20,9 +20,9 @@ interface JobOrderData {
 }
 
 const styles = StyleSheet.create({
-         page: {
+     page: {
         fontSize: 10,
-        paddingTop: 50,
+        paddingTop: 55,
         paddingBottom: 50,
         paddingHorizontal: 50,
         fontFamily: "Helvetica",
@@ -55,14 +55,16 @@ const styles = StyleSheet.create({
         fontFamily: "Helvetica-Bold",
     },
     section: {
-        borderWidth: 0.5, 
+        borderWidth: 0.5,
+        borderColor: "#888",
         backgroundColor: "#e5e5e5",
         padding: 6, 
         alignItems: "center",
     },
   
     sectiona: {
-        borderWidth: 0.5, 
+        borderWidth: 0.5,
+        borderColor: "#888",
         backgroundColor: "#e5e5e5",
         padding: 6, 
         alignItems: "center",
@@ -75,7 +77,8 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: "row",
-        borderWidth: 0.5, 
+        borderWidth: 0.5,
+        borderColor: "#888",
         borderTopWidth: 0,
         padding: 5,
         minHeight: 20,
@@ -84,7 +87,8 @@ const styles = StyleSheet.create({
         width: 150,
         fontFamily: "Helvetica-Bold",
         paddingRight: 5,
-        borderRightWidth: 0.5, 
+        borderRightWidth: 0.5,
+        borderRightColor: "#888",
     },
     dateLabel: {
         width: 80,
@@ -105,7 +109,8 @@ const styles = StyleSheet.create({
     },
     statusRow: {
         flexDirection: "row",
-        borderWidth: 0.5, 
+        borderWidth: 0.5,
+        borderColor: "#888",
         borderTopWidth: 0,
         padding: 5, 
     },
@@ -118,14 +123,16 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     statusLine: {
-        borderBottomWidth: 0.5, 
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#888",
         marginVertical: 2,
         marginTop: 10,
         marginLeft: 10,
     },
     acknowledgmentBox: {
         flexDirection: "row",
-        borderWidth: 0.5, 
+        borderWidth: 0.5,
+        borderColor: "#888",
         borderTopWidth: 0,
         minHeight: 0,
         padding: 5,
@@ -133,12 +140,13 @@ const styles = StyleSheet.create({
     acknowledgmentLabel: {
         width: 150,
         paddingRight: 5,
-        borderRightWidth: 0.5, 
+        borderRightWidth: 0.5,
+        borderRightColor: "#888",
     },
     acknowledgmentContent: {
         flex: 1,
         paddingLeft: 5,
-      	marginTop:40,
+        marginTop:40,
         justifyContent: "space-between",
     },
     signatureText: {
@@ -146,7 +154,8 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     signatureLine: {
-        borderBottomWidth: 0.5, 
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#888",
         width: 110,
         marginBottom: 5,
     },
@@ -202,7 +211,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         </View>
 
         {/* DEVICE DETAILS */}
-        <View style={styles.sectiona}>
+        <View style={styles.section}>
             <Text style={styles.sectionText}>DEVICE DETAILS</Text>
         </View>
         <View style={styles.row}>
@@ -219,7 +228,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         </View>
 
         {/* ISSUE REPORT */}
-        <View style={styles.sectiona}>
+        <View style={styles.section}>
             <Text style={styles.sectionText}>ISSUE REPORT</Text>
         </View>
         
@@ -236,7 +245,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         </View>
 
         {/* DIAGNOSTIC */}
-        <View style={styles.sectiona}>
+        <View style={styles.section}>
             <Text style={styles.sectionText}>DIAGNOSTIC</Text>
         </View>
 
@@ -270,14 +279,16 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         </View>
 
         {/* ACKNOWLEDGMENT */}
-        <View style={styles.acknowledgmentBox}>
+        <View style={styles.acknowledgmentBox} >
             <View style={styles.acknowledgmentLabel}>
-            <Text style={styles.labelBold}>ACKNOWLEDGMENT:</Text>
+            	<Text style={styles.labelBold}>ACKNOWLEDGMENT:</Text>
             </View>
             <View style={styles.acknowledgmentContent}>
-            <Text style={styles.signatureText}>Signature Over Name</Text>
-            <View style={styles.signatureLine} />
-            <Text style={styles.dateText}>Date:</Text>
+            	<View style={styles.signatureLine} />
+                <View style={styles.acknowledgeLayout}>
+                  <Text style={styles.signatureText}>Signature Over Name</Text>
+                  <Text style={styles.dateText}>Date:</Text>  
+              </View>
             </View>
         </View>
         </Page>

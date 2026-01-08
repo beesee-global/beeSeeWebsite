@@ -1,6 +1,8 @@
 import React from 'react'
 import { pdf } from "@react-pdf/renderer";
 import JobOrderPDF from "../../utils/JobOrderPDF";
+import { Buffer } from "buffer";
+ 
  
 import {
   Mail,
@@ -37,15 +39,22 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 }) => {
 
 const generateAndDownloadPDF = async () => {
-    const doc = pdf(<JobOrderPDF data={userTicketInformation} />);
-    const blob = await doc.toBlob();
+    try {
+      const doc = pdf(<JobOrderPDF data={userTicketInformation} />);
+      const blob = await doc.toBlob();
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `JobOrder-${userTicketInformation.ticket_id}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `JobOrder-${userTicketInformation?.ticket_id ?? Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to generate/download PDF:", err);
+    }
   };
 
   return (
