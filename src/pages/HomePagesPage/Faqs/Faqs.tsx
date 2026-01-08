@@ -9,6 +9,13 @@ import {
   BookOpen,
   PlusCircle,
   Server,
+  Laptop,
+  BatteryCharging,
+  Tv,
+  Tablet,
+  Watch,
+  Smartphone
+  
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchFaqsAll, fetchAllDevices } from '../../../services/Technician/faqsServices';
@@ -407,17 +414,17 @@ const FAQs = () => {
                     {active === f.id && (
                       <div className="mt-4 opacity-100">
                         <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
-                          <p className="bee-body text-sm sm:text-[15px] leading-relaxed !text-white">
+                          <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
                             {f.explanation}
                           </p>
-                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--beesee-gold)]/10">
+                          
                             <span className="px-3 py-1 rounded-full bg-[var(--beesee-gold)]/15 text-[var(--beesee-gold)] text-xs font-medium">
                               {f.device}
                             </span>
                             <span className="px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs">
                               {f.category}
                             </span>
-                          </div>
+
                         </div>
                       </div>
                     )}
