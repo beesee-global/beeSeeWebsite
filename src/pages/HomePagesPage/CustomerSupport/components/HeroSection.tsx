@@ -408,11 +408,11 @@ const HeroSection: React.FC = () => {
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                     className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8"
                     style={{
-                      background: 'rgba(34, 197, 94, 0.15)',
-                      border: '2px solid rgb(34, 197, 94)'
+                    background: 'rgba(253, 204, 0, 0.15)',
+                    border: '2px solid var(--beesee-gold)'
                     }}
                   >
-                    <CheckCircle size={32} className="text-green-500" />
+                    <CheckCircle size={40} style={{ color: 'var(--beesee-gold)' }} />
                   </motion.div> 
 
                   <motion.h2 
@@ -446,7 +446,7 @@ const HeroSection: React.FC = () => {
                     <h3 className="bee-title-sm text-white mb-4 sm:mb-6">Next Steps</h3>
                     <div className="space-y-3 sm:space-y-4 text-left">
                       {[
-                        { icon: Clock, text: "Our support team will review your ticket within 24 hours" },
+                        
                         { icon: Mail, text: "You will receive an email confirmation with your ticket details" },
                         { icon: Phone, text: "If needed, a support representative will contact you for clarification" },
                         { icon: CheckCircle, text: "Issue will be resolved or updated as soon as possible" }
