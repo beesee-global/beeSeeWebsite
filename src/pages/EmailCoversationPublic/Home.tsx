@@ -344,7 +344,7 @@ export default function EmailConversationApp() {
         <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
           <div>
             <h2 className="text-md font-semibold text-gray-900">
-              {userTicketInformation.questions || 'No Subject'}
+              {userTicketInformation.issue_name || 'No Subject'}
             </h2> 
           </div>
 
