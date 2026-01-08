@@ -25,30 +25,53 @@ const Snackbar: React.FC <SnackbarProps> = ({
             return () => clearTimeout(timer)
         }
     },[open])
+    
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === "clickaway") return
         if (onClose) onClose();
     }
 
-return (
-    <MuiSnackbar
-        open={open}
-        onClose={handleClose}
-        anchorOrigin={{
-            vertical: "top",
-            horizontal: "center"
-        }}
-        >
-        <Alert
+    return (
+        <MuiSnackbar
+            open={open}
             onClose={handleClose}
-            severity={type}
-            variant="filled"
-            sx={{ width: "100%"}}
+            anchorOrigin={{
+                vertical: "top",
+                horizontal: "center"
+            }}
+            sx={{
+                // Position it in the middle of the screen, not at the very top
+                top: '50% !important',
+                transform: 'translateY(-50%) !important',
+                // Make sure it's above everything
+                zIndex: 9999,
+                // Add some responsive behavior
+                '@media (max-width: 768px)': {
+                    top: '30px !important',
+                    transform: 'none !important',
+                }
+            }}
         >
-            {message}
-        </Alert>
-    </MuiSnackbar  >
+            <Alert
+                onClose={handleClose}
+                severity={type}
+                variant="filled"
+                sx={{ 
+                    width: "100%",
+                    maxWidth: '400px',
+                    zIndex: 9999,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                    fontSize: '16px',
+                    // Make it more visible
+                    '& .MuiAlert-message': {
+                        fontWeight: 500
+                    }
+                }}
+            >
+                {message}
+            </Alert>
+        </MuiSnackbar>
     )
 }
 
-export default Snackbar
+export default Snackbar;
