@@ -151,7 +151,7 @@ const HeaderHomePage = () => {
     const navRight = [
         { label: 'INQUIRIES', to: '#contact-section' },
         { label: 'FAQS', to: '/faqs' },
-        { label: 'SUPPORT', to: 'http://192.168.1.104:5173/customer-support', external: true },
+        { label: 'SUPPORT', to: '/customer-support' }, // CHANGED: Removed external flag and fixed path
     ];
 
     const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];
@@ -234,21 +234,26 @@ const HeaderHomePage = () => {
                     {/* RIGHT NAV - Desktop */}
                     <Box className="hidden md:flex flex-1 justify-start">
                         <nav className="flex items-center gap-8 lg:gap-20 ml-8 lg:ml-20">
-                            {navRight.map((item) => (
-                                <Button
-                                    key={item.label}
-                                    disableRipple
-                                    onClick={() => handleNavClick(item.to)}
-                                    aria-label={`Navigate to ${item.label}`}
-                                    className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 !text-white ${
-                                        isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'
-                                    }`}
-                                >
-                                    <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full" />
-                                    {item.label}
-                                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 w-0 group-hover:w-full" />
-                                </Button>
-                            ))}
+                            {navRight.map((item) => {
+                                const active = location.pathname === item.to;
+                                return (
+                                    <Button
+                                        key={item.label}
+                                        disableRipple
+                                        onClick={() => handleNavClick(item.to)}
+                                        aria-label={`Navigate to ${item.label}`}
+                                        className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 ${active ? '!text-[#FFD700]' : '!text-white'} ${
+                                            isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'
+                                        }`}
+                                    >
+                                        <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full" />
+                                        {item.label}
+                                        <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
+                                            active ? 'w-full' : 'w-0 group-hover:w-full'
+                                        }`} />
+                                    </Button>
+                                );
+                            })}
                         </nav>
                     </Box>
 
@@ -397,14 +402,7 @@ const HeaderHomePage = () => {
                                             }}
                                         >
                                             <ListItem
-                                                onClick={() => {
-                                                    if (!item.external) {
-                                                        handleNavClick(item.to);
-                                                    } else {
-                                                        window.open(item.to, '_blank');
-                                                        handleCloseDrawer();
-                                                    }
-                                                }}
+                                                onClick={() => handleNavClick(item.to)}
                                                 className={`
                                                     hover:!bg-[#2A2A2A] transition-all duration-300 
                                                     py-4 pl-6 cursor-pointer relative select-none
@@ -451,9 +449,6 @@ const HeaderHomePage = () => {
                                                         },
                                                     }}
                                                 />
-                                                {item.external && (
-                                                    <span className="ml-2 text-xs text-gray-400">↗</span>
-                                                )}
                                             </ListItem>
                                         </motion.div>
                                     );

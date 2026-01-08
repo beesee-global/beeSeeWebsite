@@ -51,6 +51,7 @@ interface FormError {
 }
 
 const Inquiries = () => {
+  const [isMobile, setIsMobile] = useState(false); // ADDED THIS LINE - FIX FOR THE ERROR
   const {
     setSnackBarOpen,
     setSnackBarMessage, 

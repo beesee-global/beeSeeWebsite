@@ -108,7 +108,7 @@ const FAQs = () => {
     <section
       className="relative overflow-hidden pt-24 sm:pt-28 md:pt-36 lg:pt-48 pb-28 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12"
       style={{
-        backgroundImage: "url('/backgrounds/randomBg2Gray.png')",
+        backgroundImage: "url('/live-background/randomBg2Gray.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

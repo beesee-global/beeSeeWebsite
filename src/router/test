@@ -41,8 +41,8 @@ const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/H
 
 const routes = [
     {
-        path: '/', // Catch-all route
-        element: <Navigate to="/homepage" />,
+        path: '/', // Root redirect
+        element: <Navigate to="/home" replace />,
         layout: 'blank',
     },
     {
@@ -51,20 +51,20 @@ const routes = [
         layout: 'blank',
         children: [
             {
-                index:true,     
-                element:<Navigate to="home" replace />,
-            },
-            {
                 path: 'home',
                 element: <FrontPage />
+            },
+            {
+                path: 'products',
+                element: <ProductsHub />
             },
             {
                 path: 'solution', // ADDED THIS - singular version
                 element: <Solution />
             },
             {
-                path: 'products',
-                element: <ProductsHub />
+                path: 'solutions', // ADDED THIS - plural version (so both work)
+                element: <Solution />
             },
             {
                 path: 'about-beesee',
@@ -193,12 +193,12 @@ const routes = [
             }, 
         ]
     },
-    /* Not found routes */ 
-{
+    /* Not found routes - Redirect to home instead of 404 */ 
+    {
         path: '*', // Catch-all route
         element: <Navigate to="/home" replace />, // CHANGED: Redirect to home instead of 404
         layout: 'blank', 
-    },  
+    },   
 ];
 
 export { routes };
