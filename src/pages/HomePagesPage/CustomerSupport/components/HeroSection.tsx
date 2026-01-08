@@ -281,19 +281,51 @@ const HeroSection: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background Video */}
-      <div className="fixed inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source src="/backgrounds/holo4.mp4" type="video/mp4" />
-        </video>
-        {/* Black Overlay */}
-        <div className="absolute inset-0 bg-[#000000] opacity-70"></div>
+      {/* REPLACE THE VIDEO BACKGROUND WITH FAQ BACKGROUND */}
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: "url('/live-background/randomBg2Gray.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        {/* Add the same gradient overlays as FAQ page */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background: `
+              linear-gradient(
+                to bottom,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.85) 5%,
+                rgba(0,0,0,0.55) 25%,
+                rgba(0,0,0,0.25) 40%,
+                rgba(0,0,0,0.08) 60%,
+                rgba(0,0,0,0) 100%
+              ),
+              linear-gradient(
+                to bottom,
+                rgba(253,204,0,0.35) 0%,
+                rgba(253,204,0,0.25) 15%,
+                rgba(253,204,0,0.15) 35%,
+                rgba(253,204,0,0.08) 55%,
+                rgba(253,204,0,0.03) 75%,
+                rgba(253,204,0,0) 100%
+              ),
+              linear-gradient(
+                to top,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.85) 5%,
+                rgba(0,0,0,0.55) 25%,
+                rgba(0,0,0,0.25) 40%,
+                rgba(0,0,0,0.08) 78%,
+                rgba(0,0,0,0) 100%
+              )
+            `,
+          }}
+        />
       </div>
 
       {/* Content */}
