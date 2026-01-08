@@ -14,9 +14,22 @@ const HeaderHomePage = () => {
     const isInitialMount = useRef(true);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const drawerRef = useRef<HTMLDivElement>(null);
+    const drawerAnimationRef = useRef<NodeJS.Timeout | null>(null);
     
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isShrunk, setIsShrunk] = useState(false);
+    const [isDrawerAnimating, setIsDrawerAnimating] = useState(false);
+
+    /* Cleanup all refs and timeouts */
+    useEffect(() => {
+        return () => {
+            [scrollTimeoutRef, drawerAnimationRef].forEach(ref => {
+                if (ref.current) {
+                    clearTimeout(ref.current);
+                }
+            });
+        };
+    }, []);
 
     /* Optimized Header Shrink - Debounced */
     useEffect(() => {
@@ -65,20 +78,61 @@ const HeaderHomePage = () => {
         [isShrunk]
     );
 
+    /* Improved Drawer State Management */
+    const handleOpenDrawer = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        if (isDrawerAnimating) return;
+        
+        setIsDrawerAnimating(true);
+        setDrawerOpen(true);
+        
+        if (drawerAnimationRef.current) {
+            clearTimeout(drawerAnimationRef.current);
+        }
+        
+        drawerAnimationRef.current = setTimeout(() => {
+            setIsDrawerAnimating(false);
+        }, 350);
+    }, [isDrawerAnimating]);
+
+    const handleCloseDrawer = useCallback((e?: React.MouseEvent) => {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        if (isDrawerAnimating) return;
+        
+        setIsDrawerAnimating(true);
+        setDrawerOpen(false);
+        
+        if (drawerAnimationRef.current) {
+            clearTimeout(drawerAnimationRef.current);
+        }
+        
+        drawerAnimationRef.current = setTimeout(() => {
+            setIsDrawerAnimating(false);
+        }, 350);
+    }, [isDrawerAnimating]);
+
     /* Improved Navigation - Fixed timing */
     const handleNavClick = useCallback(
         (target: string) => {
-            setDrawerOpen(false);
+            if (isDrawerAnimating) return;
+            
+            handleCloseDrawer();
 
             setTimeout(() => {
                 if (target.startsWith('#')) {
                     const sectionId = target.substring(1);
                     
                     if (location.pathname === '/') {
-                        // Small delay to ensure drawer is closed
+                        // Small delay to ensure drawer is fully closed
                         setTimeout(() => {
                             smoothScrollToElement(sectionId, 50);
-                        }, 100);
+                        }, 200);
                     } else {
                         sessionStorage.setItem('scrollAfterLoad', target);
                         navigate('/');
@@ -90,9 +144,9 @@ const HeaderHomePage = () => {
                     navigate(target);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            }, 300); // Wait for drawer close animation
+            }, 350); // Wait for drawer close animation to complete
         },
-        [location.pathname, navigate, smoothScrollToElement]
+        [location.pathname, navigate, smoothScrollToElement, isDrawerAnimating, handleCloseDrawer]
     );
 
     /* Handle scroll after page load - Improved */
@@ -116,30 +170,50 @@ const HeaderHomePage = () => {
         }
     }, [location.pathname, smoothScrollToElement]);
 
-    /* Cleanup timeouts */
-    useEffect(() => {
-        return () => {
-            if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-            }
-        };
-    }, []);
-
-    /* Prevent body scroll when drawer is open */
+    /* Prevent body scroll when drawer is open - Optimized */
     useEffect(() => {
         if (drawerOpen) {
             document.body.style.overflow = 'hidden';
-            document.body.style.paddingRight = '0px';
+            document.body.style.touchAction = 'none';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
         } else {
-            document.body.style.overflow = 'unset';
-            document.body.style.paddingRight = '0px';
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
         }
         
         return () => {
-            document.body.style.overflow = 'unset';
-            document.body.style.paddingRight = '0px';
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
         };
     }, [drawerOpen]);
+
+    /* Handle click outside of drawer - Improved */
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if (isDrawerAnimating) return;
+            
+            if (drawerRef.current && 
+                !drawerRef.current.contains(event.target as Node) && 
+                drawerOpen) {
+                handleCloseDrawer();
+            }
+        };
+
+        if (drawerOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [drawerOpen, isDrawerAnimating, handleCloseDrawer]);
 
     /* Navigation Items */
     const navLeft = [
@@ -151,41 +225,10 @@ const HeaderHomePage = () => {
     const navRight = [
         { label: 'INQUIRIES', to: '#contact-section' },
         { label: 'FAQS', to: '/faqs' },
-        { label: 'SUPPORT', to: '/customer-support' }, // CHANGED: Removed external flag and fixed path
+        { label: 'SUPPORT', to: '/customer-support' },
     ];
 
     const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];
-
-    const handleCloseDrawer = useCallback((e?: React.MouseEvent) => {
-        if (e) {
-            e.stopPropagation();
-        }
-        setDrawerOpen(false);
-    }, []);
-
-    const handleOpenDrawer = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setDrawerOpen(true);
-    }, []);
-
-    /* Handle click outside of drawer */
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (drawerRef.current && 
-                !drawerRef.current.contains(event.target as Node) && 
-                drawerOpen) {
-                setDrawerOpen(false);
-            }
-        };
-
-        if (drawerOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [drawerOpen]);
 
     return (
         <>
@@ -228,6 +271,8 @@ const HeaderHomePage = () => {
                             alt="BeeSee Logo"
                             role="button"
                             aria-label="Navigate to home"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleNavClick('/')}
                         />
                     </Box>
 
@@ -257,21 +302,25 @@ const HeaderHomePage = () => {
                         </nav>
                     </Box>
 
-                    {/* MOBILE MENU BUTTON - Fixed positioning and z-index */}
+                    {/* MOBILE MENU BUTTON - Fixed with better state management */}
                     <IconButton
                         edge="start"
                         onClick={handleOpenDrawer}
-                        className="md:!hidden !text-white !ml-0 !z-50"
+                        className="md:!hidden !text-white !ml-0"
                         aria-label="Open navigation menu"
+                        disabled={isDrawerAnimating}
                         sx={{
                             opacity: drawerOpen ? 0 : 1,
-                            transition: 'opacity 0.2s ease',
+                            transition: 'opacity 0.3s ease',
                             pointerEvents: drawerOpen ? 'none' : 'auto',
                             position: 'relative',
-                            zIndex: 9999,
-                            backgroundColor: drawerOpen ? 'transparent' : 'transparent',
+                            zIndex: 50,
+                            backgroundColor: 'transparent',
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.5,
                             }
                         }}
                     >
@@ -280,189 +329,195 @@ const HeaderHomePage = () => {
                 </Toolbar>
             </header>
 
-            {/* MOBILE DRAWER - Fixed with proper layering */}
-            <Drawer
-                anchor="left"
-                open={drawerOpen}
-                onClose={handleCloseDrawer}
-                ref={drawerRef}
-                PaperProps={{
-                    sx: {
-                        backgroundColor: '#181717',
-                        width: '280px',
-                        maxWidth: '85vw',
-                        overflowX: 'hidden',
-                        boxShadow: '0 0 25px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.15)',
-                        borderRight: '1px solid rgba(255,215,0,0.2)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        zIndex: 9999,
-                        position: 'relative',
-                    },
-                }}
-                transitionDuration={300}
-                ModalProps={{
-                    keepMounted: false,
-                    disableScrollLock: true,
-                    style: {
-                        zIndex: 9998,
-                    }
-                }}
-                sx={{
-                    zIndex: 9999,
-                    '& .MuiDrawer-paper': {
-                        zIndex: 9999,
-                    },
-                    '& .MuiBackdrop-root': {
-                        zIndex: 9998,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        backdropFilter: 'blur(3px)',
-                    }
-                }}
-            >
-                {/* LOGO + CLOSE - Fixed with proper spacing and click area */}
-                <div className="flex justify-between items-center px-6 py-5 border-b border-gray-700 bg-[#181717] sticky top-0 z-50 min-h-[80px]">
-                    <img 
-                        src={beeseeGoldLogo} 
-                        className="w-[150px] h-auto cursor-pointer" 
-                        alt="BeeSee Gold Logo" 
-                        onClick={() => handleNavClick('/')}
-                        style={{ 
-                            pointerEvents: 'auto',
-                            maxWidth: '150px',
-                        }}
-                    />
-
-                    <div 
-                        className="relative"
-                        style={{ 
-                            width: '40px', 
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <motion.div 
-                            whileHover={{ rotate: 90, scale: 1.15 }} 
-                            whileTap={{ scale: 0.85 }} 
-                            transition={{ type: 'spring', stiffness: 250, damping: 18 }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                height: '100%',
+            {/* MOBILE DRAWER - Fixed with proper layering and animations */}
+            <AnimatePresence mode="wait">
+                {drawerOpen && (
+                    <>
+                        {/* Backdrop - Fixed z-index */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] md:hidden"
+                            onClick={handleCloseDrawer}
+                            style={{ touchAction: 'none' }}
+                        />
+                        
+                        {/* Drawer Container */}
+                        <Drawer
+                            anchor="left"
+                            open={drawerOpen}
+                            onClose={handleCloseDrawer}
+                            ref={drawerRef}
+                            variant="temporary"
+                            PaperProps={{
+                                sx: {
+                                    backgroundColor: '#181717',
+                                    width: '280px',
+                                    maxWidth: '85vw',
+                                    overflowX: 'hidden',
+                                    boxShadow: '0 0 25px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.15)',
+                                    borderRight: '1px solid rgba(255,215,0,0.2)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                    zIndex: 9999,
+                                    overflowY: 'auto',
+                                    WebkitOverflowScrolling: 'touch',
+                                },
+                            }}
+                            transitionDuration={300}
+                            ModalProps={{
+                                keepMounted: false,
+                                disableScrollLock: true,
+                                hideBackdrop: true,
+                                closeAfterTransition: true,
+                            }}
+                            sx={{
+                                position: 'fixed',
+                                zIndex: 9999,
+                                '& .MuiDrawer-paper': {
+                                    zIndex: 9999,
+                                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important',
+                                },
+                            }}
+                            SlideProps={{
+                                timeout: 300,
                             }}
                         >
-                            <IconButton 
-                                onClick={handleCloseDrawer} 
-                                className="!text-white" 
-                                sx={{ 
-                                    p: 1,
-                                    width: '40px',
-                                    height: '40px',
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(255, 215, 0, 0.15)',
-                                    },
-                                    '&:active': {
-                                        backgroundColor: 'rgba(255, 215, 0, 0.25)',
-                                    },
-                                    position: 'relative',
-                                    zIndex: 10000,
-                                }} 
-                                aria-label="Close navigation menu"
-                            >
-                                <CloseIcon fontSize="medium" />
-                            </IconButton>
-                        </motion.div>
-                    </div>
-                </div>
+                            {/* LOGO + CLOSE - Fixed with proper event handling */}
+                            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-700 bg-[#181717] sticky top-0 z-10 min-h-[80px] flex-shrink-0">
+                                <button
+                                    onClick={() => handleNavClick('/')}
+                                    className="focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:ring-opacity-50 rounded"
+                                    aria-label="Navigate to home"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        padding: 0,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    <img 
+                                        src={beeseeGoldLogo} 
+                                        className="w-[150px] h-auto" 
+                                        alt="BeeSee Gold Logo"
+                                        draggable="false"
+                                    />
+                                </button>
 
-                {/* NAV ITEMS - With proper spacing */}
-                <div className="flex-1 overflow-y-auto pt-2">
-                    <nav>
-                        <List className="py-2">
-                            <AnimatePresence>
-                                {drawerOpen && mobileNavItems.map((item, index) => {
-                                    const isActive = item.to.startsWith('#') 
-                                        ? false 
-                                        : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
-
-                                    return (
-                                        <motion.div
-                                            key={item.label}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{
-                                                delay: index * 0.05,
-                                                duration: 0.3,
-                                                ease: 'easeOut',
-                                            }}
+                                <div className="relative">
+                                    <motion.div 
+                                        whileHover={{ rotate: 90, scale: 1.15 }} 
+                                        whileTap={{ scale: 0.85 }} 
+                                        transition={{ type: 'spring', stiffness: 250, damping: 18 }}
+                                    >
+                                        <IconButton 
+                                            onClick={handleCloseDrawer} 
+                                            className="!text-white" 
+                                           
+                                            aria-label="Close navigation menu"
+                                            disabled={isDrawerAnimating}
                                         >
-                                            <ListItem
-                                                onClick={() => handleNavClick(item.to)}
-                                                className={`
-                                                    hover:!bg-[#2A2A2A] transition-all duration-300 
-                                                    py-4 pl-6 cursor-pointer relative select-none
-                                                    ${isActive ? '!bg-[#2A2A2A]' : ''}
-                                                `}
-                                                sx={{
-                                                    '&::before': isActive
-                                                        ? {
-                                                            content: '""',
-                                                            position: 'absolute',
-                                                            left: 0,
-                                                            top: '50%',
-                                                            transform: 'translateY(-50%)',
-                                                            width: '4px',
-                                                            height: '60%',
-                                                            backgroundColor: '#FFD700',
-                                                            borderRadius: '0 4px 4px 0',
-                                                        }
-                                                        : {},
-                                                    '&:active': {
-                                                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                                                        transform: 'scale(0.98)',
-                                                    },
-                                                    minHeight: '56px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                }}
-                                            >
-                                                <ListItemText
-                                                    primary={item.label}
-                                                    sx={{
-                                                        '& .MuiListItemText-primary': {
-                                                            fontSize: '1.05rem',
-                                                            fontFamily: 'bebas, sans-serif',
-                                                            letterSpacing: '0.05em',
-                                                            fontWeight: isActive ? 600 : 400,
-                                                            background: isActive 
-                                                                ? 'linear-gradient(to right, #FFD700, #FFA500)' 
-                                                                : 'linear-gradient(to right, #fbbf24, #d97706)',
-                                                            WebkitBackgroundClip: 'text',
-                                                            WebkitTextFillColor: 'transparent',
-                                                            backgroundClip: 'text',
-                                                            transition: 'all 0.3s ease',
-                                                        },
-                                                    }}
-                                                />
-                                            </ListItem>
-                                        </motion.div>
-                                    );
-                                })}
-                            </AnimatePresence>
-                        </List>
-                    </nav>
-                </div>
+                                            <CloseIcon fontSize="medium" />
+                                        </IconButton>
+                                    </motion.div>
+                                </div>
+                            </div>
 
-                {/* Optional: Add a footer or extra info */}
-                <div className="p-4 border-t border-gray-700 text-center text-gray-400 text-sm">
-                    BeeSee Global Technologies
-                </div>
-            </Drawer>
+                            {/* NAV ITEMS - With optimized performance */}
+                            <div className="flex-1 overflow-y-auto pt-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                <nav>
+                                    <List className="py-2">
+                                        <AnimatePresence>
+                                            {mobileNavItems.map((item, index) => {
+                                                const isActive = item.to.startsWith('#') 
+                                                    ? false 
+                                                    : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+
+                                                return (
+                                                    <motion.div
+                                                        key={item.label}
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: 20 }}
+                                                        transition={{
+                                                            delay: index * 0.05,
+                                                            duration: 0.3,
+                                                            ease: 'easeOut',
+                                                        }}
+                                                        style={{ willChange: 'transform, opacity' }}
+                                                    >
+                                                        <ListItem
+                                                            onClick={() => handleNavClick(item.to)}
+                                                            className={`
+                                                                hover:!bg-[#2A2A2A] transition-all duration-300 
+                                                                py-4 pl-6 cursor-pointer relative select-none
+                                                                ${isActive ? '!bg-[#2A2A2A]' : ''}
+                                                                active:!bg-[#3A3A3A]
+                                                            `}
+                                                            sx={{
+                                                                '&::before': isActive
+                                                                    ? {
+                                                                        content: '""',
+                                                                        position: 'absolute',
+                                                                        left: 0,
+                                                                        top: '50%',
+                                                                        transform: 'translateY(-50%)',
+                                                                        width: '4px',
+                                                                        height: '60%',
+                                                                        backgroundColor: '#FFD700',
+                                                                        borderRadius: '0 4px 4px 0',
+                                                                    }
+                                                                    : {},
+                                                                minHeight: '56px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                userSelect: 'none',
+                                                                WebkitTapHighlightColor: 'transparent',
+                                                            }}
+                                                            button
+                                                            disabled={isDrawerAnimating}
+                                                        >
+                                                            <ListItemText
+                                                                primary={item.label}
+                                                                sx={{
+                                                                    '& .MuiListItemText-primary': {
+                                                                        fontSize: '1.05rem',
+                                                                        fontFamily: 'bebas, sans-serif',
+                                                                        letterSpacing: '0.05em',
+                                                                        fontWeight: isActive ? 600 : 400,
+                                                                        background: isActive 
+                                                                            ? 'linear-gradient(to right, #FFD700, #FFA500)' 
+                                                                            : 'linear-gradient(to right, #fbbf24, #d97706)',
+                                                                        WebkitBackgroundClip: 'text',
+                                                                        WebkitTextFillColor: 'transparent',
+                                                                        backgroundClip: 'text',
+                                                                        transition: 'all 0.3s ease',
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </ListItem>
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </AnimatePresence>
+                                    </List>
+                                </nav>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 border-t border-gray-700 text-center text-gray-400 text-sm bg-[#181717] flex-shrink-0">
+                                BeeSee Global Technologies
+                            </div>
+                        </Drawer>
+                    </>
+                )}
+            </AnimatePresence>
         </>
     );
 };

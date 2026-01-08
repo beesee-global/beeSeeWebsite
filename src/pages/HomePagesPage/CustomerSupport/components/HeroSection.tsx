@@ -281,7 +281,6 @@ const HeroSection: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* REPLACE THE VIDEO BACKGROUND WITH FAQ BACKGROUND */}
       <div 
         className="fixed inset-0 z-0"
         style={{
