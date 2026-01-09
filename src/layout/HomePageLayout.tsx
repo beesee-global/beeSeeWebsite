@@ -10,8 +10,8 @@ const HomePageLayout = () => {
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Routes where layout should be hidden
-  const hideLayoutRoutes = ["/customer-support"];
+  // Routes where layout should be hidden - REMOVED /customer-support from here
+  const hideLayoutRoutes = []; // Removed "/customer-support"
   const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
