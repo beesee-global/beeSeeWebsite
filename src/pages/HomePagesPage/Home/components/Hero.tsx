@@ -1,22 +1,11 @@
 import React from 'react';
-import { motion, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface HeroProps {
     scrollYProgress: any;
 }
 
 const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
-    // EXTREME PARALLAX — HIGH VISIBILITY
-    const logoY = useTransform(scrollYProgress, [0, 1], ['0vh', '-35vh']);
-    const logoOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
-
-    const titleY = useTransform(scrollYProgress, [0, 1], ['0vh', '-50vh']);
-    const titleScale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
-    const titleOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
-
-    const subtitleY = useTransform(scrollYProgress, [0, 1], ['0vh', '-65vh']);
-    const subtitleOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.25]);
-
     return (
         <section className="scroll-section relative h-dvh flex items-center justify-center overflow-hidden">
             {/* BACKGROUND VIDEO */}
@@ -34,13 +23,9 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
                     <motion.img
                         src="/assets/images/BEESEE.png"
                         alt="BeeSee Logo"
-                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 0.7 }}
-                        style={{
-                            y: logoY,
-                            opacity: logoOpacity,
-                        }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
                         className="
               w-[200px] 
               sm:w-[200px] 
@@ -55,11 +40,11 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
 
                     {/* TITLE */}
                     <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
                         style={{
                             fontFamily: "'Bebas Neue', sans-serif",
-                            y: titleY,
-                            scale: titleScale,
-                            opacity: titleOpacity,
                         }}
                         className="
               font-normal leading-none text-center text-[#FDCC00] tracking-wide
@@ -73,10 +58,11 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
 
                     {/* SUBTITLE */}
                     <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
                         style={{
                             fontFamily: 'Georgia, serif',
-                            y: subtitleY,
-                            opacity: subtitleOpacity,
                         }}
                         className="
               text-[#FDCC00]/80

@@ -527,7 +527,7 @@ const Inquiries = () => {
                             SUPPORT
                           </div>
                           <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            info@beese.ph
+                            support@beese.ph
                           </div>
                         </div>
                       </div>
