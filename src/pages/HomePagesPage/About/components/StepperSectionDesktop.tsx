@@ -48,6 +48,7 @@ const StepperSectionDesktop = () => {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const sectionRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const wheelListenerRef = useRef<((e: WheelEvent) => void) | null>(null);
   
   // Track if section is in view
   const sectionInView = useInView(sectionRef, { 
@@ -79,10 +80,54 @@ const StepperSectionDesktop = () => {
         observerRef.current.disconnect();
         observerRef.current = null;
       }
+      // Clean up wheel listener
+      if (wheelListenerRef.current) {
+        window.removeEventListener('wheel', wheelListenerRef.current);
+        wheelListenerRef.current = null;
+      }
       // Clear refs
       stepRefs.current = [];
     };
   }, []);
+
+  // Add wheel event listener for scrolling from anywhere on the page
+  useEffect(() => {
+    if (!isInitialized || !sectionInView) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!containerRef.current || !sectionRef.current) return;
+      
+      // Check if section is in viewport
+      const sectionRect = sectionRef.current.getBoundingClientRect();
+      const isInViewport = sectionRect.top < window.innerHeight && sectionRect.bottom > 0;
+      
+      if (!isInViewport) return;
+
+      // Check if we should handle this scroll
+      const container = containerRef.current;
+      const isAtTop = container.scrollTop === 0;
+      const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+      
+      // Allow page scroll if at boundaries
+      if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+        return;
+      }
+
+      // Prevent page scroll and scroll the container instead
+      e.preventDefault();
+      container.scrollTop += e.deltaY;
+    };
+
+    wheelListenerRef.current = handleWheel;
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      if (wheelListenerRef.current) {
+        window.removeEventListener('wheel', wheelListenerRef.current);
+        wheelListenerRef.current = null;
+      }
+    };
+  }, [isInitialized, sectionInView]);
 
   // Set up Intersection Observer only when initialized and in view
   useEffect(() => {
@@ -261,7 +306,7 @@ const StepperSectionDesktop = () => {
                   ))}
                 </div>
 
-                {/* Progress Bar - RETAINED */}
+                {/* Progress Bar */}
                 <div className="mt-8 pt-6 border-t border-[var(--beesee-gold)]/20">
                   <div className="flex justify-between bee-body-sm text-[#C7B897] mb-2">
                     <span>Progress</span>
@@ -280,7 +325,7 @@ const StepperSectionDesktop = () => {
             </div>
           </motion.div>
 
-          {/* Right Panel - Step Details - HIDDEN SCROLLBAR */}
+          {/* Right Panel - Step Details */}
           <motion.div
             variants={childAnimation}
             className="lg:col-span-8 relative"
@@ -290,11 +335,10 @@ const StepperSectionDesktop = () => {
               className="space-y-12 md:space-y-16 overflow-y-auto max-h-[700px]"
               style={{
                 scrollBehavior: 'smooth',
-                scrollbarWidth: 'none', // Firefox
-                msOverflowStyle: 'none', // IE/Edge
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
               }}
             >
-              {/* Hide scrollbar for Chrome, Safari and Opera */}
               <style jsx>{`
                 div::-webkit-scrollbar {
                   display: none;
@@ -334,7 +378,7 @@ const StepperSectionDesktop = () => {
                     }`}>
                       <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                         <div className="space-y-6">
-                          {/* Title - Left aligned */}
+                          {/* Title */}
                           <div className="text-left">
                             <h3 className="bee-title-sm text-[var(--beesee-gold)] mb-3">
                               {step.title}
@@ -352,7 +396,7 @@ const StepperSectionDesktop = () => {
                             </p>
                           </div>
                           
-                          {/* Details Section - Left aligned */}
+                          {/* Details Section */}
                           <div className="text-left">
                             <h4 className="bee-body-sm font-semibold text-[var(--beesee-gold)]/80 mb-3">
                               DETAILS
@@ -362,7 +406,7 @@ const StepperSectionDesktop = () => {
                             </p>
                           </div>
 
-                          {/* Learn More Button - Left aligned */}
+                          {/* Learn More Button */}
                           <div className="text-left pt-4">
                             <button
                               onClick={() => handleStepClick(index)}
@@ -374,7 +418,7 @@ const StepperSectionDesktop = () => {
                           </div>
                         </div>
 
-                        {/* Image Section - Right side */}
+                        {/* Image Section */}
                         <div className="beesee-card-image relative rounded-xl overflow-hidden">
                           <img
                             src={step.image}
@@ -391,9 +435,6 @@ const StepperSectionDesktop = () => {
                 </div>
               ))}
             </div>
-
-            {/* Navigation Card */}
-
           </motion.div>
         </div>
       </div>

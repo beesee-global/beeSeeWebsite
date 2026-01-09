@@ -582,16 +582,27 @@ const FAQs = () => {
                     <div className="beesee-card-content cursor-pointer transition hover:shadow-lg">
                       <div
                         onClick={() => setActive(active === f.id ? null : f.id)}
+                        className="flex justify-between items-center"
                       >
-                        <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex justify-between items-center">
+                        <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg">
                           {f.title}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <span className="px-3 py-1  text-[var(--beesee-gold-soft)] text-xs font-medium">
+                              {f.device}
+                            </span>
+                            <span className="px-3 py-1 text-white/70 text-xs">
+                              {f.category}
+                            </span>
+                          </div>
                           <ChevronDown
                             size={18}
                             className={`transition-transform duration-300 ${
                               active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
                             }`}
                           />
-                        </h3>
+                        </div>
                       </div>
                       {active === f.id && (
                         <div className="mt-4 opacity-100">
@@ -599,15 +610,6 @@ const FAQs = () => {
                             <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
                               {f.explanation}
                             </p>
-                            
-                            <div className="flex flex-wrap gap-2 mt-3">
-                              <span className="px-3 py-1 rounded-full bg-[var(--beesee-gold)]/15 text-[var(--beesee-gold)] text-xs font-medium">
-                                {f.device}
-                              </span>
-                              <span className="px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs">
-                                {f.category}
-                              </span>
-                            </div>
                           </div>
                         </div>
                       )}
