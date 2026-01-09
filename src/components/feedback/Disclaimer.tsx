@@ -42,6 +42,14 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ open, onClose }) => {
               rel="noopener noreferrer"
             >
               Privacy Policy
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/terms-and-conditions"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms & Conditions
             </Link>.
           </DialogContentText>
         </DialogContent>
