@@ -418,24 +418,26 @@ const FAQs = () => {
                         </div>
                       </div>
                       {active === f.id && (
-                        <div className="mt-4 opacity-100">
-                          <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
-                            <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
-                              {f.explanation}
-                            </p>
-                            {/* Mobile: Tags below explanation, left aligned */}
-                            <div className="flex md:hidden gap-2 mt-4">
-                              <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
-                                {f.device}
-                              </span>
-                              {/*bg-black/30 rounded-full*/}
-                              <span className="px-3 py-1 text-white/70 text-xs ">
-                                {f.category}
-                              </span>
-                            </div>
+                      <div className="mt-4 opacity-100">
+                        <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
+                          <p 
+                            className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
+                            style={{ textAlign: 'left', textAlignLast: 'left' }}
+                          >
+                            {f.explanation}
+                          </p>
+                          {/* Mobile: Tags below explanation, left aligned */}
+                          <div className="flex md:hidden gap-2 mt-4">
+                            <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
+                              {f.device}
+                            </span>
+                            <span className="px-3 py-1 text-white/70 text-xs ">
+                              {f.category}
+                            </span>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    )}
                     </div>
                   </div>
                 ))}
