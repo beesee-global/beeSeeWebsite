@@ -387,8 +387,9 @@ const FAQs = () => {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
+            min-width: 36px;
             height: 36px;
+            padding: 0 8px;
             border-radius: 8px;
             background: rgba(56, 49, 32, 0.3);
             border: 1px solid #383120;
@@ -397,6 +398,7 @@ const FAQs = () => {
             font-weight: 500;
             transition: all 0.3s ease;
             cursor: pointer;
+            flex-shrink: 0;
           }
 
           .pagination-btn:hover:not(:disabled) {
@@ -421,10 +423,19 @@ const FAQs = () => {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
+            min-width: 36px;
             height: 36px;
             color: #C7B897;
             font-size: 0.875rem;
+            flex-shrink: 0;
+          }
+
+          /* FAQ CARD CLICKABLE AREA */
+          .faq-card-header {
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
           }
 
           /* MOBILE RESPONSIVE */
@@ -460,15 +471,37 @@ const FAQs = () => {
             }
 
             .pagination-btn {
-              width: 32px;
+              min-width: 32px;
+              height: 32px;
+              font-size: 0.75rem;
+              padding: 0 6px;
+            }
+
+            .pagination-ellipsis {
+              min-width: 24px;
               height: 32px;
               font-size: 0.75rem;
             }
 
-            .pagination-ellipsis {
-              width: 32px;
-              height: 32px;
+            .pagination-info {
               font-size: 0.75rem;
+              text-align: center;
+            }
+
+            .pagination-wrapper {
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+              scrollbar-width: none;
+              -ms-overflow-style: none;
+            }
+
+            .pagination-wrapper::-webkit-scrollbar {
+              display: none;
+            }
+
+            .pagination-controls {
+              min-width: min-content;
+              padding: 0 4px;
             }
           }
 
@@ -485,6 +518,24 @@ const FAQs = () => {
 
             .category-pill-name {
               font-size: 0.6rem;
+            }
+
+            .pagination-btn {
+              min-width: 28px;
+              height: 28px;
+              font-size: 0.7rem;
+              padding: 0 4px;
+            }
+
+            .pagination-btn svg {
+              width: 14px;
+              height: 14px;
+            }
+
+            .pagination-ellipsis {
+              min-width: 20px;
+              height: 28px;
+              font-size: 0.7rem;
             }
           }
         `}</style>
@@ -579,29 +630,41 @@ const FAQs = () => {
               <>
                 {currentFaqs.map((f, i) => (
                   <div key={f.id}>
-                    <div className="beesee-card-content cursor-pointer transition hover:shadow-lg">
+                    <div className="beesee-card-content transition hover:shadow-lg">
                       <div
                         onClick={() => setActive(active === f.id ? null : f.id)}
-                        className="flex justify-between items-center"
+                        className="faq-card-header"
                       >
-                        <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg">
-                          {f.title}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <span className="px-3 py-1  text-[var(--beesee-gold-soft)] text-xs font-medium">
-                              {f.device}
-                            </span>
-                            <span className="px-3 py-1 text-white/70 text-xs">
-                              {f.category}
-                            </span>
+                        <div className="flex justify-between items-start gap-3">
+                          <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex-1">
+                            {f.title}
+                          </h3>
+                          {/* Desktop: Tags + Arrow on right */}
+                          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                            <div className="flex gap-1">
+                              <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
+                                {f.device}
+                              </span>
+                              <span className="px-3 py-1 text-white/70 text-xs">
+                                {f.category}
+                              </span>
+                            </div>
+                            <ChevronDown
+                              size={18}
+                              className={`transition-transform duration-300 flex-shrink-0 ${
+                                active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
+                              }`}
+                            />
                           </div>
-                          <ChevronDown
-                            size={18}
-                            className={`transition-transform duration-300 ${
-                              active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
-                            }`}
-                          />
+                          {/* Mobile: Only Arrow */}
+                          <div className="flex md:hidden items-center flex-shrink-0">
+                            <ChevronDown
+                              size={18}
+                              className={`transition-transform duration-300 ${
+                                active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
+                              }`}
+                            />
+                          </div>
                         </div>
                       </div>
                       {active === f.id && (
@@ -610,6 +673,16 @@ const FAQs = () => {
                             <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
                               {f.explanation}
                             </p>
+                            {/* Mobile: Tags below explanation, left aligned */}
+                            <div className="flex md:hidden gap-2 mt-4">
+                              <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
+                                {f.device}
+                              </span>
+                              {/*bg-black/30 rounded-full*/}
+                              <span className="px-3 py-1 text-white/70 text-xs ">
+                                {f.category}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -619,121 +692,123 @@ const FAQs = () => {
 
                 {/* PAGINATION */}
                 {totalPages > 1 && (
-                  <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="bee-body-sm text-[#C7B897]">
+                  <div className="mt-8 sm:mt-12 flex flex-col gap-4">
+                    <div className="bee-body-sm text-[#C7B897] text-center sm:text-left pagination-info">
                       Showing {startIndex + 1} to {Math.min(endIndex, filteredFaqs.length)} of {filteredFaqs.length} questions
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      {/* First Page */}
-                      <button
-                        onClick={goToFirstPage}
-                        disabled={currentPage === 1}
-                        className="pagination-btn"
-                        aria-label="First page"
-                      >
-                        <ChevronsLeft size={16} />
-                      </button>
+                    <div className="pagination-wrapper w-full overflow-x-auto">
+                      <div className="pagination-controls flex items-center justify-center gap-1">
+                        {/* First Page */}
+                        <button
+                          onClick={goToFirstPage}
+                          disabled={currentPage === 1}
+                          className="pagination-btn"
+                          aria-label="First page"
+                        >
+                          <ChevronsLeft size={16} />
+                        </button>
 
-                      {/* Previous Page */}
-                      <button
-                        onClick={goToPrevPage}
-                        disabled={currentPage === 1}
-                        className="pagination-btn"
-                        aria-label="Previous page"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
+                        {/* Previous Page */}
+                        <button
+                          onClick={goToPrevPage}
+                          disabled={currentPage === 1}
+                          className="pagination-btn"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
 
-                      {/* Page Numbers */}
-                      {(() => {
-                        const pages = [];
-                        const maxVisiblePages = 5;
-                        
-                        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                        
-                        if (endPage - startPage + 1 < maxVisiblePages) {
-                          startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                        }
-
-                        // First page with ellipsis if needed
-                        if (startPage > 1) {
-                          pages.push(
-                            <button
-                              key={1}
-                              onClick={() => goToPage(1)}
-                              className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
-                            >
-                              1
-                            </button>
-                          );
+                        {/* Page Numbers */}
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = window.innerWidth < 640 ? 3 : 5;
                           
-                          if (startPage > 2) {
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+
+                          // First page with ellipsis if needed
+                          if (startPage > 1) {
                             pages.push(
-                              <div key="ellipsis-start" className="pagination-ellipsis">
-                                ...
-                              </div>
+                              <button
+                                key={1}
+                                onClick={() => goToPage(1)}
+                                className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
+                              >
+                                1
+                              </button>
+                            );
+                            
+                            if (startPage > 2) {
+                              pages.push(
+                                <div key="ellipsis-start" className="pagination-ellipsis">
+                                  ...
+                                </div>
+                              );
+                            }
+                          }
+
+                          // Page numbers
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <button
+                                key={i}
+                                onClick={() => goToPage(i)}
+                                className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+                              >
+                                {i}
+                              </button>
                             );
                           }
-                        }
 
-                        // Page numbers
-                        for (let i = startPage; i <= endPage; i++) {
-                          pages.push(
-                            <button
-                              key={i}
-                              onClick={() => goToPage(i)}
-                              className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
-                            >
-                              {i}
-                            </button>
-                          );
-                        }
-
-                        // Last page with ellipsis if needed
-                        if (endPage < totalPages) {
-                          if (endPage < totalPages - 1) {
+                          // Last page with ellipsis if needed
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <div key="ellipsis-end" className="pagination-ellipsis">
+                                  ...
+                                </div>
+                              );
+                            }
+                            
                             pages.push(
-                              <div key="ellipsis-end" className="pagination-ellipsis">
-                                ...
-                              </div>
+                              <button
+                                key={totalPages}
+                                onClick={() => goToPage(totalPages)}
+                                className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
+                              >
+                                {totalPages}
+                              </button>
                             );
                           }
-                          
-                          pages.push(
-                            <button
-                              key={totalPages}
-                              onClick={() => goToPage(totalPages)}
-                              className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
-                            >
-                              {totalPages}
-                            </button>
-                          );
-                        }
 
-                        return pages;
-                      })()}
+                          return pages;
+                        })()}
 
-                      {/* Next Page */}
-                      <button
-                        onClick={goToNextPage}
-                        disabled={currentPage === totalPages}
-                        className="pagination-btn"
-                        aria-label="Next page"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
+                        {/* Next Page */}
+                        <button
+                          onClick={goToNextPage}
+                          disabled={currentPage === totalPages}
+                          className="pagination-btn"
+                          aria-label="Next page"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
 
-                      {/* Last Page */}
-                      <button
-                        onClick={goToLastPage}
-                        disabled={currentPage === totalPages}
-                        className="pagination-btn"
-                        aria-label="Last page"
-                      >
-                        <ChevronsRight size={16} />
-                      </button>
+                        {/* Last Page */}
+                        <button
+                          onClick={goToLastPage}
+                          disabled={currentPage === totalPages}
+                          className="pagination-btn"
+                          aria-label="Last page"
+                        >
+                          <ChevronsRight size={16} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
