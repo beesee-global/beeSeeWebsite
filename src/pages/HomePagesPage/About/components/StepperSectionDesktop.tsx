@@ -393,55 +393,7 @@ const StepperSectionDesktop = () => {
             </div>
 
             {/* Navigation Card */}
-            <div className="mt-12">
-              <div className="beesee-card-content p-6 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="bee-body-sm text-[var(--beesee-gold)] font-semibold">
-                      Step {activeStep + 1} of {steps.length}
-                    </div>
-                    <div className="flex gap-1">
-                      {steps.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-3 h-3 rounded-full transition-all ${
-                            i === activeStep
-                              ? "bg-[var(--beesee-gold)] scale-125"
-                              : i < activeStep
-                              ? "bg-[var(--beesee-gold)]/60"
-                              : "bg-[var(--beesee-gold)]/20"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => handleStepClick(Math.max(0, activeStep - 1))}
-                      disabled={activeStep === 0}
-                      className={`beesee-button beesee-button--small flex items-center gap-2 ${
-                        activeStep === 0 ? "opacity-50 cursor-not-allowed hover:scale-100" : ""
-                      }`}
-                    >
-                      <ChevronRight className="w-5 h-5 rotate-180" />
-                      <span>Previous</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleStepClick(Math.min(steps.length - 1, activeStep + 1))}
-                      disabled={activeStep === steps.length - 1}
-                      className={`beesee-button beesee-button--small flex items-center gap-2 ${
-                        activeStep === steps.length - 1 ? "opacity-50 cursor-not-allowed hover:scale-100" : ""
-                      }`}
-                    >
-                      <span>Next Step</span>
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>
