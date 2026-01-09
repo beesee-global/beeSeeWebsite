@@ -346,7 +346,7 @@ const HeaderHomePage = () => {
     ];
 
     const navRight = [
-        { label: 'INQUIRIES', to: '#contact-section' },
+        { label: 'INQUIRIES', to: '/inquiries' },
         { label: 'FAQS', to: '/faqs' },
         { label: 'SUPPORT', to: '/customer-support' },
     ];

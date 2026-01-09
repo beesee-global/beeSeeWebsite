@@ -8,6 +8,7 @@ const HomePageLayout = lazy(() => import ("../../src/layout/HomePageLayout"))
 const FrontPage = lazy (() => import("../pages/HomePagesPage/Home/HomePage"))
 const AboutBeesee = lazy(() => import ("../../src/pages/HomePagesPage/About/AboutUs")) 
 const FaqsHomePage = lazy(() => import ("../../src/pages/HomePagesPage/Faqs/Faqs"))
+const InquiriesPage = lazy(() => import('../pages/HomePagesPage/Inquiries/Inquiries'));
 const PrivacyPolicy = lazy(() => import ('../pages/HomePagesPage/PrivacyPolicy/PrivacyPolicy'))
 const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndConditions/TermsAndConditions'))
 const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
@@ -64,6 +65,7 @@ const routes = [
         element: <Navigate to="/homepage" />,
         layout: 'blank',
     },
+
     {
         path: '/',
         element: <HomePageLayout />,
@@ -78,8 +80,12 @@ const routes = [
                 element: <FrontPage />
             },
             {
-                path: 'solution', // ADDED THIS - singular version
+                path: 'solution',
                 element: <Solution />
+            },
+            {
+            path: 'inquiries',
+            element: <InquiriesPage />
             },
             {
                 path: 'products',

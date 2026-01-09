@@ -117,17 +117,19 @@ const FAQs = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/randomBg2Gray.png')",
+          backgroundImage: "url('/live-background/download.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-[#000000]/50" />
+        {/* GOLD + BLACK FADE LAYERS */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
+              /* Top black fade */
               linear-gradient(
                 to bottom,
                 rgba(0,0,0,1) 0%,
@@ -137,6 +139,7 @@ const FAQs = () => {
                 rgba(0,0,0,0.08) 60%,
                 rgba(0,0,0,0) 100%
               ),
+              /* Bottom gold/yellow fade */
               linear-gradient(
                 to bottom,
                 rgba(253,204,0,0.35) 0%,

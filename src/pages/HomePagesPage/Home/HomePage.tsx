@@ -3,7 +3,6 @@
 import { useScroll } from "framer-motion";
 import { useRef, useEffect } from "react";
 import Hero from "./components/Hero";
-import Inquiries from "./components/ContactSection";
 import SectionTwo from "./components/SectionTwo";
 
 export default function HomePage() {
@@ -47,7 +46,6 @@ export default function HomePage() {
       {/* NORMAL CONTENT — minimal scrolling for mobile */}
       <div className="w-full bg-black relative z-[20] mt-[150vh] lg:mt-[150vh] md:mt-[105vh] sm:mt-[85vh] xs:mt-[75vh]">
         <SectionTwo />
-        <Inquiries />
       </div>
     </div>
   );
