@@ -235,139 +235,255 @@ const Inquiries = () => {
 
         {submitted ? (
           <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              <div 
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8"
-                style={{
-                  background: 'rgba(253, 204, 0, 0.15)',
-                  border: '2px solid var(--beesee-gold)'
-                }}
-              >
-                <CheckCircle size={40} style={{ color: 'var(--beesee-gold)' }} />
-              </div>
-            </motion.div>
-            
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="bee-title-md"
-              style={{ color: 'var(--beesee-gold)', marginBottom: '1.5rem' }}
-            >
-              Thank You for Your Interest!
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="bee-body"
-              style={{ marginBottom: '2rem', maxWidth: '42rem', marginLeft: 'auto', marginRight: 'auto' }}
-            >
-              Your inquiry has been received. Our solutions team will contact you within
-              24 hours to discuss your requirements and schedule a personalized demonstration.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="rounded-2xl p-6 mb-8 max-w-2xl mx-auto"
-              style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(253, 204, 0, 0.22)'
-              }}
-            >
-              <h3 className="bee-title-sm" style={{ marginBottom: '1.5rem', color: 'var(--text-light)' }}>
-                What happens next?
-              </h3>
-              <div className="space-y-3 text-left">
-                <div className="flex items-center space-x-3">
-                  <Clock size={16} style={{ color: 'var(--beesee-gold)' }} />
-                  <span className="bee-body-sm">Initial consultation call within 24 hours</span>
+            {isMobile ? (
+              <>
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8"
+                  style={{
+                    background: 'rgba(253, 204, 0, 0.15)',
+                    border: '2px solid var(--beesee-gold)'
+                  }}
+                >
+                  <CheckCircle size={40} style={{ color: 'var(--beesee-gold)' }} />
                 </div>
-                <div className="flex items-center space-x-3">
-                  <FileText size={16} style={{ color: 'var(--beesee-gold)' }} />
-                  <span className="bee-body-sm">Customized proposal within 3-5 business days</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Calendar size={16} style={{ color: 'var(--beesee-gold)' }} />
-                  <span className="bee-body-sm">Live demo scheduled at your convenience</span>
-                </div>
-              </div>
-            </motion.div>
+                
+                <h2
+                  className="bee-title-md"
+                  style={{ color: 'var(--beesee-gold)', marginBottom: '1.5rem' }}
+                >
+                  Thank You for Your Interest!
+                </h2>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
-                style={{
-                  border: '2px solid rgba(253, 204, 0, 0.3)',
-                  color: 'var(--text-light)',
-                  background: 'transparent'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(253, 204, 0, 0.1)';
-                  e.currentTarget.style.borderColor = 'var(--beesee-gold)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.borderColor = 'rgba(253, 204, 0, 0.3)';
-                }}
-              >
-                <Home size={20} /> Return to Homepage
-              </button>
-              <button
-                onClick={() => setSubmitted(false)}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
-                style={{
-                  background: 'var(--beesee-gold)',
-                  color: '#000',
-                  border: '2px solid var(--beesee-gold)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#e6b800';
-                  e.currentTarget.style.borderColor = '#e6b800';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--beesee-gold)';
-                  e.currentTarget.style.borderColor = 'var(--beesee-gold)';
-                }}
-              >
-                <Send size={20} /> Submit Another Inquiry
-              </button>
-            </motion.div>
+                <p
+                  className="bee-body"
+                  style={{ marginBottom: '2rem', maxWidth: '42rem', marginLeft: 'auto', marginRight: 'auto' }}
+                >
+                  Your inquiry has been received. Our solutions team will contact you within
+                  24 hours to discuss your requirements and schedule a personalized demonstration.
+                </p>
+
+                <div
+                  className="rounded-2xl p-6 mb-8 max-w-2xl mx-auto"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(253, 204, 0, 0.22)'
+                  }}
+                >
+                  <h3 className="bee-title-sm" style={{ marginBottom: '1.5rem', color: 'var(--text-light)' }}>
+                    What happens next?
+                  </h3>
+                  <div className="space-y-3 text-left">
+                    <div className="flex items-center space-x-3">
+                      <Clock size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Initial consultation call within 24 hours</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <FileText size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Customized proposal within 3-5 business days</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Live demo scheduled at your convenience</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                    style={{
+                      border: '2px solid rgba(253, 204, 0, 0.3)',
+                      color: 'var(--text-light)',
+                      background: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(253, 204, 0, 0.1)';
+                      e.currentTarget.style.borderColor = 'var(--beesee-gold)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'rgba(253, 204, 0, 0.3)';
+                    }}
+                  >
+                    <Home size={20} /> Return to Homepage
+                  </button>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                    style={{
+                      background: 'var(--beesee-gold)',
+                      color: '#000',
+                      border: '2px solid var(--beesee-gold)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#e6b800';
+                      e.currentTarget.style.borderColor = '#e6b800';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--beesee-gold)';
+                      e.currentTarget.style.borderColor = 'var(--beesee-gold)';
+                    }}
+                  >
+                    <Send size={20} /> Submit Another Inquiry
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  <div 
+                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8"
+                    style={{
+                      background: 'rgba(253, 204, 0, 0.15)',
+                      border: '2px solid var(--beesee-gold)'
+                    }}
+                  >
+                    <CheckCircle size={40} style={{ color: 'var(--beesee-gold)' }} />
+                  </div>
+                </motion.div>
+                
+                <motion.h2
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.2 }}
+                  className="bee-title-md"
+                  style={{ color: 'var(--beesee-gold)', marginBottom: '1.5rem' }}
+                >
+                  Thank You for Your Interest!
+                </motion.h2>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.3 }}
+                  className="bee-body"
+                  style={{ marginBottom: '2rem', maxWidth: '42rem', marginLeft: 'auto', marginRight: 'auto' }}
+                >
+                  Your inquiry has been received. Our solutions team will contact you within
+                  24 hours to discuss your requirements and schedule a personalized demonstration.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.4 }}
+                  className="rounded-2xl p-6 mb-8 max-w-2xl mx-auto"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(253, 204, 0, 0.22)'
+                  }}
+                >
+                  <h3 className="bee-title-sm" style={{ marginBottom: '1.5rem', color: 'var(--text-light)' }}>
+                    What happens next?
+                  </h3>
+                  <div className="space-y-3 text-left">
+                    <div className="flex items-center space-x-3">
+                      <Clock size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Initial consultation call within 24 hours</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <FileText size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Customized proposal within 3-5 business days</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar size={16} style={{ color: 'var(--beesee-gold)' }} />
+                      <span className="bee-body-sm">Live demo scheduled at your convenience</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.5 }}
+                  className="flex flex-col sm:flex-row gap-4 justify-center"
+                >
+                  <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                    style={{
+                      border: '2px solid rgba(253, 204, 0, 0.3)',
+                      color: 'var(--text-light)',
+                      background: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(253, 204, 0, 0.1)';
+                      e.currentTarget.style.borderColor = 'var(--beesee-gold)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'rgba(253, 204, 0, 0.3)';
+                    }}
+                  >
+                    <Home size={20} /> Return to Homepage
+                  </button>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                    style={{
+                      background: 'var(--beesee-gold)',
+                      color: '#000',
+                      border: '2px solid var(--beesee-gold)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#e6b800';
+                      e.currentTarget.style.borderColor = '#e6b800';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--beesee-gold)';
+                      e.currentTarget.style.borderColor = 'var(--beesee-gold)';
+                    }}
+                  >
+                    <Send size={20} /> Submit Another Inquiry
+                  </button>
+                </motion.div>
+              </>
+            )}
           </div>
         ) : (
           <>
             {/* Title Section */}
             <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
-              <motion.h1 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7 }}
-                className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md mb-4"
-              >
-                BUSINESS INQUIRIES
-              </motion.h1>
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.1 }}
-                className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
-              >
-                Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
-              </motion.p>
+              {isMobile ? (
+                <>
+                  <h1 
+                    className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md mb-4"
+                  >
+                    BUSINESS INQUIRIES
+                  </h1>
+                  <p 
+                    className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
+                  >
+                    Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <motion.h1 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7 }}
+                    className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md mb-4"
+                  >
+                    BUSINESS INQUIRIES
+                  </motion.h1>
+                  <motion.p 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.1 }}
+                    className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
+                  >
+                    Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
+                  </motion.p>
+                </>
+              )}
             </div>
 
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
