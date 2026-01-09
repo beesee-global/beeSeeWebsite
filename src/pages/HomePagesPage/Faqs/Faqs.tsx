@@ -29,7 +29,11 @@ import {
   Mouse,
   SmartphoneCharging,
   TabletSmartphone,
-  LaptopMinimal
+  LaptopMinimal,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchFaqsAll, fetchAllDevices } from '../../../services/Technician/faqsServices';
@@ -51,6 +55,10 @@ const FAQs = () => {
   const [message, setMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [snackBarType, setSnackBarType] = useState<AlertColor>('success');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
 
   const { data: mockFaqs = [] } = useQuery({
     queryKey: ['faqs'],
@@ -88,6 +96,12 @@ const FAQs = () => {
     });
   }, [faqs, selectedDevice, searchTerm]);
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredFaqs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentFaqs = filteredFaqs.slice(startIndex, endIndex);
+
   useEffect(() => {
     if (mockFaqs.data) setFaqs(mockFaqs.data);
   }, [mockFaqs.data]);
@@ -95,6 +109,11 @@ const FAQs = () => {
   useEffect(() => {
     document.title = 'Faqs - Beesee Global Technology Inc;';
   }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDevice, searchTerm]);
 
   /* Scroll fade animation */
   const refs = useRef<HTMLDivElement[]>([]);
@@ -119,15 +138,15 @@ const FAQs = () => {
       return ob;
     });
     return () => obs.forEach((o) => o?.disconnect());
-  }, [filteredFaqs]);
+  }, [currentFaqs]);
 
   const getDeviceIcon = (deviceName: string) => {
     const name = deviceName.toLowerCase();
 
-      // Kiosk/ATM Machines
-  if (name.includes('kiosk') || name.includes('atm') || name.includes('self-service') || name.includes('terminal')) {
-    return <Monitor className="w-3.5 h-3.5" />; // Using Monitor icon for kiosk/ATM
-  }
+    // Kiosk/ATM Machines
+    if (name.includes('kiosk') || name.includes('atm') || name.includes('self-service') || name.includes('terminal')) {
+      return <Monitor className="w-3.5 h-3.5" />;
+    }
     
     // Server/Network related
     if (name.includes('server') || name.includes('cloud') || name.includes('data center')) {
@@ -202,6 +221,21 @@ const FAQs = () => {
     
     return <Cpu className="w-3.5 h-3.5" />;
   };
+
+  // Pagination handlers
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of FAQ list
+    const faqList = document.querySelector('.faq-list-container');
+    if (faqList) {
+      faqList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPrevPage = () => goToPage(Math.max(1, currentPage - 1));
+  const goToNextPage = () => goToPage(Math.min(totalPages, currentPage + 1));
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -348,6 +382,51 @@ const FAQs = () => {
             z-index: 1;
           }
 
+          /* PAGINATION STYLES */
+          .pagination-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(56, 49, 32, 0.3);
+            border: 1px solid #383120;
+            color: #C7B897;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+          }
+
+          .pagination-btn:hover:not(:disabled) {
+            background: rgba(253, 204, 0, 0.1);
+            border-color: #FDCC00;
+            color: #FDCC00;
+            transform: translateY(-1px);
+          }
+
+          .pagination-btn.active {
+            background: rgba(253, 204, 0, 0.15);
+            border-color: #FDCC00;
+            color: #FDCC00;
+          }
+
+          .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .pagination-ellipsis {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            color: #C7B897;
+            font-size: 0.875rem;
+          }
+
           /* MOBILE RESPONSIVE */
           @media (max-width: 768px) {
             .category-pill {
@@ -378,6 +457,18 @@ const FAQs = () => {
             
             .category-pill:active {
               transform: scale(0.98);
+            }
+
+            .pagination-btn {
+              width: 32px;
+              height: 32px;
+              font-size: 0.75rem;
+            }
+
+            .pagination-ellipsis {
+              width: 32px;
+              height: 32px;
+              font-size: 0.75rem;
             }
           }
 
@@ -476,7 +567,7 @@ const FAQs = () => {
           </div>
 
           {/* FAQ LIST */}
-          <div className="max-w-4xl mx-auto mt-12 sm:mt-16 space-y-4 sm:space-y-6">
+          <div className="max-w-4xl mx-auto mt-12 sm:mt-16 space-y-4 sm:space-y-6 faq-list-container">
             {filteredFaqs.length === 0 ? (
               <div className="text-center py-12">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-black/30 border border-[#C7B897]/20">
@@ -485,42 +576,166 @@ const FAQs = () => {
                 <p className="bee-body">No FAQs Found.</p>
               </div>
             ) : (
-              filteredFaqs.map((f, i) => (
-                <div key={f.id}>
-                  <div className="beesee-card-content cursor-pointer transition hover:shadow-lg">
-                    <div
-                      onClick={() => setActive(active === f.id ? null : f.id)}
-                    >
-                      <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex justify-between items-center">
-                        {f.title}
-                        <ChevronDown
-                          size={18}
-                          className={`transition-transform duration-300 ${
-                            active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
-                          }`}
-                        />
-                      </h3>
-                    </div>
-                    {active === f.id && (
-                      <div className="mt-4 opacity-100">
-                        <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
-                          <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
-                            {f.explanation}
-                          </p>
-                          
-                            <span className="px-3 py-1 rounded-full bg-[var(--beesee-gold)]/15 text-[var(--beesee-gold)] text-xs font-medium">
-                              {f.device}
-                            </span>
-                            <span className="px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs">
-                              {f.category}
-                            </span>
-
-                        </div>
+              <>
+                {currentFaqs.map((f, i) => (
+                  <div key={f.id}>
+                    <div className="beesee-card-content cursor-pointer transition hover:shadow-lg">
+                      <div
+                        onClick={() => setActive(active === f.id ? null : f.id)}
+                      >
+                        <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex justify-between items-center">
+                          {f.title}
+                          <ChevronDown
+                            size={18}
+                            className={`transition-transform duration-300 ${
+                              active === f.id ? "rotate-180 text-[var(--beesee-gold)]" : "text-[#C7B897]"
+                            }`}
+                          />
+                        </h3>
                       </div>
-                    )}
+                      {active === f.id && (
+                        <div className="mt-4 opacity-100">
+                          <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
+                            <p className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70">
+                              {f.explanation}
+                            </p>
+                            
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              <span className="px-3 py-1 rounded-full bg-[var(--beesee-gold)]/15 text-[var(--beesee-gold)] text-xs font-medium">
+                                {f.device}
+                              </span>
+                              <span className="px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs">
+                                {f.category}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+
+                {/* PAGINATION */}
+                {totalPages > 1 && (
+                  <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="bee-body-sm text-[#C7B897]">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredFaqs.length)} of {filteredFaqs.length} questions
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {/* First Page */}
+                      <button
+                        onClick={goToFirstPage}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                        aria-label="First page"
+                      >
+                        <ChevronsLeft size={16} />
+                      </button>
+
+                      {/* Previous Page */}
+                      <button
+                        onClick={goToPrevPage}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+
+                      {/* Page Numbers */}
+                      {(() => {
+                        const pages = [];
+                        const maxVisiblePages = 5;
+                        
+                        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                        
+                        if (endPage - startPage + 1 < maxVisiblePages) {
+                          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                        }
+
+                        // First page with ellipsis if needed
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              onClick={() => goToPage(1)}
+                              className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
+                            >
+                              1
+                            </button>
+                          );
+                          
+                          if (startPage > 2) {
+                            pages.push(
+                              <div key="ellipsis-start" className="pagination-ellipsis">
+                                ...
+                              </div>
+                            );
+                          }
+                        }
+
+                        // Page numbers
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              onClick={() => goToPage(i)}
+                              className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+
+                        // Last page with ellipsis if needed
+                        if (endPage < totalPages) {
+                          if (endPage < totalPages - 1) {
+                            pages.push(
+                              <div key="ellipsis-end" className="pagination-ellipsis">
+                                ...
+                              </div>
+                            );
+                          }
+                          
+                          pages.push(
+                            <button
+                              key={totalPages}
+                              onClick={() => goToPage(totalPages)}
+                              className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
+                            >
+                              {totalPages}
+                            </button>
+                          );
+                        }
+
+                        return pages;
+                      })()}
+
+                      {/* Next Page */}
+                      <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+
+                      {/* Last Page */}
+                      <button
+                        onClick={goToLastPage}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                        aria-label="Last page"
+                      >
+                        <ChevronsRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
