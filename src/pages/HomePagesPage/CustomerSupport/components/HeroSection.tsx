@@ -628,7 +628,7 @@ const HeroSection: React.FC = () => {
                     />
  
                     <CustomTextField 
-                      placeholder="Serial Number (Optional)" 
+                      placeholder="Serial Number" 
                       name="serial_number" 
                       value={formData?.serial_number} 
                       onChange={handleChangeInput} 
