@@ -280,21 +280,24 @@ const HeroSection: React.FC = () => {
   }, [formData?.category_id])
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+<div className="min-h-screen relative overflow-hidden">
+      {/* Fixed Background */}
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/randomBg2Gray.png')",
+          backgroundImage: "url('/live-background/download.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Add the same gradient overlays as FAQ page */}
+        <div className="absolute inset-0 bg-[#000000]/50" />
+        {/* GOLD + BLACK FADE LAYERS */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
+              /* Top black fade */
               linear-gradient(
                 to bottom,
                 rgba(0,0,0,1) 0%,
@@ -304,6 +307,7 @@ const HeroSection: React.FC = () => {
                 rgba(0,0,0,0.08) 60%,
                 rgba(0,0,0,0) 100%
               ),
+              /* Bottom gold/yellow fade */
               linear-gradient(
                 to bottom,
                 rgba(253,204,0,0.35) 0%,

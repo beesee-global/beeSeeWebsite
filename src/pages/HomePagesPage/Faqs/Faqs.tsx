@@ -14,8 +14,22 @@ import {
   Tv,
   Tablet,
   Watch,
-  Smartphone
-  
+  Smartphone,
+  Cpu,
+  HardDrive,
+  Monitor,
+  Printer,
+  Network,
+  Camera,
+  Headphones,
+  Gamepad2,
+  Speaker,
+  Router,
+  Keyboard,
+  Mouse,
+  SmartphoneCharging,
+  TabletSmartphone,
+  LaptopMinimal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchFaqsAll, fetchAllDevices } from '../../../services/Technician/faqsServices';
@@ -107,29 +121,103 @@ const FAQs = () => {
     return () => obs.forEach((o) => o?.disconnect());
   }, [filteredFaqs]);
 
-  const getDeviceIcon = () => {
-    return <Server className="w-3.5 h-3.5" />;
+  const getDeviceIcon = (deviceName: string) => {
+    const name = deviceName.toLowerCase();
+
+      // Kiosk/ATM Machines
+  if (name.includes('kiosk') || name.includes('atm') || name.includes('self-service') || name.includes('terminal')) {
+    return <Monitor className="w-3.5 h-3.5" />; // Using Monitor icon for kiosk/ATM
+  }
+    
+    // Server/Network related
+    if (name.includes('server') || name.includes('cloud') || name.includes('data center')) {
+      return <Server className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('network') || name.includes('router') || name.includes('switch')) {
+      return <Router className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('storage') || name.includes('hard drive') || name.includes('nas')) {
+      return <HardDrive className="w-3.5 h-3.5" />;
+    }
+    
+    // Computers/Laptops
+    if (name.includes('laptop') || name.includes('notebook') || name.includes('macbook')) {
+      return <LaptopMinimal className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('desktop') || name.includes('pc') || name.includes('computer')) {
+      return <Cpu className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('monitor') || name.includes('display') || name.includes('screen')) {
+      return <Monitor className="w-3.5 h-3.5" />;
+    }
+    
+    // Mobile devices
+    if (name.includes('smartphone') || name.includes('phone') || name.includes('iphone') || name.includes('android')) {
+      return <SmartphoneCharging className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('tablet') || name.includes('ipad')) {
+      return <TabletSmartphone className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('watch') || name.includes('wearable') || name.includes('smartwatch')) {
+      return <Watch className="w-3.5 h-3.5" />;
+    }
+    
+    // Entertainment
+    if (name.includes('tv') || name.includes('television') || name.includes('smart tv')) {
+      return <Tv className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('camera') || name.includes('webcam') || name.includes('security')) {
+      return <Camera className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('speaker') || name.includes('sound') || name.includes('audio')) {
+      return <Speaker className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('headphone') || name.includes('earphone') || name.includes('headset')) {
+      return <Headphones className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('game') || name.includes('gaming') || name.includes('console')) {
+      return <Gamepad2 className="w-3.5 h-3.5" />;
+    }
+    
+    // Peripherals
+    if (name.includes('printer') || name.includes('scanner') || name.includes('copier')) {
+      return <Printer className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('keyboard')) {
+      return <Keyboard className="w-3.5 h-3.5" />;
+    }
+    if (name.includes('mouse') || name.includes('trackpad')) {
+      return <Mouse className="w-3.5 h-3.5" />;
+    }
+    
+    // Power/Battery
+    if (name.includes('battery') || name.includes('power') || name.includes('charger')) {
+      return <BatteryCharging className="w-3.5 h-3.5" />;
+    }
+    
+    // Default for "All" and unknown devices
+    if (deviceName === 'All') {
+      return <Server className="w-3.5 h-3.5" />;
+    }
+    
+    return <Cpu className="w-3.5 h-3.5" />;
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Fixed Background */}
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/download.jpg')",
+          backgroundImage: "url('/live-background/randomBg2Gray.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="absolute inset-0 bg-[#000000]/50" />
-        {/* GOLD + BLACK FADE LAYERS */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
-              /* Top black fade */
               linear-gradient(
                 to bottom,
                 rgba(0,0,0,1) 0%,
@@ -139,7 +227,6 @@ const FAQs = () => {
                 rgba(0,0,0,0.08) 60%,
                 rgba(0,0,0,0) 100%
               ),
-              /* Bottom gold/yellow fade */
               linear-gradient(
                 to bottom,
                 rgba(253,204,0,0.35) 0%,
@@ -356,7 +443,7 @@ const FAQs = () => {
                     className={`category-pill ${isActive ? "active" : ""}`}
                   >
                     <div className="category-pill-icon">
-                      {getDeviceIcon()}
+                      {getDeviceIcon(device)}
                     </div>
                     <span className="category-pill-name">
                       {device}
@@ -377,7 +464,7 @@ const FAQs = () => {
                     className={`category-pill ${isActive ? "active" : ""}`}
                   >
                     <div className="category-pill-icon">
-                      {getDeviceIcon()}
+                      {getDeviceIcon(device)}
                     </div>
                     <span className="category-pill-name">
                       {device}

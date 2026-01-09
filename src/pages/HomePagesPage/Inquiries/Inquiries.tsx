@@ -176,24 +176,21 @@ const Inquiries = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Fixed Background */}
+     <div className="min-h-screen relative overflow-hidden">
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/download.jpg')",
+          backgroundImage: "url('/live-background/randomBg2Gray.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="absolute inset-0 bg-[#000000]/50" />
-        {/* GOLD + BLACK FADE LAYERS */}
+        {/* Add the same gradient overlays as FAQ page */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
-              /* Top black fade */
               linear-gradient(
                 to bottom,
                 rgba(0,0,0,1) 0%,
@@ -203,7 +200,6 @@ const Inquiries = () => {
                 rgba(0,0,0,0.08) 60%,
                 rgba(0,0,0,0) 100%
               ),
-              /* Bottom gold/yellow fade */
               linear-gradient(
                 to bottom,
                 rgba(253,204,0,0.35) 0%,
@@ -370,7 +366,7 @@ const Inquiries = () => {
                 transition={{ duration: 0.7, delay: 0.1 }}
                 className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
               >
-                Get in touch with our solutions team for product demonstrations, bulk orders, and enterprise solutions.
+                Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
               </motion.p>
             </div>
 
