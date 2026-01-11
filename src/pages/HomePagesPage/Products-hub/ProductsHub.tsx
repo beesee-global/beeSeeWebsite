@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 import CategoryFilter, { Category } from "./components/CategoryFilter";
 import SearchAndFilters from "./components/SearchAndFilters";
@@ -11,7 +11,7 @@ import ProductGrid, { Product } from "./components/ProductGrid";
 import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduct";
 
 import "../../../assets/css/Product.css";
-import "../../../assets/css/MimicStyles.css";
+
 
 // Mobile detection hook
 const useIsMobile = () => {
@@ -156,6 +156,55 @@ const ProductsHub: React.FC = () => {
         ram: "1GB",
       },
     },
+    {
+      id: 7,
+      pid: "P1010",
+      name: "BEESEE PRO DISPLAY",
+      tagline: "Professional-grade monitor for creative work",
+      category_id: "displays",
+      category: "Displays",
+      price: 29999,
+      image: "/assets/images/productHub/p1.png",
+      specs: {
+        display: '27" 5K Retina',
+        refreshRate: "120Hz",
+        colorGamut: "P3 99%",
+      },
+    },
+    {
+      id: 8,
+      pid: "P1011",
+      name: "BEESEE BUSINESS LAPTOP",
+      tagline: "Secure and reliable for enterprise use",
+      category_id: "laptops",
+      category: "Laptops",
+      price: 69999,
+      image: "/assets/images/productHub/p2.png",
+      specs: {
+        cpu: "Intel Core i7-1360P",
+        ram: "16GB DDR5",
+        ssd: "512GB NVMe SSD",
+        display: '14" FHD',
+        security: "TPM 2.0, Fingerprint",
+      },
+    },
+    {
+      id: 9,
+      pid: "P1012",
+      name: "BEESEE SMART TABLET",
+      tagline: "Perfect blend of productivity and entertainment",
+      category_id: "tablets",
+      category: "Tablets",
+      price: 24999,
+      image: "/assets/images/productHub/p6.png",
+      specs: {
+        display: '11" 2.5K',
+        cpu: "Snapdragon 7 Gen 2",
+        ram: "8GB LPDDR5",
+        storage: "256GB",
+        battery: "15 hours",
+      },
+    },
   ];
 
   const categories: Category[] = [
@@ -232,10 +281,30 @@ const ProductsHub: React.FC = () => {
     setCurrentPage(1);
   }, []);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery, priceRange, sortBy]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
   };
+
+  // Pagination handlers
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to products grid
+    const productsGrid = document.querySelector('.products-grid-container');
+    if (productsGrid) {
+      productsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPrevPage = () => goToPage(Math.max(1, currentPage - 1));
+  const goToNextPage = () => goToPage(Math.min(totalPages, currentPage + 1));
 
   /* ======================================================
        UI / PAGE RENDER
@@ -286,48 +355,140 @@ const ProductsHub: React.FC = () => {
                 />
               </div>
 
-              <p className="text-[#C7B897] text-sm mt-6 mb-4">
-                Showing {paginatedProducts.length} of {filteredProducts.length} products
+              <div className="bee-body-sm text-[#C7B897] mt-6 mb-4">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
                 {searchQuery && ` for "${searchQuery}"`}
                 {selectedCategory !== "all" &&
                   ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
-              </p>
+              </div>
 
-              <div>
+              <div className="products-grid-container">
                 <ProductGrid
                   products={paginatedProducts}
                   onProductClick={(p) => navigate(`/product/${p.pid}`)}
                 />
               </div>
 
-              {/* PAGINATION - Mobile */}
+              {/* PAGINATION - Using FAQs design */}
               {totalPages > 1 && (
-                <div className="pagination-container">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="pagination-btn"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+                <div className="mt-8 flex flex-col gap-4">
+                  <div className="bee-body-sm text-[#C7B897] text-center pagination-info">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+                  </div>
+                  
+                  <div className="pagination-wrapper w-full overflow-x-auto">
+                    <div className="pagination-controls flex items-center justify-center gap-1">
+                      {/* First Page */}
+                      <button
+                        onClick={goToFirstPage}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                        aria-label="First page"
+                      >
+                        <ChevronsLeft size={16} />
+                      </button>
 
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`pagination-page ${currentPage === i + 1 ? "active" : ""}`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                      {/* Previous Page */}
+                      <button
+                        onClick={goToPrevPage}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
 
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="pagination-btn"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
+                      {/* Page Numbers */}
+                      {(() => {
+                        const pages = [];
+                        const maxVisiblePages = window.innerWidth < 640 ? 3 : 5;
+                        
+                        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                        
+                        if (endPage - startPage + 1 < maxVisiblePages) {
+                          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                        }
+
+                        // First page with ellipsis if needed
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              onClick={() => goToPage(1)}
+                              className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
+                            >
+                              1
+                            </button>
+                          );
+                          
+                          if (startPage > 2) {
+                            pages.push(
+                              <div key="ellipsis-start" className="pagination-ellipsis">
+                                ...
+                              </div>
+                            );
+                          }
+                        }
+
+                        // Page numbers
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              onClick={() => goToPage(i)}
+                              className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+
+                        // Last page with ellipsis if needed
+                        if (endPage < totalPages) {
+                          if (endPage < totalPages - 1) {
+                            pages.push(
+                              <div key="ellipsis-end" className="pagination-ellipsis">
+                                ...
+                              </div>
+                            );
+                          }
+                          
+                          pages.push(
+                            <button
+                              key={totalPages}
+                              onClick={() => goToPage(totalPages)}
+                              className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
+                            >
+                              {totalPages}
+                            </button>
+                          );
+                        }
+
+                        return pages;
+                      })()}
+
+                      {/* Next Page */}
+                      <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+
+                      {/* Last Page */}
+                      <button
+                        onClick={goToLastPage}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                        aria-label="Last page"
+                      >
+                        <ChevronsRight size={16} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -370,48 +531,143 @@ const ProductsHub: React.FC = () => {
                 </div>
               </FadeReveal>
 
-              <p className="text-[#C7B897] text-sm mt-6 mb-4">
-                Showing {paginatedProducts.length} of {filteredProducts.length} products
+              <div className="bee-body-sm text-[#C7B897] mt-6 mb-4 pagination-info">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
                 {searchQuery && ` for "${searchQuery}"`}
                 {selectedCategory !== "all" &&
                   ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
-              </p>
+              </div>
 
               <FadeReveal isMobile={isMobile}>
-                <ProductGrid
-                  products={paginatedProducts}
-                  onProductClick={(p) => navigate(`/product/${p.pid}`)}
-                />
+                <div className="products-grid-container">
+                  <ProductGrid
+                    products={paginatedProducts}
+                    onProductClick={(p) => navigate(`/product/${p.pid}`)}
+                  />
+                </div>
               </FadeReveal>
 
+              {/* PAGINATION - Using FAQs design */}
               {totalPages > 1 && (
                 <FadeReveal isMobile={isMobile}>
-                  <div className="pagination-container">
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="pagination-btn"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
+                  <div className="mt-8 flex flex-col gap-4">
+                    <div className="bee-body-sm text-[#C7B897] text-center pagination-info">
+                      Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+                    </div>
+                    
+                    <div className="pagination-wrapper w-full overflow-x-auto">
+                      <div className="pagination-controls flex items-center justify-center gap-1">
+                        {/* First Page */}
+                        <button
+                          onClick={goToFirstPage}
+                          disabled={currentPage === 1}
+                          className="pagination-btn"
+                          aria-label="First page"
+                        >
+                          <ChevronsLeft size={16} />
+                        </button>
 
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`pagination-page ${currentPage === i + 1 ? "active" : ""}`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+                        {/* Previous Page */}
+                        <button
+                          onClick={goToPrevPage}
+                          disabled={currentPage === 1}
+                          className="pagination-btn"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
 
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="pagination-btn"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
+                        {/* Page Numbers */}
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+
+                          // First page with ellipsis if needed
+                          if (startPage > 1) {
+                            pages.push(
+                              <button
+                                key={1}
+                                onClick={() => goToPage(1)}
+                                className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
+                              >
+                                1
+                              </button>
+                            );
+                            
+                            if (startPage > 2) {
+                              pages.push(
+                                <div key="ellipsis-start" className="pagination-ellipsis">
+                                  ...
+                                </div>
+                              );
+                            }
+                          }
+
+                          // Page numbers
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <button
+                                key={i}
+                                onClick={() => goToPage(i)}
+                                className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+                              >
+                                {i}
+                              </button>
+                            );
+                          }
+
+                          // Last page with ellipsis if needed
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <div key="ellipsis-end" className="pagination-ellipsis">
+                                  ...
+                                </div>
+                              );
+                            }
+                            
+                            pages.push(
+                              <button
+                                key={totalPages}
+                                onClick={() => goToPage(totalPages)}
+                                className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
+                              >
+                                {totalPages}
+                              </button>
+                            );
+                          }
+
+                          return pages;
+                        })()}
+
+                        {/* Next Page */}
+                        <button
+                          onClick={goToNextPage}
+                          disabled={currentPage === totalPages}
+                          className="pagination-btn"
+                          aria-label="Next page"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+
+                        {/* Last Page */}
+                        <button
+                          onClick={goToLastPage}
+                          disabled={currentPage === totalPages}
+                          className="pagination-btn"
+                          aria-label="Last page"
+                        >
+                          <ChevronsRight size={16} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </FadeReveal>
               )}

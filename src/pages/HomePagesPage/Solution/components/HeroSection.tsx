@@ -145,7 +145,7 @@ const HeroSection = () => {
     <section
       ref={sectionRef}
       id="services"
-      className="relative min-h-screen flex items-center justify-center py-20 sm:py-24 md:py-28"
+      className="relative min-h-screen flex items-center justify-center py-12 sm:py-16 md:py-20 lg:py-28 px-3 sm:px-4"
     >
       {/* ================= BACKGROUND ================= */}
       <MotionWrapper
@@ -166,11 +166,11 @@ const HeroSection = () => {
       </MotionWrapper>
 
       {/* ================= CONTENT ================= */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
 
         {/* HEADER */}
         <MotionWrapper
-          className="text-center mb-12 sm:mb-14 md:mb-16"
+          className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16"
           style={{ y: isMobile ? 0 : headerY }}
           initial={{ opacity: 0, y: 60 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
@@ -182,9 +182,10 @@ const HeroSection = () => {
               text-[#FDCC00]/80
               uppercase
               mx-auto
-              mb-2 sm:mb-3
+              mb-2 sm:mb-3 md:mb-4
               text-xs sm:text-sm md:text-base lg:text-lg 
-              tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em]
+              tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.25em] lg:tracking-[0.3em]
+              px-2
             "
           >
             EXCELLENCE IN EVERY SOLUTION
@@ -198,12 +199,14 @@ const HeroSection = () => {
               leading-none
               tracking-wide
               select-none
-              text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl
-              px-4
+              text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
+              px-2 sm:px-4
+              mb-2 sm:mb-3 md:mb-4
+              whitespace-nowrap
+              overflow-hidden
             "
           >
-            <span className="block sm:inline">SERVICES</span>{" "}
-            <span className="block sm:inline">WE OFFER</span>
+            SERVICES WE OFFER
           </h2>
 
           <p
@@ -213,8 +216,8 @@ const HeroSection = () => {
               text-[#C7B897]/90
               leading-relaxed
               max-w-3xl mx-auto
-              mt-4 sm:mt-5 md:mt-6
-              px-4
+              mt-3 sm:mt-4 md:mt-5 lg:mt-6
+              px-3 sm:px-4 md:px-6
             "
           >
             Discover a complete suite of modern solutions designed to support
@@ -225,7 +228,7 @@ const HeroSection = () => {
 
         {/* SERVICES GRID */}
         <MotionWrapper
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8"
           style={{ y: isMobile ? 0 : cardY }}
         >
           {services.map((service, index) => {
@@ -235,7 +238,7 @@ const HeroSection = () => {
               <ServiceCardWrapper
                 key={index}
                 index={index}
-                className="group relative"
+                className="group relative px-1 sm:px-0"
               >
                 <div
                   className={`
@@ -243,12 +246,12 @@ const HeroSection = () => {
                     bg-gradient-to-br from-white/10 to-white/5
                     backdrop-blur-md 
                     border border-[#FDCC00]/20
-                    rounded-2xl 
-                    p-6 sm:p-7 md:p-8 
+                    rounded-xl sm:rounded-2xl
+                    p-4 sm:p-5 md:p-6 lg:p-8
                     shadow-lg shadow-black/20
                     ${isMobile ? '' : 'hover:shadow-2xl hover:shadow-[#FDCC00]/30 transition-all duration-500 hover:border-[#FDCC00]/50 hover:-translate-y-2'}
                     flex flex-col items-center text-center 
-                    min-h-[340px] sm:min-h-[360px] md:min-h-[380px]
+                    min-h-[280px] xs:min-h-[300px] sm:min-h-[320px] md:min-h-[340px] lg:min-h-[360px]
                   `}
                 >
                   {!isMobile && (
@@ -262,25 +265,26 @@ const HeroSection = () => {
                   {/* Icon */}
                   <div
                     className={`
-                      relative mb-6 sm:mb-7 md:mb-8 
-                      p-4 sm:p-5 
+                      relative mb-4 sm:mb-5 md:mb-6 lg:mb-8
+                      p-3 sm:p-4 
                       rounded-full
                       bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/10
                       border-2 border-[#FDCC00]/30
                       ${isMobile ? '' : 'group-hover:scale-110 group-hover:rotate-6 transition-all duration-500'}
                     `}
                   >
-                    <IconComponent className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 text-[#FDCC00]" />
+                    <IconComponent className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-12 lg:h-12 text-[#FDCC00]" />
                   </div>
 
                   {/* Title */}
                   <h3
                     style={{ fontFamily: "'Bebas Neue', sans-serif" }}
                     className={`
-                      text-xl sm:text-2xl md:text-3xl 
+                      text-lg sm:text-xl md:text-2xl lg:text-3xl 
                       tracking-wide 
-                      text-white mb-3 sm:mb-4
+                      text-white mb-2 sm:mb-3 md:mb-4
                       ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'}
+                      px-1
                     `}
                   >
                     {service.title}
@@ -292,9 +296,10 @@ const HeroSection = () => {
                     className={`
                       text-xs sm:text-sm md:text-base
                       text-[#C7B897]/80
-                      leading-relaxed 
+                      leading-relaxed sm:leading-relaxed
                       ${isMobile ? '' : 'group-hover:text-[#C7B897]/100 transition-colors duration-300'}
                       flex-grow
+                      px-1 sm:px-0
                     `}
                   >
                     {service.description}
