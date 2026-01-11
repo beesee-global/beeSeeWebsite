@@ -40,16 +40,14 @@ export default function ProductShowcase() {
 
   if (!mounted) return null;
 
-  // For mobile: use static content with no animations
+  // Mobile view (static)
   if (isMobile) {
     return (
       <div className="featured-showcase-optimized hero-wrapper-no-clip">
         <div className="featured-content-optimized safe-container">
-          
-          {/* LEFT SECTION - Static on mobile */}
+          {/* LEFT SECTION */}
           <div className="watches-stage-optimized">
             <div className="floor-glow-simple" />
-
             <div className="floating-particles">
               {[...Array(8)].map((_, i) => (
                 <div
@@ -64,7 +62,6 @@ export default function ProductShowcase() {
               ))}
             </div>
 
-            {/* PRODUCT 1 - Static */}
             <div className="watch-item-optimized watch-red-optimized">
               <img src="/assets/images/featuredProduct/laptop1.png"
                    alt="Laptop Model X"
@@ -74,7 +71,6 @@ export default function ProductShowcase() {
               <div className="data-badge badge-3">4.9★</div>
             </div>
 
-            {/* PRODUCT 2 - Static */}
             <div className="watch-item-optimized watch-green-optimized">
               <img src="/assets/images/featuredProduct/laptop2.png"
                    alt="Laptop Model Pro"
@@ -88,7 +84,7 @@ export default function ProductShowcase() {
             <div className="orbital-ring ring-2" />
           </div>
 
-          {/* RIGHT CONTENT - Static on mobile */}
+          {/* RIGHT SECTION */}
           <div className="text-content-optimized">
             <h1 className="featured-title-optimized single-line-title bee-title-md">
               FEATURED PRODUCTS
@@ -102,16 +98,16 @@ export default function ProductShowcase() {
 
             <div className="tech-stats-optimized">
               <div className="stat-item-optimized">
-                <span className="stat-value-optimized bee-title-sm">14-CORE</span>
-                <span className="stat-label-optimized bee-body-sm">CPU POWER</span>
+                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>HIGH-PERFORMANCE</span>
+                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>PROCESSING</span>
               </div>
               <div className="stat-item-optimized">
-                <span className="stat-value-optimized bee-title-sm">ALL-DAY</span>
-                <span className="stat-label-optimized bee-body-sm">BATTERY LIFE</span>
+                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LONG-LASTING</span>
+                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>BATTERY LIFE</span>
               </div>
               <div className="stat-item-optimized">
-                <span className="stat-value-optimized bee-title-sm">ULTRA-SLIM</span>
-                <span className="stat-label-optimized bee-body-sm">DESIGN</span>
+                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LUXURIOUS</span>
+                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>DESIGN</span>
               </div>
             </div>
           </div>
@@ -120,12 +116,12 @@ export default function ProductShowcase() {
     );
   }
 
-  // For desktop: use animations
+  // Desktop view (animated)
   return (
     <div className="featured-showcase-optimized hero-wrapper-no-clip">
       <div className="featured-content-optimized safe-container">
 
-        {/* LEFT SECTION - With animations on desktop */}
+        {/* LEFT SECTION */}
         <motion.div
           className="watches-stage-optimized"
           initial={{ opacity: 0, x: -80 }}
@@ -137,7 +133,6 @@ export default function ProductShowcase() {
           }}
         >
           <div className="floor-glow-simple" />
-
           <div className="floating-particles">
             {[...Array(8)].map((_, i) => (
               <div
@@ -152,7 +147,6 @@ export default function ProductShowcase() {
             ))}
           </div>
 
-          {/* PRODUCT 1 */}
           <motion.div
             className="watch-item-optimized watch-red-optimized"
             initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
@@ -168,7 +162,6 @@ export default function ProductShowcase() {
             <div className="data-badge badge-3">4.9★</div>
           </motion.div>
 
-          {/* PRODUCT 2 */}
           <motion.div
             className="watch-item-optimized watch-green-optimized"
             initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
@@ -188,7 +181,7 @@ export default function ProductShowcase() {
           <div className="orbital-ring ring-2" />
         </motion.div>
 
-        {/* RIGHT CONTENT - With animations on desktop */}
+        {/* RIGHT SECTION */}
         <motion.div
           className="text-content-optimized"
           initial={{ opacity: 0, x: 80 }}
@@ -222,16 +215,16 @@ export default function ProductShowcase() {
             transition={{ delay: 0.9 }}
           >
             <div className="stat-item-optimized">
-              <span className="stat-value-optimized bee-title-sm">14-CORE</span>
-              <span className="stat-label-optimized bee-body-sm">CPU POWER</span>
+              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>HIGH-PERFORMANCE</span>
+              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>PROCESSING</span>
             </div>
             <div className="stat-item-optimized">
-              <span className="stat-value-optimized bee-title-sm">ALL-DAY</span>
-              <span className="stat-label-optimized bee-body-sm">BATTERY LIFE</span>
+              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LONG-LASTING</span>
+              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>BATTERY LIFE</span>
             </div>
             <div className="stat-item-optimized">
-              <span className="stat-value-optimized bee-title-sm">ULTRA-SLIM</span>
-              <span className="stat-label-optimized bee-body-sm">DESIGN</span>
+              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LUXURIOUS</span>
+              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>DESIGN</span>
             </div>
           </motion.div>
         </motion.div>
