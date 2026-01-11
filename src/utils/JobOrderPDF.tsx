@@ -20,7 +20,7 @@ interface JobOrderData {
 }
 
 const styles = StyleSheet.create({
-     page: {
+page: {
         fontSize: 10,
         paddingTop: 55,
         paddingBottom: 50,
@@ -79,14 +79,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         borderWidth: 0.5,
         borderColor: "#888",
-        borderTopWidth: 0,
-        padding: 5,
+        borderTopWidth: 0, 
         minHeight: 20,
     },
     label: {
         width: 150,
         fontFamily: "Helvetica-Bold",
-        paddingRight: 5,
+        padding: 5,
         borderRightWidth: 0.5,
         borderRightColor: "#888",
     },
@@ -98,6 +97,7 @@ const styles = StyleSheet.create({
     },
     labelBold: {
         fontFamily: "Helvetica-Bold",
+      padding: 5
     },
     value: {
         flex: 1,
@@ -111,8 +111,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         borderWidth: 0.5,
         borderColor: "#888",
-        borderTopWidth: 0,
-        padding: 5, 
+        borderTopWidth: 0, 
     },
     statusContent: {
         flex: 1,
@@ -134,12 +133,11 @@ const styles = StyleSheet.create({
         borderWidth: 0.5,
         borderColor: "#888",
         borderTopWidth: 0,
-        minHeight: 0,
-        padding: 5,
+        minHeight: 0 
     },
     acknowledgmentLabel: {
         width: 150,
-        paddingRight: 5,
+        padding: 5,
         borderRightWidth: 0.5,
         borderRightColor: "#888",
     },

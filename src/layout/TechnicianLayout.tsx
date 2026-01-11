@@ -17,7 +17,7 @@ const TechnicianLayout = () => {
   
   useEffect(() => {
     // if we don't have a token, go back to home
-    if (!token) {
+/*     if (!token) {
       navigate("/", { replace: true });
       return;
     }
@@ -27,7 +27,7 @@ const TechnicianLayout = () => {
       setIsChecking(false)
       navigate("/beesee/dashboard", { replace: true });
       return;
-    }
+    } */
     // Done checking
     setIsChecking(false);
   }, [token, userInfo, navigate]);
@@ -52,7 +52,7 @@ const TechnicianLayout = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Mobile view sidebar */}
       {userNav && (
         <div className="fixed inset-0 z-50 md:hidden">
