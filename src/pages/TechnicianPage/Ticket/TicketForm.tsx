@@ -6,7 +6,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
-import Snackbar from "../../../components/feedback/Snackbar"
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import { userAuth } from "../../../hooks/userAuth"
 import CustomTextField from "../../../components/Fields/CustomTextField"
 import CustomSelectField from "../../../components/Fields/CustomSelectField"
@@ -18,7 +18,7 @@ import {
   createCustomerSupport,
   images,
   fetchIssue
-} from '../../../services/customerSupportServices'
+} from '../../../services/Technician/customerSupportServices'
 import { useMutation, useQuery } from "@tanstack/react-query"
 import WorkIcon from '@mui/icons-material/Work';
 import ImageUploadModal from "../../HomePagesPage/CustomerSupport/components/ImageUploadModal"
@@ -297,7 +297,7 @@ const TicketForm = () => {
   return (
     <div className="p-6 space-y-10">
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen}
         type={snackBarType}
         message={snackBarMessage}

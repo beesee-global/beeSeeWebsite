@@ -30,7 +30,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConversationsDetails from '../../../components/ui/ConversationsDetails';
 import { userAuth } from '../../../hooks/userAuth';
-import Snackbar from '../../../components/feedback/Snackbar';
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 import { useNavigate } from 'react-router-dom';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 
@@ -94,11 +94,17 @@ export default function EmailConversationApp() {
 
     // Listen to new message
     s.on("new_ticket_message", (msg:any) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => [...prev, msg]); 
+        
+      // fetch initial ticket information
+      queryClient.invalidateQueries({
+        queryKey: ['ticketInformation', pid],
+      })
     });
 
     // join ticket room on server
     s.emit("join_ticket_room", userTicketInformation?.ticket_id);
+
 
     return () => {
       s.disconnect();
@@ -122,7 +128,16 @@ export default function EmailConversationApp() {
   const {
     mutateAsync: insertConversations
   } = useMutation({
-    mutationFn: insertConversation
+    mutationFn: insertConversation,
+    onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ['conversations', userTicketInformation.ticket_id],
+    })
+
+    queryClient.invalidateQueries({
+      queryKey: ['ticketInformation', pid],
+    })
+  },
   });
 
   // --- update status mark as completed ---
@@ -374,7 +389,7 @@ export default function EmailConversationApp() {
   return (
     <div className="flex h-full bg-gray-50">
       {/* snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen}
         type={snackBarType}
         message={snackBarMessage}

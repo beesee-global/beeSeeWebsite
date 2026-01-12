@@ -8,13 +8,16 @@ import {
   fetchGetStatsDevice,
   fetchCountDashboard
 } from '../../../services/Technician/dashboardServices'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { useNavigate } from "react-router-dom"
 import { userAuth } from '../../../hooks/userAuth'
+import { io } from 'socket.io-client'
+import { useEffect } from "react"
 
 const Dashboard = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { setStatusFilter } = userAuth()
   
@@ -53,6 +56,19 @@ const Dashboard = () => {
     name: item.product_name,
     value: item.ticket_count
   }));    
+
+  // fetch real-time updates
+  useEffect(() => {
+    const socket = io(import.meta.env.VITE_API_URL as string);
+    socket.on("ticket-updated", () => {
+      queryClient.invalidateQueries({queryKey: ['count-data'] });
+    });
+
+    return () => {
+      socket.off("ticket-updated");
+      socket.disconnect();
+    }
+  }, [])
   
   return (
     <div className="p-6 space-y-10">

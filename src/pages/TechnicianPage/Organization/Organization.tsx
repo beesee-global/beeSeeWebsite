@@ -22,7 +22,7 @@ import {
 } from '../../../services/Technician/organizationServices'
 import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFieldModal';
 import { userAuth } from '../../../hooks/userAuth';
-import Snackbar from '../../../components/feedback/Snackbar'; 
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician'; 
 import AlertDialog from '../../../components/feedback/AlertDialog';
 
 const Organization = () => {
@@ -185,7 +185,7 @@ const Organization = () => {
   return (
     <div className='p-6 space-y-10'>
       {/* SNack bar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen}
         type={snackBarType}
         message={snackBarMessage}

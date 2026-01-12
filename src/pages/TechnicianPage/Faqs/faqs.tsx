@@ -12,7 +12,7 @@ import {
   updateFaqs
 } from '../../../services/Technician/faqsServices';
 import FaqsDialog from "./components/FaqsDialog";
-import Snackbar from "../../../components/feedback/Snackbar";
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
@@ -185,7 +185,7 @@ const Faqs = () => {
 
   return (
     <div className="p-6 space-y-10">
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 

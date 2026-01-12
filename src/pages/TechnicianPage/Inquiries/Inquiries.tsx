@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs'
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import TableInquiries from './components/TableInquiries';
-import Snackbar from '../../../components/feedback/Snackbar';
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import WorkIcon from '@mui/icons-material/Work';
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
@@ -138,7 +138,7 @@ const Inquiries = () => {
   return (
     <div className='p-6 space-y-10'>
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 
