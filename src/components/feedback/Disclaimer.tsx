@@ -25,7 +25,9 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ open, onClose }) => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
+        <DialogTitle id="alert-dialog-title"
+          sx={{ color: 'black'}}
+        >
           {"Data Privacy Act of 2012 (RA 10173)"}
         </DialogTitle>
 
