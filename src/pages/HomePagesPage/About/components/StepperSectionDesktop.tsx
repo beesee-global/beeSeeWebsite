@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
-import { ChevronRight, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Mock images
 const ictPicture = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1600&q=80";
 const digitalContent = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&q=80";
 const revolunizing = "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600&q=80";
@@ -14,431 +13,219 @@ const steps = [
     title: "Differentiated Activities through ICT", 
     short: "ICT-driven activities tailored to different learning styles",
     description: "Interactive tools and digital platforms enable teachers to address diverse learning styles—visual, auditory, and kinesthetic—within one unified ecosystem.",
-    image: ictPicture 
+    image: ictPicture,
   },
   { 
     id: 2, 
     title: "Digital Content", 
     short: "Curriculum-aligned media ready to deploy",
     description: "High-quality digital lessons, assessments, and simulations designed to integrate seamlessly into existing academic structures.",
-    image: digitalContent 
+    image: digitalContent,
   },
   { 
     id: 3, 
     title: "Revolutionizing Curriculum", 
     short: "Aligning subjects with emerging industries",
     description: "Modernizing education by embedding 21st-century skills, STEM disciplines, and industry-aligned tools without disrupting core academic foundations.",
-    image: revolunizing 
+    image: revolunizing,
   },
   { 
     id: 4, 
     title: "Professional Development Program", 
     short: "Equipping teachers with future-ready skills",
     description: "Sustained teacher and leadership training through structured coaching, certification, and long-term innovation support.",
-    image: program 
+    image: program,
   },
 ];
 
 const StepperSectionDesktop = () => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  const containerRef = useRef<HTMLDivElement>(null);
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const wheelListenerRef = useRef<((e: WheelEvent) => void) | null>(null);
-  
-  // Track if section is in view
-  const sectionInView = useInView(sectionRef, { 
-    once: false, 
-    amount: 0.1,
-    margin: "-50px 0px"
-  });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  // COMPLETE RESET on mount
-  useEffect(() => {
-    // Reset states
-    setActiveStep(0);
-    setIsScrolling(false);
-    
-    // Reset container scroll
-    if (containerRef.current) {
-      containerRef.current.scrollTop = 0;
-    }
-    
-    // Mark as initialized after a short delay
-    const timer = setTimeout(() => {
-      setIsInitialized(true);
-    }, 100);
-    
-    return () => {
-      clearTimeout(timer);
-      // Clean up observer
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-        observerRef.current = null;
-      }
-      // Clean up wheel listener
-      if (wheelListenerRef.current) {
-        window.removeEventListener('wheel', wheelListenerRef.current);
-        wheelListenerRef.current = null;
-      }
-      // Clear refs
-      stepRefs.current = [];
-    };
-  }, []);
-
-  // Add wheel event listener for scrolling from anywhere on the page
-  useEffect(() => {
-    if (!isInitialized || !sectionInView) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (!containerRef.current || !sectionRef.current) return;
-      
-      // Check if section is in viewport
-      const sectionRect = sectionRef.current.getBoundingClientRect();
-      const isInViewport = sectionRect.top < window.innerHeight && sectionRect.bottom > 0;
-      
-      if (!isInViewport) return;
-
-      // Check if we should handle this scroll
-      const container = containerRef.current;
-      const isAtTop = container.scrollTop === 0;
-      const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
-      
-      // Allow page scroll if at boundaries
-      if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
-        return;
-      }
-
-      // Prevent page scroll and scroll the container instead
-      e.preventDefault();
-      container.scrollTop += e.deltaY;
-    };
-
-    wheelListenerRef.current = handleWheel;
-    window.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      if (wheelListenerRef.current) {
-        window.removeEventListener('wheel', wheelListenerRef.current);
-        wheelListenerRef.current = null;
-      }
-    };
-  }, [isInitialized, sectionInView]);
-
-  // Set up Intersection Observer only when initialized and in view
-  useEffect(() => {
-    if (!isInitialized || !sectionInView || isScrolling) return;
-    
-    // Clean up existing observer
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current = null;
-    }
-    
-    // Create new observer
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (isScrolling) return;
-        
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = stepRefs.current.findIndex(ref => ref === entry.target);
-            if (index !== -1) {
-              setActiveStep(index);
-            }
-          }
-        });
-      },
-      { 
-        threshold: 0.6, 
-        rootMargin: "-20% 0px -20% 0px",
-        root: containerRef.current 
-      }
-    );
-    
-    // Observe all steps
-    stepRefs.current.forEach(ref => {
-      if (ref && observerRef.current) {
-        observerRef.current.observe(ref);
-      }
-    });
-    
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-        observerRef.current = null;
-      }
-    };
-  }, [isInitialized, sectionInView, isScrolling]);
-
-  const handleStepClick = (index: number) => {
-    if (isScrolling || index === activeStep) return;
-    
-    setIsScrolling(true);
-    setActiveStep(index);
-    
-    const targetElement = stepRefs.current[index];
-    if (targetElement && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const elementRect = targetElement.getBoundingClientRect();
-      const offset = elementRect.top - containerRect.top - 150;
-      
-      containerRef.current.scrollTo({
-        top: containerRef.current.scrollTop + offset,
-        behavior: "smooth"
-      });
-    }
-    
-    setTimeout(() => setIsScrolling(false), 800);
+  // 🔹 Page entrance/exit variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 30 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    exit: { opacity: 0, y: -30, transition: { duration: 0.5, ease: "easeIn" } },
   };
 
-  // Animation variants
-  const sectionAnimation = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { 
-        duration: 0.4,
-        ease: "easeOut",
-        when: "beforeChildren"
-      }
-    }
+  useEffect(() => {
+    if (!isAutoPlay) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % steps.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [isAutoPlay]);
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + steps.length) % steps.length);
+    setIsAutoPlay(false);
   };
 
-  const childAnimation = {
-    hidden: { y: 10, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % steps.length);
+    setIsAutoPlay(false);
   };
 
   return (
-    <motion.section
-      ref={sectionRef}
-      variants={sectionAnimation}
-      initial="hidden"
-      animate={sectionInView ? "visible" : "hidden"}
-      className="relative z-10 flex flex-col items-center py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8"
-    >
-      <div className="max-w-7xl w-full">
-        {/* Header */}
-        <motion.div
-          variants={childAnimation}
-          className="text-center mb-10 md:mb-14 lg:mb-16"
-        >
-          <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-5xl mb-1 md:mb-3">
-            SCHOOL PROCESS
-          </h2>
-          <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 text-[11px] sm:text-sm md:text-base lg:text-lg mt-1 md:mt-2 leading-relaxed">
-            A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
-          </p>
-        </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="stepper-page"
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
+        <div className="relative bg-[#000000] min-h-screen">
+          {/* GLOBAL BACKGROUND VIDEO */}
+          <div className="fixed inset-0 z-0">
+            <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+              <source src="/live-background/sectionThree.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-[#000000]/75" />
+          </div>
 
-        {/* Main Layout */}
-        <div className="grid lg:grid-cols-12 gap-6 md:gap-8 lg:gap-12">
-          {/* Left Panel - Steps Navigation */}
-          <motion.div
-            variants={childAnimation}
-            className="lg:col-span-4"
-          >
-            <div className="sticky top-32">
-              {/* Process Overview Card */}
-              <div className="beesee-card-content p-6 mb-6 hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)] transition-transform duration-300">
-                <h3 className="bee-title-sm text-[var(--beesee-gold)] mb-6">
-                  Process Overview
-                </h3>
-                
-                <div className="space-y-4">
-                  {steps.map((step, index) => (
-                    <button
-                      key={step.id}
-                      onClick={() => handleStepClick(index)}
-                      className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
-                        activeStep === index
-                          ? "bg-[var(--beesee-gold)]/20 border border-[var(--beesee-gold)]/40"
-                          : "hover:bg-white/5"
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          activeStep > index
-                            ? "bg-green-600 text-white"
-                            : activeStep === index
-                            ? "bg-[var(--beesee-gold)] text-black"
-                            : "bg-black/60 text-[var(--beesee-gold)] border border-[var(--beesee-gold)]/30"
-                        }`}>
-                          {activeStep > index ? (
-                            <Check className="w-6 h-6" />
-                          ) : (
-                            <span className="text-lg font-bold">{step.id}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <h4 className={`bee-body font-semibold ${
-                            activeStep === index ? "text-[var(--beesee-gold)]" : "text-white"
-                          }`}>
-                            {step.title}
-                          </h4>
-                          <p 
-                            className="mt-1 text-[#C7B897]/50 italic"
-                            style={{ 
-                              fontFamily: 'Georgia, serif',
-                              fontSize: '14px',
-                              lineHeight: '1.4',
-                              fontStyle: 'italic'
-                            }}
-                          >
-                          
-                          </p>
-                        </div>
-                        {activeStep === index && (
-                          <ChevronRight className="w-5 h-5 text-[var(--beesee-gold)]" />
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mt-8 pt-6 border-t border-[var(--beesee-gold)]/20">
-                  <div className="flex justify-between bee-body-sm text-[#C7B897] mb-2">
-                    <span>Progress</span>
-                    <span>{Math.round(((activeStep + 1) / steps.length) * 100)}%</span>
+          <section className="relative z-10 flex flex-col justify-center min-h-screen py-16 md:py-24 px-4 md:px-8 lg:px-12">
+            <div className="max-w-[1200px] mx-auto w-full">
+             
+              <div className="text-center mb-12 md:mb-20 px-4">
+                <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] mb-6">
+                  SCHOOL PROCESS
+                </h2>
+                <div className="relative max-w-2xl mx-auto">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--beesee-gold)]/20 to-transparent"></div>
                   </div>
-                  <div className="h-2 bg-black/60 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-[var(--beesee-gold)]"
-                      initial={{ width: "0%" }}
-                      animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
+                  <p className="bee-body relative px-8 bg-[#000000] inline-block text-[#C7B897]/90 leading-relaxed text-base md:text-lg">
+                    A clear roadmap that guides schools from exploration to adoption—without overwhelming teachers or students.
+                  </p>
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--beesee-gold)]/20 to-transparent"></div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Right Panel - Step Details */}
-          <motion.div
-            variants={childAnimation}
-            className="lg:col-span-8 relative"
-          >
-            <div 
-              ref={containerRef} 
-              className="space-y-12 md:space-y-16 overflow-y-auto max-h-[700px]"
-              style={{
-                scrollBehavior: 'smooth',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
-            >
-              <style jsx>{`
-                div::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-              
-              {steps.map((step, index) => (
-                <div
-                  key={step.id}
-                  ref={el => {
-                    stepRefs.current[index] = el;
-                  }}
-                  className="relative"
+              {/* Carousel Container */}
+              <div className="relative">
+                {/* Navigation Arrows */}
+                <button
+                  onClick={handlePrev}
+                  className="absolute -left-2 md:-left-4 lg:-left-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-[var(--beesee-gold)] to-yellow-500 flex items-center justify-center shadow-xl shadow-[var(--beesee-gold)]/40 text-black hover:shadow-[var(--beesee-gold)]/60 hover:scale-105 active:scale-95 transition-all z-40 border-3 border-black/20"
                 >
-                  {/* Step Indicator Line */}
-                  {index < steps.length - 1 && (
-                    <div className="absolute left-8 top-20 bottom-[-4rem] w-px bg-gradient-to-b from-[var(--beesee-gold)]/40 via-[var(--beesee-gold)]/20 to-transparent hidden lg:block" />
-                  )}
+                  <ChevronLeft className="w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 stroke-[2.5]" />
+                </button>
 
-                  <div className="flex gap-6 md:gap-8">
-                    {/* Step Number */}
-                    <div className="flex-shrink-0">
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 ${
-                        activeStep === index
-                          ? "bg-[var(--beesee-gold)] border-black/20 text-black shadow-lg shadow-[var(--beesee-gold)]/30"
-                          : "bg-black/60 border-[var(--beesee-gold)]/30 text-[var(--beesee-gold)]"
-                      }`}>
-                        <span className="text-2xl font-bold">{step.id}</span>
-                      </div>
-                    </div>
+                <button
+                  onClick={handleNext}
+                  className="absolute -right-2 md:-right-4 lg:-right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-[var(--beesee-gold)] to-yellow-500 flex items-center justify-center shadow-xl shadow-[var(--beesee-gold)]/40 text-black hover:shadow-[var(--beesee-gold)]/60 hover:scale-105 active:scale-95 transition-all z-40 border-3 border-black/20"
+                >
+                  <ChevronRight className="w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 stroke-[2.5]" />
+                </button>
 
-                    {/* Content Card */}
-                    <div className={`beesee-card-content flex-1 p-6 md:p-8 transition-all duration-300 ${
-                      activeStep === index 
-                        ? "border-[#FDCC00]/40 shadow-[0_0_15px_rgba(253,204,0,0.15)] transform scale-[1.02]"
-                        : "hover:scale-105 hover:border-[#FDCC00]/40 hover:shadow-[0_0_15px_rgba(253,204,0,0.15)]"
-                    }`}>
-                      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                        <div className="space-y-6">
-                          {/* Title */}
-                          <div className="text-left">
-                            <h3 className="bee-title-sm text-[var(--beesee-gold)] mb-3">
-                              {step.title}
-                            </h3>
-                            <p 
-                              className="text-[#C7B897]/50 italic"
-                              style={{ 
-                                fontFamily: 'Georgia, serif',
-                                fontSize: 'clamp(16px, 1.6vw, 17px)',
-                                lineHeight: '1.5',
-                                fontStyle: 'italic'
-                              }}
-                            >
-                              {step.short}
-                            </p>
-                          </div>
-                          
-                          {/* Details Section */}
-                          <div className="text-left">
-                            <h4 className="bee-body-sm font-semibold text-[var(--beesee-gold)]/80 mb-3">
-                              DETAILS
-                            </h4>
-                            <p className="bee-body text-[#C7B897]/90 leading-relaxed">
-                              {step.description}
-                            </p>
-                          </div>
-
-                          {/* Learn More Button */}
-                          <div className="text-left pt-4">
-                            <button
-                              onClick={() => handleStepClick(index)}
-                              className="inline-flex items-center gap-2 bee-body-sm text-[var(--beesee-gold)] hover:text-white transition-colors group"
-                            >
-                              <span className="font-medium">Learn more</span>
-                              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                          </div>
+                {/* Main Card */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeIndex}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    <div className="beesee-card-content bg-[#0A0A0A]/60 border-2 border-[var(--beesee-gold)]/30 rounded-[28px] backdrop-blur-2xl shadow-[0_20px_60px_rgba(253,204,0,0.2)] overflow-hidden mx-2">
+                      <div className="grid lg:grid-cols-2 gap-0">
+                        {/* Left Content */}
+                        <div className="relative p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-center bg-gradient-to-br from-[#000000]/40 to-transparent">
+                          <h3 className="bee-title-sm text-[var(--beesee-gold)] mb-4 leading-[1.15] tracking-tight text-lg md:text-xl">
+                            {steps[activeIndex].title}
+                          </h3>
+                          <p 
+                            className="text-[#C7B897] italic mb-6 text-[15px] md:text-[16px] leading-[1.6]"
+                            style={{ fontFamily: 'Georgia, serif' }}
+                          >
+                            {steps[activeIndex].short}
+                          </p>
+                          <p className="bee-body text-[#C7B897]/95 leading-[1.7] text-[14px] md:text-[15px]">
+                            {steps[activeIndex].description}
+                          </p>
                         </div>
 
-                        {/* Image Section */}
-                        <div className="beesee-card-image relative rounded-xl overflow-hidden">
+                        {/* Right Image */}
+                        <div className="relative h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden group">
                           <img
-                            src={step.image}
-                            alt={step.title}
-                            className="w-full h-48 md:h-64 object-cover transition-transform duration-500 hover:scale-110"
+                            src={steps[activeIndex].image}
+                            alt={steps[activeIndex].title}
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out"
                           />
-                          <div className="absolute bottom-3 left-3 bee-body-sm text-[var(--beesee-gold)] font-semibold">
-                            Step {step.id} of {steps.length}
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#000000]/60 via-from-[#000000]/30 to-transparent opacity-60" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/60 via-transparent to-transparent" />
+                          <div className="absolute top-6 right-6 md:top-8 md:right-8">
+                            <div className="relative">
+                              <div className="absolute inset-0 w-20 h-20 md:w-24 md:h-24 rounded-full bg-[var(--beesee-gold)] blur-xl opacity-40" />
+                              <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center bg-gradient-to-br from-[var(--beesee-gold)] via-yellow-500 to-yellow-600 shadow-2xl border-[4px] border-white/20">
+                                <span className="text-3xl md:text-4xl font-black text-black">
+                                  {steps[activeIndex].id}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-[#000000]/90 via-[#000000]/60 to-transparent">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="bee-body-sm text-[var(--beesee-gold)] font-semibold mb-1 text-sm md:text-base">
+                                  {steps[activeIndex].title}
+                                </p>
+                                <p className="text-xs text-[#C7B897]/70 uppercase tracking-wider text-start">
+                                  Process Step {steps[activeIndex].id}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Bottom Navigation */}
+              <div className="mt-8 md:mt-12 space-y-6">
+                <div className="flex items-center justify-center gap-3 md:gap-4">
+                  {steps.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setActiveIndex(index);
+                        setIsAutoPlay(false);
+                      }}
+                      className="group relative"
+                    >
+                      {index === activeIndex && (
+                        <div className="absolute inset-0 w-8 h-8 -translate-x-1/4 -translate-y-1/4 rounded-full bg-[var(--beesee-gold)] blur-lg opacity-30" />
+                      )}
+                      <div className={`relative w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ${
+                        index === activeIndex
+                          ? "bg-[var(--beesee-gold)] scale-125 shadow-lg shadow-[var(--beesee-gold)]/40"
+                          : "bg-[var(--beesee-gold)]/20 group-hover:bg-[var(--beesee-gold)]/40 group-hover:scale-110 border border-[var(--beesee-gold)]/30"
+                      }`} />
+                    </button>
+                  ))}
                 </div>
-              ))}
+                <div className="text-center">
+                  <p className="bee-body text-[#C7B897] text-base md:text-lg">
+                    <span className="text-[var(--beesee-gold)] font-bold text-xl md:text-2xl">{activeIndex + 1}</span>
+                    <span className="text-[#C7B897]/50 mx-2 md:mx-3">/</span>
+                    <span className="text-[#C7B897]/80 font-medium">{steps.length}</span>
+                  </p>
+                </div>
+              </div>
             </div>
-          </motion.div>
+          </section>
+
+          {/* Bottom Gradient */}
+          <div className="pointer-events-none fixed bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#000] z-[1]" />
         </div>
-      </div>
-    </motion.section>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

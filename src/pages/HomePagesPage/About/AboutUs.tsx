@@ -40,29 +40,16 @@ const AboutUs: React.FC = () => {
     }
   }, []);
 
-  const pageVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        when: "beforeChildren",
-        staggerChildren: 0.15,
-      },
-    },
+  // Simple container without conflicting animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
   };
 
   return (
     <div className="about-page">
-      <motion.main
-        variants={pageVariants}
-        initial="hidden"
-        animate="visible"
-        key="about-main" // Add key to main
-        className="about-main"
-      >
+      {/* REMOVED: motion.main wrapper with animations */}
+      <div className="about-main">
         <HeroSection />
         
         {/* Conditionally render stepper section based on screen size */}
@@ -76,7 +63,7 @@ const AboutUs: React.FC = () => {
         {/* If you have other components, add them here */}
         {/* <CompanyStory /> */}
         {/* <PhilippineHeritage /> */}
-      </motion.main>
+      </div>
     </div>
   );
 };
