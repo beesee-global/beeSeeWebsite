@@ -219,7 +219,7 @@ const MyAccount = () => {
                 formDataToSend.delete("image")
             }
 
-            await updateAccountMutate({ id: userInformation.id, userData: formDataToSend })
+            await updateAccountMutate({ id: Number(id), userData: formDataToSend })
 
             if (formData.password) {
                 // clear password fields after successful update
