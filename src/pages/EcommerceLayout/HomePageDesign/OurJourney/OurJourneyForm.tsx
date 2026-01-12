@@ -18,7 +18,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
-import AddImageIcon from '../../../../assets/images/add-image-icon.jpg';
+import AddImageIcon from '../../../../../public/add-image-icon.jpg';
 import { AlertColor } from '@mui/material/Alert';
 import Snackbar from '../../../../components/feedback/Snackbar';
 import {

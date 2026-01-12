@@ -19,7 +19,7 @@ import Snackbar from '../../../components/feedback/Snackbar'
 import { AlertColor } from '@mui/material/Alert';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { updateAccountInfo,fetchUserById } from '../../../services/Ecommerce/myAccountServices'
-import AddImageIcon from './../../../assets/images/add-image-icon.jpg'
+import AddImageIcon from './../../../../public/add-image-icon.jpg';
 import { userAuth } from '../../../hooks/userAuth'
 import { useNavigate } from 'react-router-dom';
 import AlertDialog from '../../../components/feedback/AlertDialog';

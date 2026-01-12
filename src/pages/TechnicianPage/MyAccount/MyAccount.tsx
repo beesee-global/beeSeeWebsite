@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import CustomTextField from '../../../components/Fields/CustomTextField'
 import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician'
 import AlertDialog from '../../../components/feedback/AlertDialog' 
-import AddImageIcon from '../../../../public/add-image-icon.jpg'
+import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { AlertColor } from '@mui/material/Alert'
 import { useNavigate } from 'react-router-dom'
 import { 

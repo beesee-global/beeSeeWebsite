@@ -9,7 +9,7 @@ import CustomIconPicker from '../../../../components/Fields/CustomIconPicker';
 import Snackbar from '../../../../components/feedback/Snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { createSolution, updateSolution, fetchSolutionByPid } from '../../../../services/Ecommerce/solutionsOverviewServices';
-import AddImageIcon from '../../../../assets/images/add-image-icon.jpg'
+import AddImageIcon from '../../../../../public/add-image-icon.jpg';
 
 interface FormError {
     title?: string;

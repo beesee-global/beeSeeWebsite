@@ -23,7 +23,7 @@ import {
   CheckCircle, 
 } from "lucide-react"
 import { Email } from "@mui/icons-material"
-import AddImageIcon from '../../../../public/add-image-icon.jpg'
+import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { userAuth } from "../../../hooks/userAuth"
 interface EmployeeFormProps {
   first_name: string,
