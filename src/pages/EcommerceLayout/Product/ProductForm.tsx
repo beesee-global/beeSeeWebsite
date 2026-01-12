@@ -18,7 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import CustomTextField from "../../../components/Fields/CustomTextField";
 import CustomSelectField from "../../../components/Fields/CustomSelectField";
-import AddImageIcon from '../../../assets/images/add-image-icon.jpg'
+import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
   createProduct, 

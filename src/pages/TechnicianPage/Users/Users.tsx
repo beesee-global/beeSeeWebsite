@@ -69,7 +69,7 @@ const Users = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-6 space-y-10">
+    <div className="p-6 space-y-10 bg-white">
       {/* Snackbar */}
       <SnackbarTechnician 
         open={snackBarOpen} 

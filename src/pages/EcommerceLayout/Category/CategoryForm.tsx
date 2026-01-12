@@ -18,7 +18,7 @@ import {
 } from '../../../services/Ecommerce/categoryServices';
 import CustomTextField from '../../../components/Fields/CustomTextField';
 import CustomIconPicker from '../../../components/Fields/CustomIconPicker';
-import AddImageIcon from '../../../assets/images/add-image-icon.jpg';
+import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { AlertColor } from '@mui/material/Alert';
 import Snackbar from '../../../components/feedback/Snackbar'; 
 import { 

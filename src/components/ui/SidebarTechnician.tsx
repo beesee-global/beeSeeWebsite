@@ -113,12 +113,12 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     }, [location.pathname, menuItems, isCollapsed]);
 
     return (
-        <div className={`p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-full min-w-64'}`}>
+        <div className={`p-4 min-h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-full min-w-64'}`} style={{ backgroundColor: '#000000' }}>
             {/* Toggle Button */}
             <div className="mb-4 flex justify-end">
                 <button
                     onClick={toggleCollapse}
-                    className="p-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 transition-colors"
+                    className="p-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-black transition-colors"
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
@@ -138,14 +138,14 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                 <div className="relative group">
                                     <button
                                         onClick={() => toggleMenu(item.id)}
-                                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-3 px-3 py-3 w-full rounded-md transition-colors ${hasActiveChild ? "bg-yellow-600 text-white" : openMenus[item.id] ? "bg-yellow-500/20 text-yellow-400" : "hover:bg-yellow-400/10 text-gray-300"}`}
+                                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-3 px-3 py-3 w-full rounded-md transition-colors ${hasActiveChild ? "bg-yellow-500 text-black" : openMenus[item.id] ? "bg-gray-900 text-yellow-500" : "hover:bg-gray-900 text-gray-300"}`}
                                         title={isCollapsed ? item.name : ''}
                                     >
                                         <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
-                                            <span className={hasActiveChild ? 'text-white' : 'text-yellow-400'}>{item.icon}</span>
+                                            <span className={hasActiveChild ? 'text-black' : 'text-yellow-500'}>{item.icon}</span>
                                             {!isCollapsed && <span className="font-semibold">{item.name}</span>}
                                         </div>
-                                        {!isCollapsed && <ChevronDown size={18} className={`transition-transform ${openMenus[item.id] ? "rotate-180 text-yellow-400" : hasActiveChild ? "text-white" : "text-gray-300"}`} />}
+                                        {!isCollapsed && <ChevronDown size={18} className={`transition-transform ${openMenus[item.id] ? "rotate-180 text-yellow-500" : hasActiveChild ? "text-black" : "text-gray-400"}`} />}
                                     </button>
 
                                     {isCollapsed && (
@@ -165,10 +165,10 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                         <li key={child.id}>
                                                             <NavLink
                                                                 to={child.path}
-                                                                className={`flex items-center gap-2 px-3 py-3 rounded-md text-md transition-colors ${childActive ? "bg-yellow-600 text-gray-300" : "text-gray-300 hover:bg-yellow-400/10"}`}
+                                                                className={`flex items-center gap-2 px-3 py-3 rounded-md text-md transition-colors ${childActive ? "bg-yellow-500 text-black" : "text-gray-300 hover:bg-gray-900"}`}
                                                                 onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
                                                             >
-                                                                <span className={`${childActive ? "text-gray-300" : "text-yellow-400"}`}>{child.icon}</span>
+                                                                <span className={`${childActive ? "text-black" : "text-yellow-500"}`}>{child.icon}</span>
                                                                 <span className="font-semibold">{child.name}</span>
                                                             </NavLink>
                                                         </li>
@@ -181,11 +181,11 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                             ) : (
                                 <NavLink
                                     to={item.path || "#"}
-                                    className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-md transition-opacity ${isActive ? "bg-yellow-600 text-white" : "text-gray-300 hover:bg-yellow-400/10"}`}
+                                    className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-md transition-opacity ${isActive ? "bg-yellow-500 text-black" : "text-gray-300 hover:bg-gray-900"}`}
                                     onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
                                     title={isCollapsed ? item.name : ''}
                                 >
-                                    <span className={`${isActive ? "text-white" : "text-yellow-400"}`}>{item.icon}</span>
+                                    <span className={`${isActive ? "text-black" : "text-yellow-500"}`}>{item.icon}</span>
                                     {!isCollapsed && <span className="font-semibold">{item.name}</span>}
                                 </NavLink>
                             )}

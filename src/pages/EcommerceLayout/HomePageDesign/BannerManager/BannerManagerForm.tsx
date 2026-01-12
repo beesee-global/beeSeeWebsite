@@ -7,7 +7,7 @@ import Breadcrumb from '../../../../components/Navigation/Breadcrumbs';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import Snackbar from '../../../../components/feedback/Snackbar';
 import { AlertColor } from '@mui/material/Alert';
-import AddImageIcon from '../../../../assets/images/add-image-icon.jpg';
+import AddImageIcon from '../../../../../public/add-image-icon.jpg';
 import { createBanner, updateBanner, fetchBannerByPid } from '../../../../services/Ecommerce/bannerServices'
 
 interface FormError {

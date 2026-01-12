@@ -183,7 +183,7 @@ const Organization = () => {
     }
   }
   return (
-    <div className='p-6 space-y-10'>
+    <div className='p-6 space-y-10 bg-white'>
       {/* SNack bar */}
       <SnackbarTechnician 
         open={snackBarOpen}

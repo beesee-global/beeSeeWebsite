@@ -141,7 +141,7 @@ const Issue = () => {
   }, [issues, debouncedSearch]);
 
   return (
-    <div className='p-6 space-y-10'>
+    <div className='p-6 space-y-10 bg-white'>
       {/* Modal */}
       {modalOpen && (
         <IssuesModal 

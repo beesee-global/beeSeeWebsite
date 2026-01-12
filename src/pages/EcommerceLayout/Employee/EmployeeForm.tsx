@@ -20,7 +20,7 @@ import {
   Key,
 } from "lucide-react"
 import { Email } from "@mui/icons-material"
-import AddImageIcon from '../../../assets/images/add-image-icon.jpg'
+import AddImageIcon from '../../../../public/add-image-icon.jpg';
 
 interface EmployeeFormProps {
   first_name: string,
