@@ -3,7 +3,7 @@ import CustomTextField from '../../components/Fields/CustomTextField';
 import { motion } from 'framer-motion';
 import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Snackbar from '../../components/feedback/Snackbar';
+import Snackbar from '../../components/feedback/SnackbarTechnician';
 import { useMutation } from '@tanstack/react-query';
 import { loggedInUser } from '../../services/Technician/userServices';
 import { AlertColor } from '@mui/material/Alert';
