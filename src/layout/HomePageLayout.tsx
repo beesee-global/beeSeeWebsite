@@ -42,21 +42,23 @@ const HomePageLayout = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Header */}
-      <div
-        className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
-          showHeader ? "translate-y-0" : "translate-y-0"
-        }`}
-      >
-        {!hideHeader && <HeaderHomePage />}
-      </div>
+      {!hideHeader && (
+        <div
+          className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
+            showHeader ? "translate-y-0" : "translate-y-0"
+          }`}
+        >
+          <HeaderHomePage />
+        </div>
+      )}
 
       {/* Main content */}
-      <div className="flex-1 pt-[80px]">
+      <div className={`flex-1 ${!hideHeader ? "pt-[80px]" : ""}`}>
         <Outlet />
       </div>
 
       {/* Footer */}
-      {!shouldHideLayout && (
+      {!shouldHideLayout && !hideHeader && (
         <>
           {isProductDetailPage ? <FooterHomePageProducts /> : <FooterHomePage />}
         </>
