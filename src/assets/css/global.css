@@ -108,7 +108,7 @@ html, body, #root {
   width: 100%;
   padding: 14px 0;
   background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
-  color: #383120;
+  color: WHITE;
   font-family: "Segoe UI", sans-serif;
   font-weight: 650;
   border: none;
@@ -124,7 +124,8 @@ html, body, #root {
 .beesee-button:hover {
   transform: scale(1.02);
   box-shadow: 0 0 24px rgba(253, 204, 0, 0.45);
-  color: white;
+  color: yellow;
+  text-shadow: #ffffff;
 }
 
 .beesee-button--small {

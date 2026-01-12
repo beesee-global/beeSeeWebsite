@@ -150,7 +150,7 @@ const LoginTechnician = () => {
         >
           <motion.h2
             variants={itemVariants}
-            className="text-center text-3xl font-extrabold text-gray-800 mb-2"
+            className=" bee-title-md text-[var(--beesee-gold)] mb-4 sm:mb-6"
           >
             Login Your Account
           </motion.h2>
@@ -208,10 +208,7 @@ const LoginTechnician = () => {
 
             <motion.button
               variants={itemVariants}
-              className={`w-full text-white font-semibold py-3 px-4 rounded-md  ${
-                isPending ? "bg-gradient-to-br from-gray-700 via-gray-600 to-gray-900 cursor-not-allowed" 
-                : "bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 hover:from-gray-800 hover:via-gray-700 hover:to-gray-800"
-                }`}
+              className="beesee-button"
               type="submit"
               disabled={isPending}
             >
