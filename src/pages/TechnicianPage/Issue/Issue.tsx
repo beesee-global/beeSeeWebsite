@@ -13,7 +13,7 @@ import {
   Issues
 } from '../../../services/Technician/issuesServices';
 import WorkIcon from '@mui/icons-material/Work'; 
-import Snackbar from "../../../components/feedback/Snackbar";
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
@@ -153,7 +153,7 @@ const Issue = () => {
         />
       )}
 
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 

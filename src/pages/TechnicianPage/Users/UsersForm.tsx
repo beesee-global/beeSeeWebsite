@@ -11,7 +11,7 @@ import {
   image,
   fetchPositions
 } from '../../../services/Technician/userServices'
-import Snackbar from "../../../components/feedback/Snackbar"
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import { 
   Mail,
   User2,
@@ -350,7 +350,7 @@ const UsersForm = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */}
-        <Snackbar 
+        <SnackbarTechnician 
           open={snackBarOpen}
           type={snackBarType}
           message={snackBarMessage}

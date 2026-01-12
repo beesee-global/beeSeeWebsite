@@ -19,7 +19,7 @@ import {
 } from '../../../services/Technician/productServices'
 import WorkIcon from '@mui/icons-material/Work';
 import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
-import Snackbar from "../../../components/feedback/Snackbar"
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import AlertDialog from "../../../components/feedback/AlertDialog"
 import { userAuth } from "../../../hooks/userAuth"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
@@ -195,7 +195,7 @@ const Product = () => {
     <div className='p-6 space-y-10'>
 
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 

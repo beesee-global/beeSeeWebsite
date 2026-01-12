@@ -102,6 +102,7 @@ page: {
     value: {
         flex: 1,
         paddingLeft: 5,
+        paddingTop: 5,
     },
     issueBox: {
         minHeight: 100,
@@ -115,7 +116,7 @@ page: {
     },
     statusContent: {
         flex: 1,
-        paddingLeft: 5,
+        padding: 5,
     },
     statusOption: {
         fontSize: 10,
@@ -264,15 +265,15 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         <View style={styles.statusRow}>
             <Text style={styles.label}>STATUS:</Text>
             <View style={styles.statusContent}>
-            <Text style={styles.statusOption}>[ ] Repaired and in good physically condition:</Text>
-            <Text style={styles.statusOption}>[ ] Repaired but with deferred recommendations:</Text>
-            <View style={styles.statusLine} />
-            <Text style={styles.statusOption}>[ ] Unable to repair due to:</Text>
-            <View style={styles.statusLine} />
-            <Text style={styles.statusOption}>[ ] Pull out due to:</Text>
-            <View style={styles.statusLine} />
-            <Text style={styles.statusOption}>[ ] For replacement:</Text>
-            <View style={styles.statusLine} />
+                <Text style={styles.statusOption}>[ ] Repaired and in good physically condition:</Text>
+                <Text style={styles.statusOption}>[ ] Repaired but with deferred recommendations:</Text>
+                <View style={styles.statusLine} />
+                <Text style={styles.statusOption}>[ ] Unable to repair due to:</Text>
+                <View style={styles.statusLine} />
+                <Text style={styles.statusOption}>[ ] Pull out due to:</Text>
+                <View style={styles.statusLine} />
+                <Text style={styles.statusOption}>[ ] For replacement:</Text>
+                <View style={styles.statusLine} />
             </View>
         </View>
 

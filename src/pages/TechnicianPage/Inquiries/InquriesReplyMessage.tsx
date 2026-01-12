@@ -20,7 +20,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { userAuth } from '../../../hooks/userAuth';
-import Snackbar from '../../../components/feedback/Snackbar';
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 import { downloadFile } from '../../../utils/downloadFile'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import { useNavigate } from 'react-router-dom';
@@ -226,7 +226,7 @@ export default function InquriesReplyMessage() {
   return (
     <div className="flex h-full bg-gray-50"> 
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
           open={snackBarOpen}
           type={snackBarType}
           message={snackBarMessage}
