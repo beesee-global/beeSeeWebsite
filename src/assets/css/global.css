@@ -29,8 +29,13 @@
 }
 
 html, body, #root {
-  height: 100%; 
+  height: 100%;
   background: #000;
+  /* Apply site-wide base typography from the design tokens */
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color: var(--muted);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
   
 /* ------------------------------
@@ -499,3 +504,119 @@ button, a, input, textarea, select {
     border-width: 2px;
   }
 }
+
+/* ------------------------------
+   GLOBAL TYPOGRAPHY APPLICATION
+   Apply the bee typography scale across common elements
+   ------------------------------ */
+
+/* Body text */
+body, p, li, input, textarea, select {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Headings map to bee-title styles for consistency */
+h1 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (min-width: 640px) { h1 { font-size: 56px; } }
+@media (min-width: 1024px) { h1 { font-size: 64px; } }
+
+h2 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 40px;
+  line-height: 1.05;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (min-width: 640px) { h2 { font-size: 48px; } }
+@media (min-width: 1024px) { h2 { font-size: 56px; } }
+
+h3 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Links and inline emphasis */
+a {
+  color: var(--beesee-gold);
+  text-decoration: none;
+  transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease;
+}
+
+a:hover, a:focus {
+  color: var(--beesee-gold-soft);
+  text-shadow: 0 0 14px rgba(253,204,0,0.12);
+}
+
+/* Small text variant */
+.bee-body-sm, small {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ------------------------------
+   SIDEBAR & NAV — Hover / Focus Effects
+   Leave existing backgrounds intact; add non-destructive glow/translate effects
+   ------------------------------ */
+
+/* Generic sidebar / nav link styling — non-invasive selectors */
+.sidebar a, .sidebar .nav-link, nav a, .navbar a, .nav-item > a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-light);
+  transition: background 0.25s ease, transform 0.18s ease, box-shadow 0.22s ease, color 0.18s ease;
+}
+
+/* Subtle gold sweep + lift on hover (does not change the container background) */
+.sidebar a:hover, .sidebar .nav-link:hover, nav a:hover, .navbar a:hover, .nav-item > a:hover {
+  background: linear-gradient(90deg, rgba(253,204,0,0.06), rgba(253,204,0,0.02));
+  transform: translateX(6px);
+  box-shadow: 0 12px 30px rgba(253,204,0,0.10);
+  color: var(--beesee-gold);
+}
+
+/* Active / selected state — gentle inset highlight */
+.sidebar a.active, .sidebar .nav-link.active, nav a.active, .navbar a.active, .nav-item > a.active {
+  background: rgba(253,204,0,0.10);
+  color: var(--beesee-gold);
+  box-shadow: inset 0 0 0 1px rgba(253,204,0,0.06);
+}
+
+/* Focus accessibility */
+.sidebar a:focus, nav a:focus, .navbar a:focus {
+  outline: 2px solid rgba(253,204,0,0.16);
+  outline-offset: 3px;
+}
+
+/* Icon accent inside nav — if icons exist, tint them on hover */
+.sidebar a svg, nav a svg, .nav-item svg {
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.sidebar a:hover svg, nav a:hover svg, .nav-item:hover svg {
+  color: var(--beesee-gold);
+  transform: translateX(3px);
+}
+
+/* Small screens: slightly reduce hover translate to prevent layout shifts */
+@media (max-width: 768px) {
+  .sidebar a:hover, nav a:hover { transform: translateX(3px); }
+}
+
