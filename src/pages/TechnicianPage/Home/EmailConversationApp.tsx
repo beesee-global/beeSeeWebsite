@@ -713,7 +713,7 @@ export default function EmailConversationApp() {
       {/* Desktop view */}
       {/* Conversations List */}
       <div className="hidden md:flex md:flex-col w-1/3 bg-gray-100 border-r border-gray-200">
-        <div className="flex justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-gray-900 to-gray-800">
+        <div className="flex justify-between p-4 border-b border-gray-200 "  style={{ backgroundColor: '#000000' }}>
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Inbox className="w-5 h-5" />

@@ -70,15 +70,15 @@ const generateAndDownloadPDF = async () => {
                 </span>
 
                 <button
-  onClick={(e) => {
-    e.preventDefault(); // Prevent default navigation
-    generateAndDownloadPDF();
-  }}
-  className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
->
-  <Download size={14} />
-  DOWNLOAD
-</button>
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default navigation
+                    generateAndDownloadPDF();
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <Download size={14} />
+                  DOWNLOAD
+                </button>
 
               </div>
             )} 
