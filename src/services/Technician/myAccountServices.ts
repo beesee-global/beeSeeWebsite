@@ -16,7 +16,7 @@ export const fetchUserById = async (id: string | number) => {
 export const updateAccountInfo = async (payload: { id: number | string, userData: FormData }) => {
     try {
         const { id, userData  } = payload;
-        const response = await axiosClient.put(`${API_URL}/${id}`, userData, {
+        const response = await axiosClient.put(`${API_URL}/${id}/my-account`, userData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
