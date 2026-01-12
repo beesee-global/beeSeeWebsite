@@ -140,7 +140,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
         onClose={() => {onClose(); setFormData(initialState);}} 
         aria-labelledby="issue-dialog-title"
     >
-      <DialogTitle sx={{ m: 0, p: 2 }} id="issue-dialog-title">
+      <DialogTitle sx={{ m: 0, p: 2, color: 'black' }} id="issue-dialog-title">
         {isEditMode ? 'Edit Issue Type' : 'Issue Type Details'}
       </DialogTitle>
 
