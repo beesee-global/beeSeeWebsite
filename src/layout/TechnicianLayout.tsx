@@ -52,7 +52,7 @@ const TechnicianLayout = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Mobile view sidebar */}
       {userNav && (
         <div className="fixed inset-0 z-50 md:hidden">
