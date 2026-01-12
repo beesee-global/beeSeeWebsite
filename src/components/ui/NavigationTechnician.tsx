@@ -53,12 +53,13 @@ const NavigationTechnician = () => {
     top: 60,
     right: 0,
     zIndex: 10,
-    border: '1px solid #e5e7eb', // light gray
+    border: '1px solid #e5e7eb',
     bgcolor: 'background.paper',
     borderRadius: 2,
     boxShadow: 3,
-    width: 240,
-    p: 1,
+    width: 280,
+    p: 0,
+    overflow: 'hidden',
   };
 
   const stylesNotification: SxProps = {
@@ -66,7 +67,7 @@ const NavigationTechnician = () => {
     top: 48,
     right: 0,
     zIndex: 10,
-    border: '1px solid #e5e7eb', // light gray
+    border: '1px solid #e5e7eb',
     bgcolor: 'background.paper',
     borderRadius: 2,
     boxShadow: 3,
@@ -103,6 +104,7 @@ const NavigationTechnician = () => {
       console.log("notification", message)
     })
   }, [])
+
   return (
     <div className="py-3 px-4 border-b border-gray-800" style={{ backgroundColor: '#000000' }}>
       <div className="flex items-center justify-between gap-5">
@@ -170,13 +172,13 @@ const NavigationTechnician = () => {
                 className="flex items-center space-x-2 rounded-full transition"
               >
                 {user.image ? (
-                  <div className="flex items-center gap-2 bg-gray-800 w-full max-w-48 hover:bg-gray-700 py-2 px-3 rounded-md">
+                  <div className="flex items-center gap-2 bg-gray-800 w-full max-w-48 hover:bg-gray-700 py-2 px-3 rounded-md transition-all duration-200">
                     <Avatar
                       alt={`${user.first_name} ${user.last_name}`}
                       src={preview}
                       className="w-8 h-8 rounded-full bg-white object-cover"
                     />
-                    <span className="text-white">{`${user.first_name} ${user.last_name}`}</span>
+                    <span className="text-white font-medium">{`${user.first_name} ${user.last_name}`}</span>
                   </div>
                 ) : (
                   <div className='w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-semibold'>
@@ -187,56 +189,58 @@ const NavigationTechnician = () => {
 
               {openAccount && (
                 <Box sx={styles}>
-                  <ul className="flex flex-col text-gray-800">
-                    <li className='flex items-center gap-4 py-2'>
-                        {/* Avatar */}
-                        <div>
-                          {user.image ? (
-                            <Avatar 
-                              alt={`${user.first_name} ${user.last_name}`}
-                              src={preview} 
-                              className='w-8 h-8 rounded-full bg-white object-cover'
+                  {/* User Info Section */}
+                  <div className='px-4 py-3 bg-gradient-to-br from-gray-50 to-white border-b border-gray-200'>
+                    <div className='flex items-center gap-3'>
+                      {/* Avatar */}
+                      <div>
+                        {user.image ? (
+                          <Avatar 
+                            alt={`${user.first_name} ${user.last_name}`}
+                            src={preview} 
+                            className='w-12 h-12 rounded-full object-cover shadow-md'
                           />
-                          ) : (
-                            <div className='w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold'>
-                              {`${user.first_name.charAt(0)} ${user.last_name.charAt(0)}`}
-                            </div>
-                          )}
-                        </div>
+                        ) : (
+                          <div className='w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white font-bold text-lg shadow-md'>
+                            {`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}
+                          </div>
+                        )}
+                      </div>
 
-                        {/* Information */}
-                        <div className='flex flex-col space-y-1'>
-                            {/* full name */}
-                            <div className='max-w-[150px]'>
-                                <h3 className='text-[17px] font-semibold truncate'>
-                                  {`${user.first_name} ${user.last_name}`}
-                                </h3>  
-                            </div>
+                      {/* Information */}
+                      <div className='flex flex-col space-y-0.5 flex-1 min-w-0'>
+                        {/* Full name */}
+                        <h3 className='text-base font-bold text-gray-900 truncate'>
+                          {`${user.first_name} ${user.last_name}`}
+                        </h3>  
 
-                            {/* position */}
-                            <div className='max-w-[150px]'>
-                                <p className='text-[15px] text-gray-600 truncate'>
-                                  {`${user.role}`}
-                                </p>
-                            </div>
-                        </div>
-                    </li>
-                    <hr className='border-gray-300 my-1'/>
+                        {/* Position */}
+                        <p className='text-sm text-gray-600 truncate'>
+                          {user.role || 'Staff'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <ul className="py-2">
                     <li
                       onClick={() => {
                         navigate('/beesee/my-account'), 
                         handleClickAway()
                       }} 
-                      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100" 
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 group" 
                     >
-                      <SettingsIcon sx={{ fontSize: 16 }}/> Account Setting
+                      <SettingsIcon sx={{ fontSize: 20 }} className="text-gray-500 group-hover:text-yellow-600 transition-colors"/> 
+                      <span className="font-medium">Account Setting</span>
                     </li>
-                    <hr className="border-gray-300 my-1" />
+                    
                     <li
-                      className="flex items-center gap-2 px-3 py-1 cursor-pointer  hover:bg-gray-100"
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
                       onClick={logout}
                     >
-                      <LogoutIcon sx={{ fontSize: 16 }}/> Sign Out
+                      <LogoutIcon sx={{ fontSize: 20 }} className="text-gray-500 group-hover:text-red-600 transition-colors"/> 
+                      <span className="font-medium">Sign Out</span>
                     </li>
                   </ul>
                 </Box>
