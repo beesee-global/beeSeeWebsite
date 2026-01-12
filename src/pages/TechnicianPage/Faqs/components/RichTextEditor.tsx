@@ -286,7 +286,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
       <div
         ref={editorRef}
         contentEditable
-        className="p-4 min-h-[300px] focus:outline-none"
+        className="p-4 min-h-[300px] focus:outline-none text-black"
         onInput={handleInput}
         onKeyUp={handleKeyUp}
         onMouseUp={handleMouseUp}
@@ -296,7 +296,8 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
         style={{ 
           wordWrap: 'break-word',
           overflowWrap: 'break-word',
-          lineHeight: '1.6'
+          lineHeight: '1.6',
+          color: '#000000'
         }}
       />
 

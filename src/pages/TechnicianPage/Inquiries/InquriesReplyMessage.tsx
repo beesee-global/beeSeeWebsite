@@ -251,7 +251,7 @@ export default function InquriesReplyMessage() {
             {/* Header */}
             <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-black">
                   Inquiries Reply
                 </h2> 
               </div>
@@ -272,7 +272,7 @@ export default function InquriesReplyMessage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {loading && messages.length === 0 ? (
                   <div className="flex justify-center items-center h-full">
-                    <div className="text-gray-400">Loading messages...</div>
+                    <div className="text-black">Loading messages...</div>
                   </div>
                 ) : (
                   messages.map((msg) => (
@@ -290,7 +290,7 @@ export default function InquriesReplyMessage() {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <User className="w-4 h-4" />
-                          <span className="font-semibold text-sm">
+                          <span className="font-semibold text-sm text-black">
                             {msg.sender_name || msg.sender_email}
                           </span>
                           <span
@@ -303,7 +303,7 @@ export default function InquriesReplyMessage() {
                             {msg.user_role}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap break-words">{msg.message_body}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words text-black">{msg.message_body}</p>
                         
                         {/* Attachments Display */}
                         {msg.attachments && msg.attachments.length > 0 && (
@@ -319,8 +319,8 @@ export default function InquriesReplyMessage() {
                               >
                                 {getFileIcon(attachment.type)}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{attachment.name}</p>
-                                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                                  <p className="text-xs font-medium truncate text-black">{attachment.name}</p>
+                                  <p className="text-xs text-black">{formatFileSize(attachment.size)}</p>
                                 </div>
                                 <button 
                                   onClick={() => downloadFile(attachment.attachment_url, attachment.name)}
@@ -335,9 +335,7 @@ export default function InquriesReplyMessage() {
                         )}
 
                         <div
-                          className={`flex items-center gap-1 mt-2 text-xs ${
-                            msg.is_inbound ? 'text-gray-500' : 'text-gray-300'
-                          }`}
+                          className={`flex items-center gap-1 mt-2 text-xs text-black`}
                         >
                           <Clock className="w-3 h-3" />
                           {formatDate(msg.created_at)}
@@ -350,7 +348,7 @@ export default function InquriesReplyMessage() {
             ) : ( 
               <>
               <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
-                <span className="text-center text-gray-500 text-lg">No reply message</span>
+                <span className="text-center text-black text-lg">No reply message</span>
               </div>
               </>
             )}
@@ -378,7 +376,7 @@ export default function InquriesReplyMessage() {
                       )}
                       <div className="flex-1 min-w-0 max-w-xs">
                         <p className="text-xs font-medium truncate">{fileObj.name}</p>
-                        <p className="text-xs text-gray-500">{formatFileSize(fileObj.size)}</p>
+                        <p className="text-xs text-black">{formatFileSize(fileObj.size)}</p>
                       </div>
                       <button
                         onClick={() => handleRemoveFile(index)}

@@ -21,9 +21,9 @@ export default function PrivacyPolicy() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 text-gray-700 leading-relaxed text-md sm:text-lg"
+          className="mb-8 text-black leading-relaxed text-md sm:text-lg"
         >
-          At <span className="font-semibold">Beesee Global Technologies Inc.</span>, 
+          At <span className="font-semibold text-black">Beesee Global Technologies Inc.</span>, 
           we value your privacy and are committed to protecting your personal data. 
           This Privacy Policy explains how we collect, use, disclose, and safeguard your 
           information when you use our website, services, and products. Please read 
@@ -42,10 +42,10 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               1. Information We Collect
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+            <p className="text-black leading-relaxed mb-4 text-md sm:text-lg">
               We may collect the following types of information from you:
             </p>
-            <ul className="list-disc pl-6 text-gray-700 space-y-2 text-md sm:text-lg">
+            <ul className="list-disc pl-6 text-black space-y-2 text-md sm:text-lg">
               <li><strong>Personal Information:</strong> such as your name, email address, phone number, billing details, and shipping address.</li>
               <li><strong>Account Information:</strong> username, password, and preferences when you register with us.</li>
               <li><strong>Usage Data:</strong> information about how you use our website, apps, and services, including IP address, browser type, and device information.</li>
@@ -63,10 +63,10 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               2. How We Use Your Information
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+            <p className="text-black leading-relaxed mb-4 text-md sm:text-lg">
               We use the collected information for purposes including:
             </p>
-            <ul className="list-disc pl-6 text-gray-700 space-y-2 text-md sm:text-lg">
+            <ul className="list-disc pl-6 text-black space-y-2 text-md sm:text-lg">
               <li>Providing and maintaining our services.</li>
               <li>Processing transactions and delivering products.</li>
               <li>Improving customer support and communication.</li>
@@ -86,10 +86,10 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               3. Sharing Your Information
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+            <p className="text-black leading-relaxed mb-4 text-md sm:text-lg">
               We do not sell or rent your personal data. However, we may share it with:
             </p>
-            <ul className="list-disc pl-6 text-gray-700 space-y-2 text-md sm:text-lg">
+            <ul className="list-disc pl-6 text-black space-y-2 text-md sm:text-lg">
               <li><strong>Service Providers:</strong> third parties that help us operate our business (payment processors, shipping partners, IT support).</li>
               <li><strong>Legal Compliance:</strong> when required by law, regulation, or legal request.</li>
               <li><strong>Business Transfers:</strong> in case of mergers, acquisitions, or sale of assets.</li>
@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               4. Data Security
             </h2>
-            <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="text-black leading-relaxed text-md sm:text-lg">
               We implement appropriate technical and organizational security 
               measures to protect your personal data. However, no method of 
               transmission over the internet or electronic storage is 100% secure, 
@@ -124,10 +124,10 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               5. Your Rights
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+            <p className="text-black leading-relaxed mb-4 text-md sm:text-lg">
               Depending on your location, you may have the following rights:
             </p>
-            <ul className="list-disc pl-6 text-gray-700 space-y-2 text-md sm:text-lg">
+            <ul className="list-disc pl-6 text-black space-y-2 text-md sm:text-lg">
               <li>Right to access, update, or delete your data.</li>
               <li>Right to withdraw consent at any time.</li>
               <li>Right to opt out of marketing communications.</li>
@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               6. Cookies Policy
             </h2>
-            <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="text-black leading-relaxed text-md sm:text-lg">
               Our website uses cookies to enhance user experience, analyze traffic, 
               and personalize content. You may disable cookies in your browser, but 
               some parts of our website may not function properly as a result.
@@ -162,7 +162,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               7. Children's Privacy
             </h2>
-            <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="text-black leading-relaxed text-md sm:text-lg">
               Our services are not directed to individuals under 13 years of age. 
               We do not knowingly collect personal data from children. If we learn 
               that we have collected information from a child, we will delete it promptly.
@@ -179,7 +179,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               8. Changes to This Privacy Policy
             </h2>
-            <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="text-black leading-relaxed text-md sm:text-lg">
               We may update this Privacy Policy from time to time to reflect 
               changes in technology, laws, or our business practices. Updates 
               will be posted on this page with a revised effective date.
@@ -197,14 +197,14 @@ export default function PrivacyPolicy() {
               9. Compliance with the Data Privacy Act of 2012 (RA 10173)
             </h2>
 
-            <p className="text-gray-700 leading-relaxed mb-4 text-md sm:text-lg">
+            <p className="text-black leading-relaxed mb-4 text-md sm:text-lg">
               In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, 
               we are committed to protecting any personal information you provide. All data collected 
               through this website and our systems will be used solely for legitimate business, 
               verification, and administrative purposes.
             </p>
 
-            <ul className="list-disc pl-6 text-gray-700 space-y-3 text-md sm:text-lg">
+            <ul className="list-disc pl-6 text-black space-y-3 text-md sm:text-lg">
               <li>
                 Your personal information is kept strictly confidential and is accessed only by
                 authorized personnel.
@@ -231,7 +231,7 @@ export default function PrivacyPolicy() {
               </li>
             </ul>
 
-            <p className="mt-4 text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="mt-4 text-black leading-relaxed text-md sm:text-lg">
               By using our services, you acknowledge that you understand and agree to the collection,
               processing, and storage of your personal data in accordance with the Data Privacy Act
               of 2012 (RA 10173).
@@ -249,10 +249,10 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               10. Contact Us
             </h2>
-            <p className="text-gray-700 leading-relaxed text-md sm:text-lg">
+            <p className="text-black leading-relaxed text-md sm:text-lg">
               If you have any questions about this Privacy Policy, please contact us at:
             </p>
-            <p className="mt-4 text-gray-700 text-md sm:text-lg">
+            <p className="mt-4 text-black text-md sm:text-lg">
               <strong>Beesee Global Technologies Inc.</strong> <br />
               info@beese.ph <br />
               [65-D Scout Borromeo, South Triangle, Quezon City]

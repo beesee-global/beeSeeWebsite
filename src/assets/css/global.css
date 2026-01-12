@@ -511,7 +511,7 @@ button, a, input, textarea, select {
    ------------------------------ */
 
 /* Body text */
-body, p, li, input, textarea, select {
+body, input, textarea, select {
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
@@ -567,6 +567,30 @@ a:hover, a:focus {
   font-family: "Segoe UI", sans-serif;
   font-size: 14px;
   color: var(--muted);
+}
+
+/* Privacy Policy — ensure text-black Tailwind classes are not overridden by global p/li rules */
+section.bg-white p, section.bg-white li, section.bg-white ul {
+  color: inherit !important;
+}
+
+/* Inquiries Reply Message — ensure text-black Tailwind classes are not overridden by global p/li rules */
+div:has(h2:contains("Inquiries Reply")) p,
+div:has(h2:contains("Inquiries Reply")) li,
+div:has(h2:contains("Inquiries Reply")) div {
+  color: inherit !important;
+}
+
+/* FAQs Dialog & Modal — ensure text stays black */
+.MuiDialog-paper, .MuiDialog-root, [role="dialog"] {
+  color: #000 !important;
+}
+.MuiDialog-paper p, .MuiDialog-paper div, .MuiDialog-paper label,
+.MuiDialog-root p, .MuiDialog-root div, .MuiDialog-root label {
+  color: inherit !important;
+}
+.MuiInputBase-input, input[type="text"], input[type="select"], textarea, .MuiSelect-root {
+  color: #000 !important;
 }
 
 /* ------------------------------
