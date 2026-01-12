@@ -40,7 +40,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { fetchFaqsAll, fetchAllDevices } from '../../../services/Technician/faqsServices';
 import { useQuery } from '@tanstack/react-query';
-import { useTawkTo } from '../../../hooks/useTawkTo';
+// import { useTawkTo } from '../../../hooks/useTawkTo';
 
 interface FaqItem {
   id: number;
@@ -51,7 +51,7 @@ interface FaqItem {
 }
 
 const FAQs = () => {
-  useTawkTo();
+  //useTawkTo();
   const navigate = useNavigate();
   const [active, setActive] = useState<number | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<string>('All');
