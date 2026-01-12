@@ -431,7 +431,7 @@ export default function EmailConversationApp() {
           {/* Header */}
           <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
             <div>
-              <h2 className="text-md font-semibold text-gray-900">
+              <h2 className="bee-title-sm text-gray-900">
                 {userTicketInformation.company || 'No Subject'}
               </h2>
               {/* <p className="text-sm text-gray-500">
