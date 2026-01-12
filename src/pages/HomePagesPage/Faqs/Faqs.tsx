@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertColor } from '@mui/material/Alert';
 import Snackbar from '../../../components/feedback/Snackbar';
 import '../../../assets/css/FAQs.css';
+import DOMPurify from 'dompurify';
 import {
   Search,
   MessageCircle,
@@ -79,6 +80,15 @@ const FAQs = () => {
   ];
 
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
+
+  // Sanitize HTML function
+  const sanitizeHTML = (html: string): string => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+      ALLOW_DATA_ATTR: false,
+    });
+  };
 
   const filteredFaqs = useMemo(() => {
     return faqs.filter((faq) => {
@@ -287,9 +297,6 @@ const FAQs = () => {
 
       {/* Content */}
       <section className="relative z-10 pt-18 sm:pt-28 md:pt-36 lg:pt-48 pb-28 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12">
-       
-
-
         <Snackbar
           open={showAlert}
           type={snackBarType}
@@ -418,26 +425,25 @@ const FAQs = () => {
                         </div>
                       </div>
                       {active === f.id && (
-                      <div className="mt-4 opacity-100">
-                        <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
-                          <p 
-                            className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
-                            style={{ textAlign: 'left', textAlignLast: 'left' }}
-                          >
-                            {f.explanation}
-                          </p>
-                          {/* Mobile: Tags below explanation, left aligned */}
-                          <div className="flex md:hidden gap-2 mt-4">
-                            <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
-                              {f.device}
-                            </span>
-                            <span className="px-3 py-1 text-white/70 text-xs ">
-                              {f.category}
-                            </span>
+                        <div className="mt-4 opacity-100">
+                          <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
+                            <p 
+                              className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
+                              style={{ textAlign: 'left', textAlignLast: 'left' }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeHTML(f.explanation) }}
+                            />
+                            {/* Mobile: Tags below explanation, left aligned */}
+                            <div className="flex md:hidden gap-2 mt-4">
+                              <span className="px-3 py-1 text-[var(--beesee-gold-soft)] text-xs font-medium">
+                                {f.device}
+                              </span>
+                              <span className="px-3 py-1 text-white/70 text-xs ">
+                                {f.category}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     </div>
                   </div>
                 ))}
