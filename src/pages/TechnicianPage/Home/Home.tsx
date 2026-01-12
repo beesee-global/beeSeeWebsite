@@ -3,7 +3,7 @@ import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
 import TableInbox from "./components/TableInbox";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import { useNavigate } from "react-router-dom"; 
-import Snackbar from "../../../components/feedback/Snackbar";
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
 import { userAuth } from '../../../hooks/userAuth'
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
@@ -162,6 +162,7 @@ const Home = () => {
     if (!debouncedSearch.trim()) return rows;
     const search = debouncedSearch.toLowerCase(); 
     return rows.filter((row: any) =>
+      row?.reference_number?.toLowerCase().includes(search) ||
       row?.device_type?.toLowerCase().includes(search) ||
       row?.issue_name?.toLowerCase().includes(search) ||
       row?.issue_type?.toLowerCase().includes(search) ||
@@ -178,7 +179,7 @@ const Home = () => {
   return (
     <div className="p-6 space-y-10">
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen}
         message={snackBarMessage}
         type={snackBarType}

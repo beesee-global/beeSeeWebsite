@@ -16,7 +16,7 @@ import { Plus } from 'lucide-react'
 import { userAuth } from '../../../hooks/userAuth';
 import TableDefault from '../../../components/DataDisplay/TableDefault' 
 import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFieldModal';
-import Snackbar from '../../../components/feedback/Snackbar';
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import CustomSearchField from '../../../components/Fields/CustomSearchField';
 import WorkIcon from '@mui/icons-material/Work';
@@ -180,7 +180,7 @@ const Category = () => {
   return (
     <div className='p-6 space-y-10'>
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 

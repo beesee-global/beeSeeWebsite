@@ -8,7 +8,7 @@ import {
 import TableUsers from "./components/TableUsers"
 import { useQuery } from "@tanstack/react-query" 
 import { userAuth } from "../../../hooks/userAuth"
-import Snackbar from "../../../components/feedback/Snackbar"
+import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import { useState, useMemo, useEffect } from "react"
 import WorkIcon from '@mui/icons-material/Work';
@@ -71,7 +71,7 @@ const Users = () => {
   return (
     <div className="p-6 space-y-10">
       {/* Snackbar */}
-      <Snackbar 
+      <SnackbarTechnician 
         open={snackBarOpen} 
         type={snackBarType} 
         message={snackBarMessage} 

@@ -67,7 +67,7 @@
       });
       if (!newForm['explanation']) newForm['explanation'] = '';
       setFormData(newForm);
-      
+      console.log("Resetting form data:", newForm);
       setSelectedCategory(newForm["category"] || "");
     }, [fields, open]);
 

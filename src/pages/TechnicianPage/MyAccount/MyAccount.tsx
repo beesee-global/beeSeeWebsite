@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import CustomTextField from '../../../components/Fields/CustomTextField'
-import Snackbar from '../../../components/feedback/Snackbar'
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician'
 import AlertDialog from '../../../components/feedback/AlertDialog' 
 import AddImageIcon from '../../../../public/add-image-icon.jpg'
 import { AlertColor } from '@mui/material/Alert'
@@ -262,7 +262,7 @@ const MyAccount = () => {
         <div className='w-full mx-auto px-4 sm:px-6 lg:px-8'>
         
             {/* Notification */}
-            <Snackbar 
+            <SnackbarTechnician 
                 open={showAlert}
                 type={snackBarType}
                 message={message}

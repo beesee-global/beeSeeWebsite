@@ -26,18 +26,20 @@ interface RichTextEditorProps {
 export default function RichTextEditor({ value, onChange, placeholder = 'Start typing...' }: RichTextEditorProps) {
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
-  const [selectedFormat, setSelectedFormat] = useState<Set<string>>(new Set())
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [selectedFormat, setSelectedFormat] = useState<Set<string>>(new Set()) 
   const savedSelection = useRef<Range | null>(null)
 
   const editorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (editorRef.current && !isInitialized) {
+    if (!editorRef.current) return
+
+    // Only update if value is different to avoid cursor jumps
+    if (editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value || ''
-      setIsInitialized(true)
     }
-  }, [value, isInitialized])
+  }, [value])
+
 
   const execCommand = (command: string, val?: string) => {
     // Focus the editor first
