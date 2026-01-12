@@ -234,7 +234,12 @@ const Category = () => {
           </div>
           <div>
             <button 
-              onClick={() => setModalOpen(true)} 
+              onClick={() => {
+                setModalOpen(true);
+                setIsEditMode(false);
+                setSelectedCategory(null);
+              }}
+
               className='flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md'>
               <Plus /> Add Device Type
             </button>

@@ -124,7 +124,7 @@ const Product = () => {
   const handleAddProduct = async (formDataProduct: Record<string, string>) => {
     try {
       const formData = new FormData();
-      formData.append('name', formDataProduct.name);
+      formData.append('name', formDataProduct.product_name);
       formData.append('categories_id', formDataProduct.category)
 
       const response = await Products(formData)
@@ -218,8 +218,7 @@ const Product = () => {
         fields={[
           {
             name: 'product_name',
-            placeholder: 'Product Name',
-            maxLength: 100,
+            placeholder: 'Product Name', 
             type: 'text',
             multiline: false,
             rows: 1,
@@ -256,7 +255,11 @@ const Product = () => {
             />
           </div>
           <div>
-            <button onClick={() => setModalOpen(true)} className='flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md'>
+            <button   
+              onClick={() => {
+                setModalOpen(true);
+                setIsEditMode(false); 
+              }} className='flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md'>
               <Plus /> Add Model Type
             </button>
           </div>
