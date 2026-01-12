@@ -110,7 +110,7 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
       open={open} 
       onClose={onClose}
       >
-      <DialogTitle  sx={{ m: 0, p: 2 }} >
+      <DialogTitle  sx={{ m: 0, p: 2,  color: 'black' }} >
         {title}
       </DialogTitle>
         <IconButton

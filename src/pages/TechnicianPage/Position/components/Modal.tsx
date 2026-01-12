@@ -208,7 +208,7 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <BootstrapDialog open={open} onClose={onClose}>
-      <DialogTitle sx={{ m: 0, p: 2 }}>{title}</DialogTitle>
+      <DialogTitle sx={{ m: 0, p: 2, color: 'black' }}>{title}</DialogTitle>
 
       <IconButton
         onClick={onClose}
