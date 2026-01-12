@@ -71,7 +71,7 @@ const Dashboard = () => {
   }, [])
   
   return (
-    <div className="p-6 space-y-10">
+    <div className="p-6 space-y-10 bg-white">
       <div className="flex items-center justify-between">
         <Breadcrumb
           items={[

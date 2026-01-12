@@ -52,17 +52,17 @@ const TechnicianLayout = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Mobile view sidebar */}
       {userNav && (
         <div className="fixed inset-0 z-50 md:hidden">
-          {/* Dark Theme */}
+          {/* Dark overlay */}
           <div 
             onClick={() => setUserNav(false)}
             className="absolute inset-0 bg-black bg-opacity-40"
           />
 
-          <div className="absolute left-0 top-0 h-screen w-80 animate-slideIn overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-500 scrollbar-track-gray-700'">
+          <div className="absolute left-0 top-0 h-screen w-80 animate-slideIn overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-500 scrollbar-track-gray-900" style={{ backgroundColor: '#000000' }}>
             <SidebarTechnician />
           </div>
         </div>
@@ -70,12 +70,12 @@ const TechnicianLayout = () => {
 
       {/* Desktop view */}
       {/* Sidebar (optional) */}
-      <aside className={`hidden md:block bg-white border-r border-gray-200  overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-500 scrollbar-track-gray-700 overflow-hidden`}>
+      <aside className={`hidden md:block border-r border-gray-800 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-500 scrollbar-track-gray-900 overflow-hidden`} style={{ backgroundColor: '#000000' }}>
         <SidebarTechnician />
       </aside>
 
       {/* Body Section */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden bg-white">
         {/* Navigation */}
         <div>
           <NavigationTechnician />

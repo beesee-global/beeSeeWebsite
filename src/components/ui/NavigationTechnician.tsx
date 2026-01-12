@@ -104,7 +104,7 @@ const NavigationTechnician = () => {
     })
   }, [])
   return (
-    <div className="py-3 px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-b border-gray-300">
+    <div className="py-3 px-4 border-b border-gray-800" style={{ backgroundColor: '#000000' }}>
       <div className="flex items-center justify-between gap-5">
         <div className='flex gap-4 items-center'>
           <div className='flex md:hidden' >
