@@ -620,3 +620,74 @@ a:hover, a:focus {
   .sidebar a:hover, nav a:hover { transform: translateX(3px); }
 }
 
+/* Technician sidebar: keep original colors, but make text/icons white on hover or when active */
+.technician-sidebar a, .technician-sidebar .nav-link, .technician-sidebar button {
+  /* keep layout/spacing consistent with existing sidebar rules */
+}
+
+/* Hover and focus: white text & icons (scoped to technician sidebar) */
+.technician-sidebar a:hover, .technician-sidebar .nav-link:hover, .technician-sidebar button:hover,
+.technician-sidebar a:focus, .technician-sidebar .nav-link:focus, .technician-sidebar button:focus {
+  color: #ffffff !important;
+  will-change: transform, color;
+  /* gentle lift + small horizontal slide and scale */
+  transform: translateX(4px) translateY(-3px) scale(1.02) !important;
+  animation: tech-bounce 300ms cubic-bezier(.22,1,.36,1) both;
+}
+.technician-sidebar a:hover svg, .technician-sidebar .nav-link:hover svg, .technician-sidebar button:hover svg,
+.technician-sidebar a:focus svg, .technician-sidebar .nav-link:focus svg, .technician-sidebar button:focus svg {
+  color: #ffffff !important;
+  will-change: transform, color;
+  transform: translateX(4px) translateY(-3px) scale(1.02) !important;
+  animation: tech-bounce 300ms cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Active / clicked: white text & icons */
+.technician-sidebar a.active, .technician-sidebar .nav-link.active, .technician-sidebar button.active,
+.technician-sidebar .nav-item > a.active {
+  color: #ffffff !important;
+}
+.technician-sidebar a.active svg, .technician-sidebar .nav-link.active svg, .technician-sidebar button.active svg {
+  color: #ffffff !important;
+}
+
+/* Bounce keyframes for hover/interaction */
+@keyframes tech-bounce {
+  0% { transform: translateX(0) translateY(0) scale(1); }
+  45% { transform: translateX(3px) translateY(-6px) scale(1.035); }
+  75% { transform: translateX(4px) translateY(-2px) scale(1.02); }
+  100% { transform: translateX(4px) translateY(0) scale(1.02); }
+}
+
+/* Icon and drawer button alignment for smooth visuals */
+.technician-sidebar > .mb-4 > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 8px;
+}
+
+/* Ensure nav item icons are centered and consistent size */
+.technician-sidebar a > span:first-child,
+.technician-sidebar .nav-link > span:first-child,
+.technician-sidebar li > a > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+}
+.technician-sidebar a svg, .technician-sidebar button svg, .technician-sidebar .nav-link svg {
+  display: inline-block;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+}
+
+/* Slight transition smoothing for transform changes */
+.technician-sidebar a, .technician-sidebar .nav-link, .technician-sidebar button {
+  transition: transform 220ms cubic-bezier(.22,1,.36,1), color 180ms ease;
+}
+
+

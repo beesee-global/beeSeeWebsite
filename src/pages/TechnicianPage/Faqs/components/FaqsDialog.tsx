@@ -124,7 +124,7 @@
           onClose();
         }}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }}>{title}</DialogTitle>
+        <DialogTitle sx={{ m: 0, p: 2, color: '#000' }}>{title}</DialogTitle>
         <IconButton
           aria-label="close"
           onClick={onClose}
