@@ -16,12 +16,11 @@ import Apply from './Apply';
 
 
 interface JobPosting {
-  id: string;
-  title: string;
-  department: string;
+  job_reference_number: string;
+  title: string; 
   location: string;
   type: 'Full-time' | 'Part-time' | 'Internship' | 'Contract';
-  postedDate: string;
+  created_at: string;
   description: string;
   responsibilities: string[];
   qualifications: string[];
@@ -61,7 +60,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
   const goBack = () => {
     window.history.back();
   };
-
+ 
   return (
     <div className="job-page min-h-screen bg-[#000] text-white">
       {/* Hero Section with Background Image */}
@@ -86,7 +85,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
             }}>
               <span className="bee-body-sm font-semibold" style={{ color: 'var(--beesee-gold)', fontSize: '15px' }}>
-                Job ID: {job.id}
+                Job ID: {job.job_reference_number}
               </span>
             </div> */}
 
@@ -142,7 +141,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
                 }}>
                   <Calendar size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body1 font-medium">
+                <span className="bee-body font-medium">
                   Posted {new Date(job.postedDate).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric', 
@@ -297,7 +296,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
         isOpen={showApplicationForm}
         onClose={() => setShowApplicationForm(false)}
         jobTitle={job.title}
-        jobId={job.id}
+        jobId={job.job_reference_number}
       />
     </div>
   );
