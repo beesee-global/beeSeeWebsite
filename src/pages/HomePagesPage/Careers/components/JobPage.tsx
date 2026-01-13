@@ -68,28 +68,27 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
       <div 
         className="relative h-[70vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
         style={{
-          background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.88)), url("/careersBg.png")',
+          background: 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerBg3.png")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
         }}
       >
-        {/* Gradient Overlays */}
+        {/* Gradient Overlays*/} 
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#000]/5 to-[#000]"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#000]/5 via-transparent to-[#000]/5"></div>
         
+        
         <div className="relative z-10 text-center max-w-5xl mx-auto px-4 md:px-6">
           <div className="fade-up-init">
-            {/* Job ID Badge */}
+            {/* Job ID Badge 
             <div className="inline-block mb-6 px-5 py-2.5 rounded-lg" style={{
-              background: 'rgba(253, 204, 0, 0.15)',
-              border: '1px solid rgba(253, 204, 0, 0.4)',
-              boxShadow: '0 4px 20px rgba(253, 204, 0, 0.2)'
+
             }}>
               <span className="bee-body-sm font-semibold" style={{ color: 'var(--beesee-gold)', fontSize: '15px' }}>
                 Job ID: {job.id}
               </span>
-            </div>
+            </div> */}
 
             {/* Job Title */}
             <h1 className="mb-5 mt-8" style={{ 
@@ -108,42 +107,42 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
             <div className="flex flex-wrap items-center justify-center gap-6 mb-10">
               <div className="flex items-center gap-2.5">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{
-                  background: 'rgba(253, 204, 0, 0.18)',
+                  background: 'rgba(255, 255, 255, 0.18)',
                   border: '1px solid rgba(253, 204, 0, 0.35)'
                 }}>
-                  <MapPin size={20} style={{ color: 'var(--beesee-gold)' }} />
+                  <MapPin size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body font-medium">{job.location}</span>
+                <span className="bee-body1 font-medium">{job.location}</span>
               </div>
 
               <div className="flex items-center gap-2.5">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{
-                  background: 'rgba(253, 204, 0, 0.18)',
+                  background: 'rgba(255, 255, 255, 0.18)',
                   border: '1px solid rgba(253, 204, 0, 0.35)'
                 }}>
-                  <Briefcase size={20} style={{ color: 'var(--beesee-gold)' }} />
+                  <Briefcase size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body font-medium">Work Location: {job.workLocation || 'Onsite'}</span>
+                <span className="bee-body1 font-medium">Work Location: {job.workLocation || 'Onsite'}</span>
               </div>
               
               <div className="flex items-center gap-2.5">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{
-                  background: 'rgba(253, 204, 0, 0.18)',
+                  background: 'rgba(255, 255, 255, 0.18)',
                   border: '1px solid rgba(253, 204, 0, 0.35)'
                 }}>
-                  <Clock size={20} style={{ color: 'var(--beesee-gold)' }} />
+                  <Clock size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body font-medium">{job.type}</span>
+                <span className="bee-body1 font-medium">{job.type}</span>
               </div>
               
               <div className="flex items-center gap-2.5">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{
-                  background: 'rgba(253, 204, 0, 0.18)',
+                 background: 'rgba(255, 255, 255, 0.18)',
                   border: '1px solid rgba(253, 204, 0, 0.35)'
                 }}>
-                  <Calendar size={20} style={{ color: 'var(--beesee-gold)' }} />
+                  <Calendar size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body font-medium">
+                <span className="bee-body1 font-medium">
                   Posted {new Date(job.postedDate).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric', 
@@ -154,14 +153,27 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
             </div>
 
             {/* Apply CTA - Centered */}
+            {/* Apply CTA - Centered */}
+<div className="flex items-center justify-center gap-4 mt-6">
+            {/* Apply Button */}
             <button 
               onClick={() => setShowApplicationForm(true)}
-              className="beesee-button beesee-button--small"
-              style={{ margin: '0 auto' }}
+              className="beesee-button beesee-button--small flex items-center gap-2"
             >
               <Send size={18} />
               APPLY NOW
             </button>
+            {/* Job ID */}
+            <div className="inline-block px-5 py-2.5 rounded-lg" style={{
+              border: '1px solid rgba(253, 204, 0, 0.35)',
+              background: 'rgba(253, 204, 0, 0.1)'
+            }}>
+              <span className="bee-body-sm font-semibold" style={{ color: 'var(--beesee-gold)', fontSize: '15px' }}>
+                Job ID: {job.id}
+              </span>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>

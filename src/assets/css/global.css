@@ -824,3 +824,20 @@ div:has(h2:contains("Inquiries Reply")) div {
 .beesee-card-content1:hover .beesee-card-content-desc {
   color: #C7B897;
 }
+
+/*TYPOGRAPHY*/
+.bee-body1 {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: white;
+}
+@media (min-width: 768px) { .bee-body1 { font-size: 17px; } }
+@media (min-width: 1024px) { .bee-body1 { font-size: 18px; } }
+
+.bee-body1-sm {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
