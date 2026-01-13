@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import HeroSection from './components/HeroSection'; 
-import { useEffect, useState } from 'react';
-import Disclaimer from '../../../components/feedback/Disclaimer'
+import { useEffect, useState } from 'react'; 
 
 const CustomerSupport: React.FC = () => {
 

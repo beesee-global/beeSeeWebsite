@@ -196,7 +196,7 @@ const HeroSection: React.FC = () => {
     if (!formData?.category_id) errors.category_id = "Device is required.";
     if (!formData?.device_id) errors.device_id = "Model is required.";
     if (!formData?.issue_id) errors.issue_id = "Issue type is required"
-    if (!formData?.questions.trim()) errors.questions = "Your issue is required."; 
+    if (!formData?.questions.trim()) errors.questions = "Please provide details about your issue."; 
     return errors;
   };
 
@@ -346,12 +346,12 @@ const HeroSection: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        <Snackbar 
+        {/* <Snackbar 
           open={snackBarOpen} 
           type={snackBarType} 
           message={snackBarMessage} 
           onClose={() => setSnackBarOpen(false)} 
-        />
+        /> */}
         
         <ImageUploadModal 
           open={openUploadImageModal} 

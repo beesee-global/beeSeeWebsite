@@ -40,16 +40,7 @@ const Snackbar: React.FC <SnackbarProps> = ({
                 horizontal: "center"
             }}
             sx={{
-                // Position it in the middle of the screen, not at the very top
-                top: '50% !important',
-                transform: 'translateY(-50%) !important',
-                // Make sure it's above everything
-                zIndex: 9999,
-                // Add some responsive behavior
-                '@media (max-width: 768px)': {
-                    top: '30px !important',
-                    transform: 'none !important',
-                }
+                marginTop: '80px',
             }}
         >
             <Alert
