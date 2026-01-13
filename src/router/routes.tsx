@@ -18,6 +18,7 @@ const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnicia
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
+const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 
@@ -61,12 +62,6 @@ const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/H
 
 const routes = [
     {
-        path: '/', // Catch-all route
-        element: <Navigate to="/homepage" />,
-        layout: 'blank',
-    },
-
-    {
         path: '/',
         element: <HomePageLayout />,
         layout: 'blank',
@@ -99,6 +94,11 @@ const routes = [
                 path: 'faqs', 
                 element: <FaqsHomePage />
             },
+            {
+                path: 'careers',
+                element: <Careers />
+            },
+
             {
                 path: 'privacy-policy',
                 element: <PrivacyPolicy />
