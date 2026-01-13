@@ -646,6 +646,7 @@ export default function EmailConversationApp() {
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Type your reply..."
                 className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+                style={{color: '#000000', caretColor: '#000000'}}
                 rows="3"
                 disabled={loading}
               />
