@@ -84,33 +84,25 @@ export default function EmailConversationApp() {
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
 
-    const s  = io(import.meta.env.VITE_API_URL_BACKEND as string, {
-      query: {
-        ticket_id: userTicketInformation?.ticket_id
-      }
+    const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      auth: { ticket_id: userTicketInformation.ticket_id },
+      transports: ["websocket"],
+    });
+
+    s.on("connect", () => {
+      s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    });
+
+    s.on("new_ticket_message", (msg: any) => {
+      setMessages(prev => [...prev, msg]);
     });
 
     setSocket(s);
 
-    // Listen to new message
-    s.on("new_ticket_message", (msg:any) => {
-      setMessages(prev => [...prev, msg]); 
-        
-      // fetch initial ticket information
-      queryClient.invalidateQueries({
-        queryKey: ['ticketInformation', pid],
-      })
-    });
-
-    // join ticket room on server
-    s.emit("join_ticket_room", userTicketInformation?.ticket_id);
-
-
     return () => {
       s.disconnect();
     };
-
-  }, [userTicketInformation?.ticket_id])
+  }, [userTicketInformation?.ticket_id]);
 
   // set messages initially
   useEffect(() => {
