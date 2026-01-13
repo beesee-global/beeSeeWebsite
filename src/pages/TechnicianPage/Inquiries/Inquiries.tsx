@@ -15,6 +15,7 @@ import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFieldModal';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client' 
 
 const Inquiries = () => { 
   const queryClient = useQueryClient();
@@ -133,6 +134,31 @@ const Inquiries = () => {
 
   const isLoading = isPendingLoading || isCompletedLoading
 
+  useEffect(() => {
+    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      transports: ["websocket"], // avoids 400 Bad Request
+    });
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("inquiry-updated", (data) => {
+      console.log("New inquiry received:", data);
+      queryClient.invalidateQueries({ queryKey: ["pending-inquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["completed-inquiries"] });
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+    });
+
+    return () => {
+      socket.off("inquiry-updated");
+      socket.disconnect();
+    };
+  }, []);
+  
   if (isLoading) return <SpinningRingLoader />
 
   return (

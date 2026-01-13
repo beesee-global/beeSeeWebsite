@@ -154,8 +154,9 @@ const Home = () => {
       console.log("Socket connected:", socket.id);
     });
 
-    socket.on("ticket-updated", () => {
+    socket.on("ticket-updated", (data) => {
       queryClient.invalidateQueries({ queryKey: ["open-ticket"] });
+      queryClient.invalidateQueries({ queryKey: ["resolve-ticket"]});
     });
 
     socket.on("connect_error", (err) => {

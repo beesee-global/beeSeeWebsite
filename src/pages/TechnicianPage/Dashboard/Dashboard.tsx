@@ -59,9 +59,20 @@ const Dashboard = () => {
 
   // fetch real-time updates
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL as string);
-    socket.on("ticket-updated", () => {
-      queryClient.invalidateQueries({queryKey: ['count-data'] });
+    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      transports: ["websocket"], // avoids 400 Bad Request
+    });
+
+    socket.on("connect", () => {
+      console.log("Connected to socket.io server", socket.id);
+    });
+
+    socket.on("ticket-updated", (data) => {
+      queryClient.invalidateQueries({ queryKey: ["count-data"] });
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
     });
 
     return () => {

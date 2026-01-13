@@ -175,6 +175,19 @@ const Inquiries = () => {
     }
   };
 
+  const handleReset = () => {
+    setSubmitted(false)
+    setFormData({
+      name: '',
+      email: '',
+      company: '',
+      position: '',
+      contact_number: "",
+      subject: '',
+      description: '',
+    });
+  }
+
   return (
      <div className="min-h-screen relative overflow-hidden">
       <div 
@@ -310,7 +323,7 @@ const Inquiries = () => {
                     <Home size={20} /> Return to Homepage
                   </button>
                   <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={handleReset}
                     className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300"
                     style={{
                       background: 'var(--beesee-gold)',
