@@ -72,7 +72,7 @@ export default function EmailConversationApp() {
     mutationFn: insertConversationPublic,
   });
 
-  // Initialize socket connection per ticket
+  // Initialize socket connection per ticket 
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
 

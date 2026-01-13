@@ -81,6 +81,7 @@ export default function EmailConversationApp() {
     enabled: !!userTicketInformation?.ticket_id
   });
 
+  // Initialize socket connection per ticket
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
 
