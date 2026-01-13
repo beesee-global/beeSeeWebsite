@@ -9,7 +9,8 @@ import {
     MessageCircleQuestionMark,
     Settings,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    FileUser
 } from "lucide-react";
 import CategoryIcon from '@mui/icons-material/Category';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
@@ -59,6 +60,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
         { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <QuestionAnswerIcon /> },
+        /* { id: "careers", name: "Careers", path: "/beesee/careers", icon: <FileUser /> }, */
     ];
 
     const toggleMenu = (id: string) => {

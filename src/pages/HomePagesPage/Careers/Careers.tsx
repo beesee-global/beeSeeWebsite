@@ -1,8 +1,10 @@
 import React from 'react';
-
+import { useQuery } from '@tanstack/react-query';
+import { getJobPostings } from '../../../services/Technician/careers'
+import { useParams } from 'react-router-dom';
 
 export interface JobPosting {
-  id: string;
+  job_reference_number: string;
   title: string;
   department: string;
   location: string;
@@ -19,15 +21,13 @@ export interface JobPosting {
 // ========================================
 // MOCK DATA 
 // ========================================
-export const mockJobData: JobPosting = {
+/* export const mockJobData: JobPosting = {
   id: 'BSG2025001',
   title: 'Sales and Marketing',
   department: 'Sales & Marketing',
   location: 'South Triangle, Quezon City',
   workLocation: 'Onsite',
-  type: 'Full-time',
-  postedDate: '2026-01-10',
-  salary: 'From ₱19,000/month',
+  type: 'Full-time', 
   description: "As a Sales and Marketing professional, you'll be promoting a range of tech devices such as laptops, tablets, digital kiosks, interactive boards, and smart displays, along with IT services like CCTV installation and network system setup. You'll help businesses upgrade their technology, connect with clients, and deliver smarter solutions.",
   responsibilities: [
     'Develop and implement marketing strategies tailored to IT devices and services',
@@ -52,14 +52,24 @@ export const mockJobData: JobPosting = {
     'Motivated, results-oriented, and enjoys working with technology'
   ],
 
-};
+}; */
 
 import JobPage from '../Careers/components/JobPage';
 
 const Career: React.FC = () => {
 
-  
-  const jobData = mockJobData; // For demo purposes
+  const { job_ref } = useParams<{ job_ref: string }>();
+
+  // In a real application, you would fetch the job data using the job_ref
+  const { data: jobData} = useQuery<JobPosting>({
+    queryKey: ['jobPosting', job_ref],
+    queryFn: () => getJobPostings(String(job_ref)),
+    enabled: !!job_ref,
+  });
+
+  if (!jobData) {
+    return <div>Loading...</div>;
+  }
 
   return <JobPage job={jobData} />;
 };

@@ -85,7 +85,7 @@ const permissionTree = [
   { id: "users", name: "Users", url: "/beesee/users" },
   { id: "faqs", name: "Faqs", url: "/beesee/faqs" },
   { id: "inquiries", name: "Inquiries", url: "/beesee/inquiries" },
-  
+  { id: "careers", name: "Careers", url: "/beesee/careers" },
   {
     id: "settings",
     name: "Settings",

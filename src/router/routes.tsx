@@ -54,6 +54,7 @@ const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organi
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
 import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp'; 
+const TechnicianCareers = lazy(() => import('../pages/TechnicianPage/Careers/Careers'));
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -95,7 +96,7 @@ const routes = [
                 element: <FaqsHomePage />
             },
             {
-                path: 'careers',
+                path: 'careers/:job_ref',
                 element: <Careers />
             },
 
@@ -276,6 +277,10 @@ const routes = [
             {
                 path: 'organization',
                 element: <TechnicianOrganization />
+            },
+            {
+                path: 'careers',
+                element: <TechnicianCareers />
             }
         ]
     },

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle2, Upload, X, FileText } from 'lucide-react';
+import {
+  careersEmail
+} from '../../../../services/Technician/careers'
 
+import {
+  useMutation
+} from '@tanstack/react-query'
 
 interface ApplicationFormData {
   fullName: string;
@@ -30,6 +36,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState([])
 
   // File upload handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +58,12 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
       setFormData({ ...formData, resume: file });
     }
   };
+
+  const {
+    mutateAsync: sentEmailCareers, isPending
+  } = useMutation({
+    mutationFn: careersEmail
+  })
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -87,7 +100,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     setFormData({ ...formData, resume: null });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     // Validation
     if (!formData.fullName || !formData.email || !formData.phone || !formData.resume) {
       alert('Please fill in all required fields and upload your resume');
@@ -109,44 +122,42 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     }
 
     // TODO: Send to API with FormData for file upload
-    const submitData = new FormData();
-    submitData.append('jobId', jobId);
-    submitData.append('jobTitle', jobTitle);
+    const submitData = new FormData(); 
     submitData.append('fullName', formData.fullName);
     submitData.append('email', formData.email);
     submitData.append('phone', formData.phone);
+    submitData.append("subject", formData.subject);
     submitData.append('coverLetter', formData.coverLetter);
     if (formData.resume) {
       submitData.append('resume', formData.resume);
-    }
-    submitData.append('submittedAt', new Date().toISOString());
+    } 
 
-    console.log('Application submitted:', {
-      jobId,
-      jobTitle,
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      coverLetter: formData.coverLetter,
-      resume: formData.resume?.name,
-      submittedAt: new Date().toISOString()
-    });
-
-    setIsSubmitted(true);
-
-    // Reset after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      onClose();
-      setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        subject: '',
-        coverLetter: '',
-        resume: null
+    const response = await sentEmailCareers(submitData);
+    if(response?.success) {
+      console.log('Application submitted:', { 
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        coverLetter: formData.coverLetter,
+        resume: formData.resume?.name, 
       });
-    }, 3000);
+
+      setIsSubmitted(true);
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        onClose();
+        setFormData({
+          fullName: '',
+          email: '',
+          phone: '',
+          subject: '',
+          coverLetter: '',
+          resume: null
+        });
+      }, 3000);
+    } 
   };
 
   const handleClose = () => {
@@ -284,12 +295,12 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                   Subject *
                 </label>
                 <input
-                  type="tel"
+                  type="text"
                   required
                   className="input-default"
                   placeholder="Role applied for"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 />
               </div>
 
