@@ -10,7 +10,7 @@ import "../../../../assets/css/Solutions.css";
 import "../../../../assets/css/global.css";
 
 /* Dummy image for SupportServices */
-import image from "../../../../../public/assets/images/elleAssets/1.jpg";
+import image from "../../../../../public/Bee14.jpg";
 
 const UnifiedPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);

@@ -196,7 +196,7 @@
 
               {/* RichTextEditor for explanation */}
               <div>
-                <label className="block font-semibold mb-1 text-black">Explanation</label>
+                <label className="block font-semibold mb-1">Explanation</label>
                 <RichTextEditor
                   value={formData.explanation || ''}
                   onChange={(value) =>

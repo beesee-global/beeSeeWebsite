@@ -581,18 +581,6 @@ div:has(h2:contains("Inquiries Reply")) div {
   color: inherit !important;
 }
 
-/* FAQs Dialog & Modal — ensure text stays black */
-.MuiDialog-paper, .MuiDialog-root, [role="dialog"] {
-  color: #000 !important;
-}
-.MuiDialog-paper p, .MuiDialog-paper div, .MuiDialog-paper label,
-.MuiDialog-root p, .MuiDialog-root div, .MuiDialog-root label {
-  color: inherit !important;
-}
-.MuiInputBase-input, input[type="text"], input[type="select"], textarea, .MuiSelect-root {
-  color: #000 !important;
-}
-
 /* ------------------------------
    SIDEBAR & NAV — Hover / Focus Effects
    Leave existing backgrounds intact; add non-destructive glow/translate effects
