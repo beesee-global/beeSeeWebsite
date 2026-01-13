@@ -673,8 +673,8 @@ export default function EmailConversationApp() {
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
             <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
-              <h2 className='text-white font-bold flex items-center gap-2'>
-                <Inbox className='w-5 h-5'/>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Inbox className="w-5 h-5" />
                 Ticket Information
               </h2>
 

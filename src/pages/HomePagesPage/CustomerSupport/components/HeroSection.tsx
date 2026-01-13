@@ -31,6 +31,7 @@ import {
   Clock
 } from 'lucide-react'
 import Snackbar from "../../../../components/feedback/Snackbar";
+import Disclaimer from "../../../../components/feedback/Disclaimer";
 
 interface CustomerIssue {
   full_name: string; 
@@ -93,6 +94,7 @@ const HeroSection: React.FC = () => {
   const [uploadedImages, setUploadedImages] = useState<ImageData[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false)
 
   // === Queries ===
   const { data: categoryResponse = [] } = useQuery({
@@ -259,6 +261,7 @@ const HeroSection: React.FC = () => {
         setCurrentImageIndex(0);
         setCaptchaValue(null)
         setIsSubmitted(true)
+        setOpenModal(true)
       } else {
          setSnackBarMessage("Please fill in all required fields.")
          setSnackBarType('error')
@@ -279,8 +282,18 @@ const HeroSection: React.FC = () => {
     }))
   }, [formData?.category_id])
 
+  const handleCloseModal = () => {
+    setOpenModal(false)
+  }
+ 
   return (
-<div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Modal Component */}
+      <Disclaimer 
+        open={openModal}
+        onClose={handleCloseModal}
+      />
+      
       {/* Fixed Background */}
       <div 
         className="fixed inset-0 z-0"

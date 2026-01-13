@@ -5,11 +5,6 @@ import { useEffect, useState } from 'react';
 import Disclaimer from '../../../components/feedback/Disclaimer'
 
 const CustomerSupport: React.FC = () => {
-  const [openModal, setOpenModal] = useState<boolean>(true)
-
-  const handleCloseModal = () => {
-    setOpenModal(false)
-  }
 
   // === Framer Motion Variants ===
   const containerVariants = {
@@ -38,15 +33,7 @@ const CustomerSupport: React.FC = () => {
   }, []);
 
   return (
-    <div className="overflow-hidden">
-      
-
-      {/* Modal Component */}
-      <Disclaimer 
-        open={openModal}
-        onClose={handleCloseModal}
-      />
-
+    <div className="overflow-hidden"> 
       {/* Animated container */}
       <motion.div
         variants={containerVariants}
