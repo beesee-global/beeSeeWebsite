@@ -146,18 +146,28 @@ const Home = () => {
   }, [searchValue])
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string)
+    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      transports: ["websocket"], // avoids 400 Bad Request
+    });
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
 
     socket.on("ticket-updated", () => {
-      queryClient.invalidateQueries({ queryKey: ["open-ticket"] })
-    })
+      queryClient.invalidateQueries({ queryKey: ["open-ticket"] });
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+    });
 
     return () => {
       socket.off("ticket-updated");
       socket.disconnect();
     };
-  }, [])
-
+  }, []);
+ 
   const filteredRows = useMemo(() => {
     if (!debouncedSearch.trim()) return rows;
     const search = debouncedSearch.toLowerCase(); 
