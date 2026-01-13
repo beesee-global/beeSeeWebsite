@@ -205,6 +205,97 @@ const ProductsHub: React.FC = () => {
         battery: "15 hours",
       },
     },
+    // ADDED MORE PRODUCTS FOR PAGINATION DEMO
+    {
+      id: 10,
+      pid: "P1013",
+      name: "BEESEE WIRELESS EARBUDS",
+      tagline: "Immersive sound with noise cancellation",
+      category_id: "audio",
+      category: "Audio",
+      price: 4999,
+      image: "/assets/images/productHub/p1.png",
+      specs: {
+        battery: "30 hours",
+        connectivity: "Bluetooth 5.3",
+        "Noise Cancellation": "Active Noise Cancellation",
+      },
+    },
+    {
+      id: 11,
+      pid: "P1014",
+      name: "BEESEE GAMING MOUSE",
+      tagline: "Precision gaming with customizable RGB",
+      category_id: "accessories",
+      category: "Accessories",
+      price: 2999,
+      image: "/assets/images/productHub/p2.png",
+      specs: {
+        dpi: "26000 DPI",
+        buttons: "8 programmable buttons",
+        connectivity: "Wireless & Wired",
+      },
+    },
+    {
+      id: 12,
+      pid: "P1015",
+      name: "BEESEE MECHANICAL KEYBOARD",
+      tagline: "Tactile typing experience for professionals",
+      category_id: "accessories",
+      category: "Accessories",
+      price: 3999,
+      image: "/assets/images/productHub/p3.png",
+      specs: {
+        switches: "Cherry MX Red",
+        backlight: "RGB per-key lighting",
+        connectivity: "USB-C & Bluetooth",
+      },
+    },
+    {
+      id: 13,
+      pid: "P1016",
+      name: "BEESEE POWER BANK",
+      tagline: "Fast charging on the go",
+      category_id: "accessories",
+      category: "Accessories",
+      price: 1999,
+      image: "/assets/images/productHub/p4.png",
+      specs: {
+        capacity: "20000mAh",
+        "Output Ports": "2x USB-C, 1x USB-A",
+        "Fast Charging": "65W PD",
+      },
+    },
+    {
+      id: 14,
+      pid: "P1017",
+      name: "BEESEE WEBCAM PRO",
+      tagline: "Crystal clear video for meetings and streaming",
+      category_id: "accessories",
+      category: "Accessories",
+      price: 3499,
+      image: "/assets/images/productHub/p5.png",
+      specs: {
+        resolution: "4K UHD",
+        microphone: "Dual noise-cancelling",
+        fieldOfView: "90° adjustable",
+      },
+    },
+    {
+      id: 15,
+      pid: "P1018",
+      name: "BEESEE EXTERNAL SSD",
+      tagline: "Lightning-fast portable storage",
+      category_id: "storage",
+      category: "Storage",
+      price: 5999,
+      image: "/assets/images/productHub/p6.png",
+      specs: {
+        capacity: "2TB",
+        speed: "1050MB/s read, 1000MB/s write",
+        interface: "USB-C 3.2 Gen 2",
+      },
+    },
   ];
 
   const categories: Category[] = [
@@ -265,7 +356,7 @@ const ProductsHub: React.FC = () => {
     return arr;
   }, [sortBy, filteredProducts]);
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
   const paginatedProducts = sortedProducts.slice(

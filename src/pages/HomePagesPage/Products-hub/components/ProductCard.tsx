@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cpu, Database, Cloud, Microchip, Zap, Monitor } from "lucide-react";
+import { Cpu, Database, Cloud, Microchip, Zap, Monitor, Keyboard, Volume2, Battery, HardDrive, Wifi, Settings } from "lucide-react";
 
 type ProductLike = {
   id?: number;
@@ -36,35 +36,105 @@ const ProductCard: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
 
+  // EXPANDED specIcons object to include more spec types
   const specIcons: Record<string, any> = {
     cpu: Cpu,
     ram: Microchip,
     ssd: Database,
     storage: Cloud,
     display: Monitor,
-    battery: Zap,
+    battery: Battery,
     gpu: Cpu,
+    switches: Keyboard,
+    backlight: Settings,
+    connectivity: Wifi,
+    resolution: Monitor,
+    brightness: Zap,
+    microphone: Volume2,
+    capacity: HardDrive,
+    dpi: Settings,
+    buttons: Settings,
+    ports: Settings,
+    compatibility: Settings,
+    pattern: Settings,
+    frequency: Settings,
+    material: Settings,
+    height: Settings,
+    // Add fallbacks for capitalized keys
+    SWITCHES: Keyboard,
+    BACKLIGHT: Settings,
+    CONNECTIVITY: Wifi,
+    RESOLUTION: Monitor,
+    BRIGHTNESS: Zap,
+    MICROPHONE: Volume2,
+    CAPACITY: HardDrive,
+    DPI: Settings,
+    BUTTONS: Settings,
+    PORTS: Settings,
+    COMPATIBILITY: Settings,
+    PATTERN: Settings,
+    FREQUENCY: Settings,
+    MATERIAL: Settings,
+    HEIGHT: Settings,
   };
 
+  // EXPANDED specLabels object
   const specLabels: Record<string, string> = {
     cpu: "Processor",
-    ram: "Ram",
+    ram: "RAM",
     ssd: "SSD",
     storage: "Storage",
     display: "Display",
     battery: "Battery",
     gpu: "Graphics",
+    switches: "Switches",
+    backlight: "Backlight",
+    connectivity: "Connectivity",
+    resolution: "Resolution",
+    brightness: "Brightness",
+    microphone: "Microphone",
+    capacity: "Capacity",
+    dpi: "DPI",
+    buttons: "Buttons",
+    ports: "Ports",
+    compatibility: "Compatibility",
+    pattern: "Pattern",
+    frequency: "Frequency",
+    material: "Material",
+    height: "Height",
+    // Add fallbacks for capitalized keys
+    SWITCHES: "Switches",
+    BACKLIGHT: "Backlight",
+    CONNECTIVITY: "Connectivity",
+    RESOLUTION: "Resolution",
+    BRIGHTNESS: "Brightness",
+    MICROPHONE: "Microphone",
+    CAPACITY: "Capacity",
+    DPI: "DPI",
+    BUTTONS: "Buttons",
+    PORTS: "Ports",
+    COMPATIBILITY: "Compatibility",
+    PATTERN: "Pattern",
+    FREQUENCY: "Frequency",
+    MATERIAL: "Material",
+    HEIGHT: "Height",
   };
 
   const topSpecs = Object.entries(product.specs || {})
     .slice(0, 4);
 
+  // Function to normalize spec keys (convert to lowercase)
+  const normalizeSpecKey = (key: string): string => {
+    return key.toLowerCase();
+  };
+
   // MOBILE VERSION - No hover effects, simple clickable card, NO VIEW BUTTON
   if (isMobile) {
     return (
       <div
-        onClick={onClick}
-        className="product-card-glow-master relative cursor-pointer active:scale-[0.98] transition-transform duration-200"
+        // DISABLED CLICK NAVIGATION
+        // onClick={onClick}
+        className={`product-card-glow-master relative transition-transform duration-200 ${onClick ? "cursor-pointer active:scale-[0.98]" : ""}`}
       >
         {/* SIMPLIFIED GLOW FOR MOBILE */}
         <div className="glow-container">
@@ -95,8 +165,9 @@ const ProductCard: React.FC<{
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="product-card-glow-master cursor-pointer"
-      onClick={onClick}
+      className="product-card-glow-master"
+      // DISABLED CLICK NAVIGATION
+      // onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -127,8 +198,9 @@ const ProductCard: React.FC<{
               >
                 <div className="specs-grid-four">
                   {topSpecs.map(([key, value], i) => {
-                    const Icon = specIcons[key];
-                    const label = specLabels[key] ?? key;
+                    const normalizedKey = normalizeSpecKey(key);
+                    const Icon = specIcons[normalizedKey] || specIcons[key] || Settings;
+                    const label = specLabels[normalizedKey] || specLabels[key] || key;
 
                     return (
                       <motion.div
