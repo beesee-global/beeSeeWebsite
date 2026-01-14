@@ -80,7 +80,7 @@ const TechnicianLayout = () => {
     <div className="flex h-screen overflow-hidden bg-white">
       {/* Mobile view sidebar overlay and drawer */}
       {userNav && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-40 md:hidden">
           {/* Dark overlay with fade animation */}
           <div 
             onClick={() => setUserNav(false)}
@@ -90,7 +90,7 @@ const TechnicianLayout = () => {
 
           {/* Sidebar drawer with slide animation */}
           <div 
-            className="absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] animate-slideIn overflow-y-auto shadow-2xl touch-pan-y"
+            className="absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] animate-slideIn overflow-y-auto touch-pan-y shadow-2xl"
             style={{ 
               backgroundColor: '#000000',
               paddingLeft: 'env(safe-area-inset-left)',
@@ -117,12 +117,12 @@ const TechnicianLayout = () => {
       {/* Body Section */}
       <div className="flex flex-col flex-1 overflow-hidden bg-white">
         {/* Navigation */}
-        <div>
+        <div className="relative">
           <NavigationTechnician />
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto relative z-0">
           <Outlet />
         </main>
       </div>

@@ -347,7 +347,7 @@ const UsersForm = () => {
   }, [formData.image]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-white dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */}
         <SnackbarTechnician 
@@ -615,7 +615,7 @@ const UsersForm = () => {
   
                           {/* Change image overlay */}
                           {formData.image && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="text-white text-center">
                                 <CheckCircle className="w-8 h-8 mx-auto mb-2" />
                                 <p className="font-medium">Change Image</p>
