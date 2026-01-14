@@ -25,7 +25,6 @@ import {
   updateJob 
 } from '../../../services/Technician/careersServices'
 import Snackbar from '../../../components/feedback/Snackbar'; 
-import { AlertColor } from '@mui/material/Alert';
 import { userAuth } from "../../../hooks/userAuth"
 
 interface FormJobData {
@@ -50,8 +49,15 @@ const JobPostingForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [message, setMessage] = useState(""); 
-  const [showAlert, setShowAlert] = useState<boolean>(false) 
+  // Use userAuth hook for snackbar
+  const {  
+    snackBarMessage, 
+    snackBarType, 
+    snackBarOpen, 
+    setSnackBarMessage, 
+    setSnackBarOpen, 
+    setSnackBarType,
+  } = userAuth()
 
   // --- Basic Info ---
   const [formJobData, setJobData] = useState<FormJobData>({
@@ -61,15 +67,6 @@ const JobPostingForm: React.FC = () => {
     work_location: "",
     job_type: ""
   });
-
-  const {  
-      snackBarMessage, 
-      snackBarType, 
-      snackBarOpen, 
-      setSnackBarMessage, 
-      setSnackBarOpen, 
-      setSnackBarType,
-    } = userAuth()
 
   // --- Form Error ---
   const [formError, setFormError] = useState<FormError>({})
@@ -204,31 +201,35 @@ const JobPostingForm: React.FC = () => {
         // Extract actual job data from nested response
         const currentJobInfo = jobResponse?.data?.data || jobResponse?.data || jobResponse;
         await updateJobAsync({ id: currentJobInfo.id, jobData });
+        setSnackBarType('success');
+        setSnackBarMessage('Job posting updated successfully!');
       } else {
         await createJobAsync(jobData);
+        setSnackBarType('success');
+        setSnackBarMessage('Job posting created successfully!');
       }
-
-      setSnackBarType('success');
-      setSnackBarMessage(id ? 'Job posting updated successfully!' : 'Job posting created successfully!');
+      
       setSnackBarOpen(true);
       navigate('/beesee/job-posting') 
     } catch (error: any) {
       console.log('Error', error)
+      
       if (error.response?.status === 400) {
         const errorMessage = error.response.data?.message;
         console.log(errorMessage)
-        if (errorMessage?.includes("title")) {
+        
+        if (errorMessage?.includes("title") || errorMessage?.toLowerCase().includes("already exists")) {
           setFormError((prev) => ({
             ...prev,
             title: errorMessage
           }))
         }
       }
+      
       console.error('❌ Error creating job:', error); 
       setSnackBarType("error");
-      setMessage("Failed to create job posting. Please try again.");
-    } finally {
-      setShowAlert(true)
+      setSnackBarMessage("Failed to create job posting. Please try again.");
+      setSnackBarOpen(true);
     }
   }
   
@@ -272,10 +273,10 @@ const JobPostingForm: React.FC = () => {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */} 
         <Snackbar 
-          open={showAlert}
+          open={snackBarOpen}
           type={snackBarType}
-          message={message}
-          onClose={() => setShowAlert(false)}
+          message={snackBarMessage}
+          onClose={() => setSnackBarOpen(false)}
         />
 
         {/* Breadcrumb */}

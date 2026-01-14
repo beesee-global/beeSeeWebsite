@@ -349,7 +349,27 @@ export default function TableJobPosting({
                                   </span>
                                 </div>
                               ) : column.id === 'created_at' ? (
-                                <div style={{ width: '100%', height: '100%' }}>
+                                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                  {/* Date - shown when NOT hovered */}
+                                  <div 
+                                    style={{ 
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'flex-end',
+                                      visibility: isHovered ? 'hidden' : 'visible',
+                                      position: 'absolute',
+                                      right: 0,
+                                      top: 0,
+                                      width: '100%',
+                                      height: '100%'
+                                    }}
+                                  >
+                                    <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`} style={{ color: COLORS.textMuted }}>
+                                      {formatDate(row.created_at)}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Action buttons - shown when hovered */}
                                   <div 
                                     style={{ 
                                       display: 'flex',
