@@ -166,7 +166,11 @@
    PREMIUM GOLD BUTTON (from Digital Connection)
    ========================================================= */
 
-
+.btn-gold {
+  @apply px-8 py-4 rounded-full  font-semibold 
+         text-black text-sm sm:text-base
+         tracking-wider cursor-pointer transition-all duration-300;
+}
 
 
 /* =========================

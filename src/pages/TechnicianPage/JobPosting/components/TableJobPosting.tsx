@@ -8,8 +8,10 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Check
+  Copy,
+  Eye
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
@@ -130,6 +132,7 @@ export default function TableJobPosting({
   const [orderBy, setOrderBy] = useState<string>('name');
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const rowsPerPage = 20;
+  const navigate = useNavigate();
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -182,7 +185,7 @@ export default function TableJobPosting({
     if (handleEdit) handleEdit(id);
   };
 
-  const handleSelect = (id: number) => {
+  const handleSelect = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     const newSelected = new Set(selectedRows);
     if (newSelected.has(id)) {
@@ -202,6 +205,44 @@ export default function TableJobPosting({
       : <ArrowDown size={14} style={{ opacity: 1 }} />;
   };
 
+  const handleCopy = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
+      const linkToCopy = `${apiUrl}/careers/${id}`;
+
+      navigate(linkToCopy)
+      
+/*       // Fallback method using textarea (works in all browsers)
+      const textArea = document.createElement('textarea');
+      textArea.value = linkToCopy;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          console.log('Link copied to clipboard:', linkToCopy);
+          // You can add a success notification here
+        } else {
+          console.error('Copy command was unsuccessful');
+        }
+      } catch (err) {
+        console.error('Fallback copy failed:', err);
+      }
+      
+      document.body.removeChild(textArea); */
+    } catch (error) {
+      console.error('Error copying link:', error);
+      // You can add an error notification here
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: COLORS.background }}>
@@ -211,7 +252,7 @@ export default function TableJobPosting({
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              <div className="rounded-full h-12 w-12 border-b-2 border-gray-900 animate-spin"></div>
               <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
             </div>
           </div>
@@ -299,7 +340,7 @@ export default function TableJobPosting({
                         {/* Checkbox */}
                         {/* <div onClick={(e) => {
                           e.stopPropagation();
-                          handleSelect(row.id);
+                          handleSelect(e, row.id);
                         }} className={`${COLUMN_WIDTHS.checkbox} px-4`}>
                           <div 
                             className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
@@ -345,7 +386,7 @@ export default function TableJobPosting({
                               ) : column.id === 'status' ? (
                                 <div>
                                   <span className="text-gray-900">
-                                    {row.details?.employment_status ?? "No position"}
+                                    {row.details?.employment_status ?? "No status"}
                                   </span>
                                 </div>
                               ) : column.id === 'created_at' ? (
@@ -393,6 +434,22 @@ export default function TableJobPosting({
                                       }}
                                     >
                                       <Pencil size={18} strokeWidth={2} />
+                                    </button>
+
+                                    <button 
+                                      title="View Link"
+                                      onClick={(e) => handleCopy(e, row.job_reference_number)}
+                                      style={{ 
+                                        color: '#1e40af',
+                                        background: '#dbeafe',
+                                        padding: '8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        outline: 'none'
+                                      }}
+                                    >
+                                      <Eye size={18} strokeWidth={2} />
                                     </button>
 
                                     <button 

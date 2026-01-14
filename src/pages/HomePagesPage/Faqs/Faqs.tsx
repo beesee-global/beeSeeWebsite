@@ -92,23 +92,34 @@ const FAQs = () => {
     });
   };
 
+  // Replace your existing filteredFaqs useMemo with this corrected version:
+
   const filteredFaqs = useMemo(() => {
+    const search = String(searchTerm || '').toLowerCase();
+
     return faqs.filter((faq) => {
+      // Convert all fields to lowercase for case-insensitive comparison
+      const title = String(faq.title || '').toLowerCase();
+      const explanation = String(faq.explanation || '').toLowerCase();
+      const device = String(faq.device || '').toLowerCase();
+      const category = String(faq.category || '').toLowerCase();
+
+      // Check device/category match
       const matchesDevice =
         selectedDevice === 'All' ||
-        faq.category.toLowerCase() === selectedDevice.toLowerCase();
+        category === String(selectedDevice || '').toLowerCase();
 
-      const search = searchTerm.toLowerCase();
+      // Check if search term appears in any field
       const matchesSearch =
-        faq.title.toLowerCase().includes(search) ||
-        faq.explanation.toLowerCase().includes(search) ||
-        faq.device.toLowerCase().includes(search) ||
-        faq.category.toLowerCase().includes(search);
+        title.includes(search) ||
+        explanation.includes(search) ||
+        device.includes(search) ||
+        category.includes(search);
 
       return matchesDevice && matchesSearch;
     });
   }, [faqs, selectedDevice, searchTerm]);
-
+   
   // Calculate pagination
   const totalPages = Math.ceil(filteredFaqs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -117,6 +128,7 @@ const FAQs = () => {
 
   useEffect(() => {
     if (mockFaqs.data) setFaqs(mockFaqs.data);
+    console.log(mockFaqs.data)
   }, [mockFaqs.data]);
 
   useEffect(() => {

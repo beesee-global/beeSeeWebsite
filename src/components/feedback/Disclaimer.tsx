@@ -9,60 +9,58 @@ import Link from '@mui/material/Link';
 
 interface DisclaimerProps {
   open: boolean;
-  onClose: () => void;
+  onCancel: () => void;   // called when user cancels
+  onProceed: () => void;  // called when user confirms
 }
 
-const Disclaimer: React.FC<DisclaimerProps> = ({ open, onClose }) => {
-  const handleClose = () => {
-    onClose();
-  };
-
+const Disclaimer: React.FC<DisclaimerProps> = ({ open, onCancel, onProceed }) => {
   return (
-    <React.Fragment>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title"
-          sx={{ color: 'black'}}
-        >
-          {"Data Privacy Act of 2012 (RA 10173)"}
-        </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={() => {}}
+      aria-labelledby="disclaimer-dialog-title"
+      aria-describedby="disclaimer-dialog-description"
+      disableEscapeKeyDown  // prevent closing with ESC
+      disableBackdropClick   // prevent closing by clicking outside
+    >
+      <DialogTitle id="disclaimer-dialog-title" sx={{ color: 'black' }}>
+        Data Privacy Act of 2012 (RA 10173)
+      </DialogTitle>
 
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            By proceeding and submitting your information, you voluntarily consent
-            to the collection, use, and processing of your personal data in
-            accordance with the Data Privacy Act of 2012 (RA 10173). You acknowledge
-            that any data you choose to provide is shared at your own discretion.
-            For more details, please review our{" "}
-            <Link
-              href="/privacy-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/terms-and-conditions"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Terms & Conditions
-            </Link>.
-          </DialogContentText>
-        </DialogContent>
+      <DialogContent>
+        <DialogContentText id="disclaimer-dialog-description">
+          By proceeding and submitting your information, you voluntarily consent
+          to the collection, use, and processing of your personal data in
+          accordance with the Data Privacy Act of 2012 (RA 10173). You acknowledge
+          that any data you choose to provide is shared at your own discretion.
+          For more details, please review our{" "}
+          <Link
+            href="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Privacy Policy
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/terms-and-conditions"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Terms & Conditions
+          </Link>.
+        </DialogContentText>
+      </DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleClose}>
-            Proceed
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+      <DialogActions>
+        <Button onClick={onCancel} color="inherit">
+          Cancel
+        </Button>
+        <Button onClick={onProceed} variant="contained" color="primary" autoFocus>
+          Proceed
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
