@@ -6,6 +6,7 @@ import {
   Mail, 
   Trash2, 
   Plus, 
+  Eye
 } from 'lucide-react';
 
 // ============================================
@@ -396,39 +397,61 @@ export default function TableApplicants({
                             >
                                 {col.id === 'actions' ? (
                                 row.status !== 'SHORTLISTED' ? ( // ✅ fixed syntax
-                                    <div className="flex justify-end items-center gap-2">
+                                    <div className="flex items-center gap-2"> 
                                     <button
-                                        title="Add to short listed"
-                                        onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click
-                                        handleComplete(e, row.id);
-                                        }}
-                                        className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                                      title="View Resume"
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // prevent row click 
+                                        downloadFile(row.attachment_url,"view", row.name)
+                                      }}
+                                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                                    >
+                                        <Eye size={16} />
+                                    </button>
+                                    <button
+                                      title="Add to short listed"
+                                      onClick={(e) => {
+                                      e.stopPropagation(); // prevent row click
+                                      handleComplete(e, row.id);
+                                      }}
+                                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
                                     >
                                         <Plus size={16} />
                                     </button>
                                     <button
-                                        title="Delete"
-                                        onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click
-                                        onDelete(e, row.id);
-                                        }}
-                                        className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
+                                      title="Delete"
+                                      onClick={(e) => {
+                                      e.stopPropagation(); // prevent row click
+                                      onDelete(e, row.id);
+                                      }}
+                                      className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
                                     >
-                                        <Trash2 size={16} />
+                                      <Trash2 size={16} />
                                     </button>
                                     </div>
                                 ) : (
-                                    <button
+                                    <div className='flex items-center gap-2'>
+                                      <button
+                                        title="View Resume"
+                                        onClick={(e) => {
+                                          e.stopPropagation(); // prevent row click
+                                          downloadFile(row.attachment_url,"view", row.name)
+                                        }}
+                                        className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                                      >
+                                          <Eye size={16} />
+                                      </button>
+                                      <button
                                         title="Delete"
                                         onClick={(e) => {
                                         e.stopPropagation(); // prevent row click
                                         onDelete(e, row.id);
                                         }}
                                         className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                      >
+                                          <Trash2 size={16} />
+                                      </button>
+                                    </div>
                                 )
                                 ) : col.id === 'updated_at' || col.id === 'created_at' ? (
                                 <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>

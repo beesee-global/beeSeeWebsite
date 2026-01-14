@@ -236,7 +236,7 @@ export default function TableJobPosting({
                 {/* Column Headers */}
                 <div className="flex items-center py-2">
                   {/* Checkbox Header */}
-                  <div className={`${COLUMN_WIDTHS.checkbox} px-4`}></div>
+                {/*   <div className={`${COLUMN_WIDTHS.checkbox} px-4`}></div> */}
                   
                   {tableColumns.map((column) => (
                     <div 
@@ -297,7 +297,7 @@ export default function TableJobPosting({
                       >
                         
                         {/* Checkbox */}
-                        <div onClick={(e) => {
+                        {/* <div onClick={(e) => {
                           e.stopPropagation();
                           handleSelect(row.id);
                         }} className={`${COLUMN_WIDTHS.checkbox} px-4`}>
@@ -310,7 +310,7 @@ export default function TableJobPosting({
                           >
                             {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
                           </div>
-                        </div>
+                        </div> */}
 
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
