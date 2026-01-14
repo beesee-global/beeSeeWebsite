@@ -76,6 +76,8 @@ const HeroSection: React.FC = () => {
   } = userAuth()
 
   const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+
   const [formData, setFormData] = useState<CustomerIssue>({
     full_name: '',
     company: '',
@@ -286,13 +288,55 @@ const HeroSection: React.FC = () => {
     setOpenModal(false)
   }
  
+  // Open disclaimer before actual submission
+// Replace your existing handleBeforeSubmit function with this:
+
+const handleBeforeSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  const errors = validateStep();
+  setFormError(errors);
+
+  if (Object.keys(errors).length === 0) {
+    // Validate captcha BEFORE showing disclaimer
+    if (!captchaValue) {
+      setSnackBarMessage("Please verify the reCAPTCHA.")
+      setSnackBarType('error')
+      setSnackBarOpen(true)
+      return
+    }
+    
+    // Only show disclaimer if all validations pass including captcha
+    setShowDisclaimer(true);
+  } else {
+    setSnackBarMessage("Please fill in all required fields.")
+    setSnackBarType('error')
+    setSnackBarOpen(true)
+  }
+}
+
+// Called when user confirms disclaimer
+const handleProceedDisclaimer = async () => {
+  setShowDisclaimer(false);
+  await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
+}
+
+// Called when user cancels
+const handleCancelDisclaimer = () => {
+  setShowDisclaimer(false);
+  setSnackBarMessage("Submission canceled.")
+  setSnackBarType('info')
+  setSnackBarOpen(true)
+}
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Modal Component */}
       <Disclaimer 
-        open={openModal}
-        onClose={handleCloseModal}
+        open={showDisclaimer}
+        onCancel={handleCancelDisclaimer}
+        onProceed={handleProceedDisclaimer}
       />
+
       
       {/* Fixed Background */}
       <div 
@@ -346,12 +390,12 @@ const HeroSection: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* <Snackbar 
+        <Snackbar 
           open={snackBarOpen} 
           type={snackBarType} 
           message={snackBarMessage} 
           onClose={() => setSnackBarOpen(false)} 
-        /> */}
+        />
         
         <ImageUploadModal 
           open={openUploadImageModal} 
@@ -792,20 +836,21 @@ const HeroSection: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
                     >
-                      <button 
-                        type="button"
-                        disabled={isCreating || isCreatingImage}
-                        onClick={handleSubmit} 
-                        className="beesee-button w-full py-2 sm:py-3 text-sm sm:text-base"
-                      >
-                        {isCreating || isCreatingImage ? (
-                          <span className="animate-pulse">Submitting...</span>
-                        ) : (
-                          <>
-                            <Send size={18} className="mr-2" /> Submit
-                          </>
-                        )}
-                      </button>
+                    <button 
+                      type="button"
+                      disabled={isCreating || isCreatingImage}
+                      onClick={handleBeforeSubmit} 
+                      className="beesee-button w-full py-2 sm:py-3 text-sm sm:text-base"
+                    >
+                      {isCreating || isCreatingImage ? (
+                        <span className="animate-pulse">Submitting...</span>
+                      ) : (
+                        <>
+                          <Send size={18} className="mr-2" /> Submit
+                        </>
+                      )}
+                    </button>
+
                     </motion.div>
                   </motion.div>
                 )} 
