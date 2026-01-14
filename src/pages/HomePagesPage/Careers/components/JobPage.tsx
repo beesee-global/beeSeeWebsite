@@ -141,7 +141,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
                 }}>
                   <Calendar size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
-                <span className="bee-body font-medium">
+                <span className="bee-body1 font-medium">
                   Posted {new Date(job.created_at).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric', 
@@ -151,7 +151,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
               </div>
             </div>
 
-            {/* Apply CTA - Centered */}
+
             {/* Apply CTA - Centered */}
 <div className="flex items-center justify-center gap-4 mt-6">
             {/* Apply Button */}

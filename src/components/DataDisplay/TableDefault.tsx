@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Check, 
   Mail, 
   Trash2, 
   Pencil,
@@ -118,7 +117,6 @@ export default function TableDefault({
   isLoading = false,
 }: TableMailProps) { 
 
-  const [selected, setSelected] = useState<number[]>([]);
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
@@ -151,28 +149,9 @@ export default function TableDefault({
   const startIndex = page * rowsPerPage + 1;
   const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
-  const isSelected = (id: number) => selected.includes(id);
-  const isAllSelected = selected.length === safeRows.length && safeRows.length > 0;
-
-  const handleSelectAll = () => {
-    if (selected.length === safeRows.length) {
-      setSelected([]);
-    } else {
-      setSelected(safeRows.map(r => r.id));
-    }
-  };
-
-  const handleSelect = (id: number) => {
-    setSelected(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  const onDelete = (e: React.MouseEvent, id?: number) => {
+  const onDelete = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    const idsToDelete = id !== undefined ? [id] : [...selected];
-    if (handleDelete) handleDelete(idsToDelete);
-    setSelected(prev => prev.filter(i => !idsToDelete.includes(i)));
+    if (handleDelete) handleDelete([id]);
   };
 
   const handleComplete = (e: React.MouseEvent, id: string | number) => {
@@ -182,7 +161,7 @@ export default function TableDefault({
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50 transition-opacity" />;
+      return <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50" />;
     }
     return order === 'asc' 
       ? <ArrowUp size={14} className="opacity-100" />
@@ -218,77 +197,34 @@ export default function TableDefault({
             <div className="min-w-[900px]">
               {/* Header */}
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
-                {selected.length > 0 ? (
-                  <div className="flex items-center justify-between w-full py-2">
-                    <div className="flex items-center gap-4">
-                      <button 
-                        onClick={handleSelectAll} 
-                        className="flex items-center gap-2"
-                        aria-label="Deselect all"
-                      >
-                        <div 
-                          className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center cursor-pointer transition-colors`} 
-                          style={{ borderColor: COLORS.primary, background: COLORS.primary }}
+                <div className="flex items-center py-2">
+                  {tableColumns.map((column) => (
+                    <div 
+                      key={column.id}
+                      className={`${column.width || 'flex-1'} px-4`}
+                      style={{ textAlign: column.align || 'left' }}
+                    >
+                      {column.sortable !== false ? (
+                        <button
+                          onClick={() => handleRequestSort(column.id)}
+                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700 hover:text-gray-900 group`}
+                          style={{ 
+                            marginLeft: column.align === 'right' ? 'auto' : '0',
+                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
+                            width: column.align === 'right' ? '100%' : 'auto'
+                          }}
                         >
-                          <div className="w-2.5 h-0.5 rounded-full bg-white" />
-                        </div>
-                      </button>
-                      <span className="text-sm font-medium text-gray-700">
-                        {selected.length} selected
-                      </span>
+                          {column.label}
+                          {renderSortIcon(column.id)}
+                        </button>
+                      ) : (
+                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700`}>
+                          {column.label}
+                        </span>
+                      )}
                     </div>
-                    <button 
-                      title="Delete Selected" 
-                      onClick={(e) => onDelete(e)} 
-                      className="p-1.5 hover:bg-red-50 rounded-md transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5 text-red-600" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center py-2">
-                    <button 
-                      onClick={handleSelectAll} 
-                      className="flex items-center gap-2 mr-4"
-                      aria-label="Select all"
-                    >
-                      <div 
-                        className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center cursor-pointer transition-colors`} 
-                        style={{ borderColor: isAllSelected ? COLORS.primary : COLORS.checkboxBorder, 
-                                 background: isAllSelected ? COLORS.primary : 'transparent' }}
-                      >
-                        {isAllSelected && <Check size={14} color="white" strokeWidth={3} />}
-                      </div>
-                    </button>
-
-                    {tableColumns.map((column) => (
-                      <div 
-                        key={column.id}
-                        className={`${column.width || 'flex-1'} px-4`}
-                        style={{ textAlign: column.align || 'left' }}
-                      >
-                        {column.sortable !== false ? (
-                          <button
-                            onClick={() => handleRequestSort(column.id)}
-                            className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700 hover:text-gray-900 group transition-colors`}
-                            style={{ 
-                              marginLeft: column.align === 'right' ? 'auto' : '0',
-                              justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                              width: column.align === 'right' ? '100%' : 'auto'
-                            }}
-                          >
-                            {column.label}
-                            {renderSortIcon(column.id)}
-                          </button>
-                        ) : (
-                          <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700`}>
-                            {column.label}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
 
               {/* Table Body */}
@@ -302,7 +238,6 @@ export default function TableDefault({
                   </div>
                 ) : (
                   visibleRows.map(row => {
-                    const selectedRow = isSelected(row.id);
                     const isHovered = hoveredRow === row.id;
 
                     return (
@@ -310,25 +245,12 @@ export default function TableDefault({
                         key={row.id} 
                         onMouseEnter={() => setHoveredRow(row.id)} 
                         onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
+                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b`}
                         style={{ 
-                          background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                          background: isHovered ? COLORS.surfaceHover : 'transparent',
                           borderColor: COLORS.border
                         }}
                       >
-                        {/* Checkbox */}
-                        <div onClick={() => handleSelect(row.id)} className={`${COLUMN_WIDTHS.checkbox} mr-4`}>
-                          <div 
-                            className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
-                            style={{ 
-                              borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
-                              background: selectedRow ? COLORS.primary : 'transparent' 
-                            }}
-                          >
-                            {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
-                          </div>
-                        </div>
-
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
                           const cellValue = row[column.id];
@@ -346,7 +268,7 @@ export default function TableDefault({
                                     <button 
                                       title="Edit"
                                       onClick={(e) => handleComplete(e, row.pid)}
-                                      className="text-green-700 hover:text-green-600 bg-green-100 p-2 rounded-md transition-colors"
+                                      className="text-green-700 hover:text-green-600 bg-green-100 p-2 rounded-md"
                                     >
                                       <Pencil size={18} strokeWidth={2} />
                                     </button>
@@ -354,7 +276,7 @@ export default function TableDefault({
                                     <button 
                                       title="Delete"
                                       onClick={(e) => onDelete(e, row.id)}
-                                      className="text-red-700 hover:text-red-600 bg-red-100 p-2 rounded-md transition-colors" 
+                                      className="text-red-700 hover:text-red-600 bg-red-100 p-2 rounded-md" 
                                     >
                                       <Trash2 size={18} strokeWidth={2} />
                                     </button>
@@ -401,7 +323,7 @@ export default function TableDefault({
                 <button 
                   onClick={() => setPage(p => Math.max(0, p - 1))} 
                   disabled={page === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
+                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed`} 
                   style={{ color: COLORS.text }}
                 >
                   <ChevronLeft size={18} />
@@ -409,7 +331,7 @@ export default function TableDefault({
                 <button 
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
                   disabled={page === totalPages - 1 || safeRows.length === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
+                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed`} 
                   style={{ color: COLORS.text }}
                 >
                   <ChevronRight size={18} />
