@@ -69,7 +69,7 @@ const Users = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-6 space-y-10 bg-white">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
       {/* Snackbar */}
       <SnackbarTechnician 
         open={snackBarOpen} 
@@ -78,8 +78,10 @@ const Users = () => {
         onClose={() => setSnackBarOpen(false)} 
       />
 
-      <div className="grid md:grid-cols-2">
-        <div className='flex items-center'>
+      {/* Top Section - Layout adjusted for mobile */}
+      <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 mb-6">
+        {/* Breadcrumb Section */}
+        <div className='flex items-center w-full'>
           <Breadcrumb
             items={[
               { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon/> }, 
@@ -87,25 +89,33 @@ const Users = () => {
             ]}
           />
         </div>
-        <div className='md:flex items-center justify-end md:space-x-4 space-y-2 mt-2 md:mt-0 md:space-y-0'>
-          <div>
+        
+        {/* Search and Add Button Section - Stack on mobile, side-by-side on larger screens */}
+        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full'>
+          {/* Search Field - Full width on mobile, auto width on larger screens */}
+          <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search..."
+              placeholder="Search users..."
+              className="w-full"
             />
           </div>
-
-          <div>
+          
+          {/* Add Button - Full width on mobile, auto width on larger screens */}
+          <div className="w-full sm:w-auto">
             <button 
               onClick={() => navigate('/beesee/users/form')} 
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
-              <Plus /> Add Users
+              className="flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base"
+            >
+              <Plus size={18} className="sm:size-5" /> 
+              <span className="whitespace-nowrap">Add Users</span>
             </button>
           </div>
         </div>
       </div>
 
+      {/* Table Section - Left exactly as is */}
       <TableUsers 
         rows={filteredUsers}
         columns={columns}

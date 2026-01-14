@@ -347,7 +347,7 @@ const UsersForm = () => {
   }, [formData.image]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-white dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */}
         <SnackbarTechnician 
@@ -361,7 +361,7 @@ const UsersForm = () => {
           {/* Breadcrumbs */}
           <Breadcrumb 
             items={[
-              { label: "Inbox", href: "/beesee/inbox", icon: <Mail className="w-4 h-4"/> },
+              { label: "Job Order", href: "/beesee/job-order", icon: <Mail className="w-4 h-4"/> },
               { label: "Users",  href: "/beesee/users", icon: <User2 className="w-4 h-4"/> },
               { label: "Users Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
             ]}
@@ -369,10 +369,10 @@ const UsersForm = () => {
         </div>
 
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl text-black mb-2">
                 { id ? "Update User" : "Create New User" }
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
@@ -383,7 +383,7 @@ const UsersForm = () => {
               <button
                 onClick={() => navigate('/beesee/users')} 
                 disabled={isCreating || isUpdating || isCreatingImage}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                className="px-6 py-3 border border-var(--bo-border-gold) dark:border-var(--bo-border-gold) text-gray-black dark:text-black rounded-lg hover:bg-[#ff7676] dark:hover:bg-[#ff7676] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -413,13 +413,13 @@ const UsersForm = () => {
             <div className="lg:col-span-2 space-y-8">
               <form className="space-y-8" onSubmit={handleSubmit}>
                 {/* Basic Information */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <div className="flex items-center mb-6">
                     <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-4">
                       <User2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Basic Information</h2>
+                      <h2 className="text-xl text-3xl text-black">Basic Information</h2>
                       <p className="text-gray-600 dark:text-gray-400">Essential user details</p>
                     </div>
                   </div>
@@ -428,7 +428,7 @@ const UsersForm = () => {
                   <div className="space-y-6">
                     {/* Role */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-2">
                         Position *
                       </label>
                       <CustomSelectField
@@ -444,7 +444,7 @@ const UsersForm = () => {
                     
                     {/* First name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-2">
                         First Name *
                       </label>
                       <CustomTextField 
@@ -464,7 +464,7 @@ const UsersForm = () => {
 
                     {/* Last name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-2">
                         Last Name *
                       </label>
                       <CustomTextField 
@@ -484,7 +484,7 @@ const UsersForm = () => {
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-2">
                         Email *
                       </label>
                       <CustomTextField 
@@ -505,7 +505,7 @@ const UsersForm = () => {
 
                     {/* Password */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-2">
                         Password *
                       </label>
                       <CustomTextField 
@@ -525,7 +525,7 @@ const UsersForm = () => {
 
                     {/* Confirm Password */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm  text-black mb-22">
                         Confirm Password *
                       </label>
                       <CustomTextField 
@@ -546,7 +546,7 @@ const UsersForm = () => {
                     {id && (
                       <div>
                         {/* status */}
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm  text-black mb-22">
                           Status *
                         </label>
                         <CustomSelectField
@@ -570,13 +570,13 @@ const UsersForm = () => {
                 </div>
 
                 {/* Image upload */} 
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <div className="flex items-center mb-6">
                     <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
                       <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">User Image</h2>
+                      <h2 className="text-xl text-black">User Image</h2>
                       <p className="text-gray-600 dark:text-gray-400 text-sm">Upload a representative image</p>
                     </div>
                   </div>
@@ -615,7 +615,7 @@ const UsersForm = () => {
   
                           {/* Change image overlay */}
                           {formData.image && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="text-white text-center">
                                 <CheckCircle className="w-8 h-8 mx-auto mb-2" />
                                 <p className="font-medium">Change Image</p>

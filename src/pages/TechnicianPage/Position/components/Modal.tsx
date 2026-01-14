@@ -96,6 +96,14 @@ const permissionTree = [
       { id: "position", name: "Position", url: "/beesee/position" },
     ],
   },
+  {
+    id: "careers",
+    name: "Careers",
+    children: [
+      { id: "job-posting", name: "Job Posting", url: "/beesee/job-posting" },
+      { id: "applicants", name: "Model Type", url: "/beesee/applicants" }, 
+    ],
+  },
 
 ];
 
@@ -124,6 +132,7 @@ const Modal: React.FC<ModalProps> = ({
   const [selectedButton, setSelectedButton] = useState<string[]>(initialPermissions);
   const [selectedButtonError, setSelectedButtonError] = useState("");
   const [expandedSettings, setExpandedSettings] = useState(false);
+  const [expandedCareers, setExpandedCareers] = useState(false);
 
   /* ================= HANDLERS ================= */
 
@@ -136,33 +145,40 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const handleToggleParent = (id: string) => {
-    if (id === "settings") {
-      const isCurrentlySelected = selectedButton.includes("settings");
-      setExpandedSettings(!isCurrentlySelected); // collapse/expand
-      if (isCurrentlySelected) {
-        // Reset child selections
-        const settingsChildren = permissionTree.find(p => p.id === "settings")?.children?.map(c => c.id) || [];
-        setSelectedButton(prev => prev.filter(p => p !== "settings" && !settingsChildren.includes(p)));
+    if (id === "settings" || id === "careers") {
+      const isSelected = selectedButton.includes(id);
+      const children =
+        permissionTree.find(p => p.id === id)?.children?.map(c => c.id) || [];
+
+      if (id === "settings") setExpandedSettings(!isSelected);
+      if (id === "careers") setExpandedCareers(!isSelected);
+
+      if (isSelected) {
+        setSelectedButton(prev =>
+          prev.filter(p => p !== id && !children.includes(p))
+        );
       } else {
-        setSelectedButton(prev => [...prev, "settings"]);
+        setSelectedButton(prev => [...prev, id]);
       }
-    } else {
-      setSelectedButton(prev =>
-        prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-      );
+      return;
     }
-  };
 
-  const handleToggleChild = (id: string) => {
-    setSelectedButton((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
-
-    // auto-enable settings if child selected
-    setSelectedButton((prev) =>
-      prev.includes("settings") ? prev : [...prev, "settings"]
+    setSelectedButton(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
   };
+
+
+  const handleToggleChild = (id: string, parent: string) => {
+    setSelectedButton(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+
+    setSelectedButton(prev =>
+      prev.includes(parent) ? prev : [...prev, parent]
+    );
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,6 +218,7 @@ const Modal: React.FC<ModalProps> = ({
     setFormData(newForm);
     setSelectedButton(initialPermissions);
     setExpandedSettings(initialPermissions.includes("settings"));
+    setExpandedCareers(initialPermissions.includes("careers"));
   }, [open, fields]);
 
   /* ================= RENDER ================= */
@@ -286,7 +303,7 @@ const Modal: React.FC<ModalProps> = ({
               }}
             >
               {permissionTree
-                .filter(item => item.id !== "settings")
+                .filter( item => item.id !== "settings" && item.id !== "careers")
                 .map(item => {
                   const isActive = selectedButton.includes(item.id);
 
@@ -413,7 +430,119 @@ const Modal: React.FC<ModalProps> = ({
                           type="button"
                           variant="outlined"
                           startIcon={active ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
-                          onClick={() => handleToggleChild(child.id)}
+                          onClick={() => handleToggleChild(child.id, "settings")}
+                          disabled={isPermissionLocked}
+                          sx={{
+                            justifyContent: "flex-start",
+                            textTransform: "none",
+                            borderRadius: "10px",
+                            padding: "10px 14px",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            border: "2px solid",
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+
+                            backgroundColor: active ? "#e0e7ff" : "#fff",
+                            borderColor: active ? "#6366f1" : "#e5e7eb",
+                            color: active ? "#3730a3" : "#4b5563",
+
+                            "&:hover": {
+                              backgroundColor: active ? "#ddd6fe" : "#f9fafb",
+                              borderColor: active ? "#4f46e5" : "#d1d5db",
+                              transform: "translateX(2px)",
+                            },
+                          }}
+                        >
+                          {child.name}
+                        </Button>
+                      );
+                    })}
+                </Box>
+              </Collapse>
+            </Box>
+
+            {/* CAREERS CARD */}
+            <Box
+              sx={{
+                mt: 3,
+                p: 2.5,
+                borderRadius: "16px",
+                border: "2px solid #e5e7eb",
+                backgroundColor: "#fafafa",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* CAREERS HEADER */}
+              <Button
+                fullWidth
+                type="button"
+                variant="outlined"
+                startIcon={
+                  selectedButton.includes("careers")
+                    ? <Check size={18} strokeWidth={2.5} />
+                    : <Plus size={18} strokeWidth={2.5} />
+                }
+                endIcon={
+                  <ChevronDown 
+                    size={18} 
+                    style={{ 
+                      transition: "transform 0.3s ease",
+                      transform: expandedCareers  ? "rotate(180deg)" : "rotate(0deg)",
+                    }} 
+                  />
+                }
+                onClick={() => handleToggleParent("careers")}
+                disabled={isPermissionLocked}
+                sx={{
+                  justifyContent: "space-between",
+                  textTransform: "none",
+                  borderRadius: "12px",
+                  padding: "14px 18px",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  border: "2px solid",
+                  borderColor: selectedButton.includes("careers") ? "#6366f1" : "#d1d5db",
+                  backgroundColor: selectedButton.includes("careers")
+                    ? "#eef2ff"
+                    : "#fff",
+                  color: selectedButton.includes("careers") ? "#4338ca" : "#374151",
+                  
+                  "&:hover": {
+                    backgroundColor: selectedButton.includes("careers") ? "#e0e7ff" : "#f9fafb",
+                    borderColor: selectedButton.includes("careers") ? "#4f46e5" : "#9ca3af",
+                    transform: "translateY(-1px)",
+                    boxShadow: selectedButton.includes("careers")
+                      ? "0 4px 12px rgba(99, 102, 241, 0.15)"
+                      : "0 2px 8px rgba(0, 0, 0, 0.08)",
+                  },
+                }}
+              >
+                Careers
+              </Button>
+
+              {/* CAREERS CHILDREN */}
+              <Collapse in={expandedCareers}>
+                <Box
+                  sx={{
+                    mt: 2.5,
+                    pl: 1,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: 1.5,
+                  }}
+                >
+                  {permissionTree
+                    .find(p => p.id === "careers")
+                    ?.children?.map(child => {
+                      const active = selectedButton.includes(child.id);
+
+                      return (
+                        <Button
+                          key={child.id}
+                          type="button"
+                          variant="outlined"
+                          startIcon={active ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+                          onClick={() => handleToggleChild(child.id, "careers")}
                           disabled={isPermissionLocked}
                           sx={{
                             justifyContent: "flex-start",

@@ -1,6 +1,8 @@
 import PieChart from "../../../components/charts/PieChart"
 import BarChart from "../../../components/charts/BarChart"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
+import '../../../assets/css/BackOfficeStyles.css'
+
 import { LayoutDashboard } from "lucide-react"
 import { 
   fetchGetStatsCategory,
@@ -59,9 +61,20 @@ const Dashboard = () => {
 
   // fetch real-time updates
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL as string);
-    socket.on("ticket-updated", () => {
-      queryClient.invalidateQueries({queryKey: ['count-data'] });
+    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      transports: ["websocket"], // avoids 400 Bad Request
+    });
+
+    socket.on("connect", () => {
+      console.log("Connected to socket.io server", socket.id);
+    });
+
+    socket.on("ticket-updated", (data) => {
+      queryClient.invalidateQueries({ queryKey: ["count-data"] });
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
     });
 
     return () => {
@@ -71,8 +84,8 @@ const Dashboard = () => {
   }, [])
   
   return (
-    <div className="p-6 space-y-10 bg-white">
-      <div className="flex items-center justify-between">
+    <div className="bo-main-content">
+      <div className="flex items-center justify-between" style={{ marginBottom: '2.5rem' }}>
         <Breadcrumb
           items={[
             { label: 'Dashboard', isActive: true, icon: <LayoutDashboard/>}
@@ -80,62 +93,61 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Pending */}
-        <div onClick={() => {
-           navigate("/beesee/job-order"),
-           setStatusFilter("Pending")
-        }} className="flex items-center gap-2 bg-yellow-50 border-yellow-200 rounded-lg px-3 py-2 hover:bg-yellow-100 transition">
-          <PendingActionsIcon className="text-yellow-600" sx={{ fontSize: 30 }} />
-          <div className="flex flex-col">
-            <span className="text-lg text-yellow-600 font-medium">
-              Pending
-            </span>
-            <span className="text-2xl font-bold text-yellow-700">
-              {countPendingCompleted[0]?.pending || 0}
-            </span>
-          </div>
-        </div> 
-
-        {/* Completed */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ marginBottom: '2.5rem' }}>
+        {/* Pending Stat Card */}
         <div 
           onClick={() => {
-            navigate("/beesee/job-order")
-            setStatusFilter("Completed")
+            navigate("/beesee/job-order");
+            setStatusFilter("Pending");
           }} 
-          className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 hover:bg-green-100 transition"
+          className="bo-stat-card"
         >
-          <AssignmentTurnedInIcon className="text-green-600" sx={{ fontSize: 30 }}/>
-          <div className="flex flex-col">
-            <span className="text-lg text-green-600 font-medium">
-              Completed
-            </span>
-            <span className="text-2xl font-bold text-green-700">
-              {countPendingCompleted[0]?.completed || 0}
-            </span> 
+          <div className="bo-stat-icon" style={{ background: 'linear-gradient(135deg, rgba(253, 204, 0, 0.20), rgba(251, 212, 99, 0.15))' }}>
+            <PendingActionsIcon style={{ fontSize: 28, color: '#FDCC00' }} />
           </div>
+          <div className="bo-stat-label">Pending</div>
+          <div className="bo-stat-value">{countPendingCompleted[0]?.pending || 0}</div>
+        </div> 
+
+        {/* Completed Stat Card */}
+        <div 
+          onClick={() => {
+            navigate("/beesee/job-order");
+            setStatusFilter("Completed");
+          }} 
+          className="bo-stat-card"
+        >
+          <div className="bo-stat-icon" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.20), rgba(34, 197, 94, 0.15))' }}>
+            <AssignmentTurnedInIcon style={{ fontSize: 28, color: '#22c55e' }} />
+          </div>
+          <div className="bo-stat-label">Completed</div>
+          <div className="bo-stat-value">{countPendingCompleted[0]?.completed || 0}</div>
         </div>
-        
-        {/* <div className="bg-white p-4 rounded-md shadow-md">
+      </div>
+
+      {/* Charts Section 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bo-glass-card">
           <BarChart
             title="Tickets by Organization"
             categories={overview.categories || []}
             series={overview.series || []}
           />
         </div>
-        <div className="bg-white p-4 rounded-md shadow-md">
+        <div className="bo-glass-card">
           <PieChart 
-            title= {"Ticket issue categories"}
+            title="Ticket issue categories"
             data={pieChartData}
           />
         </div>
-        <div className="bg-white p-4 rounded-md shadow-md">
+        <div className="bo-glass-card">
           <PieChart 
-            title= {"Device issue types"}
+            title="Device issue types"
             data={pieChartDataDevice}
           />
-        </div> */}
+        </div>
       </div>
+      */}
       
     </div>
   )

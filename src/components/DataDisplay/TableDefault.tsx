@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Check, 
   Mail, 
   Trash2, 
   Pencil,
@@ -51,7 +50,7 @@ const COLUMN_WIDTHS = {
   checkbox: 'w-8',
   name: 'w-44',
   concern: 'flex-1',
-  date: 'w-20',
+  date: 'w-32', // Increased to accommodate buttons
 };
 
 // ============================================
@@ -118,7 +117,6 @@ export default function TableDefault({
   isLoading = false,
 }: TableMailProps) { 
 
-  const [selected, setSelected] = useState<number[]>([]);
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
@@ -151,28 +149,9 @@ export default function TableDefault({
   const startIndex = page * rowsPerPage + 1;
   const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
-  const isSelected = (id: number) => selected.includes(id);
-  const isAllSelected = selected.length === safeRows.length && safeRows.length > 0;
-
-  const handleSelectAll = () => {
-    if (selected.length === safeRows.length) {
-      setSelected([]);
-    } else {
-      setSelected(safeRows.map(r => r.id));
-    }
-  };
-
-  const handleSelect = (id: number) => {
-    setSelected(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  const onDelete = (e: React.MouseEvent, id?: number) => {
+  const onDelete = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    const idsToDelete = id !== undefined ? [id] : [...selected];
-    if (handleDelete) handleDelete(idsToDelete);
-    setSelected(prev => prev.filter(i => !idsToDelete.includes(i)));
+    if (handleDelete) handleDelete([id]);
   };
 
   const handleComplete = (e: React.MouseEvent, id: string | number) => {
@@ -182,11 +161,11 @@ export default function TableDefault({
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50 transition-opacity" />;
+      return <ArrowUpDown size={14} style={{ opacity: 0 }} />;
     }
     return order === 'asc' 
-      ? <ArrowUp size={14} className="opacity-100" />
-      : <ArrowDown size={14} className="opacity-100" />;
+      ? <ArrowUp size={14} style={{ opacity: 1 }} />
+      : <ArrowDown size={14} style={{ opacity: 1 }} />;
   };
 
   if (isLoading) {
@@ -198,7 +177,7 @@ export default function TableDefault({
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              <div className="rounded-full h-12 w-12 border-b-2" style={{ borderColor: COLORS.text }}></div>
               <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
             </div>
           </div>
@@ -218,77 +197,36 @@ export default function TableDefault({
             <div className="min-w-[900px]">
               {/* Header */}
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
-                {selected.length > 0 ? (
-                  <div className="flex items-center justify-between w-full py-2">
-                    <div className="flex items-center gap-4">
-                      <button 
-                        onClick={handleSelectAll} 
-                        className="flex items-center gap-2"
-                        aria-label="Deselect all"
-                      >
-                        <div 
-                          className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center cursor-pointer transition-colors`} 
-                          style={{ borderColor: COLORS.primary, background: COLORS.primary }}
+                <div className="flex items-center py-2">
+                  {tableColumns.map((column) => (
+                    <div 
+                      key={column.id}
+                      className={`${column.width || 'flex-1'} px-4`}
+                      style={{ textAlign: column.align || 'left' }}
+                    >
+                      {column.sortable !== false ? (
+                        <button
+                          onClick={() => handleRequestSort(column.id)}
+                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`}
+                          style={{ 
+                            marginLeft: column.align === 'right' ? 'auto' : '0',
+                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
+                            width: column.align === 'right' ? '100%' : 'auto',
+                            color: COLORS.text,
+                            cursor: 'pointer'
+                          }}
                         >
-                          <div className="w-2.5 h-0.5 rounded-full bg-white" />
-                        </div>
-                      </button>
-                      <span className="text-sm font-medium text-gray-700">
-                        {selected.length} selected
-                      </span>
+                          {column.label}
+                          {renderSortIcon(column.id)}
+                        </button>
+                      ) : (
+                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
+                          {column.label}
+                        </span>
+                      )}
                     </div>
-                    <button 
-                      title="Delete Selected" 
-                      onClick={(e) => onDelete(e)} 
-                      className="p-1.5 hover:bg-red-50 rounded-md transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5 text-red-600" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center py-2">
-                    <button 
-                      onClick={handleSelectAll} 
-                      className="flex items-center gap-2 mr-4"
-                      aria-label="Select all"
-                    >
-                      <div 
-                        className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center cursor-pointer transition-colors`} 
-                        style={{ borderColor: isAllSelected ? COLORS.primary : COLORS.checkboxBorder, 
-                                 background: isAllSelected ? COLORS.primary : 'transparent' }}
-                      >
-                        {isAllSelected && <Check size={14} color="white" strokeWidth={3} />}
-                      </div>
-                    </button>
-
-                    {tableColumns.map((column) => (
-                      <div 
-                        key={column.id}
-                        className={`${column.width || 'flex-1'} px-4`}
-                        style={{ textAlign: column.align || 'left' }}
-                      >
-                        {column.sortable !== false ? (
-                          <button
-                            onClick={() => handleRequestSort(column.id)}
-                            className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700 hover:text-gray-900 group transition-colors`}
-                            style={{ 
-                              marginLeft: column.align === 'right' ? 'auto' : '0',
-                              justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                              width: column.align === 'right' ? '100%' : 'auto'
-                            }}
-                          >
-                            {column.label}
-                            {renderSortIcon(column.id)}
-                          </button>
-                        ) : (
-                          <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700`}>
-                            {column.label}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
 
               {/* Table Body */}
@@ -302,7 +240,6 @@ export default function TableDefault({
                   </div>
                 ) : (
                   visibleRows.map(row => {
-                    const selectedRow = isSelected(row.id);
                     const isHovered = hoveredRow === row.id;
 
                     return (
@@ -310,25 +247,13 @@ export default function TableDefault({
                         key={row.id} 
                         onMouseEnter={() => setHoveredRow(row.id)} 
                         onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
+                        className={`flex items-center ${SPACING.rowPadding} border-b`}
                         style={{ 
-                          background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border
+                          background: isHovered ? COLORS.surfaceHover : 'transparent',
+                          borderColor: COLORS.border,
+                          cursor: 'pointer'
                         }}
                       >
-                        {/* Checkbox */}
-                        <div onClick={() => handleSelect(row.id)} className={`${COLUMN_WIDTHS.checkbox} mr-4`}>
-                          <div 
-                            className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
-                            style={{ 
-                              borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
-                              background: selectedRow ? COLORS.primary : 'transparent' 
-                            }}
-                          >
-                            {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
-                          </div>
-                        </div>
-
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
                           const cellValue = row[column.id];
@@ -338,15 +263,34 @@ export default function TableDefault({
                               onClick={() => handleEdit(row.pid)} 
                               key={column.id}
                               className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ textAlign: column.align || 'left' }}
+                              style={{ 
+                                textAlign: column.align || 'left',
+                                position: 'relative'
+                              }}
                             >
                               {column.id === 'created_at' ? (
-                                isHovered && (
-                                  <div className="flex items-center justify-end gap-2">
+                                <div style={{ width: '100%', height: '100%' }}>
+                                  <div 
+                                    style={{ 
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'flex-end',
+                                      gap: '8px',
+                                      visibility: isHovered ? 'visible' : 'hidden'
+                                    }}
+                                  >
                                     <button 
                                       title="Edit"
                                       onClick={(e) => handleComplete(e, row.pid)}
-                                      className="text-green-700 hover:text-green-600 bg-green-100 p-2 rounded-md transition-colors"
+                                      style={{ 
+                                        color: '#15803d',
+                                        background: '#dcfce7',
+                                        padding: '8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        outline: 'none'
+                                      }}
                                     >
                                       <Pencil size={18} strokeWidth={2} />
                                     </button>
@@ -354,29 +298,38 @@ export default function TableDefault({
                                     <button 
                                       title="Delete"
                                       onClick={(e) => onDelete(e, row.id)}
-                                      className="text-red-700 hover:text-red-600 bg-red-100 p-2 rounded-md transition-colors" 
+                                      style={{ 
+                                        color: '#dc2626',
+                                        background: '#fee2e2',
+                                        padding: '8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        outline: 'none'
+                                      }}
                                     >
                                       <Trash2 size={18} strokeWidth={2} />
                                     </button>
                                   </div>
-                                )
+                                </div>
                               ) : column.id === 'permission' ? (
                                 Array.isArray(cellValue) && cellValue.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
                                     {cellValue.map((perm: string) => (
                                       <span 
                                         key={perm} 
-                                        className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium"
+                                        className="px-2 py-1 rounded text-xs font-medium"
+                                        style={{ background: '#dbeafe', color: '#1e40af' }}
                                       >
                                         {perm}
                                       </span>
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-sm text-gray-400">—</span>
+                                  <span className="text-sm" style={{ color: COLORS.textMuted }}>—</span>
                                 )
                               ) : (
-                                <span className="text-sm">{cellValue}</span>
+                                <span className="text-sm" style={{ color: COLORS.text }}>{cellValue}</span>
                               )}
                             </div>
                           );
@@ -401,16 +354,30 @@ export default function TableDefault({
                 <button 
                   onClick={() => setPage(p => Math.max(0, p - 1))} 
                   disabled={page === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                  style={{ color: COLORS.text }}
+                  style={{ 
+                    padding: '6px',
+                    borderRadius: '6px',
+                    opacity: page === 0 ? 0.3 : 1,
+                    cursor: page === 0 ? 'not-allowed' : 'pointer',
+                    color: COLORS.text,
+                    background: '#f3f4f6',
+                    border: 'none'
+                  }}
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button 
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
                   disabled={page === totalPages - 1 || safeRows.length === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                  style={{ color: COLORS.text }}
+                  style={{ 
+                    padding: '6px',
+                    borderRadius: '6px',
+                    opacity: (page === totalPages - 1 || safeRows.length === 0) ? 0.3 : 1,
+                    cursor: (page === totalPages - 1 || safeRows.length === 0) ? 'not-allowed' : 'pointer',
+                    color: COLORS.text,
+                    background: '#f3f4f6',
+                    border: 'none'
+                  }}
                 >
                   <ChevronRight size={18} />
                 </button>

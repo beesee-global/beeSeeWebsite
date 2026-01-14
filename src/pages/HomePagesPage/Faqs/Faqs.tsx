@@ -38,7 +38,7 @@ import {
   ChevronsRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { fetchFaqsAll, fetchAllDevices } from '../../../services/Technician/faqsServices';
+import { fetchFaqsAllPublic, fetchAllDevices } from '../../../services/Technician/faqsServices';
 import { useQuery } from '@tanstack/react-query';
 // import { useTawkTo } from '../../../hooks/useTawkTo';
 
@@ -66,7 +66,7 @@ const FAQs = () => {
 
   const { data: mockFaqs = [] } = useQuery({
     queryKey: ['faqs'],
-    queryFn: () => fetchFaqsAll(),
+    queryFn: () => fetchFaqsAllPublic(),
   });
 
   const { data: devicesData = [] } = useQuery({
@@ -255,7 +255,7 @@ const FAQs = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/randomBg2Gray.png')",
+          backgroundImage: "url('/faqs4.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

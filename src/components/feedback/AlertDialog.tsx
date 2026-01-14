@@ -36,7 +36,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle className="font-bold">{title}</DialogTitle>
+      <DialogTitle className="font-bold" sx={{ color: 'black' }}>{title}</DialogTitle>
 
       <DialogContent dividers className="flex flex-col gap-4">
         {message}

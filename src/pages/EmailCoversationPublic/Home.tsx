@@ -72,27 +72,30 @@ export default function EmailConversationApp() {
     mutationFn: insertConversationPublic,
   });
 
-  // Initialize socket connection per ticket
+  // Initialize socket connection per ticket 
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
 
-    const s = io( import.meta.env.VITE_API_URL_BACKEND as string, {
-      query: { ticket_id: userTicketInformation.ticket_id },
+    const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      auth: { ticket_id: userTicketInformation.ticket_id },
+      transports: ["websocket"],
     });
-    setSocket(s);
 
-    // Listen to new messages
+    s.on("connect", () => {
+      s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    });
+
     s.on("new_ticket_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
     });
 
-    // Join ticket room on server
-    s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    setSocket(s);
 
     return () => {
       s.disconnect();
     };
   }, [userTicketInformation?.ticket_id]);
+
 
   // Set messages initially
   useEffect(() => {

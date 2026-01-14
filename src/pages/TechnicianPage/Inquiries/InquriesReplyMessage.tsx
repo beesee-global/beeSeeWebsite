@@ -290,7 +290,7 @@ export default function InquriesReplyMessage() {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <User className="w-4 h-4" />
-                          <span className="font-semibold text-sm text-black">
+                          <span className={`font-semibold text-sm ${msg.is_inbound ? 'text-gray-900' : 'text-white'}`} style={msg.is_inbound ? {color: '#111827'} : {}}>
                             {msg.sender_name || msg.sender_email}
                           </span>
                           <span
@@ -303,7 +303,7 @@ export default function InquriesReplyMessage() {
                             {msg.user_role}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap break-words text-black">{msg.message_body}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words" style={msg.is_inbound ? {color: '#111827'} : {color: '#ffffff'}}>{msg.message_body}</p>
                         
                         {/* Attachments Display */}
                         {msg.attachments && msg.attachments.length > 0 && (
@@ -319,8 +319,8 @@ export default function InquriesReplyMessage() {
                               >
                                 {getFileIcon(attachment.type)}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate text-black">{attachment.name}</p>
-                                  <p className="text-xs text-black">{formatFileSize(attachment.size)}</p>
+                                  <p className="text-xs font-medium truncate" style={msg.is_inbound ? {color: '#111827'} : {color: '#ffffff'}}>{attachment.name}</p>
+                                  <p className="text-xs" style={msg.is_inbound ? {color: '#111827'} : {color: '#ffffff'}}>{formatFileSize(attachment.size)}</p>
                                 </div>
                                 <button 
                                   onClick={() => downloadFile(attachment.attachment_url, attachment.name)}
@@ -335,7 +335,8 @@ export default function InquriesReplyMessage() {
                         )}
 
                         <div
-                          className={`flex items-center gap-1 mt-2 text-xs text-black`}
+                          className={`flex items-center gap-1 mt-2 text-xs`}
+                          style={msg.is_inbound ? {color: '#111827'} : {color: '#ffffff'}}
                         >
                           <Clock className="w-3 h-3" />
                           {formatDate(msg.created_at)}
@@ -416,6 +417,7 @@ export default function InquriesReplyMessage() {
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Type your reply..."
                   className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  style={{color: '#000000'}}
                   rows="3"
                   disabled={loading}
                 />

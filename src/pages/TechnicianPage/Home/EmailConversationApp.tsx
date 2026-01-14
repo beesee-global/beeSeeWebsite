@@ -81,36 +81,29 @@ export default function EmailConversationApp() {
     enabled: !!userTicketInformation?.ticket_id
   });
 
+  // Initialize socket connection per ticket
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
 
-    const s  = io(import.meta.env.VITE_API_URL_BACKEND as string, {
-      query: {
-        ticket_id: userTicketInformation?.ticket_id
-      }
+    const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      auth: { ticket_id: userTicketInformation.ticket_id },
+      transports: ["websocket"],
+    });
+
+    s.on("connect", () => {
+      s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    });
+
+    s.on("new_ticket_message", (msg: any) => {
+      setMessages(prev => [...prev, msg]);
     });
 
     setSocket(s);
 
-    // Listen to new message
-    s.on("new_ticket_message", (msg:any) => {
-      setMessages(prev => [...prev, msg]); 
-        
-      // fetch initial ticket information
-      queryClient.invalidateQueries({
-        queryKey: ['ticketInformation', pid],
-      })
-    });
-
-    // join ticket room on server
-    s.emit("join_ticket_room", userTicketInformation?.ticket_id);
-
-
     return () => {
       s.disconnect();
     };
-
-  }, [userTicketInformation?.ticket_id])
+  }, [userTicketInformation?.ticket_id]);
 
   // set messages initially
   useEffect(() => {
@@ -646,6 +639,7 @@ export default function EmailConversationApp() {
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Type your reply..."
                 className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+                style={{color: '#000000', caretColor: '#000000'}}
                 rows="3"
                 disabled={loading}
               />
@@ -679,8 +673,8 @@ export default function EmailConversationApp() {
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
             <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
-              <h2 className='text-white font-bold flex items-center gap-2'>
-                <Inbox className='w-5 h-5'/>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Inbox className="w-5 h-5" />
                 Ticket Information
               </h2>
 

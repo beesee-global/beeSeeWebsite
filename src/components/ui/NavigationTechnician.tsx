@@ -77,7 +77,7 @@ const NavigationTechnician = () => {
 
   const { data: userInformation } = useQuery({
     queryKey: ["users_data", id],
-    queryFn: () => fetchUserById(Number(id)),
+    queryFn: () => fetchUserById(id ? String(id) : ''),
     enabled: !!id
   });
 
@@ -103,30 +103,36 @@ const NavigationTechnician = () => {
       setNotification(prev => [...prev, message])
       console.log("notification", message)
     })
+
+    return () => {
+      socket.disconnect();
+    }
   }, [])
 
   return (
     <div className="py-3 px-4 border-b border-gray-800" style={{ backgroundColor: '#000000' }}>
-      <div className="flex items-center justify-between gap-5">
-        <div className='flex gap-4 items-center'>
+      <div className="flex items-center justify-between gap-3 sm:gap-5">
+        <div className='flex gap-2 sm:gap-4 items-center'>
           <div className='flex md:hidden' >
             <button 
               onClick={() => setUserNav(true)}
               className='text-white'
+              aria-label="Open navigation menu"
             >
               <Menu/>
             </button>
           </div> 
-          <div>
+          <div className='hidden sm:block'>
             <img 
               src={beeseeGoldLogo}
               className='w-[160px]'
+              alt="Beesee Logo"
             />  
           </div>
         </div>
 
         {/* Notification Bell */}
-        <div className='flex gap-4 items-center'>
+        <div className='flex gap-2 sm:gap-4 items-center'>
          {/*  <div>
           <ClickAwayListener
             mouseEvent='onMouseDown'
@@ -170,19 +176,31 @@ const NavigationTechnician = () => {
                 type="button"
                 onClick={handleClick}
                 className="flex items-center space-x-2 rounded-full transition"
+                aria-label="Open account menu"
               >
                 {user.image ? (
-                  <div className="flex items-center gap-2 bg-gray-800 w-full max-w-48 hover:bg-gray-700 py-2 px-3 rounded-md transition-all duration-200">
-                    <Avatar
-                      alt={`${user.first_name} ${user.last_name}`}
-                      src={preview}
-                      className="w-8 h-8 rounded-full bg-white object-cover"
-                    />
-                    <span className="text-white font-medium">{`${user.first_name} ${user.last_name}`}</span>
-                  </div>
+                  <>
+                    {/* Desktop view with name */}
+                    <div className="hidden sm:flex items-center gap-2  py-2 px-3 rounded-md transition-all duration-200">
+                      <Avatar
+                        alt={`${user.first_name} ${user.last_name}`}
+                        src={preview}
+                        className="w-8 h-8 rounded-full bg-white object-cover"
+                      />
+                      <span className="text-white font-medium truncate">{`${user.first_name} ${user.last_name}`}</span>
+                    </div>
+                    {/* Mobile view - avatar only */}
+                    <div className="sm:hidden">
+                      <Avatar
+                        alt={`${user.first_name} ${user.last_name}`}
+                        src={preview}
+                        className="w-9 h-9 rounded-full bg-white object-cover"
+                      />
+                    </div>
+                  </>
                 ) : (
-                  <div className='w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-semibold'>
-                    {`${user.first_name.charAt(0)} ${user.last_name.charAt(0)}`}
+                  <div className='w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-semibold text-sm'>
+                    {`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}
                   </div>
                 )}
               </button>

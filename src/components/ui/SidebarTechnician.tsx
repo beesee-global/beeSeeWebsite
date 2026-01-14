@@ -1,26 +1,25 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, type ReactNode } from 'react';
 import {  
-    ChevronDown,   
-    Package,
-    BadgeAlert,
+    ChevronDown,
+    ChevronRight,
+    ChevronLeft,  
     User2,
     LayoutDashboard,
     MessageCircleQuestionMark,
     Settings,
-    PanelLeftClose,
-    PanelLeftOpen
+    Wrench,
+    Briefcase,
+    MailQuestionMarkIcon,
+    X,
 } from "lucide-react";
-import CategoryIcon from '@mui/icons-material/Category';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import WorkIcon from '@mui/icons-material/Work';
 import { userAuth } from '../../hooks/userAuth'; 
 
 interface ChildItem {
+    id: string;
     name: string;
     path: string; 
-    icon: ReactNode;
+    icon?: ReactNode;
 }
 
 interface MenuItem {
@@ -38,27 +37,36 @@ interface SidebarProps {
 
 const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     const location = useLocation();
-    const { userInfo, isCollapsed, setIsCollapsed } = userAuth();
+    const { userInfo, isCollapsed, setIsCollapsed, setUserNav } = userAuth();
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({}); 
 
     const sidebarLayout: MenuItem[] = [
         { id: "dashboard", name: "Dashboard", path: '/beesee/dashboard', icon: <LayoutDashboard size={20}/> },
-        { id: "job-order", name: "Job Order", path: "/beesee/job-order", icon: <WorkIcon size={20} /> }, 
+        { id: "job-order", name: "Job Order", path: "/beesee/job-order", icon: <Wrench size={20} /> }, 
         { id: "users", name: "Users", path: "/beesee/users", icon: <User2 size={20} /> },
         {
             id: "settings",
             name: 'Settings',
             icon: <Settings size={20}/>,
             children: [
-                { id: "device", name: "Device type", path: "/beesee/device", icon: <CategoryIcon /> }, 
-                { id: "model", name: "Model type", path: "/beesee/model", icon: <Package size={20} /> },
-                { id: "issue", name: "Issue type", path: "/beesee/issue", icon: <BadgeAlert size={20} /> },
-                { id: "position", name: "Position", path: "/beesee/position", icon: <ManageAccountsIcon /> },
+                { id: "device", name: "Device type", path: "/beesee/device"}, 
+                { id: "model", name: "Model type", path: "/beesee/model"},
+                { id: "issue", name: "Issue type", path: "/beesee/issue" },
+                { id: "position", name: "Position", path: "/beesee/position" },
             ],
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
-        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <QuestionAnswerIcon /> },
+        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <MailQuestionMarkIcon size={20} /> }, 
+        {
+            id: "careers",
+            name: 'Careers',
+            icon: <Briefcase size={20}/>,
+            children: [
+                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting" },  
+                { id: "applicants", name: "Applicants", path: "/beesee/applicants" },  
+            ],
+        },
     ];
 
     const toggleMenu = (id: string) => {
@@ -73,8 +81,18 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     };
 
     const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-        if (!isCollapsed) setOpenMenus({});
+        // Only allow collapse on desktop
+        if (window.innerWidth >= 768) {
+            setIsCollapsed(!isCollapsed);
+            if (!isCollapsed) setOpenMenus({});
+        }
+    };
+
+    const closeMobileSidebar = () => {
+        if (window.innerWidth < 768) {
+            setShowSidebar?.(false);
+            setUserNav(false);
+        }
     };
 
     // Filter menu based on permissions
@@ -85,11 +103,11 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             .filter(item => {
                 if (item.id === "dashboard") return true;
                 if (!userInfo.permissions) return false;
-                return userInfo.permissions.includes(item.id) || (item.children?.some(child => userInfo.permissions.includes(child.id)));
+                return userInfo.permissions.includes(item.id) || (item.children?.some(child => userInfo.permissions?.includes(child.id)));
             })
             .map(item => {
                 if (item.children) {
-                    const filteredChildren = item.children.filter(child => userInfo.permissions.includes(child.id));
+                    const filteredChildren = item.children.filter(child => userInfo.permissions?.includes(child.id));
                     return { ...item, children: filteredChildren };
                 }
                 return item;
@@ -112,16 +130,48 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         }
     }, [location.pathname, menuItems, isCollapsed]);
 
+    // Reset collapse state on mobile
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setIsCollapsed(false);
+            }
+        };
+
+        handleResize(); // Run on mount
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [setIsCollapsed]);
+
     return (
         <div className={`p-4 min-h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-full min-w-64'}`} style={{ backgroundColor: '#000000' }}>
-            {/* Toggle Button */}
-            <div className="mb-6 flex justify-end">
+            {/* Toggle Button - Desktop / Close Button - Mobile */}
+            <div className="mb-6 flex justify-between items-center md:justify-end">
+                {/* App Logo/Title - Hidden on mobile, shown on desktop when expanded */}
+                {!isCollapsed && (
+                    <div className="hidden md:flex items-center gap-2 ml-2">
+                       
+                    </div>
+                )}
+
+                {/* Close button - Mobile only */}
+                <button
+                    onClick={closeMobileSidebar}
+                    className="md:hidden p-2.5 rounded-xl text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50 ml-auto"
+                    title="Close sidebar"
+                    aria-label="Close navigation menu"
+                >
+                    <X size={26} />
+                </button>
+
+                {/* Collapse/Expand button - Desktop only */}
                 <button
                     onClick={toggleCollapse}
-                    className="p-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
+                    className="hidden md:block p-2.5 rounded-xl text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+                    {isCollapsed ? <ChevronRight size={26} /> : <ChevronLeft size={26} />}
                 </button>
             </div>
 
@@ -204,7 +254,10 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                                         ? "shadow-lg shadow-yellow-500/30 scale-[1.02]" 
                                                                         : "text-gray-400 hover:bg-gray-900/60 hover:text-white hover:border-yellow-500/20 hover:scale-[1.02] hover:translate-x-1"
                                                                 }`}
-                                                                onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
+                                                                 onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    closeMobileSidebar();
+                                                                }}
                                                             >
                                                                 <span style={{ color: childActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!childActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
                                                                     {child.icon}
@@ -232,7 +285,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                             ? "shadow-xl shadow-yellow-500/40 scale-[1.02]" 
                                             : "text-gray-400 hover:bg-gray-900/60 hover:text-white hover:border-yellow-500/20 hover:scale-[1.02] hover:translate-x-1"
                                     }`}
-                                    onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
+                                    onClick={closeMobileSidebar}
                                     title={isCollapsed ? item.name : ''}
                                 >
                                     <span style={{ color: isActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!isActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>

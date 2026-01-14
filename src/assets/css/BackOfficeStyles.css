@@ -1,0 +1,584 @@
+/* =========================================================
+   BEESEE — BACKOFFICE/BACKEND STYLES
+   Unique class names to avoid conflicts with global.css
+   ✔ White background
+   ✔ Black sidebar
+   ✔ Gold/Yellow glass-transparent gradient for tables/forms
+   ✔ Typography and colors from global.css
+========================================================= */
+
+/* ------------------------------
+   BACKOFFICE DESIGN TOKENS
+------------------------------ */
+:root {
+  /* Reusing global colors */
+  --bo-gold: #FDCC00;
+  --bo-gold-soft: #FBD463;
+  --bo-muted: #C7B897;
+  --bo-text-light: #ffffff;
+  --bo-text-dark: #0a0a0a;
+  --bo-sidebar-black: #0a0a0a;
+  --bo-bg-white: #ffffff;
+  
+  /* New backoffice-specific colors */
+  --bo-glass-gold: rgba(253, 204, 0, 0.08);
+  --bo-glass-gold-hover: rgba(253, 204, 0, 0.12);
+  --bo-border-gold: rgba(253, 204, 0, 0.25);
+  
+  /* Spacing (same as global) */
+  --bo-space-xs: 4px;
+  --bo-space-sm: 8px;
+  --bo-space-md: 16px;
+  --bo-space-lg: 24px;
+  --bo-space-xl: 32px;
+  --bo-space-2xl: 48px;
+}
+
+/* ------------------------------
+   BACKOFFICE LAYOUT
+------------------------------ */
+.bo-container {
+  min-height: 100vh;
+  background: var(--bo-bg-white);
+  color: var(--bo-text-dark);
+}
+
+.bo-main-content {
+  background: var(--bo-bg-white);
+  min-height: 100vh;
+  padding: var(--bo-space-lg);
+}
+
+/* ------------------------------
+   BACKOFFICE SIDEBAR
+------------------------------ */
+.bo-sidebar {
+  background: var(--bo-sidebar-black);
+  color: var(--bo-text-light);
+  min-height: 100vh;
+  padding: var(--bo-space-lg);
+  border-right: 1px solid rgba(253, 204, 0, 0.15);
+}
+
+.bo-sidebar-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 28px;
+  color: var(--bo-gold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: var(--bo-space-xl);
+  line-height: 1;
+}
+
+.bo-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bo-space-sm);
+}
+
+.bo-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: var(--bo-muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.bo-sidebar-link:hover {
+  background: rgba(253, 204, 0, 0.10);
+  color: var(--bo-gold);
+  transform: translateX(6px);
+  box-shadow: 0 8px 20px rgba(253, 204, 0, 0.08);
+}
+
+.bo-sidebar-link.active {
+  background: rgba(253, 204, 0, 0.15);
+  color: var(--bo-gold);
+  border-left: 3px solid var(--bo-gold);
+}
+
+.bo-sidebar-link svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.25s ease;
+}
+
+.bo-sidebar-link:hover svg {
+  transform: translateX(3px);
+  color: var(--bo-gold);
+}
+
+/* ------------------------------
+   BACKOFFICE TYPOGRAPHY
+------------------------------ */
+.bo-title-lg {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 42px;
+  line-height: 1;
+  color: var(--bo-text-dark);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bo-title-md {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  line-height: 1.05;
+  color: var(--bo-text-dark);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bo-title-sm {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+  color: var(--bo-text-dark);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bo-body {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bo-text-dark);
+}
+
+.bo-body-sm {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #666;
+}
+
+/* ------------------------------
+   BACKOFFICE GLASS CARD SYSTEM
+------------------------------ */
+.bo-glass-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 204, 0, 0.08) 0%,
+    rgba(251, 212, 99, 0.06) 50%,
+    rgba(253, 204, 0, 0.04) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--bo-border-gold);
+  border-radius: 16px;
+  padding: var(--bo-space-lg);
+  box-shadow: 
+    0 8px 32px rgba(253, 204, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all 0.35s ease;
+  overflow: hidden;
+}
+
+.bo-glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.10),
+    transparent,
+    rgba(255, 215, 0, 0.08)
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+.bo-glass-card:hover {
+
+  border-color: rgba(253, 204, 0, 0.40);
+  box-shadow: 
+    0 20px 60px rgba(253, 204, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.bo-glass-card:hover::before {
+  opacity: 1;
+}
+
+/* ------------------------------
+   BACKOFFICE TABLE GLASS STYLE
+------------------------------ */
+.bo-table-container {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 204, 0, 0.06) 0%,
+    rgba(251, 212, 99, 0.04) 50%,
+    rgba(253, 204, 0, 0.02) 100%
+  );
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--bo-border-gold);
+  border-radius: 16px;
+  padding: var(--bo-space-md);
+  overflow: hidden;
+  box-shadow: 
+    0 6px 24px rgba(253, 204, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.bo-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bo-table thead {
+  background: linear-gradient(
+    90deg,
+    rgba(253, 204, 0, 0.12),
+    rgba(251, 212, 99, 0.10),
+    rgba(253, 204, 0, 0.12)
+  );
+}
+
+.bo-table th {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bo-text-dark);
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 2px solid rgba(253, 204, 0, 0.25);
+}
+
+.bo-table tbody tr {
+  transition: all 0.25s ease;
+  border-bottom: 1px solid rgba(253, 204, 0, 0.10);
+}
+
+.bo-table tbody tr:hover {
+  background: rgba(253, 204, 0, 0.08);
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(253, 204, 0, 0.08);
+}
+
+.bo-table td {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  color: var(--bo-text-dark);
+  padding: 14px 16px;
+}
+
+/* ------------------------------
+   BACKOFFICE FORM GLASS STYLE
+------------------------------ */
+.bo-form-container {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 204, 0, 0.07) 0%,
+    rgba(251, 212, 99, 0.05) 50%,
+    rgba(253, 204, 0, 0.03) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--bo-border-gold);
+  border-radius: 16px;
+  padding: var(--bo-space-xl);
+  box-shadow: 
+    0 8px 32px rgba(253, 204, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.bo-form-label {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bo-text-dark);
+  margin-bottom: var(--bo-space-xs);
+  display: block;
+  letter-spacing: 0.02em;
+}
+
+.bo-form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.70);
+  border: 2px solid rgba(253, 204, 0, 0.20);
+  border-radius: 10px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  color: var(--bo-text-dark);
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.bo-form-input:hover {
+  border-color: rgba(253, 204, 0, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(253, 204, 0, 0.08);
+}
+
+.bo-form-input:focus {
+  outline: none;
+  border-color: var(--bo-gold);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 20px rgba(253, 204, 0, 0.15);
+}
+
+.bo-form-input::placeholder {
+  color: rgba(10, 10, 10, 0.4);
+}
+
+.bo-form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.70);
+  border: 2px solid rgba(253, 204, 0, 0.20);
+  border-radius: 10px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  color: var(--bo-text-dark);
+  min-height: 120px;
+  resize: vertical;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.bo-form-textarea:hover {
+  border-color: rgba(253, 204, 0, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(253, 204, 0, 0.08);
+}
+
+.bo-form-textarea:focus {
+  outline: none;
+  border-color: var(--bo-gold);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 20px rgba(253, 204, 0, 0.15);
+}
+
+.bo-form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.70);
+  border: 2px solid rgba(253, 204, 0, 0.20);
+  border-radius: 10px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  color: var(--bo-text-dark);
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.bo-form-select:hover {
+  border-color: rgba(253, 204, 0, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.bo-form-select:focus {
+  outline: none;
+  border-color: var(--bo-gold);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* ------------------------------
+   BACKOFFICE BUTTONS
+------------------------------ */
+.bo-btn-primary {
+  padding: 12px 28px;
+  background: linear-gradient(90deg, #ca8a04, var(--bo-gold), #ca8a04);
+  color: var(--bo-text-light);
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(253, 204, 0, 0.20);
+}
+
+.bo-btn-primary:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(253, 204, 0, 0.35);
+  color: yellow;
+}
+
+.bo-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.bo-btn-primary1 {
+  padding: 12px 28px;
+  background: linear-gradient(90deg, #ca8a04, var(--bo-gold), #ca8a04);
+  color: var(--bo-text-light);
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(253, 204, 0, 0.20);
+}
+
+.bo-btn-primary1:hover {
+  box-shadow: 0 8px 24px rgba(253, 204, 0, 0.35);
+  color: yellow;
+}
+
+
+
+.bo-btn-secondary {
+  padding: 12px 28px;
+  background: rgba(253, 204, 0, 0.10);
+  color: var(--bo-text-dark);
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  border: 2px solid var(--bo-border-gold);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bo-btn-secondary:hover {
+  background: rgba(253, 204, 0, 0.20);
+  border-color: var(--bo-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(253, 204, 0, 0.15);
+}
+
+/* ------------------------------
+   BACKOFFICE STAT CARDS
+------------------------------ */
+.bo-stat-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 204, 0, 0.08) 0%,
+    rgba(251, 212, 99, 0.05) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 3px solid var(--bo-border-gold);
+  border-radius: 14px;
+  padding: var(--bo-space-lg);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.bo-stat-card:hover {
+  border-color: rgba(253, 204, 0, 0.45);
+}
+
+.bo-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 204, 0, 0.20),
+    rgba(251, 212, 99, 0.15)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--bo-space-md);
+  transition: transform 0.3s ease;
+}
+
+.bo-stat-card:hover .bo-stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.bo-stat-label {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--bo-space-xs);
+}
+
+.bo-stat-value {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 36px;
+  color: var(--bo-text-dark);
+  line-height: 1;
+}
+
+/* ------------------------------
+   BACKOFFICE BADGE SYSTEM
+------------------------------ */
+.bo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bo-badge-pending {
+  background: rgba(253, 204, 0, 0.15);
+  color: #ca8a04;
+  border: 1px solid rgba(253, 204, 0, 0.30);
+}
+
+.bo-badge-completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.30);
+}
+
+.bo-badge-cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+}
+
+/* ------------------------------
+   RESPONSIVE ADJUSTMENTS
+------------------------------ */
+@media (max-width: 768px) {
+  .bo-glass-card,
+  .bo-table-container,
+  .bo-form-container {
+    padding: var(--bo-space-md);
+    border-radius: 12px;
+  }
+
+  .bo-title-lg {
+    font-size: 32px;
+  }
+
+  .bo-title-md {
+    font-size: 24px;
+  }
+
+  .bo-sidebar {
+    padding: var(--bo-space-md);
+  }
+
+  .bo-stat-card {
+    padding: var(--bo-space-md);
+  }
+}
