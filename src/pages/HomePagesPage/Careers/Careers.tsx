@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getJobPostings } from '../../../services/Technician/careers'
+import { getJobPostings } from '../../../services/Technician/careersServices'
 import { useParams } from 'react-router-dom';
 
 export interface JobPosting {

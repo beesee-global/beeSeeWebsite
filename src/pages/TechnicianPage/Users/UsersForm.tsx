@@ -361,7 +361,7 @@ const UsersForm = () => {
           {/* Breadcrumbs */}
           <Breadcrumb 
             items={[
-              { label: "Inbox", href: "/beesee/inbox", icon: <Mail className="w-4 h-4"/> },
+              { label: "Job Order", href: "/beesee/job-order", icon: <Mail className="w-4 h-4"/> },
               { label: "Users",  href: "/beesee/users", icon: <User2 className="w-4 h-4"/> },
               { label: "Users Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
             ]}

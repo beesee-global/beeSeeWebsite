@@ -264,6 +264,7 @@ export default function TableJobPosting({
                   visibleRows.map(row => {
                     const isHovered = hoveredRow === row.id;
 
+<<<<<<< Updated upstream
                     return (
                       <div 
                         key={row.id} 
@@ -280,6 +281,33 @@ export default function TableJobPosting({
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
                           const cellValue = row[column.id];
+=======
+                      return (
+                        <div 
+                          key={row.id} 
+                          onClick={(e) => handleEditing(e, row.job_reference_number)} 
+                          onMouseEnter={() => setHoveredRow(row.id)} 
+                          onMouseLeave={() => setHoveredRow(null)} 
+                          className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
+                          style={{ 
+                            background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                            borderColor: COLORS.border
+                          }}
+                        >
+                          
+                          {/* Checkbox */}
+                          <div onClick={() => handleSelect(row.id)} className={`${COLUMN_WIDTHS.checkbox} mr-4`}>
+                            <div 
+                              className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
+                              style={{ 
+                                borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
+                                background: selectedRow ? COLORS.primary : 'transparent' 
+                              }}
+                            >
+                              {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
+                            </div>
+                          </div>
+>>>>>>> Stashed changes
 
                           return (
                             <div 
