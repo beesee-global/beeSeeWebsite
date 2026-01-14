@@ -138,7 +138,6 @@
 .bo-title-sm {
   font-family: "Bebas Neue", sans-serif;
   font-size: 22px;
-  line-height: 1.1;
   color: var(--bo-text-dark);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -475,18 +474,15 @@
     rgba(251, 212, 99, 0.05) 100%
   );
   backdrop-filter: blur(10px);
-  border: 1px solid var(--bo-border-gold);
+  border: 3px solid var(--bo-border-gold);
   border-radius: 14px;
   padding: var(--bo-space-lg);
-  box-shadow: 0 6px 20px rgba(253, 204, 0, 0.06);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .bo-stat-card:hover {
-  transform: translateY(-6px);
   border-color: rgba(253, 204, 0, 0.45);
-  box-shadow: 0 12px 36px rgba(253, 204, 0, 0.15);
 }
 
 .bo-stat-icon {

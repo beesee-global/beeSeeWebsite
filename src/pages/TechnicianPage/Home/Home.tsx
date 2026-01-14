@@ -7,6 +7,7 @@ import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import { userAuth } from '../../../hooks/userAuth'
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
+import styles from '../../../assets/css/BackOfficeStyles.css';
 import {
   fetchDeviceType,
   fetchOpen,
@@ -206,7 +207,7 @@ const Home = () => {
         onSubmit={handleConfirmDelete} 
       />
 
-      <div className="flex items-center justify-between">
+      <div className=" flex items-center justify-between ">
         <div>
            <Breadcrumb 
             items={[

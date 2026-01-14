@@ -291,10 +291,10 @@ const JobPostingForm: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="bg-[#000000] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl font-bold text-black dark:text-black mb-2">
                 {id ? "Update Job Posting" : "Create New Job Posting"}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
@@ -305,7 +305,7 @@ const JobPostingForm: React.FC = () => {
               <button 
                 onClick={() => navigate('/beesee/job-posting')} 
                 disabled={isCreating || isUpdating}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                className="px-6 py-3 border border-var(--bo-border-gold) dark:border-var(--bo-border-gold) text-gray-black dark:text-black rounded-lg hover:bg-[#ff7676] dark:hover:bg-[#ff7676] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -333,20 +333,20 @@ const JobPostingForm: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* Basic Information */}
-            <div className="bg-[#000000] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center mb-6">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-4">
+                <div className="p-3 bg-var(--bo-border-gold) dark:bg-blue-900/20 rounded-lg mr-4">
                   <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Basic Information</h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Essential job details</p>
+                  <h2 className="text-xl text-black dark:text-black">Basic Information</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Essential job details</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm  text-black mb-2">
                     Job Title *
                   </label>
                   <CustomTextField 
@@ -365,7 +365,7 @@ const JobPostingForm: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm  text-black dark:text-black mb-2">
                     Job Description *
                   </label>
                   <CustomTextField 
@@ -384,7 +384,7 @@ const JobPostingForm: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm  text-black dark:text-black mb-2">
                     Location *
                   </label>
                   <CustomTextField 
@@ -403,7 +403,7 @@ const JobPostingForm: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm text-black dark:text-black mb-2">
                     Work Location *
                   </label>
                   <CustomSelectField
@@ -422,7 +422,7 @@ const JobPostingForm: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm  text-black dark:text-black mb-2">
                     Job Type *
                   </label>
                   <CustomSelectField
@@ -444,14 +444,14 @@ const JobPostingForm: React.FC = () => {
             </div>
 
             {/* Responsibilities Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bo-stat-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
                     <Settings className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Responsibilities</h2>
+                    <h2 className="text-xl text-black dark:text-black">Responsibilities</h2>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">Key duties and responsibilities</p>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ const JobPostingForm: React.FC = () => {
                     <div className="flex-1">
                       <textarea
                         placeholder="Enter responsibility..."
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white  text-black  focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
                         rows={2}
                         value={responsibility}
                         onChange={(e) => handleResponsibilityChange(index, e.target.value)}
@@ -496,14 +496,14 @@ const JobPostingForm: React.FC = () => {
             </div>
 
             {/* Qualifications Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg mr-4">
                     <Settings className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Qualifications</h2>
+                    <h2 className="text-xl text-black">Qualifications</h2>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">Required skills and qualifications</p>
                   </div>
                 </div>
@@ -528,7 +528,7 @@ const JobPostingForm: React.FC = () => {
                     <div className="flex-1">
                       <textarea
                         placeholder="Enter qualification..."
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white  text-black  focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
                         rows={2}
                         value={qualification}
                         onChange={(e) => handleQualificationChange(index, e.target.value)}

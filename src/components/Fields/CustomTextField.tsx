@@ -31,7 +31,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   helperText = "",
 }) => {
   const textFieldSx = {
-    backgroundColor: '#F3F4F5',
+    backgroundColor: '#ffffff',
     borderRadius: '6px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {

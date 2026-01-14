@@ -125,7 +125,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Charts Section */}
+      {/* Charts Section 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bo-glass-card">
           <BarChart
@@ -147,6 +147,7 @@ const Dashboard = () => {
           />
         </div>
       </div>
+      */}
       
     </div>
   )
