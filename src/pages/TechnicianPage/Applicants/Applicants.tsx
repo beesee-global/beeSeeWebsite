@@ -89,6 +89,7 @@ const Applicants = () => {
   }, [statusFilter, applicantPendingResponse, applicantShortListedResponse])
 
   const handleEdit = async(ids: string) => { 
+    setDeleteApplicant(false)
     setShortListedId(ids)
     setDialogTitle("Confirm Short Listed")
     setDialogOpen(true)

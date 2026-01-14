@@ -42,7 +42,7 @@ const JobPosting = () => {
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
     { id: 'work_location', label: 'Work Location', sortable: false, align: 'left' }, 
     { id: 'location', label: 'Location', sortable: false, align: 'left' },
-    { id: 'created_at', label: 'Date', sortable: false, align: 'right' }
+    { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
 
   const { data: jobResponse, isLoading } = useQuery({
