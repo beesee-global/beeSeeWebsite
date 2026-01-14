@@ -323,9 +323,9 @@ const handleProceedDisclaimer = async () => {
 // Called when user cancels
 const handleCancelDisclaimer = () => {
   setShowDisclaimer(false);
-  setSnackBarMessage("Submission canceled.")
+ /*  setSnackBarMessage("Submission canceled.")
   setSnackBarType('info')
-  setSnackBarOpen(true)
+  setSnackBarOpen(true) */
 }
 
   return (
