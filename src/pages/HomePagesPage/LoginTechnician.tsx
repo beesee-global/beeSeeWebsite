@@ -159,12 +159,12 @@ const LoginTechnician = () => {
             />
           </motion.div> 
 
-          <motion.h2
-            variants={itemVariants}
-            className="bee-title-md text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center sm:text-left text-xl sm:text-2xl"
-          >
-            Login Your Account
-          </motion.h2>
+<motion.h2
+  variants={itemVariants}
+  className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
+>
+  Login Your Account
+</motion.h2>
           <motion.p 
             className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
             variants={itemVariants}

@@ -166,30 +166,7 @@
    PREMIUM GOLD BUTTON (from Digital Connection)
    ========================================================= */
 
-.btn-gold {
-  @apply px-8 py-4 rounded-full font-segoe font-semibold 
-         text-black text-sm sm:text-base
-         tracking-wider cursor-pointer transition-all duration-300;
 
-  background: linear-gradient(
-    90deg,
-    var(--beesee-gold-soft),
-    var(--beesee-gold)
-  );
-
-  box-shadow: 0 0 18px rgba(253, 204, 0, 0.55),
-              0 8px 28px rgba(253, 204, 0, 0.35);
-}
-
-.btn-gold:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 0 26px rgba(253, 204, 0, 0.75),
-              0 10px 32px rgba(253, 204, 0, 0.45);
-}
-
-.btn-gold:active {
-  transform: scale(0.97);
-}
 
 
 /* =========================
