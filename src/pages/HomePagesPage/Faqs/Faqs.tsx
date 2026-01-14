@@ -255,7 +255,7 @@ const FAQs = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/faqs4.png')",
+          backgroundImage: "url('/faqsCopy.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
