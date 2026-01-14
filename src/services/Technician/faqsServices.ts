@@ -15,6 +15,15 @@ export const createFaqs = async(faqsData: any) => {
     }
 }
 
+export const fetchFaqsAllPublic = async() => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/public`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+} 
+
 export const fetchFaqsAll = async() => {
     try {
         const response = await axiosClient.get(`${API_URL}`)

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import CustomSelectField from '../../../../components/Fields/CustomSelectField';
+import { downloadFile } from '../../../../utils/downloadFile'
 import { 
   ChevronLeft, 
   ChevronRight, 
