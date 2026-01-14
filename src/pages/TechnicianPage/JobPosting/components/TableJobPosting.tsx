@@ -7,7 +7,8 @@ import {
   Pencil,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Check
 } from 'lucide-react';
 
 // ============================================
@@ -49,12 +50,14 @@ const RADIUS = {
   container: 'rounded-lg',
   button: 'rounded-md',
   row: 'rounded-md',
+  checkbox: 'rounded-md',
 };
 
 const COLUMN_WIDTHS = {
+  checkbox: 'w-12',
   name: 'w-44',
   concern: 'flex-1',
-  date: 'w-32', // Increased to accommodate buttons
+  date: 'w-32',
 };
 
 // ============================================
@@ -125,13 +128,14 @@ export default function TableJobPosting({
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<string>('name');
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const rowsPerPage = 20;
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
   const defaultColumns: ColumnConfig[] = [
-    { id: 'name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
-    { id: 'concern', label: 'Concern', sortable: true, width: COLUMN_WIDTHS.concern },
+    { id: 'full_name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
+    { id: 'status', label: 'Status', sortable: true, width: 'w-32' },
     { id: 'created_at', label: 'Date', sortable: true, width: COLUMN_WIDTHS.date, align: 'right' },
   ];
 
@@ -178,6 +182,17 @@ export default function TableJobPosting({
     if (handleEdit) handleEdit(id);
   };
 
+  const handleSelect = (id: number) => {
+    e.stopPropagation();
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedRows(newSelected);
+  };
+
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
       return <ArrowUpDown size={14} style={{ opacity: 0 }} />;
@@ -220,6 +235,9 @@ export default function TableJobPosting({
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 {/* Column Headers */}
                 <div className="flex items-center py-2">
+                  {/* Checkbox Header */}
+                  <div className={`${COLUMN_WIDTHS.checkbox} px-4`}></div>
+                  
                   {tableColumns.map((column) => (
                     <div 
                       key={column.id}
@@ -254,7 +272,7 @@ export default function TableJobPosting({
               {/* Table Body */}
               <div className="mt-1">
                 {visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b ">
+                  <div className="flex flex-col items-center justify-center py-16 border-b">
                     <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
                     <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
                       No data found
@@ -263,52 +281,39 @@ export default function TableJobPosting({
                 ) : (
                   visibleRows.map(row => {
                     const isHovered = hoveredRow === row.id;
+                    const selectedRow = selectedRows.has(row.id);
 
-<<<<<<< Updated upstream
                     return (
                       <div 
                         key={row.id} 
-                        onClick={(e) => handleEditing(e, row.pid)} 
+                        onClick={(e) => handleEditing(e, row.job_reference_number)} 
                         onMouseEnter={() => setHoveredRow(row.id)} 
                         onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} border-b`}
+                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
                         style={{ 
-                          background: isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border,
-                          cursor: 'pointer'
+                          background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                          borderColor: COLORS.border
                         }}
                       >
+                        
+                        {/* Checkbox */}
+                        <div onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelect(row.id);
+                        }} className={`${COLUMN_WIDTHS.checkbox} px-4`}>
+                          <div 
+                            className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
+                            style={{ 
+                              borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
+                              background: selectedRow ? COLORS.primary : 'transparent' 
+                            }}
+                          >
+                            {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
+                          </div>
+                        </div>
+
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
-                          const cellValue = row[column.id];
-=======
-                      return (
-                        <div 
-                          key={row.id} 
-                          onClick={(e) => handleEditing(e, row.job_reference_number)} 
-                          onMouseEnter={() => setHoveredRow(row.id)} 
-                          onMouseLeave={() => setHoveredRow(null)} 
-                          className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
-                          style={{ 
-                            background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
-                            borderColor: COLORS.border
-                          }}
-                        >
-                          
-                          {/* Checkbox */}
-                          <div onClick={() => handleSelect(row.id)} className={`${COLUMN_WIDTHS.checkbox} mr-4`}>
-                            <div 
-                              className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
-                              style={{ 
-                                borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
-                                background: selectedRow ? COLORS.primary : 'transparent' 
-                              }}
-                            >
-                              {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
-                            </div>
-                          </div>
->>>>>>> Stashed changes
-
                           return (
                             <div 
                               key={column.id}
@@ -319,31 +324,31 @@ export default function TableJobPosting({
                               }}
                             >
                               {column.id === 'full_name' ? (
-                                  <div className="flex items-center gap-3">
-                                    {/* Avatar */}
-                                    <img 
-                                      src={row.image_url} 
-                                      alt={row.first_name} 
-                                      className="w-10 h-10 rounded-full object-cover border"
-                                    />
+                                <div className="flex items-center gap-3">
+                                  {/* Avatar */}
+                                  <img 
+                                    src={row.image_url} 
+                                    alt={row.first_name} 
+                                    className="w-10 h-10 rounded-full object-cover border"
+                                  />
 
-                                    {/* Name & Position */}
-                                    <div className="flex flex-col leading-tight">
-                                      <span className="font-medium text-gray-900">
-                                        {row.first_name} {row.last_name}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        {row.details?.position ?? "No position"}
-                                      </span>
-                                    </div>
+                                  {/* Name & Position */}
+                                  <div className="flex flex-col leading-tight">
+                                    <span className="font-medium text-gray-900">
+                                      {row.first_name} {row.last_name}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {row.details?.position ?? "No position"}
+                                    </span>
                                   </div>
+                                </div>
                               ) : column.id === 'status' ? (
                                 <div>
                                   <span className="text-gray-900">
-                                        {row.details?.employment_status ?? "No position"}
-                                      </span>
+                                    {row.details?.employment_status ?? "No position"}
+                                  </span>
                                 </div>
-                              ): column.id === 'created_at' ? (
+                              ) : column.id === 'created_at' ? (
                                 <div style={{ width: '100%', height: '100%' }}>
                                   <div 
                                     style={{ 
