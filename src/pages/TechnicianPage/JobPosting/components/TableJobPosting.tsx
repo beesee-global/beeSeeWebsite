@@ -8,8 +8,10 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Copy
+  Copy,
+  Eye
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
@@ -130,6 +132,7 @@ export default function TableJobPosting({
   const [orderBy, setOrderBy] = useState<string>('name');
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const rowsPerPage = 20;
+  const navigate = useNavigate();
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -208,8 +211,10 @@ export default function TableJobPosting({
     try {
       const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
       const linkToCopy = `${apiUrl}/careers/${id}`;
+
+      navigate(linkToCopy)
       
-      // Fallback method using textarea (works in all browsers)
+/*       // Fallback method using textarea (works in all browsers)
       const textArea = document.createElement('textarea');
       textArea.value = linkToCopy;
       textArea.style.position = 'fixed';
@@ -231,7 +236,7 @@ export default function TableJobPosting({
         console.error('Fallback copy failed:', err);
       }
       
-      document.body.removeChild(textArea);
+      document.body.removeChild(textArea); */
     } catch (error) {
       console.error('Error copying link:', error);
       // You can add an error notification here
@@ -432,7 +437,7 @@ export default function TableJobPosting({
                                     </button>
 
                                     <button 
-                                      title="Copy Link"
+                                      title="View Link"
                                       onClick={(e) => handleCopy(e, row.job_reference_number)}
                                       style={{ 
                                         color: '#1e40af',
@@ -444,7 +449,7 @@ export default function TableJobPosting({
                                         outline: 'none'
                                       }}
                                     >
-                                      <Copy size={18} strokeWidth={2} />
+                                      <Eye size={18} strokeWidth={2} />
                                     </button>
 
                                     <button 
