@@ -1,22 +1,19 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, type ReactNode } from 'react';
 import {  
-    ChevronDown,   
-    Package,
-    BadgeAlert,
+    ChevronDown,
+    ChevronRight,
+    ChevronLeft,  
     User2,
     LayoutDashboard,
     MessageCircleQuestionMark,
     Settings,
     PanelLeftClose,
     PanelLeftOpen,
-    FileUser,
-    Wrench
+    Wrench,
+    Briefcase,
+    MailQuestionMarkIcon,
 } from "lucide-react";
-import CategoryIcon from '@mui/icons-material/Category';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import WorkIcon from '@mui/icons-material/Work';
 import { userAuth } from '../../hooks/userAuth'; 
 
 interface ChildItem {
@@ -60,11 +57,11 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             ],
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
-        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <QuestionAnswerIcon /> }, 
+        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <MailQuestionMarkIcon size={20} /> }, 
         {
             id: "careers",
             name: 'Careers',
-            icon: <FileUser size={20}/>,
+            icon: <Briefcase size={20}/>,
             children: [
                 { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting" },  
                 { id: "applicants", name: "Applicants", path: "/beesee/applicants" },  
@@ -129,10 +126,10 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             <div className="mb-6 flex justify-end">
                 <button
                     onClick={toggleCollapse}
-                    className="p-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
+                    className="p-2.5 rounded-xl  text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+                    {isCollapsed ? <ChevronRight size={26} /> : <ChevronLeft size={26} />}
                 </button>
             </div>
 

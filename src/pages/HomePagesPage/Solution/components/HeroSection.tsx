@@ -3,10 +3,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
-  BookOpen,
+  CircuitBoard,
   BatteryCharging,
   Laptop,
   Watch,
+  BookOpen,
+  ChartNoAxesCombined
 } from "lucide-react";
 
 const services = [
@@ -14,25 +16,25 @@ const services = [
     title: "System Development",
     description:
       "Custom-built software solutions designed to streamline operations, automate workflows, and support scalable business growth.",
-    icon: BookOpen,
+    icon: ChartNoAxesCombined,
   },
   {
     title: "Innovative Devices",
     description:
       "Cutting-edge hardware solutions engineered to enhance productivity, performance, and modern digital experiences.",
-    icon: BatteryCharging,
+    icon: Laptop,
   },
   {
     title: "Network Solutions",
     description:
       "Reliable and secure network infrastructures that ensure seamless connectivity, data protection, and system efficiency.",
-    icon: Laptop,
+    icon: CircuitBoard,
   },
   {
     title: "School Process",
     description:
       "Digital systems that simplify enrollment, grading, records management, and administrative workflows for schools and universities.",
-    icon: Watch,
+    icon: BookOpen,
   },
 ];
 

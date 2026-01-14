@@ -174,7 +174,7 @@ const UnifiedPage: React.FC = () => {
         ref={solutionsRef}
         className="relative w-full pt-16 sm:pt-20 md:pt-32 lg:pt-40 pb-16 sm:pb-24 md:pb-32 lg:pb-40 px-4 sm:px-6 md:px-8 lg:px-10"
         style={{
-          backgroundImage: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url('/faqs2.png')",
+          backgroundImage: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url('/faqs6.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
