@@ -166,7 +166,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
                 border: '2px solid rgba(253, 204, 0, 0.35)'
               }}
             >
-              <Target size={24} />
+              <Target size={24} style={{ color: 'var(--beesee-gold)' }} />
             </div>
             <h2 className="bee-title-md" style={{ color: 'var(--beesee-gold)' }}>
               About the Role
@@ -182,11 +182,11 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 mb-20">
           {[{
             title: "What You'll Do",
-            icon: <Users size={26} />,
+            icon: <Users size={26} style={{ color: 'var(--beesee-gold)' }} />,
             data: job.responsibilities
           },{
             title: "What We're Looking For",
-            icon: <Award size={26} />,
+            icon: <Award size={26} style={{ color: 'var(--beesee-gold)' }}  />,
             data: job.qualifications
           }].map((block, idx) => (
             <section key={idx} className="fade-up-init beesee-card-content1 text-left">
