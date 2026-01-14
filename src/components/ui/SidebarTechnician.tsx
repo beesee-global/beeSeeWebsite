@@ -10,7 +10,8 @@ import {
     Settings,
     PanelLeftClose,
     PanelLeftOpen,
-    FileUser
+    FileUser,
+    Wrench
 } from "lucide-react";
 import CategoryIcon from '@mui/icons-material/Category';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
@@ -45,17 +46,17 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
 
     const sidebarLayout: MenuItem[] = [
         { id: "dashboard", name: "Dashboard", path: '/beesee/dashboard', icon: <LayoutDashboard size={20}/> },
-        { id: "job-order", name: "Job Order", path: "/beesee/job-order", icon: <WorkIcon size={20} /> }, 
+        { id: "job-order", name: "Job Order", path: "/beesee/job-order", icon: <Wrench size={20} /> }, 
         { id: "users", name: "Users", path: "/beesee/users", icon: <User2 size={20} /> },
         {
             id: "settings",
             name: 'Settings',
             icon: <Settings size={20}/>,
             children: [
-                { id: "device", name: "Device type", path: "/beesee/device", icon: <CategoryIcon /> }, 
-                { id: "model", name: "Model type", path: "/beesee/model", icon: <Package size={20} /> },
-                { id: "issue", name: "Issue type", path: "/beesee/issue", icon: <BadgeAlert size={20} /> },
-                { id: "position", name: "Position", path: "/beesee/position", icon: <ManageAccountsIcon /> },
+                { id: "device", name: "Device type", path: "/beesee/device"}, 
+                { id: "model", name: "Model type", path: "/beesee/model"},
+                { id: "issue", name: "Issue type", path: "/beesee/issue" },
+                { id: "position", name: "Position", path: "/beesee/position" },
             ],
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
@@ -65,8 +66,8 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             name: 'Careers',
             icon: <FileUser size={20}/>,
             children: [
-                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting", icon: <CategoryIcon /> },  
-                { id: "applicants", name: "Applicants", path: "/beesee/applicants", icon: <CategoryIcon /> },  
+                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting" },  
+                { id: "applicants", name: "Applicants", path: "/beesee/applicants" },  
             ],
         },
     ];
