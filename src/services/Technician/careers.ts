@@ -23,3 +23,12 @@ export const careersEmail  = async(data: any) => {
     throw error
   }
 }
+
+export const getAllJobPosting = async () => {
+  try {
+    const response = await axiosClient.get(`/careers`);
+    return response.data;
+  } catch (error) {
+    throw error
+  }
+}

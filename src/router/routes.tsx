@@ -53,8 +53,10 @@ const TechnicianTicketForm = lazy(() => import('../pages/TechnicianPage/Ticket/T
 const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organization/Organization'))
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
-import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp'; 
-const TechnicianCareers = lazy(() => import('../pages/TechnicianPage/Careers/Careers'));
+import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
+const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
+const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
+const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -277,11 +279,19 @@ const routes = [
             {
                 path: 'organization',
                 element: <TechnicianOrganization />
-            },
+            }, 
             {
-                path: 'careers',
-                element: <TechnicianCareers />
-            }
+                path:  "job-posting",
+                element: <TechnicianJobPosting />
+            }, 
+            {
+                path:  "applicants",
+                element: <TechnicianApplicant />
+            },, 
+            {
+                path:  "job-posting/form/:job_ref?",
+                element: <TechnicianApplicant />
+            },
         ]
     },
        /* conversation */

@@ -35,8 +35,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     resume: null
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState([])
+  const [isDragging, setIsDragging] = useState(false); 
 
   // File upload handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +125,8 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     submitData.append('fullName', formData.fullName);
     submitData.append('email', formData.email);
     submitData.append('phone', formData.phone);
-    submitData.append("subject", formData.subject);
+    submitData.append("applying", jobTitle);
+    submitData.append("job_number",jobId),
     submitData.append('coverLetter', formData.coverLetter);
     if (formData.resume) {
       submitData.append('resume', formData.resume);
@@ -290,7 +290,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 />
               </div>
 
-               <div>
+              {/*  <div>
                 <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
                   Subject *
                 </label>
@@ -302,7 +302,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 />
-              </div>
+              </div> */}
 
               {/* Cover Letter (Optional) */}
               <div>

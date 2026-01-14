@@ -59,8 +59,16 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             ],
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
-        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <QuestionAnswerIcon /> },
-        /* { id: "careers", name: "Careers", path: "/beesee/careers", icon: <FileUser /> }, */
+        { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <QuestionAnswerIcon /> }, 
+        {
+            id: "careers",
+            name: 'Careers',
+            icon: <FileUser size={20}/>,
+            children: [
+                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting", icon: <CategoryIcon /> },  
+                { id: "applicants", name: "Applicants", path: "/beesee/applicants", icon: <CategoryIcon /> },  
+            ],
+        },
     ];
 
     const toggleMenu = (id: string) => {
@@ -206,7 +214,10 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                                         ? "shadow-lg shadow-yellow-500/30 scale-[1.02]" 
                                                                         : "text-gray-400 hover:bg-gray-900/60 hover:text-white hover:border-yellow-500/20 hover:scale-[1.02] hover:translate-x-1"
                                                                 }`}
-                                                                onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
+                                                                 onClick={(e) => {
+                                                                    e.stopPropagation(); // 🔑 prevent parent button from hijacking click
+                                                                    if (window.innerWidth < 768) setShowSidebar?.(false);
+                                                                }}
                                                             >
                                                                 <span style={{ color: childActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!childActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
                                                                     {child.icon}

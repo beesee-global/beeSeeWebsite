@@ -142,7 +142,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
                   <Calendar size={20} style={{ color: 'var(--beesee-light)' }} />
                 </div>
                 <span className="bee-body font-medium">
-                  Posted {new Date(job.postedDate).toLocaleDateString('en-US', { 
+                  Posted {new Date(job.created_at).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric', 
                     year: 'numeric' 
@@ -168,7 +168,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
               background: 'rgba(253, 204, 0, 0.1)'
             }}>
               <span className="bee-body-sm font-semibold" style={{ color: 'var(--beesee-gold)', fontSize: '15px' }}>
-                Job ID: {job.id}
+                Job ID: {job.job_reference_number}
               </span>
             </div>
           </div>
