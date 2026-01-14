@@ -398,13 +398,14 @@ export default function TableApplicants({
                                 {col.id === 'actions' ? (
                                 row.status !== 'SHORTLISTED' ? ( // ✅ fixed syntax
                                     <div className="flex items-center gap-2"> 
+                                    
                                     <button
                                       title="View Resume"
                                       onClick={(e) => {
                                         e.stopPropagation(); // prevent row click 
                                         downloadFile(row.attachment_url,"view", row.name)
                                       }}
-                                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                                      className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
                                     >
                                         <Eye size={16} />
                                     </button>
@@ -437,7 +438,7 @@ export default function TableApplicants({
                                           e.stopPropagation(); // prevent row click
                                           downloadFile(row.attachment_url,"view", row.name)
                                         }}
-                                        className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                                        className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
                                       >
                                           <Eye size={16} />
                                       </button>
