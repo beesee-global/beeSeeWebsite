@@ -19,24 +19,7 @@
 
 /* Enhanced Product Card */
 
-/* Specific style for Fusion laptop image */
-.product-card-enhanced img[src*="LaptopFusion"] {
-  max-height: 80px !important; /* Adjust this value */
-  width: auto !important;
-  margin: 0 auto !important;
-  display: block !important;
-  object-fit: contain !important;
-}
 
-/* If you need to target the container too */
-.product-card-enhanced:has(img[src*="LaptopFusion"]) .product-image-container {
-  height: 160px !important;
-}
-
-/* Optional: If Fusion card has specific class */
-.fusion-product .product-image {
-  max-height: 80px !important;
-}
 .product-card-enhanced {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   border: 1px solid #383120;
@@ -76,8 +59,8 @@
 }
 
 .product-image {
-  width: 85%;
-  height: 85%;
+  width: 90%;
+  height: 70%;
   object-fit: contain;
   transition: all 0.5s ease;
   padding: 1rem;
