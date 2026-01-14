@@ -8,8 +8,6 @@ import {
     LayoutDashboard,
     MessageCircleQuestionMark,
     Settings,
-    PanelLeftClose,
-    PanelLeftOpen,
     Wrench,
     Briefcase,
     MailQuestionMarkIcon,
@@ -149,10 +147,17 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         <div className={`p-4 min-h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-full min-w-64'}`} style={{ backgroundColor: '#000000' }}>
             {/* Toggle Button - Desktop / Close Button - Mobile */}
             <div className="mb-6 flex justify-between items-center md:justify-end">
+                {/* App Logo/Title - Hidden on mobile, shown on desktop when expanded */}
+                {!isCollapsed && (
+                    <div className="hidden md:flex items-center gap-2 ml-2">
+                       
+                    </div>
+                )}
+
                 {/* Close button - Mobile only */}
                 <button
                     onClick={closeMobileSidebar}
-                    className="md:hidden p-2.5 rounded-xl items-end text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
+                    className="md:hidden p-2.5 rounded-xl text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50 ml-auto"
                     title="Close sidebar"
                     aria-label="Close navigation menu"
                 >
