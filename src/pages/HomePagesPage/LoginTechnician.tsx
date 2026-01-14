@@ -132,7 +132,7 @@ const LoginTechnician = () => {
   }; 
 
   return (
-    <div className='flex justify-center items-center bg-white min-h-screen'>
+    <div className='flex justify-center items-center bg-white min-h-screen p-4'>
       {/* Notification */}
       <Snackbar 
         open={snackbarOpen}
@@ -141,32 +141,32 @@ const LoginTechnician = () => {
         onClose={() => setSnackbarOpen(false)}
       />
 
-      <div className='w-full h-screen flex items-center justify-center  p-8'> 
+      <div className='w-full max-w-md flex items-center justify-center p-4 sm:p-8'> 
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="flex flex-col max-w-3xl"
+          className="flex flex-col w-full"
         >
           <motion.div
             variants={itemVariants}
-            className="flex justify-center mb-8"
+            className="flex justify-center mb-6 sm:mb-8"
           >
             <img 
               src="/beeSeeGold.png" 
               alt="BeeSee Logo" 
-              className="h-24 w-auto"
+              className="h-20 sm:h-24 w-auto"
             />
           </motion.div> 
 
           <motion.h2
             variants={itemVariants}
-            className=" bee-title-md text-[var(--beesee-gold)] mb-4 sm:mb-6"
+            className="bee-title-md text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center sm:text-left text-xl sm:text-2xl"
           >
             Login Your Account
           </motion.h2>
           <motion.p 
-            className="text-center mb-6 text-gray-600"
+            className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
             variants={itemVariants}
           >
             Welcome back! Please enter your details
@@ -174,7 +174,7 @@ const LoginTechnician = () => {
 
           <motion.form 
             onSubmit={handleSubmit} 
-            className="space-y-7"
+            className="space-y-5 sm:space-y-7"
           >
             {/* Email */}
             <motion.div variants={itemVariants}>
@@ -213,13 +213,13 @@ const LoginTechnician = () => {
            {/*  <motion.p 
               variants={itemVariants}
               onClick={() => navigate("/forget-password")}
-              className="text-blue-500 hover:underline cursor-pointer">
+              className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base">
               Forget Password
             </motion.p> */}
 
             <motion.button
               variants={itemVariants}
-              className="beesee-button"
+              className="beesee-button w-full py-3 text-sm sm:text-base"
               type="submit"
               disabled={isPending}
             >
