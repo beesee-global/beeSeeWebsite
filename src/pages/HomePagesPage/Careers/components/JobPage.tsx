@@ -186,7 +186,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
             data: job.responsibilities
           },{
             title: "What We're Looking For",
-            icon: <Award size={26} style={{ color: 'var(--beesee-gold)' }}  />,
+            icon: <Award size={26} style={{ color: 'var(--beesee-gold)' }} />,
             data: job.qualifications
           }].map((block, idx) => (
             <section key={idx} className="fade-up-init beesee-card-content1 text-left">
@@ -207,9 +207,15 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
               <ul className="space-y-5">
                 {block.data.map((item, i) => (
-                  <li key={i} className="flex gap-4">
-                    <ChevronRight size={20} style={{ color: 'var(--beesee-gold)' }} />
-                    <span className="bee-body leading-relaxed">{item}</span>
+                  <li key={i} className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
+                      <ChevronRight 
+                        size={20} 
+                        className="text-[var(--beesee-gold)]"
+                        style={{ color: 'var(--beesee-gold)' }} 
+                      />
+                    </div>
+                    <span className="bee-body leading-relaxed flex-1">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -228,7 +234,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
           </p>
           <button
             onClick={() => setShowApplicationForm(true)}
-            className="beesee-button beesee-button--small"
+            className="beesee-button beesee-button--small flex items-center gap-2 mx-auto"
           >
             <Send size={18} />
             Submit Your Application
