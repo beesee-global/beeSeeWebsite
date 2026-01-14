@@ -20,7 +20,7 @@ const Applicants = () => {
   const queryClient = useQueryClient(); 
 
   const columns = [
-    { id: 'job_number', label: 'Job Number', sortable: true },
+    { id: 'job_number', label: 'Job No.', sortable: true },
     { id: 'full_name', label: 'Name', sortable: true },
     { id: 'phone', label: 'Phone', sortable: true },
     { id: "email", label: 'Email', sortable: true },
