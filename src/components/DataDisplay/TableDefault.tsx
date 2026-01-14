@@ -50,7 +50,7 @@ const COLUMN_WIDTHS = {
   checkbox: 'w-8',
   name: 'w-44',
   concern: 'flex-1',
-  date: 'w-20',
+  date: 'w-32', // Increased to accommodate buttons
 };
 
 // ============================================
@@ -161,11 +161,11 @@ export default function TableDefault({
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50" />;
+      return <ArrowUpDown size={14} style={{ opacity: 0 }} />;
     }
     return order === 'asc' 
-      ? <ArrowUp size={14} className="opacity-100" />
-      : <ArrowDown size={14} className="opacity-100" />;
+      ? <ArrowUp size={14} style={{ opacity: 1 }} />
+      : <ArrowDown size={14} style={{ opacity: 1 }} />;
   };
 
   if (isLoading) {
@@ -177,7 +177,7 @@ export default function TableDefault({
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              <div className="rounded-full h-12 w-12 border-b-2" style={{ borderColor: COLORS.text }}></div>
               <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
             </div>
           </div>
@@ -207,18 +207,20 @@ export default function TableDefault({
                       {column.sortable !== false ? (
                         <button
                           onClick={() => handleRequestSort(column.id)}
-                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700 hover:text-gray-900 group`}
+                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`}
                           style={{ 
                             marginLeft: column.align === 'right' ? 'auto' : '0',
                             justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            width: column.align === 'right' ? '100%' : 'auto'
+                            width: column.align === 'right' ? '100%' : 'auto',
+                            color: COLORS.text,
+                            cursor: 'pointer'
                           }}
                         >
                           {column.label}
                           {renderSortIcon(column.id)}
                         </button>
                       ) : (
-                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-gray-700`}>
+                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
                           {column.label}
                         </span>
                       )}
@@ -245,10 +247,11 @@ export default function TableDefault({
                         key={row.id} 
                         onMouseEnter={() => setHoveredRow(row.id)} 
                         onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b`}
+                        className={`flex items-center ${SPACING.rowPadding} border-b`}
                         style={{ 
                           background: isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border
+                          borderColor: COLORS.border,
+                          cursor: 'pointer'
                         }}
                       >
                         {/* Dynamic Columns */}
@@ -260,15 +263,34 @@ export default function TableDefault({
                               onClick={() => handleEdit(row.pid)} 
                               key={column.id}
                               className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ textAlign: column.align || 'left' }}
+                              style={{ 
+                                textAlign: column.align || 'left',
+                                position: 'relative'
+                              }}
                             >
                               {column.id === 'created_at' ? (
-                                isHovered && (
-                                  <div className="flex items-center justify-end gap-2">
+                                <div style={{ width: '100%', height: '100%' }}>
+                                  <div 
+                                    style={{ 
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'flex-end',
+                                      gap: '8px',
+                                      visibility: isHovered ? 'visible' : 'hidden'
+                                    }}
+                                  >
                                     <button 
                                       title="Edit"
                                       onClick={(e) => handleComplete(e, row.pid)}
-                                      className="text-green-700 hover:text-green-600 bg-green-100 p-2 rounded-md"
+                                      style={{ 
+                                        color: '#15803d',
+                                        background: '#dcfce7',
+                                        padding: '8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        outline: 'none'
+                                      }}
                                     >
                                       <Pencil size={18} strokeWidth={2} />
                                     </button>
@@ -276,29 +298,38 @@ export default function TableDefault({
                                     <button 
                                       title="Delete"
                                       onClick={(e) => onDelete(e, row.id)}
-                                      className="text-red-700 hover:text-red-600 bg-red-100 p-2 rounded-md" 
+                                      style={{ 
+                                        color: '#dc2626',
+                                        background: '#fee2e2',
+                                        padding: '8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        outline: 'none'
+                                      }}
                                     >
                                       <Trash2 size={18} strokeWidth={2} />
                                     </button>
                                   </div>
-                                )
+                                </div>
                               ) : column.id === 'permission' ? (
                                 Array.isArray(cellValue) && cellValue.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
                                     {cellValue.map((perm: string) => (
                                       <span 
                                         key={perm} 
-                                        className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium"
+                                        className="px-2 py-1 rounded text-xs font-medium"
+                                        style={{ background: '#dbeafe', color: '#1e40af' }}
                                       >
                                         {perm}
                                       </span>
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-sm text-gray-400">—</span>
+                                  <span className="text-sm" style={{ color: COLORS.textMuted }}>—</span>
                                 )
                               ) : (
-                                <span className="text-sm">{cellValue}</span>
+                                <span className="text-sm" style={{ color: COLORS.text }}>{cellValue}</span>
                               )}
                             </div>
                           );
@@ -323,16 +354,30 @@ export default function TableDefault({
                 <button 
                   onClick={() => setPage(p => Math.max(0, p - 1))} 
                   disabled={page === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed`} 
-                  style={{ color: COLORS.text }}
+                  style={{ 
+                    padding: '6px',
+                    borderRadius: '6px',
+                    opacity: page === 0 ? 0.3 : 1,
+                    cursor: page === 0 ? 'not-allowed' : 'pointer',
+                    color: COLORS.text,
+                    background: '#f3f4f6',
+                    border: 'none'
+                  }}
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button 
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
                   disabled={page === totalPages - 1 || safeRows.length === 0} 
-                  className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed`} 
-                  style={{ color: COLORS.text }}
+                  style={{ 
+                    padding: '6px',
+                    borderRadius: '6px',
+                    opacity: (page === totalPages - 1 || safeRows.length === 0) ? 0.3 : 1,
+                    cursor: (page === totalPages - 1 || safeRows.length === 0) ? 'not-allowed' : 'pointer',
+                    color: COLORS.text,
+                    background: '#f3f4f6',
+                    border: 'none'
+                  }}
                 >
                   <ChevronRight size={18} />
                 </button>
