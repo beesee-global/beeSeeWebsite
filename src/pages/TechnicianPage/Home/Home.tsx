@@ -219,15 +219,7 @@ const Home = () => {
         
         {/* Actions - Stack on mobile, row on desktop */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
-          <button
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap w-full sm:w-auto h-10 sm:h-11 flex-shrink-0"
-            onClick={() => navigate('/beesee/job-order/submit-ticket')}
-          >
-            <Send className='w-4 h-4' />
-            <span className="hidden sm:inline">Add Ticket</span>
-            <span className="sm:hidden">Add</span>
-          </button>
-          
+          {/* Search Field - Moved first */}
           <div className="w-full sm:w-auto flex-grow">
             <CustomSearchField 
               value={searchValue}
@@ -236,6 +228,16 @@ const Home = () => {
               className="h-10 sm:h-11 w-full"
             />
           </div>
+          
+          {/* Add Ticket Button - Moved under search */}
+          <button
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap w-full sm:w-auto h-10 sm:h-11 flex-shrink-0"
+            onClick={() => navigate('/beesee/job-order/submit-ticket')}
+          >
+            <Send className='w-4 h-4' />
+            <span className="hidden sm:inline">Add Ticket</span>
+            <span className="sm:hidden">Add</span>
+          </button>
         </div>
       </div>
 
