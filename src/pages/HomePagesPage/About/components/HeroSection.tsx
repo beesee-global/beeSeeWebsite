@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { motion, AnimatePresence, useInView, Variants } from "framer-motion";
 import { Heart, Target } from "lucide-react";
 
 // Mock images 
@@ -25,7 +25,7 @@ const UnifiedScrollingPage: React.FC = () => {
   }, []);
 
   // Animation variants
-  const slideInLeft = {
+  const slideInLeft: Variants = {
     hidden: { x: -100, opacity: 1 },
     visible: { 
       x: 0, 
@@ -39,7 +39,7 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  const slideInRight = {
+  const slideInRight: Variants = {
     hidden: { x: 100, opacity: 1 },
     visible: { 
       x: 0, 
@@ -53,7 +53,7 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  const slideInDown = {
+  const slideInDown: Variants = {
     hidden: { y: -50, opacity: 1 },
     visible: { 
       y: 0, 
@@ -67,7 +67,7 @@ const UnifiedScrollingPage: React.FC = () => {
     }
   };
 
-  const slideInCard = {
+  const slideInCard: Variants = {
     hidden: { y: -30, opacity: 1 },
     visible: (custom: number) => ({ 
       y: 0, 
@@ -198,8 +198,8 @@ const UnifiedScrollingPage: React.FC = () => {
 
   const renderStoryHeader = () => {
     const content = (
-      <div className="text-center mb-8 md:mb-16 px-2 md:px-0">
-        <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] mb-4 md:mb-6 px-2">
+      <div className="text-center mb-6 md:mb-10 px-2 md:px-0">
+        <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] mb-3 md:mb-5 px-2">
           From Local Vision to Global Footprint
         </h2>
         <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 mt-4 md:mt-6 leading-relaxed px-4">
@@ -272,8 +272,8 @@ const UnifiedScrollingPage: React.FC = () => {
       {/* HERO SECTION */}
       <section
         ref={heroRef}
-        className={`relative flex items-start z-10 px-2 sm:px-4 md:px-10 lg:px-14 py-8 sm:py-12 md:py-24 ${
-          isMobile ? "min-h-[70vh] md:min-h-[85vh]" : "min-h-[85vh]"
+        className={`relative flex items-start z-10 px-2 sm:px-4 md:px-10 lg:px-14 py-6 sm:py-8 md:py-16 ${
+          isMobile ? "min-h-[50vh] md:min-h-[60vh]" : "min-h-[60vh]"
         }`}
       >
         <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 items-center gap-6 sm:gap-8 md:gap-14">
@@ -285,8 +285,8 @@ const UnifiedScrollingPage: React.FC = () => {
       {/* COMPANY STORY SECTION */}
       <section 
         ref={storyRef}
-        className={`relative z-10 flex flex-col items-center px-2 sm:px-4 md:px-10 lg:px-14 py-8 sm:py-12 md:py-24 ${
-          isMobile ? "min-h-[60vh]" : "min-h-[80vh]"
+        className={`relative z-10 flex flex-col items-center px-2 sm:px-4 md:px-10 lg:px-14 py-6 sm:py-8 md:py-16 ${
+          isMobile ? "min-h-[40vh]" : "min-h-[60vh]"
         }`}
       >
         <div className="max-w-7xl w-full">

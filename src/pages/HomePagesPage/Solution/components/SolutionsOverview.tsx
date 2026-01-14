@@ -174,43 +174,58 @@ const UnifiedPage: React.FC = () => {
         ref={solutionsRef}
         className="relative w-full pt-16 sm:pt-20 md:pt-32 lg:pt-40 pb-16 sm:pb-24 md:pb-32 lg:pb-40 px-4 sm:px-6 md:px-8 lg:px-10"
         style={{
-          backgroundImage: "url('/live-background/randomBg2.png')",
+          backgroundImage: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url('/faqs2.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
-        {/* GOLD + BLACK FADE LAYERS */}
+        {/* OPTIMIZED GOLD + BLACK FADE LAYERS WITH SMOOTH TRANSITIONS */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background: `
               linear-gradient(
                 to bottom,
-                rgba(0,0,0,1) 0%,
-                rgba(0,0,0,0.95) 6%,
-                rgba(0,0,0,0.85) 12%,
-                rgba(0,0,0,0.65) 18%,
-                rgba(0,0,0,0.4) 25%,
-                rgba(0,0,0,0.15) 32%,
-                rgba(0,0,0,0) 40%
+                rgba(0,0,0,0.9) 0%,
+                rgba(0,0,0,0.8) 8%,
+                rgba(0,0,0,0.65) 16%,
+                rgba(0,0,0,0.45) 24%,
+                rgba(0,0,0,0.25) 32%,
+                rgba(0,0,0,0.1) 40%,
+                rgba(0,0,0,0) 50%
               ),
               linear-gradient(
                 to bottom,
                 rgba(253,204,0,0.35) 0%,
-                rgba(253,204,0,0.25) 15%,
-                rgba(253,204,0,0.15) 35%,
-                rgba(253,204,0,0.08) 55%,
-                rgba(253,204,0,0.03) 75%,
+                rgba(253,204,0,0.28) 12%,
+                rgba(253,204,0,0.2) 25%,
+                rgba(253,204,0,0.14) 40%,
+                rgba(253,204,0,0.08) 60%,
+                rgba(253,204,0,0.03) 80%,
                 rgba(253,204,0,0) 100%
+              ),
+              radial-gradient(
+                ellipse at top center,
+                rgba(253,204,0,0.25) 0%,
+                rgba(253,204,0,0.15) 20%,
+                rgba(253,204,0,0.08) 40%,
+                transparent 65%
+              ),
+              radial-gradient(
+                ellipse at bottom center,
+                rgba(0,0,0,0.6) 0%,
+                rgba(0,0,0,0.3) 30%,
+                transparent 60%
               ),
               linear-gradient(
                 to top,
-                rgba(0,0,0,1) 0%,
-                rgba(0,0,0,0.85) 5%,
-                rgba(0,0,0,0.55) 25%,
-                rgba(0,0,0,0.25) 40%,
-                rgba(0,0,0,0.08) 78%,
+                rgba(0,0,0,0.95) 0%,
+                rgba(0,0,0,0.85) 8%,
+                rgba(0,0,0,0.65) 20%,
+                rgba(0,0,0,0.4) 35%,
+                rgba(0,0,0,0.2) 55%,
+                rgba(0,0,0,0.08) 75%,
                 rgba(0,0,0,0) 100%
               )
             `,
@@ -277,7 +292,7 @@ const UnifiedPage: React.FC = () => {
                     <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--beesee-gold)] leading-tight">{solution.title}</h3>
                   </div>
 
-                  <p className="text-sm sm:text-base text-white/85 leading-relaxed">{solution.description}</p>
+                  <p className="text-sm sm:text-base text-white/90 leading-relaxed">{solution.description}</p>
 
                   <div className="space-y-2 sm:space-y-3 w-full">
                     <h4 className="text-base sm:text-lg font-semibold text-white">Key Features</h4>
@@ -288,7 +303,7 @@ const UnifiedPage: React.FC = () => {
                           className="flex items-start gap-2"
                         >
                           <CheckCircle size={14} className="sm:w-4 sm:h-4 text-[var(--beesee-gold)] mt-0.5 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm text-white/70">{feature}</span>
+                          <span className="text-xs sm:text-sm text-white/75">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -333,6 +348,13 @@ const UnifiedPage: React.FC = () => {
           <div className="absolute top-10 left-4 sm:left-10 w-48 h-48 sm:w-60 sm:h-60 bg-[#FDCC00]/20 blur-2xl rounded-full"></div>
           <div className="absolute bottom-10 right-4 sm:right-10 w-60 h-60 sm:w-72 sm:h-72 bg-[#FFD700]/15 blur-2xl rounded-full"></div>
         </div>
+
+        {/* Bottom Fade to Black for Smooth Transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 md:h-48 pointer-events-none z-20"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,1) 100%)'
+          }}
+        ></div>
 
         <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center w-full">
           {/* Left Content */}
@@ -393,7 +415,7 @@ const UnifiedPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right Image - RESTORED ORIGINAL SIZE */}
+          {/* Right Image */}
           <motion.div
             ref={supportRightRef}
             initial="hidden"

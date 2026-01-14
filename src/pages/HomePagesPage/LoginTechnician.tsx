@@ -148,6 +148,17 @@ const LoginTechnician = () => {
           variants={containerVariants}
           className="flex flex-col max-w-3xl"
         >
+          <motion.div
+            variants={itemVariants}
+            className="flex justify-center mb-8"
+          >
+            <img 
+              src="/beeSeeGold.png" 
+              alt="BeeSee Logo" 
+              className="h-24 w-auto"
+            />
+          </motion.div> 
+
           <motion.h2
             variants={itemVariants}
             className=" bee-title-md text-[var(--beesee-gold)] mb-4 sm:mb-6"
