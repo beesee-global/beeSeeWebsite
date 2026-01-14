@@ -77,7 +77,7 @@ const NavigationTechnician = () => {
 
   const { data: userInformation } = useQuery({
     queryKey: ["users_data", id],
-    queryFn: () => fetchUserById(Number(id)),
+    queryFn: () => fetchUserById(id ? String(id) : ''),
     enabled: !!id
   });
 

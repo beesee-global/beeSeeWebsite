@@ -13,13 +13,15 @@ import {
     Wrench,
     Briefcase,
     MailQuestionMarkIcon,
+    X,
 } from "lucide-react";
 import { userAuth } from '../../hooks/userAuth'; 
 
 interface ChildItem {
+    id: string;
     name: string;
     path: string; 
-    icon: ReactNode;
+    icon?: ReactNode;
 }
 
 interface MenuItem {
@@ -37,7 +39,7 @@ interface SidebarProps {
 
 const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     const location = useLocation();
-    const { userInfo, isCollapsed, setIsCollapsed } = userAuth();
+    const { userInfo, isCollapsed, setIsCollapsed, setUserNav } = userAuth();
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({}); 
 
@@ -81,8 +83,18 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     };
 
     const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-        if (!isCollapsed) setOpenMenus({});
+        // Only allow collapse on desktop
+        if (window.innerWidth >= 768) {
+            setIsCollapsed(!isCollapsed);
+            if (!isCollapsed) setOpenMenus({});
+        }
+    };
+
+    const closeMobileSidebar = () => {
+        if (window.innerWidth < 768) {
+            setShowSidebar?.(false);
+            setUserNav(false);
+        }
     };
 
     // Filter menu based on permissions
@@ -93,11 +105,11 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             .filter(item => {
                 if (item.id === "dashboard") return true;
                 if (!userInfo.permissions) return false;
-                return userInfo.permissions.includes(item.id) || (item.children?.some(child => userInfo.permissions.includes(child.id)));
+                return userInfo.permissions.includes(item.id) || (item.children?.some(child => userInfo.permissions?.includes(child.id)));
             })
             .map(item => {
                 if (item.children) {
-                    const filteredChildren = item.children.filter(child => userInfo.permissions.includes(child.id));
+                    const filteredChildren = item.children.filter(child => userInfo.permissions?.includes(child.id));
                     return { ...item, children: filteredChildren };
                 }
                 return item;
@@ -120,14 +132,39 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         }
     }, [location.pathname, menuItems, isCollapsed]);
 
+    // Reset collapse state on mobile
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setIsCollapsed(false);
+            }
+        };
+
+        handleResize(); // Run on mount
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [setIsCollapsed]);
+
     return (
         <div className={`p-4 min-h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-full min-w-64'}`} style={{ backgroundColor: '#000000' }}>
-            {/* Toggle Button */}
-            <div className="mb-6 flex justify-end">
+            {/* Toggle Button - Desktop / Close Button - Mobile */}
+            <div className="mb-6 flex justify-between items-center md:justify-end">
+                {/* Close button - Mobile only */}
+                <button
+                    onClick={closeMobileSidebar}
+                    className="md:hidden p-2.5 rounded-xl items-end text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
+                    title="Close sidebar"
+                    aria-label="Close navigation menu"
+                >
+                    <X size={26} />
+                </button>
+
+                {/* Collapse/Expand button - Desktop only */}
                 <button
                     onClick={toggleCollapse}
-                    className="p-2.5 rounded-xl  text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
+                    className="hidden md:block p-2.5 rounded-xl text-[#D4AF37] transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-yellow-500/50"
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? <ChevronRight size={26} /> : <ChevronLeft size={26} />}
                 </button>
@@ -213,8 +250,8 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                                         : "text-gray-400 hover:bg-gray-900/60 hover:text-white hover:border-yellow-500/20 hover:scale-[1.02] hover:translate-x-1"
                                                                 }`}
                                                                  onClick={(e) => {
-                                                                    e.stopPropagation(); // 🔑 prevent parent button from hijacking click
-                                                                    if (window.innerWidth < 768) setShowSidebar?.(false);
+                                                                    e.stopPropagation();
+                                                                    closeMobileSidebar();
                                                                 }}
                                                             >
                                                                 <span style={{ color: childActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!childActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
@@ -243,7 +280,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                             ? "shadow-xl shadow-yellow-500/40 scale-[1.02]" 
                                             : "text-gray-400 hover:bg-gray-900/60 hover:text-white hover:border-yellow-500/20 hover:scale-[1.02] hover:translate-x-1"
                                     }`}
-                                    onClick={() => window.innerWidth < 768 && setShowSidebar?.(false)}
+                                    onClick={closeMobileSidebar}
                                     title={isCollapsed ? item.name : ''}
                                 >
                                     <span style={{ color: isActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!isActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
