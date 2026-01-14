@@ -28,12 +28,8 @@ const Inquiries = () => {
     { id: "position", label: "Position", sortable: true },
     { id: "subject", label: "Subject", sortable: true },
     { id: "description", label: 'Description', sortable: true }, 
-  ]
-
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-  const [snackBarMessage, setSnackBarMessage] = useState('');
-  const [snackBarType, setSnackBarType] = useState<'success' | 'error' | 'warning' | 'info'>('success');
- 
+  ] 
+  
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(""); 
   const [statusFilter, setStatusFilter] = useState<string>("Unsettled");
@@ -162,14 +158,7 @@ const Inquiries = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-6 space-y-10 bg-white">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className="p-6 space-y-10 bg-white"> 
 
       {/* Header */}
       <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>

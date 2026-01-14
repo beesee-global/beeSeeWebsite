@@ -1,21 +1,26 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
-import {getAllJobPosting} from '../../../services/Technician/careers'
+import {getAllJobPosting, deleteCareers} from '../../../services/Technician/careersServices'
 import { useNavigate } from "react-router-dom"
 import { 
   User2, 
   Plus, 
 } from "lucide-react"
-import TableUsers from "./components/TableJobPosting"
-import { useQuery } from "@tanstack/react-query" 
+import TableJobPosting from "./components/TableJobPosting"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query" 
 import { userAuth } from "../../../hooks/userAuth"
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import { useState, useMemo, useEffect } from "react"
 import WorkIcon from '@mui/icons-material/Work';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
+import AlertDialog from '../../../components/feedback/AlertDialog';
 
 const JobPosting = () => {
   const navigate = useNavigate();
+  const [dialogOpen , setDialogOpen] = useState<boolean>(false);
+  const [dialogMessage, setDialogMessage] = useState<string>("");
+  const [dialogTitle, setDialogTitle] = useState<string>("");
+  const [deleteIds, setDeleteIds] = useState<number[]>([])
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("")
   const { 
@@ -23,8 +28,12 @@ const JobPosting = () => {
     snackBarMessage, 
     snackBarType, 
     snackBarOpen, 
-    setSnackBarOpen  
+    setSnackBarMessage, 
+    setSnackBarOpen, 
+    setSnackBarType,
   } = userAuth()
+
+  const queryClient = useQueryClient();
 
   const columns = [
     { id: 'job_reference_number', label: 'Job Ref', sortable: true, align: 'left' },
@@ -42,8 +51,37 @@ const JobPosting = () => {
     enabled: !!userInfo?.id  
   });
 
-  const handleDelete = (ids: number[]) => {
-    console.log('delete', ids)
+  const { mutateAsync: deleteCareer } = useMutation({
+    mutationFn: deleteCareers
+  });
+
+  const handleDelete = async(ids: number[]) => { 
+    setDeleteIds(ids)
+    setDialogTitle("Confirm Delete")
+    setDialogOpen(true)
+    setDialogMessage(`Are you sure you want to delete ${ids.length} careers?`)
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await deleteCareer(deleteIds); // call mutation
+
+      if (response?.success) {
+        setDialogOpen(false)
+        setDialogMessage('')
+        setDialogTitle("")
+        setSnackBarMessage("Job posting deleted successfully");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+
+        // Refetch categories
+        queryClient.invalidateQueries({ queryKey: ['job'] });
+      }
+    } catch (error) {
+      setSnackBarMessage("Failed to delete job posting . Please try again.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
   }
   
   const handleEdit = (job_reference_number: string | number) => { 
@@ -83,6 +121,15 @@ const JobPosting = () => {
         onClose={() => setSnackBarOpen(false)} 
       />
 
+      {/* Dialog */}
+      <AlertDialog 
+        open={dialogOpen}
+        title={dialogTitle}
+        message={dialogMessage}
+        onClose={() => setDialogOpen(false)}
+        onSubmit={handleConfirmDelete} 
+      />
+
       <div className="grid md:grid-cols-2">
         <div className='flex items-center'>
           <Breadcrumb
@@ -111,7 +158,7 @@ const JobPosting = () => {
         </div>
       </div>
 
-      <TableUsers 
+      <TableJobPosting 
         rows={filteredJob}
         columns={columns}
         handleDelete={handleDelete}

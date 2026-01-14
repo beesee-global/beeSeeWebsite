@@ -1,169 +1,129 @@
 import React, { useEffect, useState } from "react";
-import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
+import Breadcrumb from "../../../components/Navigation/Breadcrumbs"  
 import { useParams } from "react-router-dom";
-import { 
-  Home, 
-  Box, 
-  SquarePen, 
-  Save,
-  Upload,
+import {  
+  Save, 
   Plus,
   X,
-  Package,
-  Tag,
-  Hash,
-  Image as ImageIcon,
+  Briefcase,
+  MapPin, 
+  FileText,
   Settings
 } from "lucide-react";
+import { 
+  Mail,
+  User2,  
+  FilePenLine, 
+} from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import CustomTextField from "../../../components/Fields/CustomTextField";
-import CustomSelectField from "../../../components/Fields/CustomSelectField";
-import AddImageIcon from '../../../../public/add-image-icon.jpg';
+import CustomSelectField from "../../../components/Fields/CustomSelectField"; 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
-  createProduct, 
-  fetchCategory, 
-  fetchSpecificProduct, 
-  updateProduct 
-} from '../../../services/Ecommerce/productServices'
+  createJob,  
+  getSpecificJob, 
+  updateJob 
+} from '../../../services/Technician/careersServices'
 import Snackbar from '../../../components/feedback/Snackbar'; 
 import { AlertColor } from '@mui/material/Alert';
+import { userAuth } from "../../../hooks/userAuth"
 
-interface FormProductData {
-  product_name: string;
-  tagline: string;
-  category: number;
-  stock: string;
+interface FormJobData {
+  title: string;
+  description: string;
+  location: string;
+  work_location: string;
+  job_type: string;
 }
 
 interface FormError {
-  product_name?: string;
-  tagline?: string;
-  category?: string;
-  stock?: string;
-  gallery?: string;
-  specs?: string;
+  title?: string;
+  description?: string;
+  location?: string;
+  work_location?: string;
+  job_type?: string;
+  responsibilities?: string;
+  qualifications?: string;
 }
-
-type GalleryItem = 
-  | { image_id: number; image_url: string }  // existing DB image
-  | File                                     // new uploaded image
-  | null;                                    // empty slot
 
 const JobPostingForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [message, setMessage] = useState("");
-  const [snackBarType, setSnackBarType] = useState<AlertColor>("success")
+  const [message, setMessage] = useState(""); 
   const [showAlert, setShowAlert] = useState<boolean>(false) 
 
   // --- Basic Info ---
-  const [formProductData, setProductData] = useState<FormProductData>({
-    product_name: "",
-    tagline: "",
-    category: 0,
-    stock: "0"
+  const [formJobData, setJobData] = useState<FormJobData>({
+    title: "",
+    description: "",
+    location: "",
+    work_location: "",
+    job_type: ""
   });
+
+  const {  
+      snackBarMessage, 
+      snackBarType, 
+      snackBarOpen, 
+      setSnackBarMessage, 
+      setSnackBarOpen, 
+      setSnackBarType,
+    } = userAuth()
 
   // --- Form Error ---
   const [formError, setFormError] = useState<FormError>({})
-
-  // --- Gallery Logic --- 
-  const [gallery, setGallery] = useState<GalleryItem[]>([])
-
-  const handleGalleryChange = (index: number, file: File | null) => {
-    const newGallery = [...gallery];
-    newGallery[index] = file ? file : null; // replace existing with new file
-    setGallery(newGallery);
-    // clear gallery error when user adds/changes an image
-    setFormError((prev) => ({ ...prev, gallery: undefined }));
-  };
-
-  const handleAddImage = () => {
-    if (gallery.length < 3) {
-      setGallery([...gallery, null]);
-      // clear gallery error when a new slot is added
-      setFormError((prev) => ({ ...prev, gallery: undefined }));
-    }
-  };
-
-  const [removedImages, setRemovedImages] = useState<number[]>([]);
-
-  const handleRemoveImage = (index: number) => {
-    const removedItem = gallery[index];
-    
-    // If it's an existing DB image (not a new File)
-    if (removedItem && typeof removedItem === "object" && "image_id" in removedItem) {
-      setRemovedImages((prev) => [...prev, removedItem.image_id]);
-    }
-
-    // Remove from gallery state
-    setGallery(gallery.filter((_, i) => i !== index));
-  };
  
-  // --- Specifications Logic ---
-  const [specs, setSpecs] = useState<
-    { title: string; fields: { specs_key: string; specs_value: string }[] }[]
-  >([]);
+  // --- Responsibilities & Qualifications ---
+  const [responsibilities, setResponsibilities] = useState<string[]>([""]);
+  const [qualifications, setQualifications] = useState<string[]>([""]);
 
-  const handleAddCategory = () => {
-    setSpecs([...specs, { title: "", fields: [] }]);
+  // --- Responsibilities handlers ---
+  const handleAddResponsibility = () => {
+    setResponsibilities([...responsibilities, ""]);
   };
 
-  const handleAddField = (catIndex: number) => {
-    const updated = [...specs];
-    updated[catIndex].fields.push({ specs_key: "", specs_value: "" });
-    setSpecs(updated);
+  const handleRemoveResponsibility = (index: number) => {
+    const updated = responsibilities.filter((_, i) => i !== index);
+    setResponsibilities(updated);
   };
 
-  const handleRemoveField = (catIndex: number, fieldIndex: number) => {
-    const updated = [...specs];
-    updated[catIndex].fields.splice(fieldIndex, 1);
-    setSpecs(updated);
+  const handleResponsibilityChange = (index: number, value: string) => {
+    const updated = [...responsibilities];
+    updated[index] = value;
+    setResponsibilities(updated);
+    setFormError((prev) => ({ ...prev, responsibilities: undefined }));
   };
 
-  const handleRemoveCategory = (catIndex: number) => {
-    const updated = [...specs];
-    updated.splice(catIndex, 1);
-    setSpecs(updated);
+  // --- Qualifications handlers ---
+  const handleAddQualification = () => {
+    setQualifications([...qualifications, ""]);
   };
 
-  // --- key and value field ---
-  const handleChange = (
-    catIndex: number,
-    fieldIndex: number,
-    fieldName: "specs_key" | "specs_value",
-    value: string
-  ) => {
-    const updated = [...specs];
-    updated[catIndex].fields[fieldIndex][fieldName] = value;
-    setSpecs(updated);
-    // clear specs error when user edits any spec field
-    setFormError((prev) => ({ ...prev, specs: undefined }));
+  const handleRemoveQualification = (index: number) => {
+    const updated = qualifications.filter((_, i) => i !== index);
+    setQualifications(updated);
   };
 
-  // --- Category title ---
-  const handleTitleChange = (catIndex: number, value: string) => {
-    const updated = [...specs];
-    updated[catIndex].title = value;
-    setSpecs(updated);
-    // clear specs error when user edits a category title
-    setFormError((prev) => ({ ...prev, specs: undefined }));
+  const handleQualificationChange = (index: number, value: string) => {
+    const updated = [...qualifications];
+    updated[index] = value;
+    setQualifications(updated);
+    setFormError((prev) => ({ ...prev, qualifications: undefined }));
   };
- 
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    setProductData((prev: FormProductData) => ({
+    setJobData((prev: FormJobData) => ({
       ...prev,
-      [name] : value
+      [name]: value
     }));
 
     // clear error when typing
     setFormError((prev) => ({
       ...prev,
-      [name] : undefined
+      [name]: undefined
     }))
   }
 
@@ -171,79 +131,49 @@ const JobPostingForm: React.FC = () => {
   const validateForm = (): FormError => {
     const errors: FormError = {};
 
-    // Use safe string casts to avoid runtime .trim() errors when values are undefined/null
-    const productName = String(formProductData.product_name || '');
-    const tagline = String(formProductData.tagline || '');
-    const categoryVal = formProductData.category;
-    const stockVal = String(formProductData.stock || '');
+    const title = String(formJobData.title || '');
+    const description = String(formJobData.description || '');
+    const location = String(formJobData.location || '');
+    const workLocation = String(formJobData.work_location || '');
+    const jobType = String(formJobData.job_type || '');
 
-    if (!productName.trim()) errors.product_name = "Product name is required.";
-    if (!tagline.trim()) errors.tagline = "Tagline is required.";
-    if (!categoryVal) errors.category = "Category is required.";
-    if (!stockVal.trim()) errors.stock = "Stock quantity is required.";
+    if (!title.trim()) errors.title = "Job title is required.";
+    if (!description.trim()) errors.description = "Job description is required."; 
+    if (!location.trim()) errors.location = "Location is required.";
+    if (!workLocation.trim()) errors.work_location = "Work location is required.";
+    if (!jobType.trim()) errors.job_type = "Job type is required.";
 
-    // Validate stock is a positive number
-    const stockNumber = parseInt(stockVal);
-    if (stockVal && (isNaN(stockNumber) || stockNumber < 0)) {
-      errors.stock = "Stock must be a positive number."
-    }
-    
-    if (gallery.length === 0) errors.gallery = "Please upload at least one image."
-
-    if (specs.length === 0) {
-      errors.specs = "Please add at least one specification category.";
-    } else {
-      for (let i = 0; i < specs.length; i++) {
-        const cat = specs[i];
-
-        // 🔸 Category title validation (safe cast)
-        const catTitle = String(cat.title || '');
-        if (!catTitle.trim()) {
-          errors.specs = `Category ${i + 1} title cannot be empty.`;
-          break; // stop checking further
-        }
-
-        // 🔸 Must have at least one field
-        if (!Array.isArray(cat.fields) || cat.fields.length === 0) {
-          errors.specs = `Category "${catTitle || `#${i + 1}`}" must have at least one field.`;
-          break;
-        }
-
-        // 🔸 Validate each field inside category (use safe casts)
-        for (let j = 0; j < cat.fields.length; j++) {
-          const field = cat.fields[j];
-          const key = String(field.specs_key || '');
-          const val = String(field.specs_value || '');
-          if (key.trim() === "" || val.trim() === "") {
-            errors.specs = `In "${catTitle || `Category ${i + 1}`}", field ${j + 1} has an empty key or value.`;
-            break;
-          }
-        }
-
-        if (errors.specs) break; // stop checking other category once we find an error
-      }
+    // Validate responsibilities
+    const validResponsibilities = responsibilities.filter(r => r.trim() !== "");
+    if (validResponsibilities.length === 0) {
+      errors.responsibilities = "Please add at least one responsibility.";
     }
 
-    return errors
+    // Validate qualifications
+    const validQualifications = qualifications.filter(q => q.trim() !== "");
+    if (validQualifications.length === 0) {
+      errors.qualifications = "Please add at least one qualification.";
+    }
+
+    return errors;
   }
 
-  // ✅ Mutation for creating product
+  // ✅ Mutation for creating job
   const {
-    mutateAsync: createProductAsync,
+    mutateAsync: createJobAsync,
     isPending: isCreating,
   } = useMutation({
-    mutationFn: createProduct
+    mutationFn: createJob
   })
   
-  /* updating data */
+  /* updating job */
   const {
-    mutateAsync: updateProductAsync,
+    mutateAsync: updateJobAsync,
     isPending: isUpdating,
   } = useMutation({
-    mutationFn: updateProduct,
+    mutationFn: updateJob,
   });
   
-
   // --- save function ---
   const handleSubmit = async () => {
     try {
@@ -251,145 +181,91 @@ const JobPostingForm: React.FC = () => {
       setFormError(errors)
       if (Object.keys(errors).length > 0) {
         setSnackBarType("error")
-        setMessage("Please fill in all required fields.")
-        setShowAlert(true);
-        return; // stop submission when validation fails
+        setSnackBarMessage("Please fill in all required fields.")
+        setSnackBarOpen(true);
+        return;
       }
 
-      // ✅ Use FormData to send file + text data
-      const formData = new FormData(); 
+      // Filter out empty strings
+      const validResponsibilities = responsibilities.filter(r => r.trim() !== "");
+      const validQualifications = qualifications.filter(q => q.trim() !== "");
 
-      formData.append("name", formProductData.product_name);
-      formData.append("tagline", formProductData.tagline);
-      formData.append("category_id", String(formProductData.category));
-      formData.append("stock", formProductData.stock);
-
-      // ✅ Append specs (convert object → JSON string)
-      formData.append("specification", JSON.stringify(specs));
+      const jobData = {
+        title: formJobData.title,
+        description: formJobData.description,
+        location: formJobData.location,
+        work_location: formJobData.work_location,
+        job_type: formJobData.job_type,
+        responsibilities: validResponsibilities,
+        qualifications: validQualifications
+      };
 
       if (id) {
-        const keptImages = gallery
-          .filter((item) => typeof item === 'object' && !(item instanceof File ) && item !== null)
-          .map((img: any) => img.image_id);
-
-        // ✅ Only append new files, ignore existing image URLs
-        gallery.forEach((item) => {
-          if (item instanceof File) {
-            formData.append("new_images", item);
-          }
-        }); 
-        
-        // ✅ Append kept and removed images
-        formData.append("kept_images", JSON.stringify(keptImages));
-        formData.append("removed_images", JSON.stringify(removedImages));
-
-        // update product logic here
-        await updateProductAsync({ id: productInfo.id, productData: formData})
+        // Extract actual job data from nested response
+        const currentJobInfo = jobResponse?.data?.data || jobResponse?.data || jobResponse;
+        await updateJobAsync({ id: currentJobInfo.id, jobData });
       } else {
-          // ✅ Only append new files, ignore existing image URLs
-        gallery.forEach((item) => {
-          if (item instanceof File) {
-            formData.append("image", item);
-          }
-        });
-        await createProductAsync(formData)
+        await createJobAsync(jobData);
       }
 
       setSnackBarType('success');
-      setMessage(id ? 'Product updated successfully!' : 'Product created successfully!');
-      setTimeout(() => navigate('/beesee/product'), 2000);  
+      setSnackBarMessage(id ? 'Job posting updated successfully!' : 'Job posting created successfully!');
+      setSnackBarOpen(true);
+      navigate('/beesee/job-posting') 
     } catch (error: any) {
       console.log('Error', error)
       if (error.response?.status === 400) {
-        const message = error.response.data?.message;
-        console.log(  message)
-        if (message == "Name already exists.") {
+        const errorMessage = error.response.data?.message;
+        console.log(errorMessage)
+        if (errorMessage?.includes("title")) {
           setFormError((prev) => ({
             ...prev,
-            product_name: message
+            title: errorMessage
           }))
         }
-
-        if (message == "Tagline already exists.") {
-          setFormError((prev) => ({
-            ...prev,
-            tagline: message
-          }))
-        }
-
       }
-      console.error('❌ Error creating product:', error); 
+      console.error('❌ Error creating job:', error); 
       setSnackBarType("error");
-      setMessage("Failed to upload product. Please try again.");
+      setMessage("Failed to create job posting. Please try again.");
     } finally {
       setShowAlert(true)
     }
   }
-
-  // --- fetch all category ---
-  const {
-    data: category = []
-  } = useQuery({
-    queryKey: ['category'],
-    queryFn: () => fetchCategory(),
-    select: (data) => {
-      // map api result into label/value pairs
-         // map API result into label/value pairs
-      const mapped = data.map((item: { id: number; name: string }) => ({
-        value: item.id,   // ✅ foreign key (number)
-        label: item.name, // ✅ user-friendly name
-      }));
-
-      // add the "Select Category" option at the start
-      return [
-        { value: "", label: 'Select Category'},
-        ...mapped
-      ]
-    }
-  });
-
-  // Inside your render / summary section:
-  const selectedCategoryLabel =
-    category.find((cat) => cat.value === formProductData.category)?.label ||
-    "Not selected";
-
-  // --- fetch specific product params id ---
-  const { data: productInfo } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchSpecificProduct(id as string),
+  
+  // --- fetch specific job ---
+  const { data: jobResponse } = useQuery({
+    queryKey: ["job", id],
+    queryFn: () => getSpecificJob(String(id)),
     enabled: !!id,
   });
 
-  // --- populate form state when productInfo is loaded --- 
+  // --- populate form when jobInfo is loaded --- 
   useEffect(() => {
-    if (productInfo) {
-      setProductData({
-        product_name: productInfo.name || "",
-        tagline: productInfo.tagline || "",
-        category: productInfo.category_id || 0,
-        stock: String(productInfo.stock || "0")
+    // Extract the actual job data from the nested response
+    const jobInfo = jobResponse?.data?.data || jobResponse?.data || jobResponse;
+    
+    if (jobInfo && jobInfo.id) {
+      setJobData({
+        title: jobInfo.title || "",
+        description: jobInfo.description || "",
+        location: jobInfo.location || "",
+        work_location: jobInfo.work_location || "",
+        job_type: jobInfo.job_type || ""
       });
 
-      const initialGallery = (productInfo.images || []).map((img: any) => ({
-        image_id : img.image_id,
-        image_url: img.image_url
-      }));
-      setGallery(initialGallery); // ✅ always an array
+      setResponsibilities(
+        Array.isArray(jobInfo.responsibilities) && jobInfo.responsibilities.length > 0
+          ? jobInfo.responsibilities
+          : [""]
+      );
 
-      const formattedSpecs = (productInfo.categories || []).map((category: any) => ({
-        title: category.title,
-        category_id: category.category_id,
-        fields: (category.specs || []).map((spec: any) => ({
-          spec_id: spec.spec_id,
-          specs_key: spec.specs_key,
-          specs_value: spec.specs_value,
-        })),
-      }));
-
-      setSpecs(formattedSpecs);
+      setQualifications(
+        Array.isArray(jobInfo.qualifications) && jobInfo.qualifications.length > 0
+          ? jobInfo.qualifications
+          : [""]
+      );
     }
-  }, [productInfo]);
-
+  }, [jobResponse]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -406,9 +282,9 @@ const JobPostingForm: React.FC = () => {
         <div className="mb-6">
           <Breadcrumb
             items={[
-              { label: "Home", href: "/beesee/dashboard", icon: <Home className="w-4 h-4" /> },
-              { label: "Product", href: "/beesee/product", icon: <Box className="w-4 h-4" /> },
-              { label: "Product Form", isActive: true, icon: <SquarePen className="w-4 h-4" /> },
+              { label: "Job Order", href: "/beesee/job-order", icon: <Mail className="w-4 h-4"/> },
+              { label: "Job Posting",  href: "/beesee/job-posting", icon: <User2 className="w-4 h-4"/> },
+              { label: "Job Posting Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
             ]}
           />
         </div>
@@ -418,15 +294,15 @@ const JobPostingForm: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                { id ? "Update Product" : "Create New Product" }
+                {id ? "Update Job Posting" : "Create New Job Posting"}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Add a new product to your inventory with detailed specifications
+                Post a new job opportunity with detailed requirements
               </p>
             </div>
             <div className="flex items-center space-x-3">
               <button 
-                onClick={() => navigate('/beesee/product')} 
+                onClick={() => navigate('/beesee/job-posting')} 
                 disabled={isCreating || isUpdating}
                 className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
               >
@@ -439,12 +315,12 @@ const JobPostingForm: React.FC = () => {
               > 
                 {isCreating || isUpdating ? (
                   <span>
-                    { id ? "Updating..." : "Creating..." }
+                    {id ? "Updating..." : "Creating..."}
                   </span>
                 ) : (
                   <>
                     <Save className="w-5 h-5 mr-2" />
-                     { id ? "Update Product" : "Create Product" }
+                    {id ? "Update Job" : "Create Job"}
                   </>
                 )}
               </button>
@@ -453,181 +329,172 @@ const JobPostingForm: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Basic Info */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-8">
             {/* Basic Information */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-4">
-                  <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Basic Information</h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Essential product details</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Essential job details</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Product Name *
+                    Job Title *
                   </label>
                   <CustomTextField 
-                    name="product_name"
-                    placeholder="Enter product name"
-                    value={formProductData.product_name}
+                    name="title"
+                    placeholder="e.g., Sales and Marketing"
+                    value={formJobData.title}
                     multiline={false}
                     rows={1}
                     type="text"
                     maxLength={100} 
                     onChange={handleInputChange}  
-                    error={!!formError.product_name}
-                    helperText={formError.product_name}
-                    icon={<Package className="w-4 h-4" />}
+                    error={!!formError.title}
+                    helperText={formError.title}
+                    icon={<Briefcase className="w-4 h-4" />}
                   /> 
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tagline *
+                    Job Description *
                   </label>
                   <CustomTextField 
-                    name="tagline"
-                    placeholder="Brief description of the product"
-                    value={formProductData.tagline}
+                    name="description"
+                    placeholder="Brief description of the role and responsibilities"
+                    value={formJobData.description}
                     multiline={true}
-                    rows={3}
+                    rows={4}
                     type="text"
-                    maxLength={200} 
+                    maxLength={500} 
                     onChange={handleInputChange}  
-                    error={!!formError.tagline}
-                    helperText={formError.tagline}
-                    icon={<Tag className="w-4 h-4" />}
+                    error={!!formError.description}
+                    helperText={formError.description}
+                    icon={<FileText className="w-4 h-4" />}
                   /> 
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category *
+                    Location *
+                  </label>
+                  <CustomTextField 
+                    name="location"
+                    placeholder="e.g., South Triangle, Quezon City"
+                    value={formJobData.location}
+                    multiline={false}
+                    rows={1}
+                    type="text"
+                    maxLength={100} 
+                    onChange={handleInputChange}  
+                    error={!!formError.location}
+                    helperText={formError.location}
+                    icon={<MapPin className="w-4 h-4" />}
+                  /> 
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Work Location *
                   </label>
                   <CustomSelectField
-                    name="category"
-                    placeholder="Select Category"
-                    value={formProductData.category}
+                    name="work_location"
+                    placeholder="Select Work Location"
+                    value={formJobData.work_location}
                     onChange={handleInputChange}
-                    options={category}
-                    error={!!formError.category}
-                    helperText={formError.category}
+                    options={[
+                      { value: "Onsite", label: "Onsite" },
+                      { value: "Remote", label: "Remote" },
+                      { value: "Hybrid", label: "Hybrid" },
+                    ]}
+                    error={!!formError.work_location}
+                    helperText={formError.work_location}
                   />
                 </div>
 
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Stock Quantity *
+                    Job Type *
                   </label>
-                  <CustomTextField 
-                    name="stock"
-                    placeholder="Enter quantity"
-                    value={formProductData.stock}
-                    multiline={false}
-                    rows={1}
-                    type="number"
-                    maxLength={10} 
-                    onChange={handleInputChange}  
-                    error={!!formError.stock}
-                    helperText={formError.stock}
-                    icon={<Hash className="w-4 h-4" />}
-                  /> 
-                </div> */}
+                  <CustomSelectField
+                    name="job_type"
+                    placeholder="Select Job Type"
+                    value={formJobData.job_type}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: "Full-time", label: "Full-time" },
+                      { value: "Part-time", label: "Part-time" },
+                      { value: "Internship", label: "Internship" },
+                      { value: "Contract", label: "Contract" },
+                    ]}
+                    error={!!formError.job_type}
+                    helperText={formError.job_type}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Gallery Section */}
+            {/* Responsibilities Section */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
-                    <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <Settings className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Product Gallery</h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Upload up to 3 product images</p>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Responsibilities</h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Key duties and responsibilities</p>
                   </div>
                 </div>
-                {gallery.length < 3 && (
-                  <button
-                    type="button"
-                    onClick={handleAddImage}
-                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Image
-                  </button>
-                )}
+                <button
+                  onClick={handleAddResponsibility}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </button>
               </div>
 
-              {formError.gallery && (
+              {formError.responsibilities && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-red-600 dark:text-red-400 text-sm">{formError.gallery}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{formError.responsibilities}</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {gallery.map((item, index) => {
-                  let preview = AddImageIcon;
-                    if (item instanceof File) {
-                      preview = URL.createObjectURL(item);
-                    } else if (item && typeof item === "object" && "image_url" in item) {
-                      preview = item.image_url;
-                    }
-
-
-                  return (
-                    <div
-                      key={index}
-                      className="relative group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden hover:border-[#FCD000] transition-colors"
-                    >
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        id={`gallery-input-${index}`}
-                        className="hidden"
-                        onChange={(e) => 
-                          handleGalleryChange(index, e.target.files?.[0] || null)
-                        }
+              <div className="space-y-3">
+                {responsibilities.map((responsibility, index) => (
+                  <div key={index} className="flex gap-3 items-start">
+                    <div className="flex-1">
+                      <textarea
+                        placeholder="Enter responsibility..."
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
+                        rows={2}
+                        value={responsibility}
+                        onChange={(e) => handleResponsibilityChange(index, e.target.value)}
                       />
-
-                      <label 
-                        htmlFor={`gallery-input-${index}`}
-                        className="cursor-pointer w-full h-48 flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        <img 
-                          src={preview} 
-                          alt={`Preview ${index + 1}`} 
-                          className="object-cover w-full h-full"
-                        />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="text-white text-center">
-                            <Upload className="w-8 h-8 mx-auto mb-2" />
-                            <p className="text-sm font-medium">Click to upload</p>
-                          </div>
-                        </div>
-                      </label>
- 
+                    </div>
+                    {responsibilities.length > 1 && (
                       <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
+                        onClick={() => handleRemoveResponsibility(index)}
+                        className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors mt-1"
                       >
                         <X className="w-4 h-4" />
                       </button>
-                    </div>
-                  )
-                })}
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Specifications Section */}
+            {/* Qualifications Section */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
@@ -635,165 +502,47 @@ const JobPostingForm: React.FC = () => {
                     <Settings className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Specifications</h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Add detailed product specifications</p>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Qualifications</h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Required skills and qualifications</p>
                   </div>
                 </div>
                 <button
-                  onClick={handleAddCategory}
+                  onClick={handleAddQualification}
                   className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Category
+                  Add
                 </button>
               </div>
 
-              {formError.specs && (
+              {formError.qualifications && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-red-600 dark:text-red-400 text-sm">{formError.specs}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{formError.qualifications}</p>
                 </div>
               )}
 
-              <div className="space-y-6">
-                {specs.map((cat, catIndex) => (
-                  <div
-                    key={catIndex}
-                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50"
-                  >
-                    {/* Category Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex-1 mr-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Category Title
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g., Performance, Design, Features"
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
-                          value={cat.title}
-                          onChange={(e) => handleTitleChange(catIndex, e.target.value)}
-                        />
-                      </div>
+              <div className="space-y-3">
+                {qualifications.map((qualification, index) => (
+                  <div key={index} className="flex gap-3 items-start">
+                    <div className="flex-1">
+                      <textarea
+                        placeholder="Enter qualification..."
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors resize-none"
+                        rows={2}
+                        value={qualification}
+                        onChange={(e) => handleQualificationChange(index, e.target.value)}
+                      />
+                    </div>
+                    {qualifications.length > 1 && (
                       <button
-                        onClick={() => handleRemoveCategory(catIndex)}
-                        className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                        onClick={() => handleRemoveQualification(index)}
+                        className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors mt-1"
                       >
                         <X className="w-4 h-4" />
                       </button>
-                    </div>
-
-                    {/* Fields */}
-                    <div className="space-y-3">
-                      {cat.fields.length === 0 && (
-                        <p className="text-gray-500 dark:text-gray-400 text-sm italic text-center py-4">
-                          No fields added yet. Click "Add Field" to get started.
-                        </p>
-                      )}
-
-                      {cat.fields.map((field, fieldIndex) => (
-                        <div
-                          key={fieldIndex}
-                          className="flex gap-3 items-end"
-                        >
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Key
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g., Processor, RAM, Storage"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
-                              value={field.specs_key}
-                              onChange={(e) =>
-                                handleChange(catIndex, fieldIndex, "specs_key", e.target.value)
-                              }
-                            />
-                          </div>
-
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Value
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g., Intel Core i7, 16GB, 512GB SSD"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
-                              value={field.specs_value}
-                              onChange={(e) =>
-                                handleChange(catIndex, fieldIndex, "specs_value", e.target.value)
-                              }
-                            />
-                          </div>
-
-                          <button
-                            onClick={() => handleRemoveField(catIndex, fieldIndex)}
-                            className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-
-                      <button
-                        onClick={() => handleAddField(catIndex)}
-                        className="w-full py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-[#FCD000] hover:text-[#FCD000] transition-colors"
-                      >
-                        <Plus className="w-4 h-4 mx-auto" />
-                      </button>
-                    </div>
+                    )}
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Form Summary</h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Product Name:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formProductData.product_name || 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Category:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {selectedCategoryLabel || 'Not selected'}
-                  </span>
-                </div>
-
-                {/* <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Stock:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formProductData.stock || 'Not specified'}
-                  </span>
-                </div> */}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Images:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {gallery.filter(f => f !== null).length}/3
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Specs category:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {specs.length}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                {/* <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  All required fields completed
-                </div> */}
               </div>
             </div>
           </div>

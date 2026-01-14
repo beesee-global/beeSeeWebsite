@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Send, CheckCircle2, Upload, X, FileText } from 'lucide-react';
 import {
   careersEmail
-} from '../../../../services/Technician/careers'
+} from '../../../../services/Technician/careersServices'
 
 import {
   useMutation

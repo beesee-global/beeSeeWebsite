@@ -289,8 +289,8 @@ const routes = [
                 element: <TechnicianApplicant />
             },, 
             {
-                path:  "job-posting/form/:job_ref?",
-                element: <TechnicianApplicant />
+                path:  "job-posting/form/:id?",
+                element: <TechnicianJobPostingForm />
             },
         ]
     },
