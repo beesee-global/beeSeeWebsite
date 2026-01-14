@@ -168,7 +168,7 @@ const Home = () => {
       socket.off("ticket-updated");
       socket.disconnect();
     };
-  }, []);
+  }, [queryClient]);
  
   const filteredRows = useMemo(() => {
     if (!debouncedSearch.trim()) return rows;
@@ -180,7 +180,7 @@ const Home = () => {
       row?.issue_type?.toLowerCase().includes(search) ||
       row?.company?.toLowerCase().includes(search)
     )
-  }, [rows,debouncedSearch])
+  }, [rows, debouncedSearch])
 
   const isLoading = openLoading || resolveLoading || companyLoading;
 
@@ -189,7 +189,7 @@ const Home = () => {
   }
 
   return (
-    <div className="p-6 space-y-10 bg-white">
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
       {/* Snackbar */}
       <SnackbarTechnician 
         open={snackBarOpen}
@@ -207,7 +207,8 @@ const Home = () => {
         onSubmit={handleConfirmDelete} 
       />
 
-      <div className=" flex items-center justify-between ">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
            <Breadcrumb 
             items={[
@@ -215,26 +216,30 @@ const Home = () => {
             ]}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <div>
-            <button
-            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-            onClick={() => navigate('/beesee/job-order/submit-ticket')}>
-              <Send className='w-4 h-4 mr-2' />
-              Add Ticket
-            </button>
-          </div>
+        
+        {/* Actions - Stack on mobile, row on desktop */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
+          <button
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap w-full sm:w-auto h-10 sm:h-11 flex-shrink-0"
+            onClick={() => navigate('/beesee/job-order/submit-ticket')}
+          >
+            <Send className='w-4 h-4' />
+            <span className="hidden sm:inline">Add Ticket</span>
+            <span className="sm:hidden">Add</span>
+          </button>
           
-          <div>
+          <div className="w-full sm:w-auto flex-grow">
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Search..."
+              className="h-10 sm:h-11 w-full"
             />
           </div>
         </div>
       </div>
 
+      {/* Table Section */}
       <TableInbox
         rows={filteredRows}
         columns={columns}
