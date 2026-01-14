@@ -81,8 +81,8 @@ const Faqs = () => {
 
   const columns = [
     { id: "title", label: 'Title', sortable: true, align: 'left' }, 
-/*     { id: "device", label: 'Device', sortable: false, align: 'left' }, */
-    { id: "category", label: 'Device', sortable: false, align: 'left' },
+    { id: "device", label: 'Device', sortable: false, align: 'left' },
+    { id: "category", label: 'Category', sortable: false, align: 'left' },
     { id: 'created_at', label: '', sortable: false, align: 'right' }
   ];
 
