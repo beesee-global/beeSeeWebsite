@@ -268,7 +268,7 @@ const JobPostingForm: React.FC = () => {
   }, [jobResponse]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-white-50 dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */} 
         <Snackbar 
@@ -290,7 +290,7 @@ const JobPostingForm: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className="bg-[#000000] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -332,7 +332,7 @@ const JobPostingForm: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* Basic Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-[#000000] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-4">
                   <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
