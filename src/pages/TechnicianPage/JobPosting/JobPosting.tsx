@@ -36,7 +36,7 @@ const JobPosting = () => {
   const queryClient = useQueryClient();
 
   const columns = [
-    { id: 'job_reference_number', label: 'Job Ref', sortable: true, align: 'left' },
+    { id: 'job_reference_number', label: 'Job No.', sortable: true, align: 'left' },
     { id: 'title', label: 'Title', sortable: false, align: 'left' }, 
     { id: 'description', label: 'Description', sortable: false, align: 'left' },
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
