@@ -78,11 +78,21 @@ export default function EmailConversationApp() {
 
     const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
       auth: { ticket_id: userTicketInformation.ticket_id },
-      transports: ["websocket"],
+      path: "/socket.io/",
+      transports: ["polling", "websocket"], // try polling first, then upgrade
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
     });
 
     s.on("connect", () => {
+      console.log("Connected to socket server");
       s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    });
+
+    s.on("connect_error", (error) => {
+      console.error("Connection error:", error);
     });
 
     s.on("new_ticket_message", (msg: any) => {

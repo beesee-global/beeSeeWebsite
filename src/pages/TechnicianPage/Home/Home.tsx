@@ -148,7 +148,12 @@ const Home = () => {
 
   useEffect(() => {
     const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
-      transports: ["websocket"], // avoids 400 Bad Request
+      path: "/socket.io/",
+      transports: ["polling", "websocket"], // try polling first, then upgrade
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
     });
 
     socket.on("connect", () => {
