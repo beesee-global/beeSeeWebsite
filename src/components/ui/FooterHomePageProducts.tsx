@@ -99,8 +99,8 @@ const FooterHomePage = () => {
                   </div>
                   <div>
                     <p className="text-[#C7B897]/70 text-xs uppercase tracking-wide">Phone</p>
-                    <a href="tel:+639123456789" className="text-[#e8e8e8] text-sm font-medium hover:text-[#FDCC00] transition-colors">
-                      +63 912 345 6789
+                    <a href="tel:+639276093575" className="text-[#e8e8e8] text-sm font-medium hover:text-[#FDCC00] transition-colors">
+                      +63927 6093 575
                     </a>
                   </div>
                 </div>
