@@ -423,16 +423,29 @@ const handleCancelDisclaimer = () => {
                 }}
               >
                 <FiZap className="text-[var(--beesee-gold)]" size={18} />
-                <span className="bee-body-sm font-bold text-[var(--beesee-gold)]">Professional Support Hub</span>
+                <span className="bee-body-sm font-bold text-[var(--beesee-gold)]">Support Hub</span>
               </motion.div>
 
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.7 }}
-                className="bee-title-lg text-[var(--beesee-gold)] mb-4 sm:mb-6 leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+                style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                className="
+                  font-bebas 
+                  text-[#FDCC00] 
+                  leading-[0.9] 
+                  tracking-wide 
+                  select-none 
+                  text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl 
+                  px-4 
+                  mb-6 
+                  text-center 
+                  drop-shadow-md
+                  break-words
+                "
               >
-                Connect with Our Technical Specialists
+                CONNECT WITH OUR TECHNICAL SPECIALISTS
               </motion.h1>
 
               <motion.p 

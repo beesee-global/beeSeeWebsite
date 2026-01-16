@@ -62,6 +62,7 @@ const COLUMN_WIDTHS = {
 // ============================================
 
 const formatDate = (dateString: string) => {
+  if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
@@ -70,39 +71,26 @@ function ascendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   const aValue = a[orderBy];
   const bValue = b[orderBy];
 
-  // Handle null / undefined
   if (aValue == null && bValue == null) {
-    if ('id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
-    }
+    if ('id' in a && 'id' in b) return (a as any).id - (b as any).id;
     return 0;
   }
   if (aValue == null) return 1;
   if (bValue == null) return -1;
 
-  // String sorting (A–Z, locale aware)
   if (typeof aValue === 'string' && typeof bValue === 'string') {
     const comparison = aValue.localeCompare(bValue, undefined, { sensitivity: 'base' });
-    if (comparison === 0 && 'id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
-    }
+    if (comparison === 0 && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
     return comparison;
   }
 
-  // Date sorting (earliest first)
   if (orderBy === 'updated_at' || orderBy === 'created_at') {
     const dateComparison = new Date(aValue as string).getTime() - new Date(bValue as string).getTime();
-    if (dateComparison === 0 && 'id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
-    }
+    if (dateComparison === 0 && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
     return dateComparison;
   }
 
-  // Number sorting
-  if (aValue === bValue && 'id' in a && 'id' in b) {
-    return (a as any).id - (b as any).id;
-  }
-  
+  if (aValue === bValue && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
   return aValue > bValue ? 1 : -1;
 }
 
@@ -129,7 +117,6 @@ interface TableMailProps {
   handleDelete?: (ids: number[]) => void;
   handleEdit: (pid: number | string) => void;
   isLoading: boolean;
-
   organization: string;
   setOrganization: (val: string) => void;
   statusFilter: string;
@@ -151,28 +138,26 @@ export default function TableApplicants({
 }: TableMailProps) { 
  
   const [page, setPage] = useState(0); 
-  const [orderBy, setOrderBy] = useState<string>(''); // Empty means no sorting
-  const rowsPerPage = 20;
+  const [orderBy, setOrderBy] = useState<string>(''); 
+  
+  // 🔢 UPDATED TO 15 ITEMS PER PAGE
+  const rowsPerPage = 15;
 
-  // Reset page when status filter changes
   useEffect(() => {
     setPage(0);
   }, [statusFilter]);
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
-  const sortedRows = useMemo(
-    () => {
-      if (!Array.isArray(safeRows) || safeRows.length === 0) return [];
-      if (!orderBy) return safeRows; // No sorting if orderBy is empty
-      return [...safeRows].sort((a, b) => ascendingComparator(a, b, orderBy));
-    },
-    [safeRows, orderBy]
-  );
+  const sortedRows = useMemo(() => {
+    if (safeRows.length === 0) return [];
+    if (!orderBy) return safeRows;
+    return [...safeRows].sort((a, b) => ascendingComparator(a, b, orderBy));
+  }, [safeRows, orderBy]);
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
   const totalPages = Math.ceil(safeRows.length / rowsPerPage);
-  const startIndex = page * rowsPerPage + 1;
+  const startIndex = safeRows.length > 0 ? page * rowsPerPage + 1 : 0;
   const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
   const defaultColumns: ColumnConfig[] = [
@@ -198,14 +183,9 @@ export default function TableApplicants({
     return (
       <div className="w-full" style={{ background: COLORS.background }}>
         <div className="w-full mx-auto p-4 md:p-6">
-          <div 
-            className={`${RADIUS.container} ${SPACING.containerPadding} border`} 
-            style={{ background: COLORS.surface, borderColor: COLORS.border }}
-          >
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-              <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
-            </div>
+          <div className={`${RADIUS.container} ${SPACING.containerPadding} border flex flex-col items-center justify-center py-16`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
           </div>
         </div>
       </div>
@@ -214,293 +194,100 @@ export default function TableApplicants({
 
   return (
     <div className="w-full" style={{ background: COLORS.background }}>
-        <div className="w-full mx-auto">
-        <div 
-          className={`${RADIUS.container} ${SPACING.containerPadding} border`} 
-          style={{ background: COLORS.surface, borderColor: COLORS.border }}
-        >
-            {/* Filter Section */}
-            <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
-              <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setStatusFilter("all")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
-                      ${statusFilter === "all" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
-                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    ALL
-                  </button>
-    
-                  <button
-                    onClick={() => setStatusFilter("short_listed")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
-                      ${statusFilter === "short_listed" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
-                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    Short Listed
-                  </button>
-                </div> 
-    
-              </div>
+      <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+        {/* Filter Section */}
+        <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === "all" ? "bg-yellow-500 text-white border-yellow-500" : "border-gray-200 text-gray-700 hover:bg-gray-100"}`}
+            >
+              ALL
+            </button>
+            <button
+              onClick={() => setStatusFilter("short_listed")}
+              className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === "short_listed" ? "bg-yellow-500 text-white border-yellow-500" : "border-gray-200 text-gray-700 hover:bg-gray-100"}`}
+            >
+              Short Listed
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          {visibleRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+              <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>No data found</p>
             </div>
-    
-            {/* Mobile/Tablet Card View with Scroll */}
-            <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-270px)] md:hidden">
-                {visibleRows.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 border-b">
-                        <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                        <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                            No data found
-                        </p>
-                    </div>
-                ) : (
-                    visibleRows.map(row => (
-                    <div 
-                        key={row.id}
-                        onClick={() => handleEdit(row.pid)}
-                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                        style={{ borderColor: COLORS.border }}
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-white sticky top-0">
+                <tr>
+                  {effectiveColumns.map((col) => (
+                    <th
+                      key={col.id}
+                      className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer select-none' : ''}`}
+                      onClick={() => col.sortable && setOrderBy(orderBy === col.id ? '' : col.id)}
                     >
-                        {/* Card Header */}
-                        <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                                {row.name}
-                            </h3>
-                            <h4 className="text-sm text-gray-600 mb-1">
-                                {row.email}
-                            </h4>
-                            <h4 className="text-sm text-gray-600 mb-1">
-                                {row.contact_number}
-                            </h4>
-                            <p className="text-sm text-gray-500 mt-1">
-                            {formatDate(row.created_at)}
-                            </p>
-                        </div>
-                        <div className="flex gap-2 ml-2">
-                            <button 
-                            title="Reply"
-                            onClick={(e) => handleComplete(e, row.pid)}
-                            className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
-                            >
-                            <Plus size={16} />
-                            </button>
-                            {handleDelete && (
-                            <button 
-                                onClick={(e) => onDelete(e, row.ticket_id)}
-                                className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                            )}
-                        </div>
-                        </div>
-
-                        {/* Card body */}
-                        <div className='space-y-2'>
-                            <div className='border-t border-gray-200 pt-2'></div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Company:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.company || '-'}
-                                </span>
-                            </div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Position:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.position || '-'}
-                                </span>
-                            </div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Subject:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.subject || '-'}
-                                </span>
-                            </div>
-
-                            <div className='border-t border-gray-200 pt-2 mt-2'></div>
-                            <div className='flex flex-col mt-2 p-2 bg-gray-50 rounded-md'>
-                                <span className='text-sm font-medium text-gray-500 mb-1'>Description:</span>
-                                <span className='text-sm text-gray-700 line-clamp-3'>{row.description || 'No description'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    ))
-                )}
-            </div>
-
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              {visibleRows.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                  <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                    No data found
-                  </p>
-                </div>
-              ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-white sticky top-0">
-                    <tr>
-                      {effectiveColumns.map((col) => (
-                        <th
-                          key={col.id}
-                          scope="col"
-                          className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.width || ''} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
-                          onClick={() => {
-                            if (!col.sortable) return;
-                            // Toggle between sorting this column and no sort
-                            setOrderBy(orderBy === col.id ? '' : col.id);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span>{col.label}</span>
-                            {col.sortable && orderBy === col.id && (
-                              <svg
-                                className="w-3 h-3 text-blue-500"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                              >
-                                <path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
+                      <div className="flex items-center gap-2">
+                        <span>{col.label}</span>
+                        {col.sortable && orderBy === col.id && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {visibleRows.map((row) => (
+                  <tr key={row.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleEdit(row.id)}>
+                    {effectiveColumns.map((col) => (
+                      <td key={col.id} className={`px-4 py-3 align-middle ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
+                        {col.id === 'actions' ? (
+                          <div className="flex items-center gap-2 justify-end">
+                            <button title="View" onClick={(e) => { e.stopPropagation(); downloadFile(row.attachment_url, "view", row.name) }} className="text-blue-600 bg-blue-50 p-2 rounded-md hover:bg-blue-100 transition-colors"><Eye size={16} /></button>
+                            {row.status !== 'SHORTLISTED' && <button title="Shortlist" onClick={(e) => handleComplete(e, row.id)} className="text-green-700 bg-green-50 p-2 rounded-md hover:bg-green-100 transition-colors"><Plus size={16} /></button>}
+                            <button title="Delete" onClick={(e) => onDelete(e, row.id)} className="text-red-700 bg-red-50 p-2 rounded-md hover:bg-red-100 transition-colors"><Trash2 size={16} /></button>
                           </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-    
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {visibleRows.map((row) => (
-                        <tr
-                            key={row.id}
-                            className="hover:bg-gray-200 cursor-pointer"
-                            onClick={() => handleEdit(row.id)}
-                        >
-                            {effectiveColumns.map((col) => (
-                            <td
-                                key={col.id}
-                                className={`px-4 py-3 align-top ${col.align === 'right' ? 'text-right' : 'text-left'}`}
-                            >
-                                {col.id === 'actions' ? (
-                                row.status !== 'SHORTLISTED' ? ( // ✅ fixed syntax
-                                    <div className="flex items-center gap-2"> 
-                                    
-                                    <button
-                                      title="View Resume"
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click 
-                                        downloadFile(row.attachment_url,"view", row.name)
-                                      }}
-                                      className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
-                                    >
-                                        <Eye size={16} />
-                                    </button>
-                                    <button
-                                      title="Add to short listed"
-                                      onClick={(e) => {
-                                      e.stopPropagation(); // prevent row click
-                                      handleComplete(e, row.id);
-                                      }}
-                                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
-                                    >
-                                        <Plus size={16} />
-                                    </button>
-                                    <button
-                                      title="Delete"
-                                      onClick={(e) => {
-                                      e.stopPropagation(); // prevent row click
-                                      onDelete(e, row.id);
-                                      }}
-                                      className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                    </div>
-                                ) : (
-                                    <div className='flex items-center gap-2'>
-                                      <button
-                                        title="View Resume"
-                                        onClick={(e) => {
-                                          e.stopPropagation(); // prevent row click
-                                          downloadFile(row.attachment_url,"view", row.name)
-                                        }}
-                                        className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
-                                      >
-                                          <Eye size={16} />
-                                      </button>
-                                      <button
-                                        title="Delete"
-                                        onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click
-                                        onDelete(e, row.id);
-                                        }}
-                                        className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                                      >
-                                          <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                )
-                                ) : col.id === 'updated_at' || col.id === 'created_at' ? (
-                                <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
-                                ) : (
-                                <div className="text-sm text-gray-900 truncate" style={{ maxWidth: 320 }}>
-                                    {row[col.id]}
-                                </div>
-                                )}
-                            </td>
-                            ))}
-                        </tr>
+                        ) : col.id === 'created_at' ? (
+                          <span className="text-sm text-gray-500">{formatDate(row[col.id])}</span>
+                        ) : (
+                          <div className="text-sm text-gray-900 truncate max-w-[200px]">{row[col.id]}</div>
+                        )}
+                      </td>
                     ))}
-
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Pagination */}
-            <div className="w-full flex justify-end mt-3 border-t border-gray-200 pt-2">      
-            <div className="flex items-center gap-6">
-                <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
-                {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
-                </span>
-
-                <div className="flex items-center gap-1">
-                <button 
-                    onClick={() => setPage(p => Math.max(0, p - 1))} 
-                    disabled={page === 0} 
-                    className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                    style={{ color: COLORS.text }}
-                >
-                    <ChevronLeft size={18} />
-                </button>
-                <button 
-                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
-                    disabled={page === totalPages - 1 || safeRows.length === 0} 
-                    className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                    style={{ color: COLORS.text }}
-                >
-                    <ChevronRight size={18} />
-                </button>
-                </div>
-            </div>
-            </div>
-
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
+
+        {/* Pagination Footer */}
+        <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3"> 
+          <div className="flex items-center gap-6">
+            <span className="text-xs text-gray-500">
+              {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
+            </span>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => setPage(p => Math.max(0, p - 1))} 
+                disabled={page === 0}
+                className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
+                disabled={page >= totalPages - 1 || safeRows.length === 0}
+                className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-    )
+  );
 }

@@ -86,9 +86,12 @@ export default function ProductShowcase() {
 
           {/* RIGHT SECTION */}
           <div className="text-content-optimized">
-            <h1 className="featured-title-optimized single-line-title bee-title-md">
-              FEATURED PRODUCTS
-            </h1>
+            <h1 
+    style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+    className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden"
+  >
+    FEATURED PRODUCTS
+  </h1>
 
             <p className="featured-description-optimized bee-body">
                The ultra-slim chassis houses a long-life battery system calibrated for extended uptime without performance throttling. With optimized hardware acceleration and modern connectivity support, the device is built to meet the requirements of power users, professionals, and performance-driven environments.

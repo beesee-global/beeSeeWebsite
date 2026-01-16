@@ -506,27 +506,15 @@ const embedUrl =
                 </>
               ) : (
                 <>
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7 }}
-                style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                className="
-                  font-bebas
-                  text-[#FDCC00]
-                  leading-none
-                  tracking-wide
-                  select-none
-                  text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl
-                  px-2 sm:px-4
-                  mb-4 sm:mb-5
-                  whitespace-nowrap
-                  overflow-hidden
-                  drop-shadow-md
-                "
-              >
-                BUSINESS INQUIRIES
-              </motion.h1>
+<motion.h1
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7 }}
+  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+  className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden drop-shadow-md"
+>
+  BUSINESS INQUIRIES
+</motion.h1>
 
                   <motion.p 
                     initial={{ opacity: 0, y: 20 }}
@@ -974,12 +962,15 @@ const embedUrl =
         <div className="beesee-card-content overflow-hidden">
           <div className="p-6 flex justify-between items-center">
             <div
-  className="flex items-center gap-3"
-  style={{ color: 'var(--beesee-gold)' }}
->
-  <MapPin />
-  <div>
-    <h3 className="bee-title-sm text-left">Our Location</h3>
+        className="flex items-center gap-3"
+        style={{ color: 'var(--beesee-gold)' }}
+      >
+        <MapPin size={40} />
+        <div>
+          <h3 className="bee-title-sm text-left"
+          style={{ color: 'var(--beesee-gold)' }}
+
+          >Our Location</h3>
 
                 <p className="bee-body-sm">{location.address}</p>
               </div>
