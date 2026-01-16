@@ -105,6 +105,11 @@ export default function EmailConversationApp() {
 
     s.on("new_ticket_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
+      // Only invalidate queries to refetch from server - this ensures we get attachments
+      // Don't add msg directly to state as it doesn't contain attachment data
+      queryClient.invalidateQueries({
+        queryKey: ['conversations', userTicketInformation?.ticket_id]
+      });
     });
 
     setSocket(s);
@@ -213,15 +218,15 @@ export default function EmailConversationApp() {
 
   const handleSendReply = async () => {
     if ((!replyText.trim() && attachedFiles.length === 0)) return;
-
+ 
     setLoading(true);
 
     const currentReplyText = replyText;
     const currentAttachedFiles = [...attachedFiles];
 
     setReplyText('');
-    setAttachedFiles([]);
- 
+    setAttachedFiles([]);  
+
     const payload = {
       sender_email: userTicketInformation.email || 'admin@beesee.com',
       tickets_id: userTicketInformation?.ticket_id,
@@ -235,34 +240,80 @@ export default function EmailConversationApp() {
       const response = await insertConversations(payload)
 
       if (response?.success) {
-        if (userTicketInformation.status === 'open') {
-          setSnackBarMessage("Mark as Completed")
-          setSnackBarType('success')
-          setSnackBarOpen(true)
+  
+          // If there are attachments, send them separately via multipart/form-data
+        if (currentAttachedFiles.length > 0) {
+            const formData = new FormData();
+            formData.append('ticket_conversation_id', String(response?.data?.ticket_conversation_id));
+  
+            currentAttachedFiles.forEach((fileObj) => {
+            formData.append('attachments', fileObj.file);
+          });
+
+          try {
+            await insertImageConversations(formData);
+
+            if (userTicketInformation.status === 'open') {
+              setSnackBarMessage("Mark as Completed")
+              setSnackBarType('success')
+              setSnackBarOpen(true)
+            }
+
+            // emit to server for real-time
+            socket?.emit("send_ticket_message", {
+              ticket_id: userTicketInformation?.ticket_id,
+              message: {
+                ...payload,
+                id: response.data.ticket_ids,
+                created_at: new Date().toISOString(),
+              }
+            });
+
+            // Refetch conversations to get the message with attachments from server
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            })
+          } catch (attachmentError) {
+            console.error('Error uploading attachments:', attachmentError);
+            setSnackBarMessage("Message sent but attachments failed to upload.")
+            setSnackBarType("warning")
+            setSnackBarOpen(true);
+            
+            // Still refetch to show the message without attachments
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            })
+          }
+        } else {
+          if (userTicketInformation.status === 'open') {
+            setSnackBarMessage("Mark as Completed")
+            setSnackBarType('success')
+            setSnackBarOpen(true)
+          }
+
+          // Add locally for messages without attachments
+          const newMessage = {
+            ...payload,
+            id: response.data.ticket_ids,
+            created_at: new Date().toISOString(),
+          };
+          
+          // Add message to screen immediately
+          setMessages(prev => [
+            ...prev,
+            newMessage
+          ]);
+
+          // emit to server for real-time
+          socket?.emit("send_ticket_message", {
+            ticket_id: userTicketInformation?.ticket_id,
+            message: newMessage
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ['conversations', userTicketInformation?.ticket_id]
+          })
         }
-
-        // Add locally
-        const newMessage = {
-          ...payload,
-          id: response.data.ticket_ids,
-          created_at: new Date().toISOString(),
-        };
-        
-        // Add message to screen immediately
-        setMessages(prev => [
-          ...prev,
-          newMessage
-        ]);
-
-        // emit to server for real-time
-        socket?.emit("send_ticket_message", {
-          ticket_id: userTicketInformation?.ticket_id,
-          message: newMessage
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: ['conversations', userTicketInformation?.ticket_id]
-        }) 
       }
 
     } catch (error) {
@@ -483,26 +534,44 @@ export default function EmailConversationApp() {
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {msg.attachments.map((attachment, idx) => (
-                            <div
-                              key={idx}
-                              className={`flex items-center gap-2 p-2 rounded ${
-                                msg.is_inbound 
-                                  ? 'bg-gray-50 border border-gray-200' 
-                                  : 'bg-gray-700 bg-opacity-50'
-                              }`}
-                            >
-                              {getFileIcon(attachment.type)}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">{attachment.name}</p>
-                                <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                            attachment.type?.startsWith('image/') ? (
+                              // Display images automatically
+                              <div key={idx} className="mt-2">
+                                <img
+                                  src={attachment.attachment_url}
+                                  alt={attachment.name}
+                                  className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                                  onClick={() => setSelectedImage(attachment.attachment_url)}
+                                />
+                                <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
                               </div>
-                              <button 
-                                className="p-1 hover:bg-gray-200 rounded transition"
-                                title="Download"
+                            ) : (
+                              // Display other file types as downloadable items
+                              <div
+                                key={idx}
+                                className={`flex items-center gap-2 p-2 rounded ${
+                                  msg.is_inbound
+                                    ? 'bg-gray-50 border border-gray-200'
+                                    : 'bg-gray-700 bg-opacity-50'
+                                }`}
                               >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
+                                {getFileIcon(attachment.type)}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">{attachment.name}</p>
+                                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                                </div>
+                                <a
+                                  href={attachment.attachment_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={attachment.name}
+                                  className="p-1 hover:bg-gray-200 rounded transition"
+                                  title="Download"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </a>
+                              </div>
+                            )
                           ))}
                         </div>
                       )}
