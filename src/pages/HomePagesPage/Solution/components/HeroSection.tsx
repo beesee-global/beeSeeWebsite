@@ -208,7 +208,7 @@ const HeroSection = () => {
               overflow-hidden
             "
           >
-            SERVICES WE OFFER
+            SERVICES WE OFFER 
           </h2>
 
           <p

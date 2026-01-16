@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
-import { userAuth } from '../../../hooks/userAuth';
-import Snackbar from '../../../components/feedback/Snackbar';
+import { userAuth } from '../../../../hooks/userAuth';
+import Snackbar from '../../../../components/feedback/Snackbar';
 import {
   CheckCircle,
   Clock,
@@ -17,18 +17,16 @@ import {
   User2, 
   Building2,
   ArrowLeft,
-  Map,
-  MapPin,
-  ExternalLink
+  Map
 } from 'lucide-react';
-import CustomTextField from '../../../components/Fields/CustomTextField';
-import CustomSelectField from '../../../components/Fields/CustomSelectField';
+import CustomTextField from '../../../../components/Fields/CustomTextField';
+import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import TextsmsIcon from '@mui/icons-material/Textsms'; 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { 
   createConsultation, 
   fetchCategory 
-} from '../../../services/Technician/inquiriesServices';
+} from '../../../../services/Technician/inquiriesServices';
 import { 
   useMutation, 
   useQuery 
@@ -54,7 +52,7 @@ interface FormError {
   description?: string;
 }
 
-const Inquiries = () => {
+const HeroSection = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
   const {
@@ -177,17 +175,6 @@ const Inquiries = () => {
       setSnackBarOpen(true) 
     }
   };
-  const location = {
-    address: '#65-D Scout Borromeo, South Triangle, Quezon City',
-    lat: 14.6333,
-    lng: 121.0333,
-    url: 'https://www.google.com/maps/search/?api=1&query=65-D+Scout+Borromeo+Street+South+Triangle+Quezon+City'
-  };
-
-const embedUrl =
-  'https://maps.google.com/maps?q=Beesee%20Global%20Technology%20Inc,%20Scout%20Borromeo,%20Quezon%20City&z=17&output=embed';
-
-
 
   const handleReset = () => {
     setSubmitted(false)
@@ -968,36 +955,8 @@ const embedUrl =
           </>
         )}
       </section>
-
-       {/* ✅ MAP */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 pb-20">
-        <div className="beesee-card-content overflow-hidden">
-          <div className="p-6 flex justify-between items-center">
-            <div
-  className="flex items-center gap-3"
-  style={{ color: 'var(--beesee-gold)' }}
->
-  <MapPin />
-  <div>
-    <h3 className="bee-title-sm text-left">Our Location</h3>
-
-                <p className="bee-body-sm">{location.address}</p>
-              </div>
-            </div>
-            <a href={location.url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink />
-            </a>
-          </div>
-          <iframe
-            src={embedUrl}
-            className="w-full h-[450px]"
-            loading="lazy"
-            style={{ border: 0 }}
-          />
-        </div>
-      </section>
     </div>
   );
 };
 
-export default Inquiries;
+export default HeroSection;
