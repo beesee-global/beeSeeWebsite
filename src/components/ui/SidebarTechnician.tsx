@@ -58,15 +58,8 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
         { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <MailQuestionMarkIcon size={20} /> }, 
-        {
-            id: "careers",
-            name: 'Careers',
-            icon: <Briefcase size={20}/>,
-            children: [
-                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting" },  
-                { id: "applicants", name: "Applicants", path: "/beesee/applicants" },  
-            ],
-        },
+        { id: "careers", name: "Careers", path: "/beesee/job-posting", icon: <Briefcase size={20} /> }, 
+       
     ];
 
     const toggleMenu = (id: string) => {

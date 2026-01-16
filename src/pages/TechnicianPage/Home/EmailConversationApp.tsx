@@ -5,13 +5,13 @@ import {
   User, 
   Clock, 
   Inbox, 
-  EllipsisVertical,
-  Paperclip,
+  Check,
   X,
   Trash2,
   File,
   FileText,
   Download,
+  Paperclip,
   ArrowLeftToLine,
   Image as ImageIcon  // Rename this!
 } from 'lucide-react';
@@ -38,8 +38,7 @@ export default function EmailConversationApp() {
   const { pid } = useParams();  
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
-  const [loading, setLoading] = useState<boolean>(false); 
-  const [openJob, setOpenJob] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);  
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -217,6 +216,9 @@ export default function EmailConversationApp() {
 
     setLoading(true);
 
+    const currentReplyText = replyText;
+    const currentAttachedFiles = [...attachedFiles];
+
     setReplyText('');
     setAttachedFiles([]);
  
@@ -224,7 +226,7 @@ export default function EmailConversationApp() {
       sender_email: userTicketInformation.email || 'admin@beesee.com',
       tickets_id: userTicketInformation?.ticket_id,
       sender_name: userInfo?.full_name || 'Support Team',
-      message_body: replyText,
+      message_body: currentReplyText,
       user_role: userInfo?.role,
       is_inbound: false,
     }
@@ -248,7 +250,7 @@ export default function EmailConversationApp() {
         
         // Add message to screen immediately
         setMessages(prev => [
-          ...prev, 
+          ...prev,
           newMessage
         ]);
 
@@ -258,28 +260,10 @@ export default function EmailConversationApp() {
           message: newMessage
         });
 
-        queryClient.invalidateQueries({ 
-          queryKey: ['conversations', userTicketInformation?.ticket_id] 
-        })
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation?.ticket_id]
+        }) 
       }
-  
-      // Here you would send the actual API request
-      // const formData = new FormData();,
-      // formData.append('message', replyText);
-      // formData.append('sender_email', userTicketInformation.email);
-      // attachedFiles.forEach((fileObj, index) => {
-      //   formData.append(`attachments`, fileObj.file);
-      // });
-      //
-      // try {
-      //   await fetch(`http://localhost:3001/api/conversations/${selectedConversation.id}/reply`, {
-      //     method: 'POST',
-      //     body: formData
-      //   });
-      // } catch (error) {
-      //   console.error('Error sending message:', error);
-      //   // Optionally remove the message if send fails
-      // }
 
     } catch (error) {
       setSnackBarMessage("Something went wrong, Please try again.")
@@ -301,15 +285,7 @@ export default function EmailConversationApp() {
       minute: "2-digit"
     });
   };
-
-  const handleClickAwayJob = () => {
-    setOpenJob(false);
-  };
-
-  const handleClickJob = () => {
-    setOpenJob((prev) => !prev);
-  };
-
+ 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -434,58 +410,25 @@ export default function EmailConversationApp() {
           {/* Header */}
           <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
             <div>
-              {/* <h2 className="bee-title-sm text-gray-900">
-                {userTicketInformation.company || 'No Subject'}
-              </h2> */}
-              {/* <p className="text-sm text-gray-500">
-                Conversation with {userTicketInformation.email}
-              </p> */}
+              <h2 className="bee-title-sm text-gray-900">
+                Issue: {userTicketInformation.issue_type || 'No Subject'}
+              </h2> 
             </div>
 
             {/* ticket */}
             <div className='flex gap-3 items-center'> 
+              <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
+              >
+                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "COMPLETED" : "Expired"}
+              </span> 
 
-              <div>
-                <ClickAwayListener
-                  mouseEvent="onMouseDown"
-                  touchEvent="onTouchStart"
-                  onClickAway={handleClickAwayJob}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <button
-                      type='button'
-                      onClick={handleClickJob}
-                      className='hover:bg-gray-100 p-2 rounded-md transition'
-                    >
-                      <EllipsisVertical className='w-5 h-5' />
-                    </button>
-                    {openJob && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: 40,
-                        right: 0,
-                        zIndex: 10,
-                        border: '1px solid #e5e7eb',
-                        bgcolor: 'background.paper', 
-                        boxShadow: 3,
-                        borderRadius: 1,
-                        width: 170,
-                        p: 1,
-                      }}>
-                        <ul className='flex flex-col gap-1 justify-center items-center text-center'>
-                          {/* <li className='hover:bg-gray-100 px-2 py-1 cursor-pointer rounded text-sm w-full'>
-                            Create Job Order
-                          </li> */}
-                          <li onClick={() => markAsCompleted()} className='hover:bg-gray-100 px-2 py-1 cursor-pointer rounded text-sm w-full'>
-                            Mark as completed
-                          </li>
-                        </ul>
-                      </Box>
-                    )}
-                  </Box>
-                </ClickAwayListener>
-              </div>
-              
+              <button 
+                onClick={() => markAsCompleted()}
+                title="Mark as completed"
+                className='px-3 py-1 rounded-full text-md border bg-green-50'
+              >
+                <Check className='text-green-700'/>
+              </button>
                 <div className='md:hidden'>
                   <button 
                     onClick={() => setShowSidebar(true)}
@@ -635,14 +578,14 @@ export default function EmailConversationApp() {
               />
 
               {/* Attach File Button */}
-              {/* <button
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
                 className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 title="Attach files"
               >
                 <Paperclip className="w-5 h-5 text-gray-600" />
-              </button> */}
+              </button>
 
               <textarea
                 value={replyText}
@@ -721,7 +664,7 @@ export default function EmailConversationApp() {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Inbox className="w-5 h-5" />
-              Ticket Information
+              Job Order Information
             </h2>
           </div>
           <div>
