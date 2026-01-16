@@ -213,7 +213,7 @@ const embedUrl =
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Add the same gradient overlays as FAQ page test */}
+        {/* Add the same gradient overlays as FAQ page */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
