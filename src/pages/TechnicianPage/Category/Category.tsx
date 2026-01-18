@@ -35,6 +35,7 @@ const Category = () => {
  
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const { 
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -42,6 +43,8 @@ const Category = () => {
     snackBarOpen,
     snackBarType
   } = userAuth()
+ 
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'issue');
  
   const { data: categoryResponse, isLoading } = useQuery({
     queryKey: ['category'],
@@ -74,10 +77,16 @@ const Category = () => {
   ];
 
   const handleDelete = async(ids: number[]) => { 
+    if (Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete device type.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete ${ids.length} categories?`)
+    setDialogMessage(`Are you sure you want to delete ${ids.length} device type?`)
   };
 
   const handleConfirmDelete = async () => {
@@ -88,7 +97,7 @@ const Category = () => {
         setDialogOpen(false)
         setDialogMessage('')
         setDialogTitle("")
-        setSnackBarMessage("Category deleted successfully");
+        setSnackBarMessage("Device type deleted successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
 
@@ -103,6 +112,12 @@ const Category = () => {
   }
 
   const handleEdit = (pid : string | number) => {
+    if (Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit device type.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    } 
     const category = categories.find((c: any) => c.pid === pid || c.id === pid);
     if (!category) return;
 
@@ -118,7 +133,7 @@ const Category = () => {
       const response = await Category(formData)
 
       if (response?.success) {
-        setSnackBarMessage("Category created successfully")
+        setSnackBarMessage("Device type created successfully")
         setSnackBarType('success')
         setSnackBarOpen(true)
 
@@ -144,7 +159,7 @@ const Category = () => {
       });
 
       if (response?.success) {
-        setSnackBarMessage("Category updated successfully");
+        setSnackBarMessage("Device type updated successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
 
@@ -199,11 +214,11 @@ const Category = () => {
       <ReusableTextFieldModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={isEditMode ? "Edit Category" : "Add New Category"}
+        title={isEditMode ? "Edit Device Type" : "Add New Device Type"}
         fields={[
           {
             name: 'name',
-            placeholder: 'Category Name',
+            placeholder: 'Device Type Name',
             maxLength: 100,
             type: 'text',
             multiline: false,
@@ -221,7 +236,6 @@ const Category = () => {
         <div className='flex items-center w-full'>
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon className="w-4 h-4"/> }, 
               { label: "Device Type", isActive: true, icon: <CategoryIcon /> },
             ]}
           />
@@ -240,19 +254,21 @@ const Category = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          <div className="w-full sm:w-auto">
-            <button 
-              onClick={() => {
-                setModalOpen(true);
-                setIsEditMode(false);
-                setSelectedCategory(null);
-              }}
-              className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Device Type</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') &&
+            <div className="w-full sm:w-auto">
+              <button 
+                onClick={() => {
+                  setModalOpen(true);
+                  setIsEditMode(false);
+                  setSelectedCategory(null);
+                }}
+                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Device Type</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 

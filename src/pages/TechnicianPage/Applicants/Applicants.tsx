@@ -190,7 +190,6 @@ const Applicants = () => {
         <div>
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon /> }, 
               { label: "Applicants", isActive: true, icon: <QuestionAnswerIcon /> }
             ]}
           />

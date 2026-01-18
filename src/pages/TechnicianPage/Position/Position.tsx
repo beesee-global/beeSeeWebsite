@@ -21,6 +21,15 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 import CustomSearchField from '../../../components/Fields/CustomSearchField';
 import WorkIcon from '@mui/icons-material/Work';
 
+/* ================= TYPES ================= */
+interface Permission {
+  parent_id: string;
+  children_id: string;
+  module_name: string;
+  module_url: string;
+  actions: string[];
+}
+
 const Position = () => {
     const [searchValue, setSearchValue] = useState<string>("");
     const [debouncedSearch, setDebouncedSearch] = useState<string>("")
@@ -35,6 +44,7 @@ const Position = () => {
    
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const { 
+      userInfo,
       setSnackBarMessage, 
       setSnackBarOpen, 
       setSnackBarType,
@@ -43,167 +53,215 @@ const Position = () => {
       snackBarType
     } = userAuth()
 
+    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'position');
+  
     const { data: positionResponse, isLoading } = useQuery({
       queryKey: ['positions'],
       queryFn: fetchPositions
     }); 
   
-    // Extract data array from response
-    // Adjust based on your API response structure
-    const positions = positionResponse?.data || []; // If API returns { data: [...] } 
+    const positions = positionResponse?.data || [];
 
-     const { mutateAsync: Position } = useMutation({
-        mutationFn: createPositions
-      });
-    
-      const { mutateAsync: deletePosition} = useMutation({
-        mutationFn: deletePositions
-      });
-    
-      const { mutateAsync: updatePosition } = useMutation({
-        mutationFn: ({ id, payload }: { id: number; payload: any }) =>
-          updatePositions(id, payload),
-      });
-    
-      const queryClient = useQueryClient();
-    
-      // Custom columns
-      const customColumns = [
-        { id: 'name', label: 'Name', sortable: true, align: "left" }, 
-        { id: 'permission', label: "Permission", align: "left" },
-        { id: 'created_at', label: '', sortable: false, align: "right" },
-      ];
+    const { mutateAsync: createPosition } = useMutation({
+      mutationFn: createPositions
+    });
+  
+    const { mutateAsync: deletePosition} = useMutation({
+      mutationFn: deletePositions
+    });
+  
+    const { mutateAsync: updatePosition } = useMutation({
+      mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+        updatePositions(id, payload),
+    });
+  
+    const queryClient = useQueryClient();
+  
+    // Custom columns
+    const customColumns = [
+      { id: 'name', label: 'Name', sortable: true, align: "left" }, 
+      { id: 'description', label: "Description", sortable: true, align: "left" },
+      { id: 'created_at', label: '', sortable: false, align: "right" },
+    ];
 
-      const arrayEqual = (a: string[], b: string[]) => {
-        if (a.length !== b.length) return false;
-        return a.every((value) => b.includes(value))
-      }
-    
-      const handleDelete = async(ids: number[]) => { 
-        setDeleteIds(ids)
-        setDialogTitle("Confirm Delete")
-        setDialogOpen(true)
-        setDialogMessage(`Are you sure you want to delete ${ids.length} positions?`)
-      };
-    
-      const handleConfirmDelete = async () => {
-        try {
-          const response = await deletePosition(deleteIds); // call mutation
-    
-          if (response?.success) {
-            setDialogOpen(false)
-            setDialogMessage('')
-            setDialogTitle("")
-            setSnackBarMessage("Position deleted successfully");
-            setSnackBarType("success");
-            setSnackBarOpen(true);
-    
-            // Refetch categories
-            queryClient.invalidateQueries({ queryKey: ['positions'] });
-          }
-        } catch (error:any) {
+    // Helper function to compare permissions deeply
+    const permissionsEqual = (a: Permission[], b: Permission[]) => {
+      if (a.length !== b.length) return false;
+      
+      return a.every((permA) => {
+        const permB = b.find((p) => 
+          p.module_name === permA.module_name && 
+          p.parent_id === permA.parent_id &&
+          p.children_id === permA.children_id
+        );
+        
+        if (!permB) return false;
+        
+        // Compare actions arrays
+        if (permA.actions.length !== permB.actions.length) return false;
+        return permA.actions.every((action) => permB.actions.includes(action));
+      });
+    };
+  
+    const handleDelete = async(ids: number[]) => { 
+    if (Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete position.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
+      setDeleteIds(ids)
+      setDialogTitle("Confirm Delete")
+      setDialogOpen(true)
+      setDialogMessage(`Are you sure you want to delete ${ids.length} position${ids.length > 1 ? 's' : ''}?`)
+    };
+  
+    const handleConfirmDelete = async () => {
+      try {
+        const response = await deletePosition(deleteIds);
+  
+        if (response?.success) {
           setDialogOpen(false)
           setDialogMessage('')
           setDialogTitle("")
+          setSnackBarMessage("Position deleted successfully");
+          setSnackBarType("success");
+          setSnackBarOpen(true);
+  
+          queryClient.invalidateQueries({ queryKey: ['positions'] });
+        }
+      } catch (error:any) {
+        setDialogOpen(false)
+        setDialogMessage('')
+        setDialogTitle("")
 
-          if (error.response?.status === 400) {
-            setSnackBarMessage(error.response?.data?.message)
-            setSnackBarType('info')
-            setSnackBarOpen(true);
+        if (error.response?.status === 400) {
+          setSnackBarMessage(error.response?.data?.message)
+          setSnackBarType('info')
+          setSnackBarOpen(true);
+          return
+        }
+        setSnackBarMessage("Failed to delete position. Please try again.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+      }
+    }
+  
+    const handleEdit = (pid : string | number) => {
+      const position = positions.find((c: any) => c.pid === pid || c.id === pid);
+      if (!position) return;
+
+      if (Permission?.actions.includes('edit')) {
+        setSnackBarMessage("You do not have permission to edit position.")
+        setSnackBarType("error")
+        setSnackBarOpen(true)
+        return
+      } 
+      
+      // Lock permissions for protected positions
+      if (position.is_protected === 1 || position.is_protected === true) {
+        setIsPermissionLocked(true)
+      } else {
+        setIsPermissionLocked(false)
+      }
+      
+      setSelectedPosition(position);
+      setIsEditMode(true);
+      setModalOpen(true);
+    }
+   
+    const handleAddPosition = async (formDataPosition: Record<string, any>) => {
+      try {
+        // Create the exact payload format
+        const payload = {
+          name: formDataPosition.name,
+          description: formDataPosition.description || "",
+          is_protected: 0, // New positions are not protected by default
+          permissions: formDataPosition.permissions
+        };
+
+        // Log the payload for debugging
+        console.log("=== CREATE POSITION PAYLOAD ===");
+        console.log(JSON.stringify(payload, null, 2));
+
+        const response = await createPosition(payload)
+  
+        if (response?.success) {
+          setSnackBarMessage("Position created successfully")
+          setSnackBarType('success')
+          setSnackBarOpen(true)
+          setModalOpen(false);
+  
+          queryClient.invalidateQueries({ queryKey: ['positions'] });
+        }
+      } catch (error: any) {
+        console.error("Create Position Error:", error);
+        setSnackBarMessage(error?.response?.data?.message || "Failed to create position. Please try again.")
+        setSnackBarType('error')
+        setSnackBarOpen(true)
+      }
+    };
+  
+    const handleUpdatePosition = async (formDataPosition: Record<string, any>) => {
+      try {
+        // Check if position is protected
+        if (selectedPosition.is_protected === 1 || selectedPosition.is_protected === true) {
+          // Compare permissions to ensure they haven't changed
+          if (!permissionsEqual(selectedPosition.permissions || [], formDataPosition.permissions)) {
+            setSnackBarMessage("The permissions cannot be modified for this protected role")
+            setSnackBarType("warning")
+            setSnackBarOpen(true)
             return
           }
-          setSnackBarMessage("Failed to delete position. Please try again.");
-          setSnackBarType("error");
+        }
+        
+        // Create the exact payload format
+        const payload = {
+          name: formDataPosition.name,
+          description: formDataPosition.description || "",
+          is_protected: selectedPosition.is_protected || 0,
+          permissions: formDataPosition.permissions
+        };
+
+        // Log the payload for debugging
+        console.log("=== UPDATE POSITION PAYLOAD ===");
+        console.log(JSON.stringify(payload, null, 2));
+  
+        const response = await updatePosition({
+          id: selectedPosition.id,
+          payload
+        });
+  
+        if (response?.success) {
+          setSnackBarMessage("Position updated successfully");
+          setSnackBarType("success");
           setSnackBarOpen(true);
+  
+          queryClient.invalidateQueries({ queryKey: ["positions"] });
+          setModalOpen(false);
         }
+      } catch (error: any) {
+        console.error("Update Position Error:", error);
+        setSnackBarMessage(error?.response?.data?.message || "Failed to update position. Please try again.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
       }
-    
-      const handleEdit = (pid : string | number) => {
-        const position = positions.find((c: any) => c.pid === pid || c.id === pid);
-        if (!position) return;  
-        if (position.id === 3) {
-          setIsPermissionLocked(true)
-         } else {
-          setIsPermissionLocked(false)
-         }
-        setSelectedPosition(position);
-        setIsEditMode(true);
-        setModalOpen(true);
-      }
-     
-      const handleAddPosition = async (formDataPosition: Record<string, string>) => {
-        try {
-          const formData = new FormData();
-          formData.append('name', formDataPosition.name);
-          formData.append("permission", JSON.stringify(formDataPosition.permissions))
-          const response = await Position(formData)
-    
-          if (response?.success) {
-            setSnackBarMessage("Position created successfully")
-            setSnackBarType('success')
-            setSnackBarOpen(true)
-    
-            // Refetch categories
-            queryClient.invalidateQueries({ queryKey: ['positions'] });
-          }
-        } catch (error) {
-          setSnackBarMessage("Failed to submit, Please try again.")
-          setSnackBarType('error')
-          setSnackBarOpen(true)
-        }
-      };
-    
-      const handleUpdatePosition = async (formDataPosition: Record<string, string>) => {
-        try {
+    };
 
-          if (selectedPosition.id === 3) {
-            if (!arrayEqual(selectedPosition.permission, formDataPosition.permissions)) {
-              setSnackBarMessage("The permission cannot modified")
-              setSnackBarType("warning")
-              setSnackBarOpen(true)
-              return
-            }
-          }
-          
-          const payload = {
-            name: formDataPosition.name,
-            permission: JSON.stringify(formDataPosition.permissions)
-          };
-    
-          const response = await updatePosition({
-            id: selectedPosition.id,
-            payload
-          });
-    
-          if (response?.success) {
-            setSnackBarMessage("Position updated successfully");
-            setSnackBarType("success");
-            setSnackBarOpen(true);
-    
-            queryClient.invalidateQueries({ queryKey: ["positions"] });
-            setModalOpen(false);
-          }
-        } catch (error) {
-          setSnackBarMessage("Failed to update position");
-          setSnackBarType("error");
-          setSnackBarOpen(true);
-        }
-      };
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedSearch(searchValue)
+      }, 1000);
 
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          setDebouncedSearch(searchValue)
-        }, 1000);
+      return () => clearTimeout(timer);
+    }, [searchValue]);
 
-        return () => clearTimeout(timer);
-      }, [searchValue]);
-
-      const filteredPosition = useMemo(() => {
-        if (!debouncedSearch.trim()) return positions
-        return positions.filter((c: any) => 
-          c.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-        )
-      }, [positions, debouncedSearch])
+    const filteredPosition = useMemo(() => {
+      if (!debouncedSearch.trim()) return positions
+      return positions.filter((c: any) => 
+        c.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+      )
+    }, [positions, debouncedSearch])
 
   return (
     <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
@@ -224,25 +282,41 @@ const Position = () => {
         onSubmit={handleConfirmDelete} 
       />
 
+      {/* Modal */}
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setIsEditMode(false);
+          setSelectedPosition(null);
+          setIsPermissionLocked(false);
+        }}
         title={isEditMode ? "Edit Position" : "Add New Position"}
+        description={
+          isEditMode 
+            ? "Update position details and access permissions" 
+            : "Create a new position with specific access permissions"
+        }
         fields={[
           {
             name: 'name',
             placeholder: 'Position Name',
-            maxLength: 100,
             type: 'text',
-            multiline: false,
-            rows: 1,
             value: isEditMode ? selectedPosition?.name || "" : "",
-            validator: (value) => !value.trim() ? 'Name is required' : undefined
-          }
+            validator: (value) => !value.trim() ? 'Position name is required' : undefined
+          },
+          {
+            name: 'description',
+            placeholder: 'Description',
+            type: 'text',
+            value: isEditMode ? selectedPosition?.description || "" : "",
+            validator: (value) => !value.trim() ? 'Description is required' : undefined
+          },
         ]}
         isPermissionLocked={isPermissionLocked}
-        initialPermissions={isEditMode ? selectedPosition?.permission || [] : []}
+        initialPermissions={isEditMode ? selectedPosition?.permissions || [] : []}
         onSubmit={isEditMode ? handleUpdatePosition : handleAddPosition}
+        submitLabel={isEditMode ? "Update Position" : "Create Position"}
       />
 
       {/* Header Section - Responsive layout */}
@@ -257,9 +331,9 @@ const Position = () => {
           />
         </div>
         
-        {/* Search and Add Button Section - Search first, then Add button */}
+        {/* Search and Add Button Section */}
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full'>
-          {/* Search Field - Full width on mobile, auto width on larger screens */}
+          {/* Search Field */}
           <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
             <CustomSearchField 
               value={searchValue}
@@ -269,12 +343,13 @@ const Position = () => {
             />
           </div>
           
-          {/* Add Button - Full width on mobile, auto width on larger screens */}
+          {/* Add Button */}
           <div className="w-full sm:w-auto">
             <button 
               onClick={() => {
                 setModalOpen(true)
                 setIsEditMode(false)
+                setSelectedPosition(null)
                 setIsPermissionLocked(false)
               }} 
               className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'

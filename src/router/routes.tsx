@@ -45,8 +45,7 @@ const TechnicianProduct = lazy(() => import('../pages/TechnicianPage/Product/Pro
 const TechnicianDashboard = lazy(() => import("../pages/TechnicianPage/Dashboard/Dashboard"))
 const TechnicianUsers = lazy(() => import('../pages/TechnicianPage/Users/Users')); 
 const TechnicianFaqs = lazy(() => import('../pages/TechnicianPage/Faqs/faqs'))
-const TechnicianUsersForm = lazy(() => import('../pages/TechnicianPage/Users/UsersForm'))
-const TechnicianSchool = lazy(() => import("../pages/TechnicianPage/School/Schools"))
+const TechnicianUsersForm = lazy(() => import('../pages/TechnicianPage/Users/UsersForm')) 
 const TechnicianPosition = lazy(() => import('../pages/TechnicianPage/Position/Position'))
 const TechnicianInquiries = lazy(() => import('../pages/TechnicianPage/Inquiries/Inquiries'))
 const TechnicianTicketForm = lazy(() => import('../pages/TechnicianPage/Ticket/TicketForm'))
@@ -267,11 +266,7 @@ const routes = [
             {
                 path: "inquiries/reply/:pid",
                 element: <TechnicianInquiriesReply />
-            },
-            {
-                path: 'school',
-                element: <TechnicianSchool />
-            },
+            }, 
             {
                 path: 'job-order/submit-ticket',
                 element: <TechnicianTicketForm />

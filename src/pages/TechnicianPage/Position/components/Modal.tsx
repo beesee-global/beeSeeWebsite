@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
-import { Box, Button, Fade, Collapse } from "@mui/material";
-import { Plus, Check, Shield, ChevronDown } from "lucide-react";
-
-import CustomTextField from "../../../../components/Fields/CustomTextField";
-import CustomSelectField from "../../../../components/Fields/CustomSelectField";
+import { Box, Button, Collapse, Checkbox, FormControlLabel } from "@mui/material";
+import { Shield, ChevronDown, Plus, Edit, Trash2, Eye } from "lucide-react";
 
 /* ================= TYPES ================= */
-
 interface FieldConfig {
   name: string;
   placeholder: string;
   type: "text" | "select";
   value: string;
-  maxLength?: string;
-  multiline?: boolean;
-  rows?: number;
   options?: { value: string; label: string }[];
   validator?: (value: string) => string | undefined;
+}
+
+interface Permission {
+  parent_id: string;
+  children_id: string;
+  module_name: string;
+  module_url: string;
+  actions: string[];
 }
 
 interface ModalProps {
@@ -36,13 +36,12 @@ interface ModalProps {
   onSubmit: (formData: Record<string, any>) => void;
   submitLabel?: string;
   cancelLabel?: string;
-  initialPermissions?: string[];
+  initialPermissions?: Permission[];
   isPermissionLocked?: boolean;
 }
 
 /* ================= STYLES ================= */
-
-const StyledTextField = styled("input")(({ error }: { error?: boolean }) => ({
+const StyledInput = styled("input")(({ error }: { error?: boolean }) => ({
   width: "100%",
   padding: "12px 16px",
   fontSize: "15px",
@@ -52,63 +51,87 @@ const StyledTextField = styled("input")(({ error }: { error?: boolean }) => ({
   outline: "none",
   transition: "all 0.2s ease",
   backgroundColor: "#fff",
-  
   "&:focus": {
     borderColor: error ? "#ef4444" : "#6366f1",
     boxShadow: error 
       ? "0 0 0 3px rgba(239, 68, 68, 0.1)"
       : "0 0 0 3px rgba(99, 102, 241, 0.1)",
   },
-  
-  "&:hover": {
-    borderColor: error ? "#ef4444" : "#d1d5db",
-  },
 }));
 
-const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+const StyledSelect = styled("select")(({ error }: { error?: boolean }) => ({
+  width: "100%",
+  padding: "12px 16px",
+  fontSize: "15px",
+  fontFamily: "inherit",
+  border: `2px solid ${error ? "#ef4444" : "#e5e7eb"}`,
+  borderRadius: "12px",
+  outline: "none",
+  transition: "all 0.2s ease",
+  backgroundColor: "#fff",
+  cursor: "pointer",
+}));
+
+const BootstrapDialog = styled(Dialog)({
   "& .MuiDialog-paper": {
-    width: "520px",
-    maxWidth: "90%",
+    width: "750px",
+    maxWidth: "95%",
+    maxHeight: "90vh",
   },
-  "& .MuiDialogContent-root": {
-    padding: theme.spacing(2),
-  },
-  "& .MuiDialogActions-root": {
-    padding: theme.spacing(1),
-  },
-}));
+});
 
-/* ================= PERMISSIONS ================= */
-
-const permissionTree = [ 
-  { id: "job-order", name: "Job Order", url: "/beesee/job-order" },
-  { id: "users", name: "Users", url: "/beesee/users" },
-  { id: "faqs", name: "Faqs", url: "/beesee/faqs" },
-  { id: "inquiries", name: "Inquiries", url: "/beesee/inquiries" },
-  
+/* ================= PERMISSION TREE ================= */
+const permissionTree = [
+  { 
+    id: "dashboard", 
+    name: "Dashboard", 
+    url: "/beesee/dashboard", 
+    parent: null,
+    hasActions: false // Dashboard has no actions, just access
+  },
+  { 
+    id: "job-order", 
+    name: "Job Order", 
+    url: "/beesee/job-order", 
+    parent: null,
+    hasActions: true
+  },
+  { 
+    id: "faqs", 
+    name: "Faqs", 
+    url: "/beesee/faqs", 
+    parent: null,
+    hasActions: true
+  },
+  { 
+    id: "inquiries", 
+    name: "Inquiries", 
+    url: "/beesee/inquiries", 
+    parent: null,
+    hasActions: true
+  },
+  { 
+    id: "careers", 
+    name: "Careers", 
+    url: "/beesee/job-posting", 
+    parent: null,
+    hasActions: true
+  },
   {
     id: "settings",
     name: "Settings",
+    parent: null,
+    hasActions: false,
     children: [
-      { id: "device", name: "Device Type", url: "/beesee/device" },
-      { id: "model", name: "Model Type", url: "/beesee/model" },
-      { id: "issue", name: "Issue Type", url: "/beesee/issue" },
-      { id: "position", name: "Position", url: "/beesee/position" },
+      { id: "device", name: "Device type", url: "/beesee/device", hasActions: true },
+      { id: "model", name: "Model type", url: "/beesee/model", hasActions: true },
+      { id: "issue", name: "Issue type", url: "/beesee/issue", hasActions: true },
+      { id: "position", name: "Position", url: "/beesee/position", hasActions: true },
     ],
   },
-  {
-    id: "careers",
-    name: "Careers",
-    children: [
-      { id: "job-posting", name: "Job Posting", url: "/beesee/job-posting" },
-      { id: "applicants", name: "Model Type", url: "/beesee/applicants" }, 
-    ],
-  },
-
 ];
 
 /* ================= COMPONENT ================= */
-
 const Modal: React.FC<ModalProps> = ({
   open,
   onClose,
@@ -119,70 +142,89 @@ const Modal: React.FC<ModalProps> = ({
   submitLabel = "Submit",
   cancelLabel = "Cancel",
   initialPermissions = [],
-  isPermissionLocked,
+  isPermissionLocked = false,
 }) => {
-  /* ---------- form ---------- */
-  const initialForm: Record<string, string> = {};
-  fields.forEach((f) => (initialForm[f.name] = f.value || ""));
-
-  const [formData, setFormData] = useState(initialForm);
+  const [formData, setFormData] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<Record<string, string>>({});
-
-  /* ---------- permissions ---------- */
-  const [selectedButton, setSelectedButton] = useState<string[]>(initialPermissions);
-  const [selectedButtonError, setSelectedButtonError] = useState("");
+  const [permissions, setPermissions] = useState<Record<string, string[]>>({});
+  const [permissionError, setPermissionError] = useState("");
   const [expandedSettings, setExpandedSettings] = useState(false);
-  const [expandedCareers, setExpandedCareers] = useState(false);
 
-  /* ================= HANDLERS ================= */
+  // Initialize form data and permissions
+  useEffect(() => {
+    if (open) {
+      // Initialize form fields
+      const newForm: Record<string, string> = {};
+      fields.forEach((f) => (newForm[f.name] = f.value || ""));
+      setFormData(newForm);
+      setFormError({});
+      setPermissionError("");
 
-  const handleChangeInput = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+      // Convert initialPermissions array to permissions object
+      const permMap: Record<string, string[]> = {};
+      initialPermissions.forEach((perm) => {
+        const moduleKey = perm.children_id || perm.parent_id;
+        permMap[moduleKey] = perm.actions.filter(a => a !== ""); // Filter out empty strings
+      });
+      setPermissions(permMap);
+
+      // Auto-expand settings if any child has permissions
+      const hasSettingsPerms = ["device", "model", "issue", "position"].some(
+        key => permMap[key] && permMap[key].length > 0
+      );
+      setExpandedSettings(hasSettingsPerms);
+    }
+  }, [open, fields, initialPermissions]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormError((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleToggleParent = (id: string) => {
-    if (id === "settings" || id === "careers") {
-      const isSelected = selectedButton.includes(id);
-      const children =
-        permissionTree.find(p => p.id === id)?.children?.map(c => c.id) || [];
+  const handleActionToggle = (moduleId: string, action: string) => {
+    setPermissions((prev) => {
+      const current = prev[moduleId] || [];
+      const updated = current.includes(action)
+        ? current.filter((a) => a !== action)
+        : [...current, action];
+      return { ...prev, [moduleId]: updated };
+    });
+    setPermissionError("");
+  };
 
-      if (id === "settings") setExpandedSettings(!isSelected);
-      if (id === "careers") setExpandedCareers(!isSelected);
-
-      if (isSelected) {
-        setSelectedButton(prev =>
-          prev.filter(p => p !== id && !children.includes(p))
-        );
+  // Handle Grant Access toggle (view permission)
+  const handleGrantAccessToggle = (moduleId: string) => {
+    setPermissions((prev) => {
+      const current = prev[moduleId] || [];
+      const hasView = current.includes("view");
+      
+      if (hasView) {
+        // Remove all permissions if unchecking Grant Access
+        return { ...prev, [moduleId]: [] };
       } else {
-        setSelectedButton(prev => [...prev, id]);
+        // Add only "view" permission
+        return { ...prev, [moduleId]: ["view"] };
       }
-      return;
-    }
-
-    setSelectedButton(prev =>
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
+    });
+    setPermissionError("");
   };
 
-
-  const handleToggleChild = (id: string, parent: string) => {
-    setSelectedButton(prev =>
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
-
-    setSelectedButton(prev =>
-      prev.includes(parent) ? prev : [...prev, parent]
-    );
+  // Handle module access (for modules without actions like Dashboard)
+  const handleModuleToggle = (moduleId: string) => {
+    setPermissions((prev) => {
+      const current = prev[moduleId] || [];
+      // If has access, remove it
+      // If no access, grant it (set to empty array to indicate access only)
+      return { ...prev, [moduleId]: current.length > 0 ? [] : [""] };
+    });
+    setPermissionError("");
   };
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate form fields
     const errors: Record<string, string> = {};
     fields.forEach((field) => {
       if (field.validator) {
@@ -191,58 +233,320 @@ const Modal: React.FC<ModalProps> = ({
       }
     });
 
-    if (selectedButton.length === 0) {
-      setSelectedButtonError("Please select at least one permission");
-    } else {
-      setSelectedButtonError("");
+    // Check if at least one permission is selected
+    const hasPermissions = Object.keys(permissions).length > 0;
+    if (!hasPermissions) {
+      setPermissionError("Please select at least one permission");
     }
 
-    if (Object.keys(errors).length > 0 || selectedButton.length === 0) {
+    if (Object.keys(errors).length > 0 || !hasPermissions) {
       setFormError(errors);
       return;
     }
 
+    // Transform permissions to backend format
+    const formattedPermissions: Permission[] = [];
+    Object.entries(permissions).forEach(([moduleKey, actions]) => {
+      // Find module info from permissionTree
+      const allModules = permissionTree.flatMap((p) => 
+        p.children ? [p, ...p.children] : [p]
+      );
+      const module = allModules.find((m) => m.id === moduleKey);
+
+      if (module) {
+        // Find parent if exists
+        const parent = permissionTree.find((p) => 
+          p.children?.some((c) => c.id === moduleKey)
+        );
+
+        formattedPermissions.push({
+          parent_id: parent ? parent.id : moduleKey,
+          children_id: parent ? moduleKey : "",
+          module_name: module.name,
+          module_url: module.url || "",
+          actions: actions,
+        });
+      }
+    });
+
     onSubmit({
       ...formData,
-      permissions: selectedButton,
+      permissions: formattedPermissions,
     });
 
     onClose();
   };
 
-  /* ================= EFFECTS ================= */
+  const renderModuleCheckboxes = (
+    moduleId: string, 
+    moduleName: string, 
+    hasActions: boolean = true,
+    isChild = false
+  ) => {
+    const moduleActions = permissions[moduleId] || [];
+    const hasAnyAction = moduleActions.length > 0 || permissions[moduleId] !== undefined;
+    const hasGrantAccess = moduleActions.includes("view");
 
-  useEffect(() => {
-    const newForm: Record<string, string> = {};
-    fields.forEach((f) => (newForm[f.name] = f.value || ""));
-    setFormData(newForm);
-    setSelectedButton(initialPermissions);
-    setExpandedSettings(initialPermissions.includes("settings"));
-    setExpandedCareers(initialPermissions.includes("careers"));
-  }, [open, fields]);
+    // For modules without actions (like Dashboard), show only access toggle
+    if (!hasActions) {
+      const hasAccess = permissions[moduleId] !== undefined;
+      
+      return (
+        <Box
+          key={moduleId}
+          sx={{
+            p: 2.5,
+            borderRadius: "14px",
+            border: "2px solid",
+            borderColor: hasAccess ? "#e0e7ff" : "#f3f4f6",
+            backgroundColor: hasAccess ? "#fafbff" : "#fff",
+            transition: "all 0.2s ease",
+            "&:hover": {
+              borderColor: hasAccess ? "#c7d2fe" : "#e5e7eb",
+              backgroundColor: hasAccess ? "#f5f7ff" : "#fafafa",
+            },
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box sx={{ fontSize: isChild ? "14px" : "15px", fontWeight: 700, color: "#111827" }}>
+              {moduleName}
+            </Box>
+            
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={hasAccess}
+                  onChange={() => handleModuleToggle(moduleId)}
+                  disabled={isPermissionLocked}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#6366f1" },
+                  }}
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                    Grant Access
+                  </span>
+                </Box>
+              }
+            />
+          </Box>
+        </Box>
+      );
+    }
 
-  /* ================= RENDER ================= */
+    // For modules with actions
+    return (
+      <Box
+        key={moduleId}
+        sx={{
+          p: 2.5,
+          borderRadius: "14px",
+          border: "2px solid",
+          borderColor: hasAnyAction ? "#e0e7ff" : "#f3f4f6",
+          backgroundColor: hasAnyAction ? "#fafbff" : "#fff",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            borderColor: hasAnyAction ? "#c7d2fe" : "#e5e7eb",
+            backgroundColor: hasAnyAction ? "#f5f7ff" : "#fafafa",
+          },
+        }}
+      >
+        <Box sx={{ 
+          fontSize: isChild ? "14px" : "15px", 
+          fontWeight: 700, 
+          color: "#111827", 
+          mb: 2 
+        }}>
+          {moduleName}
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+          {/* Grant Access Checkbox (Master Toggle) */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={hasGrantAccess}
+                onChange={() => handleGrantAccessToggle(moduleId)}
+                disabled={isPermissionLocked}
+                sx={{
+                  color: "#9ca3af",
+                  padding: "6px",
+                  "&.Mui-checked": { color: "#6366f1" },
+                  "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" },
+                }}
+              />
+            }
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Eye 
+                  size={16} 
+                  color={hasGrantAccess ? "#6366f1" : "#9ca3af"} 
+                />
+                <span style={{ 
+                  fontSize: "14px", 
+                  fontWeight: 600, 
+                  color: hasGrantAccess ? "#6366f1" : "#374151" 
+                }}>
+                  Grant Access
+                </span>
+              </Box>
+            }
+          />
+
+          {/* Add Checkbox - Disabled if no Grant Access */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={moduleActions.includes("add")}
+                onChange={() => handleActionToggle(moduleId, "add")}
+                disabled={isPermissionLocked || !hasGrantAccess}
+                sx={{
+                  color: "#9ca3af",
+                  padding: "6px",
+                  "&.Mui-checked": { color: "#10b981" },
+                  "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" },
+                  "&.Mui-disabled": {
+                    color: "#e5e7eb",
+                  },
+                }}
+              />
+            }
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Plus 
+                  size={16} 
+                  color={
+                    !hasGrantAccess ? "#e5e7eb" : 
+                    moduleActions.includes("add") ? "#10b981" : "#9ca3af"
+                  } 
+                />
+                <span style={{ 
+                  fontSize: "14px", 
+                  fontWeight: 500, 
+                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                }}>
+                  Add
+                </span>
+              </Box>
+            }
+          />
+
+          {/* Edit Checkbox - Disabled if no Grant Access */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={moduleActions.includes("edit")}
+                onChange={() => handleActionToggle(moduleId, "edit")}
+                disabled={isPermissionLocked || !hasGrantAccess}
+                sx={{
+                  color: "#9ca3af",
+                  padding: "6px",
+                  "&.Mui-checked": { color: "#f59e0b" },
+                  "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" },
+                  "&.Mui-disabled": {
+                    color: "#e5e7eb",
+                  },
+                }}
+              />
+            }
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Edit 
+                  size={16} 
+                  color={
+                    !hasGrantAccess ? "#e5e7eb" : 
+                    moduleActions.includes("edit") ? "#f59e0b" : "#9ca3af"
+                  } 
+                />
+                <span style={{ 
+                  fontSize: "14px", 
+                  fontWeight: 500, 
+                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                }}>
+                  Edit
+                </span>
+              </Box>
+            }
+          />
+
+          {/* Delete Checkbox - Disabled if no Grant Access */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={moduleActions.includes("delete")}
+                onChange={() => handleActionToggle(moduleId, "delete")}
+                disabled={isPermissionLocked || !hasGrantAccess}
+                sx={{
+                  color: "#9ca3af",
+                  padding: "6px",
+                  "&.Mui-checked": { color: "#ef4444" },
+                  "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" },
+                  "&.Mui-disabled": {
+                    color: "#e5e7eb",
+                  },
+                }}
+              />
+            }
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Trash2 
+                  size={16} 
+                  color={
+                    !hasGrantAccess ? "#e5e7eb" : 
+                    moduleActions.includes("delete") ? "#ef4444" : "#9ca3af"
+                  } 
+                />
+                <span style={{ 
+                  fontSize: "14px", 
+                  fontWeight: 500, 
+                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                }}>
+                  Delete
+                </span>
+              </Box>
+            }
+          />
+        </Box>
+      </Box>
+    );
+  };
 
   return (
     <BootstrapDialog open={open} onClose={onClose}>
-      <DialogTitle sx={{ m: 0, p: 2, color: 'black' }}>{title}</DialogTitle>
+      <DialogTitle sx={{ m: 0, p: 2.5, fontSize: "20px", fontWeight: 700, color: "#111827" }}>
+        {title}
+      </DialogTitle>
 
       <IconButton
         onClick={onClose}
-        sx={{ position: "absolute", right: 8, top: 8 }}
+        sx={{
+          position: "absolute",
+          right: 12,
+          top: 12,
+          backgroundColor: "#f3f4f6",
+          "&:hover": { 
+            backgroundColor: "#e5e7eb",
+            transform: "rotate(90deg)" 
+          },
+          transition: "all 0.2s ease",
+        }}
       >
         <CloseIcon />
       </IconButton>
 
       <DialogContent dividers sx={{ borderColor: "#f3f4f6" }}>
         {description && (
-          <DialogContentText sx={{ mb: 3, color: "#6b7280", fontSize: "15px" }}>
+          <Box sx={{ mb: 3, color: "#6b7280", fontSize: "15px" }}>
             {description}
-          </DialogContentText>
+          </Box>
         )}
 
-        <form onSubmit={handleSubmit} id="reusable-form">
-          {/* Fields */}
+        <form onSubmit={handleSubmit} id="permission-form">
+          {/* Form Fields */}
           {fields.map((field) => (
             <Box key={field.name} sx={{ mb: 2.5 }}>
               <Box sx={{ mb: 1, fontSize: "14px", fontWeight: 600, color: "#374151" }}>
@@ -252,23 +556,22 @@ const Modal: React.FC<ModalProps> = ({
                 <StyledSelect
                   name={field.name}
                   value={formData[field.name]}
-                  onChange={handleChangeInput}
+                  onChange={handleInputChange}
                   error={!!formError[field.name]}
                 >
                   <option value="">Select {field.placeholder}</option>
-                  {field.options?.map(opt => (
+                  {field.options?.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </StyledSelect>
               ) : (
-                <StyledTextField
+                <StyledInput
                   name={field.name}
                   placeholder={`Enter ${field.placeholder.toLowerCase()}`}
-                  type="text"
                   value={formData[field.name]}
-                  onChange={handleChangeInput}
+                  onChange={handleInputChange}
                   error={!!formError[field.name]}
                 />
               )}
@@ -279,77 +582,45 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </Box>
           ))}
-  
-          {/* ================= Permissions ================= */}
+
+          {/* Permissions Section */}
           <Box sx={{ mt: 4 }}>
-            <Box sx={{ 
-              mb: 2.5, 
-              display: "flex", 
-              alignItems: "center", 
-              gap: 1.5,
-            }}>
-              <Shield size={20} color="#6366f1" />
-              <Box sx={{ fontSize: "16px", fontWeight: 700, color: "#111827" }}>
+            <Box
+              sx={{
+                mb: 2.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                pb: 2,
+                borderBottom: "2px solid #f3f4f6",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                  borderRadius: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Shield size={20} color="#fff" />
+              </Box>
+              <Box sx={{ fontSize: "18px", fontWeight: 700, color: "#111827" }}>
                 Access Permissions
               </Box>
             </Box>
 
-            {/* MAIN PERMISSIONS */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 1.5,
-              }}
-            >
+            {/* Main Modules */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {permissionTree
-                .filter( item => item.id !== "settings" && item.id !== "careers")
-                .map(item => {
-                  const isActive = selectedButton.includes(item.id);
-
-                  return (
-                    <Button
-                      key={item.id}
-                      type="button"
-                      variant="outlined"
-                      startIcon={isActive ? <Check size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}
-                      onClick={() => handleToggleParent(item.id)}
-                      disabled={isPermissionLocked}
-                      sx={{
-                        justifyContent: "flex-start",
-                        textTransform: "none",
-                        borderRadius: "12px",
-                        padding: "12px 16px",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                        border: "2px solid",
-
-                        backgroundColor: isActive ? "#eef2ff" : "#fff",
-                        borderColor: isActive ? "#6366f1" : "#e5e7eb",
-                        color: isActive ? "#4338ca" : "#374151",
-
-                        "&:hover": {
-                          backgroundColor: isActive ? "#e0e7ff" : "#f9fafb",
-                          borderColor: isActive ? "#4f46e5" : "#d1d5db",
-                          transform: "translateY(-1px)",
-                          boxShadow: isActive 
-                            ? "0 4px 12px rgba(99, 102, 241, 0.15)"
-                            : "0 2px 8px rgba(0, 0, 0, 0.08)",
-                        },
-
-                        "&:active": {
-                          transform: "translateY(0)",
-                        },
-                      }}
-                    >
-                      {item.name}
-                    </Button>
-                  );
-                })}
+                .filter((item) => item.id !== "settings")
+                .map((item) => renderModuleCheckboxes(item.id, item.name, item.hasActions))}
             </Box>
 
-            {/* SETTINGS CARD */}
+            {/* Settings Section */}
             <Box
               sx={{
                 mt: 3,
@@ -357,251 +628,110 @@ const Modal: React.FC<ModalProps> = ({
                 borderRadius: "16px",
                 border: "2px solid #e5e7eb",
                 backgroundColor: "#fafafa",
-                transition: "all 0.3s ease",
               }}
             >
-              {/* SETTINGS HEADER */}
               <Button
                 fullWidth
                 type="button"
-                variant="outlined"
-                startIcon={
-                  selectedButton.includes("settings")
-                    ? <Check size={18} strokeWidth={2.5} />
-                    : <Plus size={18} strokeWidth={2.5} />
-                }
+                variant="text"
                 endIcon={
-                  <ChevronDown 
-                    size={18} 
-                    style={{ 
+                  <ChevronDown
+                    size={18}
+                    style={{
                       transition: "transform 0.3s ease",
                       transform: expandedSettings ? "rotate(180deg)" : "rotate(0deg)",
-                    }} 
+                    }}
                   />
                 }
-                onClick={() => handleToggleParent("settings")}
-                disabled={isPermissionLocked}
+                onClick={() => setExpandedSettings(!expandedSettings)}
                 sx={{
                   justifyContent: "space-between",
                   textTransform: "none",
-                  borderRadius: "12px",
                   padding: "14px 18px",
                   fontWeight: 700,
-                  fontSize: "15px",
-                  border: "2px solid",
-                  borderColor: selectedButton.includes("settings") ? "#6366f1" : "#d1d5db",
-                  backgroundColor: selectedButton.includes("settings")
-                    ? "#eef2ff"
-                    : "#fff",
-                  color: selectedButton.includes("settings") ? "#4338ca" : "#374151",
-                  
-                  "&:hover": {
-                    backgroundColor: selectedButton.includes("settings") ? "#e0e7ff" : "#f9fafb",
-                    borderColor: selectedButton.includes("settings") ? "#4f46e5" : "#9ca3af",
-                    transform: "translateY(-1px)",
-                    boxShadow: selectedButton.includes("settings")
-                      ? "0 4px 12px rgba(99, 102, 241, 0.15)"
-                      : "0 2px 8px rgba(0, 0, 0, 0.08)",
-                  },
+                  fontSize: "16px",
+                  color: "#111827",
+                  borderRadius: "12px",
+                  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
                 }}
               >
                 Settings
               </Button>
 
-              {/* SETTINGS CHILDREN */}
               <Collapse in={expandedSettings}>
-                <Box
-                  sx={{
-                    mt: 2.5,
-                    pl: 1,
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                    gap: 1.5,
-                  }}
-                >
+                <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
                   {permissionTree
-                    .find(p => p.id === "settings")
-                    ?.children?.map(child => {
-                      const active = selectedButton.includes(child.id);
-
-                      return (
-                        <Button
-                          key={child.id}
-                          type="button"
-                          variant="outlined"
-                          startIcon={active ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
-                          onClick={() => handleToggleChild(child.id, "settings")}
-                          disabled={isPermissionLocked}
-                          sx={{
-                            justifyContent: "flex-start",
-                            textTransform: "none",
-                            borderRadius: "10px",
-                            padding: "10px 14px",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            border: "2px solid",
-                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-
-                            backgroundColor: active ? "#e0e7ff" : "#fff",
-                            borderColor: active ? "#6366f1" : "#e5e7eb",
-                            color: active ? "#3730a3" : "#4b5563",
-
-                            "&:hover": {
-                              backgroundColor: active ? "#ddd6fe" : "#f9fafb",
-                              borderColor: active ? "#4f46e5" : "#d1d5db",
-                              transform: "translateX(2px)",
-                            },
-                          }}
-                        >
-                          {child.name}
-                        </Button>
-                      );
-                    })}
+                    .find((p) => p.id === "settings")
+                    ?.children?.map((child) =>
+                      renderModuleCheckboxes(child.id, child.name, child.hasActions, true)
+                    )}
                 </Box>
               </Collapse>
             </Box>
 
-            {/* CAREERS CARD */}
-            <Box
-              sx={{
-                mt: 3,
-                p: 2.5,
-                borderRadius: "16px",
-                border: "2px solid #e5e7eb",
-                backgroundColor: "#fafafa",
-                transition: "all 0.3s ease",
-              }}
-            >
-              {/* CAREERS HEADER */}
-              <Button
-                fullWidth
-                type="button"
-                variant="outlined"
-                startIcon={
-                  selectedButton.includes("careers")
-                    ? <Check size={18} strokeWidth={2.5} />
-                    : <Plus size={18} strokeWidth={2.5} />
-                }
-                endIcon={
-                  <ChevronDown 
-                    size={18} 
-                    style={{ 
-                      transition: "transform 0.3s ease",
-                      transform: expandedCareers  ? "rotate(180deg)" : "rotate(0deg)",
-                    }} 
-                  />
-                }
-                onClick={() => handleToggleParent("careers")}
-                disabled={isPermissionLocked}
+            {/* Error Message */}
+            {permissionError && (
+              <Box
                 sx={{
-                  justifyContent: "space-between",
-                  textTransform: "none",
-                  borderRadius: "12px",
-                  padding: "14px 18px",
-                  fontWeight: 700,
-                  fontSize: "15px",
-                  border: "2px solid",
-                  borderColor: selectedButton.includes("careers") ? "#6366f1" : "#d1d5db",
-                  backgroundColor: selectedButton.includes("careers")
-                    ? "#eef2ff"
-                    : "#fff",
-                  color: selectedButton.includes("careers") ? "#4338ca" : "#374151",
-                  
-                  "&:hover": {
-                    backgroundColor: selectedButton.includes("careers") ? "#e0e7ff" : "#f9fafb",
-                    borderColor: selectedButton.includes("careers") ? "#4f46e5" : "#9ca3af",
-                    transform: "translateY(-1px)",
-                    boxShadow: selectedButton.includes("careers")
-                      ? "0 4px 12px rgba(99, 102, 241, 0.15)"
-                      : "0 2px 8px rgba(0, 0, 0, 0.08)",
-                  },
-                }}
-              >
-                Careers
-              </Button>
-
-              {/* CAREERS CHILDREN */}
-              <Collapse in={expandedCareers}>
-                <Box
-                  sx={{
-                    mt: 2.5,
-                    pl: 1,
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                    gap: 1.5,
-                  }}
-                >
-                  {permissionTree
-                    .find(p => p.id === "careers")
-                    ?.children?.map(child => {
-                      const active = selectedButton.includes(child.id);
-
-                      return (
-                        <Button
-                          key={child.id}
-                          type="button"
-                          variant="outlined"
-                          startIcon={active ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
-                          onClick={() => handleToggleChild(child.id, "careers")}
-                          disabled={isPermissionLocked}
-                          sx={{
-                            justifyContent: "flex-start",
-                            textTransform: "none",
-                            borderRadius: "10px",
-                            padding: "10px 14px",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            border: "2px solid",
-                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-
-                            backgroundColor: active ? "#e0e7ff" : "#fff",
-                            borderColor: active ? "#6366f1" : "#e5e7eb",
-                            color: active ? "#3730a3" : "#4b5563",
-
-                            "&:hover": {
-                              backgroundColor: active ? "#ddd6fe" : "#f9fafb",
-                              borderColor: active ? "#4f46e5" : "#d1d5db",
-                              transform: "translateX(2px)",
-                            },
-                          }}
-                        >
-                          {child.name}
-                        </Button>
-                      );
-                    })}
-                </Box>
-              </Collapse>
-            </Box>
-
-            {/* ERROR */}
-            {selectedButtonError && (
-              <Fade in={!!selectedButtonError}>
-                <Box sx={{ 
-                  mt: 2, 
-                  p: 1.5, 
+                  mt: 2.5,
+                  p: 1.5,
                   backgroundColor: "#fef2f2",
                   border: "1px solid #fecaca",
                   borderRadius: "10px",
-                  color: "#dc2626", 
+                  color: "#dc2626",
                   fontSize: "14px",
                   fontWeight: 500,
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                }}>
-                  <span>⚠️</span>
-                  {selectedButtonError}
-                </Box>
-              </Fade>
+                }}
+              >
+                <span>⚠️</span>
+                {permissionError}
+              </Box>
             )}
           </Box>
         </form>
       </DialogContent>
 
-
-      <DialogActions>
-        <Button onClick={onClose}>{cancelLabel}</Button>
-        <Button type="submit" form="reusable-form">
+      <DialogActions sx={{ p: 2.5, gap: 1.5 }}>
+        <Button
+          onClick={onClose}
+          sx={{
+            px: 3,
+            py: 1.25,
+            borderRadius: "10px",
+            textTransform: "none",
+            fontWeight: 600,
+            fontSize: "15px",
+            color: "#374151",
+            backgroundColor: "#f3f4f6",
+            "&:hover": { backgroundColor: "#e5e7eb" },
+          }}
+        >
+          {cancelLabel}
+        </Button>
+        <Button
+          type="submit"
+          form="permission-form"
+          variant="contained"
+          sx={{
+            px: 3,
+            py: 1.25,
+            borderRadius: "10px",
+            textTransform: "none",
+            fontWeight: 600,
+            fontSize: "15px",
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+              boxShadow: "0 6px 16px rgba(99, 102, 241, 0.4)",
+              transform: "translateY(-1px)",
+            },
+            transition: "all 0.2s ease",
+          }}
+        >
           {submitLabel}
         </Button>
       </DialogActions>

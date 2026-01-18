@@ -26,6 +26,7 @@ import {
 } from '../../../services/Technician/careersServices'
 import Snackbar from '../../../components/feedback/Snackbar'; 
 import { userAuth } from "../../../hooks/userAuth"
+import RichTextEditor from "../../../components/Fields/RichTextEditor";
 
 interface FormJobData {
   title: string;
@@ -33,6 +34,7 @@ interface FormJobData {
   location: string;
   work_location: string;
   job_type: string;
+  careers_job_details: string;
 }
 
 interface FormError {
@@ -41,8 +43,7 @@ interface FormError {
   location?: string;
   work_location?: string;
   job_type?: string;
-  responsibilities?: string;
-  qualifications?: string;
+  careers_job_details?: string; 
 }
 
 const JobPostingForm: React.FC = () => {
@@ -65,7 +66,8 @@ const JobPostingForm: React.FC = () => {
     description: "",
     location: "",
     work_location: "",
-    job_type: ""
+    job_type: "",
+    careers_job_details: ""
   });
 
   // --- Form Error ---
@@ -133,24 +135,26 @@ const JobPostingForm: React.FC = () => {
     const location = String(formJobData.location || '');
     const workLocation = String(formJobData.work_location || '');
     const jobType = String(formJobData.job_type || '');
+    const careers_job_details = String(formJobData.careers_job_details || '');
 
     if (!title.trim()) errors.title = "Job title is required.";
     if (!description.trim()) errors.description = "Job description is required."; 
     if (!location.trim()) errors.location = "Location is required.";
     if (!workLocation.trim()) errors.work_location = "Work location is required.";
     if (!jobType.trim()) errors.job_type = "Job type is required.";
+    if (!careers_job_details.trim()) errors.careers_job_details = "Job details is required";
 
     // Validate responsibilities
-    const validResponsibilities = responsibilities.filter(r => r.trim() !== "");
-    if (validResponsibilities.length === 0) {
-      errors.responsibilities = "Please add at least one responsibility.";
-    }
+    // const validResponsibilities = responsibilities.filter(r => r.trim() !== "");
+    // if (validResponsibilities.length === 0) {
+    //   errors.responsibilities = "Please add at least one responsibility.";
+    // }
 
     // Validate qualifications
-    const validQualifications = qualifications.filter(q => q.trim() !== "");
-    if (validQualifications.length === 0) {
-      errors.qualifications = "Please add at least one qualification.";
-    }
+    // const validQualifications = qualifications.filter(q => q.trim() !== "");
+    // if (validQualifications.length === 0) {
+    //   errors.qualifications = "Please add at least one qualification.";
+    // }
 
     return errors;
   }
@@ -193,8 +197,9 @@ const JobPostingForm: React.FC = () => {
         location: formJobData.location,
         work_location: formJobData.work_location,
         job_type: formJobData.job_type,
-        responsibilities: validResponsibilities,
-        qualifications: validQualifications
+        careers_job_details: formJobData.careers_job_details
+        // responsibilities: validResponsibilities,
+        // qualifications: validQualifications
       };
 
       if (id) {
@@ -251,20 +256,21 @@ const JobPostingForm: React.FC = () => {
         description: jobInfo.description || "",
         location: jobInfo.location || "",
         work_location: jobInfo.work_location || "",
-        job_type: jobInfo.job_type || ""
+        job_type: jobInfo.job_type || "",
+        careers_job_details: jobInfo.careers_job_details || ""
       });
 
-      setResponsibilities(
-        Array.isArray(jobInfo.responsibilities) && jobInfo.responsibilities.length > 0
-          ? jobInfo.responsibilities
-          : [""]
-      );
+      // setResponsibilities(
+      //   Array.isArray(jobInfo.responsibilities) && jobInfo.responsibilities.length > 0
+      //     ? jobInfo.responsibilities
+      //     : [""]
+      // );
 
-      setQualifications(
-        Array.isArray(jobInfo.qualifications) && jobInfo.qualifications.length > 0
-          ? jobInfo.qualifications
-          : [""]
-      );
+      // setQualifications(
+      //   Array.isArray(jobInfo.qualifications) && jobInfo.qualifications.length > 0
+      //     ? jobInfo.qualifications
+      //     : [""]
+      // );
     }
   }, [jobResponse]);
 
@@ -282,10 +288,9 @@ const JobPostingForm: React.FC = () => {
         {/* Breadcrumb */}
         <div className="mb-6">
           <Breadcrumb
-            items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <Mail className="w-4 h-4"/> },
-              { label: "Job Posting",  href: "/beesee/job-posting", icon: <User2 className="w-4 h-4"/> },
-              { label: "Job Posting Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
+            items={[ 
+              { label: "Careers",  href: "/beesee/job-posting", icon: <User2 className="w-4 h-4"/> },
+              { label: "Careers Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
             ]}
           />
         </div>
@@ -440,11 +445,26 @@ const JobPostingForm: React.FC = () => {
                     helperText={formError.job_type}
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm  text-black dark:text-black mb-2">
+                    Job details *
+                  </label>
+                  <RichTextEditor
+                    value={formJobData.careers_job_details || ''}
+                    onChange={(value) =>
+                      setJobData(prev => ({ ...prev, careers_job_details: value }))
+                    }
+                  />
+                  {formError.careers_job_details && (
+                    <p className="text-red-500 text-sm mt-1">{formError.careers_job_details}</p>
+                  )} 
+                </div>
               </div>
             </div>
 
             {/* Responsibilities Section */}
-            <div className="bo-stat-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            {/* <div className="bo-stat-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
@@ -493,10 +513,10 @@ const JobPostingForm: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Qualifications Section */}
-            <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            {/* <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg mr-4">
@@ -545,7 +565,7 @@ const JobPostingForm: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -349,19 +349,20 @@ export default function EmailConversationApp() {
     }
   }
 
-    const handleDelete = (ids: number[]) => {
-    if (userInfo?.role !== "Admin") {
+  const handleDelete = (ids: number[]) => {
+    const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
+    if (!jobOrderPermission || !jobOrderPermission.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete tickets.")
       setSnackBarType("error")
       setSnackBarOpen(true)
       return
-    } 
+    }
 
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
     setDialogMessage(`Are you sure you want to delete ${ids.length} tickets?`)
- 
+
   };
 
   const handleConfirmDelete = async () => {

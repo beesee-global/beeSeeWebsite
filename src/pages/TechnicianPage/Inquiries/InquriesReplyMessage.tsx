@@ -188,6 +188,13 @@ export default function InquriesReplyMessage() {
 
   // Handle Delete Inquiry
   const handleDelete = () => {
+    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'inquiries' && p.children_id === '');
+    if (!Permission || !Permission.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete inquiries.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     setDialogOpen(true)
     setDeleteIds([Number(userInquiriesInfo?.id)]);
     setDialogTitle('Delete Inquiry');

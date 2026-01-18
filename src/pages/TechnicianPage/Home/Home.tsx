@@ -50,6 +50,8 @@ const Home = () => {
    /*  { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' }, */
   ];
 
+  const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
+
   const { data: openTicketResponse = [], isLoading: openLoading } = useQuery ({
     queryKey: ['open-ticket'],
     queryFn: fetchOpen,
@@ -100,8 +102,9 @@ const Home = () => {
   };
 
   const handleDelete = (ids: number[]) => {
-    if (userInfo?.role !== "Admin") {
-      setSnackBarMessage("You do not have permission to delete tickets.")
+    
+    if (!jobOrderPermission || !jobOrderPermission.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete Job Order.")
       setSnackBarType("error")
       setSnackBarOpen(true)
       return
@@ -110,7 +113,7 @@ const Home = () => {
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete ${ids.length} tickets?`)
+    setDialogMessage(`Are you sure you want to delete ${ids.length} job order?`)
  
   };
 
@@ -235,14 +238,16 @@ const Home = () => {
           </div>
           
           {/* Add Ticket Button - Moved under search */}
-          <button
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap w-full sm:w-auto h-10 sm:h-11 flex-shrink-0"
-            onClick={() => navigate('/beesee/job-order/submit-ticket')}
-          >
-            <Send className='w-4 h-4' />
-            <span className="hidden sm:inline">Add Ticket</span>
-            <span className="sm:hidden">Add</span>
-          </button>
+          {jobOrderPermission?.actions.includes('add') && 
+            <button
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap w-full sm:w-auto h-10 sm:h-11 flex-shrink-0"
+              onClick={() => navigate('/beesee/job-order/submit-ticket')}
+            >
+              <Send className='w-4 h-4' />
+              <span className="hidden sm:inline">Add Ticket</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+          }
         </div>
       </div>
 

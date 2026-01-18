@@ -10,7 +10,7 @@
   import DialogContent from '@mui/material/DialogContent';
   import CloseIcon from '@mui/icons-material/Close';
   import IconButton from '@mui/material/IconButton';
-  import RichTextEditor from '../components/RichTextEditor';
+  import RichTextEditor from '../../../../components/Fields/RichTextEditor';
 
   interface FieldConfig {
     name: string;

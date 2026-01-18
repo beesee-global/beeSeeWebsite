@@ -58,15 +58,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         },
         { id: "faqs", name: "Faqs", path: "/beesee/faqs", isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> }, 
         { id: "inquiries", name: "Inquiries", path: "/beesee/inquiries", icon: <MailQuestionMarkIcon size={20} /> }, 
-        {
-            id: "careers",
-            name: 'Careers',
-            icon: <Briefcase size={20}/>,
-            children: [
-                { id: "job-posting", name: "Job Posting", path: "/beesee/job-posting" },  
-                { id: "applicants", name: "Applicants", path: "/beesee/applicants" },  
-            ],
-        },
+        { id: "careers", name: "Careers", path: "/beesee/job-posting", icon: <Briefcase size={20} /> }, 
     ];
 
     const toggleMenu = (id: string) => {
@@ -96,23 +88,34 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     };
 
     // Filter menu based on permissions
-    useEffect(() => { 
+    useEffect(() => {
         if (!userInfo) return;
 
         const filteredMenu = sidebarLayout
             .filter(item => {
                 if (item.id === "dashboard") return true;
                 if (!userInfo.permissions) return false;
-                return userInfo.permissions.includes(item.id) || (item.children?.some(child => userInfo.permissions?.includes(child.id)));
+                if (item.children) {
+                    return item.children.some(child => userInfo.permissions.some(p => p.parent_id === item.id && p.children_id === child.id));
+                } else {
+                    return userInfo.permissions.some(p => p.parent_id === item.id && p.children_id === '');
+                }
             })
             .map(item => {
                 if (item.children) {
-                    const filteredChildren = item.children.filter(child => userInfo.permissions?.includes(child.id));
-                    return { ...item, children: filteredChildren };
+                    const filteredChildren = item.children.filter(child => userInfo.permissions.some(p => p.parent_id === item.id && p.children_id === child.id));
+                    if (filteredChildren.length > 0) {
+                        return { ...item, children: filteredChildren };
+                    } else {
+                        // If no children permissions, but parent permission exists, show as parent without children
+                        const { children, ...itemWithoutChildren } = item;
+                        return itemWithoutChildren;
+                    }
                 }
                 return item;
             });
 
+            console.log(userInfo)
         setMenuItems(filteredMenu);
     }, [userInfo]);
 

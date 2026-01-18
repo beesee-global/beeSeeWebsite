@@ -40,6 +40,7 @@ const Product = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const { 
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -47,6 +48,8 @@ const Product = () => {
     snackBarOpen,
     snackBarType
   } = userAuth()
+
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'model');
   
   const { data: productResponse, isLoading } = useQuery({
     queryKey: ['products'],
@@ -84,13 +87,25 @@ const Product = () => {
   ];
 
   const handleDelete = (ids: number[]) => {
+    if (Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete model.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete ${ids.length} products?`)
+    setDialogMessage(`Are you sure you want to delete ${ids.length} model?`)
   };
 
   const handleEdit = (pid : string | number) => { 
+    if (Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit model.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    } 
     const product = products.find((c: any) => c.pid === pid || c.id === pid);
     if (!product) return;
 
@@ -107,7 +122,7 @@ const Product = () => {
         setDialogOpen(false)
         setDialogMessage('')
         setDialogTitle("")
-        setSnackBarMessage("Product deleted successfully");
+        setSnackBarMessage("Model deleted successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
 
@@ -115,7 +130,7 @@ const Product = () => {
         queryClient.invalidateQueries({ queryKey: ['products'] });
       }
     } catch (error) {
-      setSnackBarMessage("Failed to delete product. Please try again.");
+      setSnackBarMessage("Failed to delete model. Please try again.");
       setSnackBarType("error");
       setSnackBarOpen(true);
     }
@@ -243,7 +258,6 @@ const Product = () => {
         <div className="flex items-center w-full">
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon className="w-4 h-4"/> }, 
               { label: "Model Type", isActive: true, icon: <Package /> },
             ]}
           />
@@ -262,18 +276,20 @@ const Product = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          <div className="w-full sm:w-auto">
-            <button   
-              onClick={() => {
-                setModalOpen(true);
-                setIsEditMode(false); 
-              }} 
-              className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Model Type</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') && 
+            <div className="w-full sm:w-auto">
+              <button   
+                onClick={() => {
+                  setModalOpen(true);
+                  setIsEditMode(false); 
+                }} 
+                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Model Type</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 
