@@ -5,13 +5,13 @@ import {
   User, 
   Clock, 
   Inbox, 
-  EllipsisVertical,
-  Paperclip,
+  Check,
   X,
   Trash2,
   File,
   FileText,
   Download,
+  Paperclip,
   ArrowLeftToLine,
   Image as ImageIcon  // Rename this!
 } from 'lucide-react';
@@ -38,8 +38,7 @@ export default function EmailConversationApp() {
   const { pid } = useParams();  
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
-  const [loading, setLoading] = useState<boolean>(false); 
-  const [openJob, setOpenJob] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);  
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -106,6 +105,11 @@ export default function EmailConversationApp() {
 
     s.on("new_ticket_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
+      // Only invalidate queries to refetch from server - this ensures we get attachments
+      // Don't add msg directly to state as it doesn't contain attachment data
+      queryClient.invalidateQueries({
+        queryKey: ['conversations', userTicketInformation?.ticket_id]
+      });
     });
 
     setSocket(s);
@@ -214,17 +218,20 @@ export default function EmailConversationApp() {
 
   const handleSendReply = async () => {
     if ((!replyText.trim() && attachedFiles.length === 0)) return;
-
+ 
     setLoading(true);
 
+    const currentReplyText = replyText;
+    const currentAttachedFiles = [...attachedFiles];
+
     setReplyText('');
-    setAttachedFiles([]);
- 
+    setAttachedFiles([]);  
+
     const payload = {
       sender_email: userTicketInformation.email || 'admin@beesee.com',
       tickets_id: userTicketInformation?.ticket_id,
       sender_name: userInfo?.full_name || 'Support Team',
-      message_body: replyText,
+      message_body: currentReplyText,
       user_role: userInfo?.role,
       is_inbound: false,
     }
@@ -233,53 +240,81 @@ export default function EmailConversationApp() {
       const response = await insertConversations(payload)
 
       if (response?.success) {
-        if (userTicketInformation.status === 'open') {
-          setSnackBarMessage("Mark as Completed")
-          setSnackBarType('success')
-          setSnackBarOpen(true)
-        }
-
-        // Add locally
-        const newMessage = {
-          ...payload,
-          id: response.data.ticket_ids,
-          created_at: new Date().toISOString(),
-        };
-        
-        // Add message to screen immediately
-        setMessages(prev => [
-          ...prev, 
-          newMessage
-        ]);
-
-        // emit to server for real-time
-        socket?.emit("send_ticket_message", {
-          ticket_id: userTicketInformation?.ticket_id,
-          message: newMessage
-        });
-
-        queryClient.invalidateQueries({ 
-          queryKey: ['conversations', userTicketInformation?.ticket_id] 
-        })
-      }
   
-      // Here you would send the actual API request
-      // const formData = new FormData();,
-      // formData.append('message', replyText);
-      // formData.append('sender_email', userTicketInformation.email);
-      // attachedFiles.forEach((fileObj, index) => {
-      //   formData.append(`attachments`, fileObj.file);
-      // });
-      //
-      // try {
-      //   await fetch(`http://localhost:3001/api/conversations/${selectedConversation.id}/reply`, {
-      //     method: 'POST',
-      //     body: formData
-      //   });
-      // } catch (error) {
-      //   console.error('Error sending message:', error);
-      //   // Optionally remove the message if send fails
-      // }
+          // If there are attachments, send them separately via multipart/form-data
+        if (currentAttachedFiles.length > 0) {
+            const formData = new FormData();
+            formData.append('ticket_conversation_id', String(response?.data?.ticket_conversation_id));
+  
+            currentAttachedFiles.forEach((fileObj) => {
+            formData.append('attachments', fileObj.file);
+          });
+
+          try {
+            await insertImageConversations(formData);
+
+            if (userTicketInformation.status === 'open') {
+              setSnackBarMessage("Mark as Completed")
+              setSnackBarType('success')
+              setSnackBarOpen(true)
+            }
+
+            // emit to server for real-time
+            socket?.emit("send_ticket_message", {
+              ticket_id: userTicketInformation?.ticket_id,
+              message: {
+                ...payload,
+                id: response.data.ticket_ids,
+                created_at: new Date().toISOString(),
+              }
+            });
+
+            // Refetch conversations to get the message with attachments from server
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            })
+          } catch (attachmentError) {
+            console.error('Error uploading attachments:', attachmentError);
+            setSnackBarMessage("Message sent but attachments failed to upload.")
+            setSnackBarType("warning")
+            setSnackBarOpen(true);
+            
+            // Still refetch to show the message without attachments
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            })
+          }
+        } else {
+          if (userTicketInformation.status === 'open') {
+            setSnackBarMessage("Mark as Completed")
+            setSnackBarType('success')
+            setSnackBarOpen(true)
+          }
+
+          // Add locally for messages without attachments
+          const newMessage = {
+            ...payload,
+            id: response.data.ticket_ids,
+            created_at: new Date().toISOString(),
+          };
+          
+          // Add message to screen immediately
+          setMessages(prev => [
+            ...prev,
+            newMessage
+          ]);
+
+          // emit to server for real-time
+          socket?.emit("send_ticket_message", {
+            ticket_id: userTicketInformation?.ticket_id,
+            message: newMessage
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ['conversations', userTicketInformation?.ticket_id]
+          })
+        }
+      }
 
     } catch (error) {
       setSnackBarMessage("Something went wrong, Please try again.")
@@ -301,15 +336,7 @@ export default function EmailConversationApp() {
       minute: "2-digit"
     });
   };
-
-  const handleClickAwayJob = () => {
-    setOpenJob(false);
-  };
-
-  const handleClickJob = () => {
-    setOpenJob((prev) => !prev);
-  };
-
+ 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -435,58 +462,25 @@ export default function EmailConversationApp() {
           {/* Header */}
           <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
             <div>
-              {/* <h2 className="bee-title-sm text-gray-900">
-                {userTicketInformation.company || 'No Subject'}
-              </h2> */}
-              {/* <p className="text-sm text-gray-500">
-                Conversation with {userTicketInformation.email}
-              </p> */}
+              <h2 className="bee-title-sm text-gray-900">
+                Issue: {userTicketInformation.issue_type || 'No Subject'}
+              </h2> 
             </div>
 
             {/* ticket */}
             <div className='flex gap-3 items-center'> 
+              <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
+              >
+                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "COMPLETED" : "Expired"}
+              </span> 
 
-              <div>
-                <ClickAwayListener
-                  mouseEvent="onMouseDown"
-                  touchEvent="onTouchStart"
-                  onClickAway={handleClickAwayJob}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <button
-                      type='button'
-                      onClick={handleClickJob}
-                      className='hover:bg-gray-100 p-2 rounded-md transition'
-                    >
-                      <EllipsisVertical className='w-5 h-5' />
-                    </button>
-                    {openJob && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: 40,
-                        right: 0,
-                        zIndex: 10,
-                        border: '1px solid #e5e7eb',
-                        bgcolor: 'background.paper', 
-                        boxShadow: 3,
-                        borderRadius: 1,
-                        width: 170,
-                        p: 1,
-                      }}>
-                        <ul className='flex flex-col gap-1 justify-center items-center text-center'>
-                          {/* <li className='hover:bg-gray-100 px-2 py-1 cursor-pointer rounded text-sm w-full'>
-                            Create Job Order
-                          </li> */}
-                          <li onClick={() => markAsCompleted()} className='hover:bg-gray-100 px-2 py-1 cursor-pointer rounded text-sm w-full'>
-                            Mark as completed
-                          </li>
-                        </ul>
-                      </Box>
-                    )}
-                  </Box>
-                </ClickAwayListener>
-              </div>
-              
+              <button 
+                onClick={() => markAsCompleted()}
+                title="Mark as completed"
+                className='px-3 py-1 rounded-full text-md border bg-green-50'
+              >
+                <Check className='text-green-700'/>
+              </button>
                 <div className='md:hidden'>
                   <button 
                     onClick={() => setShowSidebar(true)}
@@ -541,26 +535,44 @@ export default function EmailConversationApp() {
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {msg.attachments.map((attachment, idx) => (
-                            <div
-                              key={idx}
-                              className={`flex items-center gap-2 p-2 rounded ${
-                                msg.is_inbound 
-                                  ? 'bg-gray-50 border border-gray-200' 
-                                  : 'bg-gray-700 bg-opacity-50'
-                              }`}
-                            >
-                              {getFileIcon(attachment.type)}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">{attachment.name}</p>
-                                <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                            attachment.type?.startsWith('image/') ? (
+                              // Display images automatically
+                              <div key={idx} className="mt-2">
+                                <img
+                                  src={attachment.attachment_url}
+                                  alt={attachment.name}
+                                  className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                                  onClick={() => setSelectedImage(attachment.attachment_url)}
+                                />
+                                <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
                               </div>
-                              <button 
-                                className="p-1 hover:bg-gray-200 rounded transition"
-                                title="Download"
+                            ) : (
+                              // Display other file types as downloadable items
+                              <div
+                                key={idx}
+                                className={`flex items-center gap-2 p-2 rounded ${
+                                  msg.is_inbound
+                                    ? 'bg-gray-50 border border-gray-200'
+                                    : 'bg-gray-700 bg-opacity-50'
+                                }`}
                               >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
+                                {getFileIcon(attachment.type)}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">{attachment.name}</p>
+                                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                                </div>
+                                <a
+                                  href={attachment.attachment_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={attachment.name}
+                                  className="p-1 hover:bg-gray-200 rounded transition"
+                                  title="Download"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </a>
+                              </div>
+                            )
                           ))}
                         </div>
                       )}
@@ -636,14 +648,14 @@ export default function EmailConversationApp() {
               />
 
               {/* Attach File Button */}
-              {/* <button
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
                 className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 title="Attach files"
               >
                 <Paperclip className="w-5 h-5 text-gray-600" />
-              </button> */}
+              </button>
 
               <textarea
                 value={replyText}
@@ -722,7 +734,7 @@ export default function EmailConversationApp() {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Inbox className="w-5 h-5" />
-              Ticket Information
+              Job Order Information
             </h2>
           </div>
           <div>

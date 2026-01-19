@@ -16,7 +16,10 @@ import {
   Send,
   User2, 
   Building2,
-  ArrowLeft
+  ArrowLeft,
+  Map,
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import CustomTextField from '../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../components/Fields/CustomSelectField';
@@ -174,6 +177,17 @@ const Inquiries = () => {
       setSnackBarOpen(true) 
     }
   };
+  const location = {
+    address: '#65-D Scout Borromeo, South Triangle, Quezon City',
+    lat: 14.6333,
+    lng: 121.0333,
+    url: 'https://www.google.com/maps/search/?api=1&query=65-D+Scout+Borromeo+Street+South+Triangle+Quezon+City'
+  };
+
+const embedUrl =
+  'https://maps.google.com/maps?q=Beesee%20Global%20Technology%20Inc,%20Scout%20Borromeo,%20Quezon%20City&z=17&output=embed';
+
+
 
   const handleReset = () => {
     setSubmitted(false)
@@ -466,11 +480,24 @@ const Inquiries = () => {
             <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
               {isMobile ? (
                 <>
-                  <h1 
-                    className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md mb-4"
-                  >
-                    BUSINESS INQUIRIES
-                  </h1>
+                  <h1
+                  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                  className="
+                    font-bebas
+                    text-[#FDCC00]
+                    leading-none
+                    tracking-wide
+                    select-none
+                    text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl
+                    px-2 sm:px-4
+                    mb-4 sm:mb-5
+                    whitespace-nowrap
+                    overflow-hidden
+                    drop-shadow-md
+                  "
+                >
+                  BUSINESS INQUIRIES
+                </h1>
                   <p 
                     className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
                   >
@@ -479,14 +506,16 @@ const Inquiries = () => {
                 </>
               ) : (
                 <>
-                  <motion.h1 
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7 }}
-                    className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md mb-4"
-                  >
-                    BUSINESS INQUIRIES
-                  </motion.h1>
+<motion.h1
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7 }}
+  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+  className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden drop-shadow-md"
+>
+  BUSINESS INQUIRIES
+</motion.h1>
+
                   <motion.p 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -524,7 +553,7 @@ const Inquiries = () => {
                             SALES
                           </div>
                           <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            +63 912 345 6789
+                            +63 927 609 3575
                           </div>
                         </div>
                       </div>
@@ -549,14 +578,14 @@ const Inquiries = () => {
                     <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
                       <div className="flex items-center space-x-4">
                         <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
-                          <MessageSquare size={24} />
+                          <Map size={24} />
                         </div>
                         <div style={{ textAlign: 'left' }}>
                           <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
-                            LIVE CHAT SUPPORT
+                            ADDRESS
                           </div>
                           <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            Available 24/7 for clients
+                            #65-D Scout Borromeo, South Triangle, Quezon City
                           </div>
                         </div>
                       </div>
@@ -592,7 +621,7 @@ const Inquiries = () => {
                             SALES
                           </div>
                           <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            +63 912 345 6789
+                            +63 927 609 3575
                           </div>
                         </div>
                       </div>
@@ -617,14 +646,14 @@ const Inquiries = () => {
                     <div className="beesee-card-content" style={{ padding: '1.25rem' }}>
                       <div className="flex items-center space-x-4">
                         <div className="icon-wrap" style={{ width: '60px', height: '60px', margin: '0' }}>
-                          <MessageSquare size={24} />
+                          <Map size={24} />
                         </div>
                         <div style={{ textAlign: 'left' }}>
                           <div className="bee-body-sm" style={{ fontWeight: '600', color: 'var(--text-light)', marginBottom: '0.25rem', fontSize: '16px' }}>
-                            LIVE CHAT SUPPORT
+                            ADDRESS
                           </div>
                           <div className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            Available 24/7 for clients
+                             #65-D Scout Borromeo, South Triangle, Quezon City
                           </div>
                         </div>
                       </div>
@@ -926,6 +955,37 @@ const Inquiries = () => {
             </div>
           </>
         )}
+      </section>
+
+       {/* ✅ MAP */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 pb-20">
+        <div className="beesee-card-content overflow-hidden">
+          <div className="p-6 flex justify-between items-center">
+            <div
+        className="flex items-center gap-3"
+        style={{ color: 'var(--beesee-gold)' }}
+      >
+        <MapPin size={40} />
+        <div>
+          <h3 className="bee-title-sm text-left"
+          style={{ color: 'var(--beesee-gold)' }}
+
+          >Our Location</h3>
+
+                <p className="bee-body-sm">{location.address}</p>
+              </div>
+            </div>
+            <a href={location.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink />
+            </a>
+          </div>
+          <iframe
+            src={embedUrl}
+            className="w-full h-[450px]"
+            loading="lazy"
+            style={{ border: 0 }}
+          />
+        </div>
       </section>
     </div>
   );

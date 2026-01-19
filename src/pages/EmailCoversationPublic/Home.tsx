@@ -10,11 +10,11 @@ import {
   File,
   Inbox,
   ArrowLeftToLine,
-  FileText, 
+  FileText,
   Image as ImageIcon,
-  AlertCircle, 
-  Mail,
-  FileQuestion, 
+  FileQuestion,
+  Download,
+  Paperclip 
 } from 'lucide-react';
 
 import { SpinningRingLoader } from '../../components/ui/LoadingScreens'
@@ -23,6 +23,7 @@ import {
   fetchTicketDetailsPublic,
   fetchConversation,
   insertConversationPublic,
+  insertImageConversation
 } from '../../services/Technician/ticketsServices';
 import Snackbar from '../../components/feedback/Snackbar';
 import ConversationsDetails from '../../components/ui/ConversationsDetails';
@@ -72,6 +73,13 @@ export default function EmailConversationApp() {
     mutationFn: insertConversationPublic,
   });
 
+  // --- inserting image ---
+  const {
+    mutateAsync: insertImageConversations
+  } = useMutation({
+    mutationFn: insertImageConversation
+  });
+
   // Initialize socket connection per ticket 
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
@@ -97,6 +105,11 @@ export default function EmailConversationApp() {
 
     s.on("new_ticket_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
+      // Only invalidate queries to refetch from server - this ensures we get attachments
+      // Don't add msg directly to state as it doesn't contain attachment data
+      queryClient.invalidateQueries({
+        queryKey: ['conversations', userTicketInformation?.ticket_id]
+      });
     });
 
     setSocket(s);
@@ -120,6 +133,9 @@ export default function EmailConversationApp() {
     if (!replyText.trim() && attachedFiles.length === 0) return;
     setLoading(true)
     
+    const currentReplyText = replyText;
+    const currentAttachedFiles = [...attachedFiles];
+
     setReplyText('');
     setAttachedFiles([]);
 
@@ -127,7 +143,7 @@ export default function EmailConversationApp() {
       sender_email: userTicketInformation.email,
       tickets_id: userTicketInformation.ticket_id,
       sender_name: userTicketInformation.full_name,
-      message_body: replyText,
+      message_body: currentReplyText,
       user_role: "Customer",
       is_inbound: true,
     };
@@ -135,27 +151,66 @@ export default function EmailConversationApp() {
     try {
       const response = await insertConversationMutation.mutateAsync(payload);
 
-      if (response?.success) { 
-        // Add locally
-        const newMessage = {
-          ...payload,
-          id: response.data.ticket_ids,
-          created_at: new Date().toISOString(),
-        };
-        setMessages(prev => [
-          ...prev, 
-          newMessage
-        ]);
+      if (response?.success) {
+        // If there are attachments, send them separately via multipart/form-data
+        if (currentAttachedFiles.length > 0) {
+          const formData = new FormData();
+          formData.append('ticket_conversation_id', String(response?.data?.ticket_conversation_id));
 
-        // Emit to server for real-time
-        socket?.emit("send_ticket_message", { 
-          ticket_id: userTicketInformation.ticket_id, 
-          message: newMessage 
-        });
+          currentAttachedFiles.forEach((fileObj) => {
+            formData.append('attachments', fileObj.file);
+          });
 
-        queryClient.invalidateQueries([
-          'conversations', userTicketInformation.ticket_id
-        ]);
+          try {
+            await insertImageConversations(formData);
+
+            // emit to server for real-time
+            socket?.emit("send_ticket_message", {
+              ticket_id: userTicketInformation?.ticket_id,
+              message: {
+                ...payload,
+                id: response.data.ticket_ids,
+                created_at: new Date().toISOString(),
+              }
+            });
+
+            // Refetch conversations to get the message with attachments from server
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            });
+          } catch (attachmentError) {
+            console.error('Error uploading attachments:', attachmentError);
+            setSnackBarMessage("Message sent but attachments failed to upload.")
+            setSnackBarType("warning")
+            setSnackBarOpen(true);
+            
+            // Still refetch to show the message without attachments
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', userTicketInformation?.ticket_id]
+            });
+          }
+        } else {
+          // Add locally for messages without attachments
+          const newMessage = {
+            ...payload,
+            id: response.data.ticket_ids,
+            created_at: new Date().toISOString(),
+          };
+          setMessages(prev => [
+            ...prev,
+            newMessage
+          ]);
+
+          // Emit to server for real-time
+          socket?.emit("send_ticket_message", {
+            ticket_id: userTicketInformation.ticket_id,
+            message: newMessage
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ['conversations', userTicketInformation.ticket_id]
+          });
+        }
       }
     } catch (error) {
       setSnackBarOpen(true)
@@ -389,13 +444,41 @@ export default function EmailConversationApp() {
                   {msg.attachments?.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {msg.attachments.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                          {getFileIcon(file.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{file.name}</p>
-                            <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
+                        file.type?.startsWith('image/') ? (
+                          // Display images automatically
+                          <div key={idx} className="mt-2">
+                            <img
+                              src={file.attachment_url}
+                              alt={file.name}
+                              className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                              onClick={() => setSelectedImage(file.attachment_url)}
+                            />
+                            <p className="text-xs mt-1 opacity-70">{file.name}</p>
                           </div>
-                        </div>
+                        ) : (
+                          // Display other file types as downloadable items
+                          <div key={idx} className={`flex items-center gap-2 p-2 rounded ${
+                            msg.is_inbound
+                              ? 'bg-gray-700 bg-opacity-50'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}>
+                            {getFileIcon(file.type)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">{file.name}</p>
+                              <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
+                            </div>
+                            <a
+                              href={file.attachment_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={file.name}
+                              className="p-1 hover:bg-gray-200 rounded transition"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </div>
+                        )
                       ))}
                     </div>
                   )}
@@ -458,14 +541,14 @@ export default function EmailConversationApp() {
             />
 
             {/* Attach File Button */}
-            {/* <button
+            <button
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
               className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               title="Attach files"
             >
               <Paperclip className="w-5 h-5 text-gray-600" />
-            </button> */}
+            </button>
 
             <textarea
               value={replyText}

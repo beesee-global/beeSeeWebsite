@@ -280,7 +280,7 @@ const routes = [
                 element: <TechnicianJobPosting />
             }, 
             {
-                path:  "applicants",
+                path:  "job-posting/applicants/:id",
                 element: <TechnicianApplicant />
             },, 
             {

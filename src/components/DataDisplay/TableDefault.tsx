@@ -50,18 +50,12 @@ const COLUMN_WIDTHS = {
   checkbox: 'w-8',
   name: 'w-44',
   concern: 'flex-1',
-  date: 'w-32', // Increased to accommodate buttons
+  date: 'w-32', 
 };
 
 // ============================================
 // 🛠 UTILITY FUNCTIONS
 // ============================================
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) return -1;
@@ -121,14 +115,16 @@ export default function TableDefault({
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<string>('name');
-  const rowsPerPage = 20;
+  
+  // 🔢 PAGINATION LIMIT
+  const rowsPerPage = 15;
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
   const defaultColumns: ColumnConfig[] = [
     { id: 'name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
     { id: 'permission', label: 'Permission', sortable: false, width: 'flex-1' },
-    { id: 'created_at', label: '', sortable: false, width: COLUMN_WIDTHS.date, align: 'right' },
+    { id: 'created_at', label: 'Actions', sortable: false, width: COLUMN_WIDTHS.date, align: 'right' },
   ];
 
   const tableColumns = columns || defaultColumns;
@@ -146,7 +142,7 @@ export default function TableDefault({
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
   const totalPages = Math.ceil(safeRows.length / rowsPerPage);
-  const startIndex = page * rowsPerPage + 1;
+  const startIndex = safeRows.length > 0 ? page * rowsPerPage + 1 : 0;
   const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
   const onDelete = (e: React.MouseEvent, id: number) => {
@@ -154,14 +150,14 @@ export default function TableDefault({
     if (handleDelete) handleDelete([id]);
   };
 
-  const handleComplete = (e: React.MouseEvent, id: string | number) => {
+  const onEditAction = (e: React.MouseEvent, id: string | number) => {
     e.stopPropagation();
     if (handleEdit) handleEdit(id);
   };
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} style={{ opacity: 0 }} />;
+      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
     }
     return order === 'asc' 
       ? <ArrowUp size={14} style={{ opacity: 1 }} />
@@ -194,7 +190,7 @@ export default function TableDefault({
           style={{ background: COLORS.surface, borderColor: COLORS.border }}
         >
           <div className="overflow-x-auto">
-            <div className="min-w-[900px]">
+            <div className="min-w-[800px]">
               {/* Header */}
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 <div className="flex items-center py-2">
@@ -211,9 +207,11 @@ export default function TableDefault({
                           style={{ 
                             marginLeft: column.align === 'right' ? 'auto' : '0',
                             justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            width: column.align === 'right' ? '100%' : 'auto',
                             color: COLORS.text,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0
                           }}
                         >
                           {column.label}
@@ -232,11 +230,9 @@ export default function TableDefault({
               {/* Table Body */}
               <div className="mt-1">
                 {visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b ">
+                  <div className="flex flex-col items-center justify-center py-16 border-b">
                     <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                    <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                      No data found
-                    </p>
+                    <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>No data found</p>
                   </div>
                 ) : (
                   visibleRows.map(row => {
@@ -251,83 +247,66 @@ export default function TableDefault({
                         style={{ 
                           background: isHovered ? COLORS.surfaceHover : 'transparent',
                           borderColor: COLORS.border,
-                          cursor: 'pointer'
+                          transition: 'background 0.2s'
                         }}
                       >
-                        {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
                           const cellValue = row[column.id];
 
                           return (
                             <div 
-                              onClick={() => handleEdit(row.pid)} 
                               key={column.id}
                               className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ 
-                                textAlign: column.align || 'left',
-                                position: 'relative'
-                              }}
+                              style={{ textAlign: column.align || 'left' }}
                             >
                               {column.id === 'created_at' ? (
-                                <div style={{ width: '100%', height: '100%' }}>
-                                  <div 
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                                  <button 
+                                    title="Edit"
+                                    onClick={(e) => onEditAction(e, row.pid || row.id)}
                                     style={{ 
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'flex-end',
-                                      gap: '8px',
-                                      visibility: isHovered ? 'visible' : 'hidden'
+                                      color: '#15803d',
+                                      background: '#dcfce7',
+                                      padding: '6px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      border: 'none'
                                     }}
                                   >
-                                    <button 
-                                      title="Edit"
-                                      onClick={(e) => handleComplete(e, row.pid)}
-                                      style={{ 
-                                        color: '#15803d',
-                                        background: '#dcfce7',
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        outline: 'none'
-                                      }}
-                                    >
-                                      <Pencil size={18} strokeWidth={2} />
-                                    </button>
+                                    <Pencil size={16} strokeWidth={2} />
+                                  </button>
 
-                                    <button 
-                                      title="Delete"
-                                      onClick={(e) => onDelete(e, row.id)}
-                                      style={{ 
-                                        color: '#dc2626',
-                                        background: '#fee2e2',
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        outline: 'none'
-                                      }}
-                                    >
-                                      <Trash2 size={18} strokeWidth={2} />
-                                    </button>
-                                  </div>
+                                  <button 
+                                    title="Delete"
+                                    onClick={(e) => onDelete(e, row.id)}
+                                    style={{ 
+                                      color: '#dc2626',
+                                      background: '#fee2e2',
+                                      padding: '6px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      border: 'none'
+                                    }}
+                                  >
+                                    <Trash2 size={16} strokeWidth={2} />
+                                  </button>
                                 </div>
                               ) : column.id === 'permission' ? (
-                                Array.isArray(cellValue) && cellValue.length > 0 ? (
-                                  <div className="flex flex-wrap gap-1">
-                                    {cellValue.map((perm: string) => (
+                                <div className="flex flex-wrap gap-1">
+                                  {Array.isArray(cellValue) && cellValue.length > 0 ? (
+                                    cellValue.map((perm: string) => (
                                       <span 
                                         key={perm} 
-                                        className="px-2 py-1 rounded text-xs font-medium"
+                                        className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
                                         style={{ background: '#dbeafe', color: '#1e40af' }}
                                       >
                                         {perm}
                                       </span>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-sm" style={{ color: COLORS.textMuted }}>—</span>
-                                )
+                                    ))
+                                  ) : (
+                                    <span className="text-sm" style={{ color: COLORS.textMuted }}>—</span>
+                                  )}
+                                </div>
                               ) : (
                                 <span className="text-sm" style={{ color: COLORS.text }}>{cellValue}</span>
                               )}
@@ -339,49 +318,46 @@ export default function TableDefault({
                   })
                 )}
               </div>
-
             </div>
           </div>
 
           {/* Pagination */}
-          <div className="w-full flex justify-end mt-3">      
-            <div className="flex items-center gap-6">
-              <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
-                {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
-              </span>
+          <div className="w-full flex justify-end mt-4 items-center gap-4">
+            <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
+              {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
+            </span>
 
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setPage(p => Math.max(0, p - 1))} 
-                  disabled={page === 0} 
-                  style={{ 
-                    padding: '6px',
-                    borderRadius: '6px',
-                    opacity: page === 0 ? 0.3 : 1,
-                    cursor: page === 0 ? 'not-allowed' : 'pointer',
-                    color: COLORS.text,
-                    background: '#f3f4f6',
-                    border: 'none'
-                  }}
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button 
-                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
-                  disabled={page === totalPages - 1 || safeRows.length === 0} 
-                  style={{ 
-                    padding: '6px',
-                    borderRadius: '6px',
-                    opacity: (page === totalPages - 1 || safeRows.length === 0) ? 0.3 : 1,
-                    cursor: (page === totalPages - 1 || safeRows.length === 0) ? 'not-allowed' : 'pointer',
-                    color: COLORS.text,
-                    background: '#f3f4f6',
-                    border: 'none'
-                  }}
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setPage(p => Math.max(0, p - 1))} 
+                disabled={page === 0} 
+                style={{ 
+                  padding: '6px',
+                  borderRadius: '6px',
+                  opacity: page === 0 ? 0.3 : 1,
+                  cursor: page === 0 ? 'not-allowed' : 'pointer',
+                  color: COLORS.text,
+                  background: '#f3f4f6',
+                  border: '1px solid #e5e7eb'
+                }}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
+                disabled={page >= totalPages - 1 || safeRows.length === 0} 
+                style={{ 
+                  padding: '6px',
+                  borderRadius: '6px',
+                  opacity: (page >= totalPages - 1 || safeRows.length === 0) ? 0.3 : 1,
+                  cursor: (page >= totalPages - 1 || safeRows.length === 0) ? 'not-allowed' : 'pointer',
+                  color: COLORS.text,
+                  background: '#f3f4f6',
+                  border: '1px solid #e5e7eb'
+                }}
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
 

@@ -13,7 +13,6 @@ interface ApplicationFormData {
   email: string;
   phone: string;
   subject: string;
-  coverLetter: string;
   resume: File | null;
 }
 
@@ -31,7 +30,6 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     email: '',
     phone: '',
     subject: '',
-    coverLetter: '',
     resume: null
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -126,8 +124,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     submitData.append('email', formData.email);
     submitData.append('phone', formData.phone);
     submitData.append("applying", jobTitle);
-    submitData.append("job_number",jobId),
-    submitData.append('coverLetter', formData.coverLetter);
+    submitData.append("job_number",jobId);
     if (formData.resume) {
       submitData.append('resume', formData.resume);
     } 
@@ -138,7 +135,6 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        coverLetter: formData.coverLetter,
         resume: formData.resume?.name, 
       });
 
@@ -153,7 +149,6 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
           email: '',
           phone: '',
           subject: '',
-          coverLetter: '',
           resume: null
         });
       }, 3000);
@@ -170,7 +165,6 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
           email: '',
           phone: '',
           subject: '',
-          coverLetter: '',
           resume: null
         });
       }, 300);
@@ -304,18 +298,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 />
               </div> */}
 
-              {/* Cover Letter (Optional) */}
-              <div>
-                <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
-                  Cover Letter 
-                </label>
-                <textarea
-                  className="input-default min-h-[140px] resize-y"
-                  placeholder="Tell us why you're the perfect fit for this role."
-                  value={formData.coverLetter}
-                  onChange={(e) => setFormData({ ...formData, coverLetter: e.target.value })}
-                />
-              </div> 
+            
 
               {/* Resume Upload */}
               <div>

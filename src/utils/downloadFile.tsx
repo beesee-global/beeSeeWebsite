@@ -2,7 +2,7 @@ export function downloadFile(url: string, mode: "view" | "download", filename?: 
     if (!url) return;
 
     if (mode === "view") {
-        window.open(url, "_blank", "noopener,noreferrer");
+        window.open(url, "_blank" );
     } else {
         const link = document.createElement("a");
         link.href = url;
@@ -11,4 +11,4 @@ export function downloadFile(url: string, mode: "view" | "download", filename?: 
         link.click();
         document.body.removeChild(link);
     }
-}
+} 

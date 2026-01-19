@@ -138,8 +138,7 @@ export default function TableJobPosting({
 
   const defaultColumns: ColumnConfig[] = [
     { id: 'full_name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
-    { id: 'status', label: 'Status', sortable: true, width: 'w-32' },
-    { id: 'created_at', label: 'Date', sortable: true, width: COLUMN_WIDTHS.date, align: 'right' },
+    { id: 'status', label: 'Status', sortable: true, width: 'w-32' }, 
   ];
 
   const tableColumns = columns || defaultColumns;
@@ -212,8 +211,11 @@ export default function TableJobPosting({
       const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
       const linkToCopy = `${apiUrl}/careers/${id}`;
 
-      navigate(linkToCopy)
-      
+      window.open(
+        `${linkToCopy}`,
+        "_blank",
+        "noopener,noreferrer"
+      ) 
 /*       // Fallback method using textarea (works in all browsers)
       const textArea = document.createElement('textarea');
       textArea.value = linkToCopy;
@@ -335,23 +337,7 @@ export default function TableJobPosting({
                           background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
                           borderColor: COLORS.border
                         }}
-                      >
-                        
-                        {/* Checkbox */}
-                        {/* <div onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelect(e, row.id);
-                        }} className={`${COLUMN_WIDTHS.checkbox} px-4`}>
-                          <div 
-                            className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
-                            style={{ 
-                              borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
-                              background: selectedRow ? COLORS.primary : 'transparent' 
-                            }}
-                          >
-                            {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
-                          </div>
-                        </div> */}
+                      > 
 
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
@@ -364,60 +350,21 @@ export default function TableJobPosting({
                                 position: 'relative'
                               }}
                             >
-                              {column.id === 'full_name' ? (
-                                <div className="flex items-center gap-3">
-                                  {/* Avatar */}
-                                  <img 
-                                    src={row.image_url} 
-                                    alt={row.first_name} 
-                                    className="w-10 h-10 rounded-full object-cover border"
-                                  />
-
-                                  {/* Name & Position */}
-                                  <div className="flex flex-col leading-tight">
-                                    <span className="font-medium text-gray-900">
-                                      {row.first_name} {row.last_name}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {row.details?.position ?? "No position"}
-                                    </span>
-                                  </div>
-                                </div>
-                              ) : column.id === 'status' ? (
-                                <div>
-                                  <span className="text-gray-900">
-                                    {row.details?.employment_status ?? "No status"}
-                                  </span>
-                                </div>
-                              ) : column.id === 'created_at' ? (
+                              {column.id === 'created_at'?(
                                 <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                                  {/* Date - shown when NOT hovered */}
-                                  <div 
-                                    style={{ 
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'flex-end',
-                                      visibility: isHovered ? 'hidden' : 'visible',
-                                      position: 'absolute',
-                                      right: 0,
-                                      top: 0,
-                                      width: '100%',
-                                      height: '100%'
-                                    }}
-                                  >
-                                    <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`} style={{ color: COLORS.textMuted }}>
+                                  <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                       {formatDate(row.created_at)}
                                     </span>
-                                  </div>
-                                  
+                                </div>
+                              ) : column.id === 'action' ? (
+                                <div style={{ width: '100%', height: '100%', position: 'relative' }}> 
                                   {/* Action buttons - shown when hovered */}
                                   <div 
                                     style={{ 
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'flex-end',
-                                      gap: '8px',
-                                      visibility: isHovered ? 'visible' : 'hidden'
+                                      gap: '8px', 
                                     }}
                                   >
                                     <button 

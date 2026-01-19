@@ -15,6 +15,7 @@ import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { userAuth } from "../../../hooks/userAuth"
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
+import { useParams } from 'react-router-dom';
 
 const Applicants = () => { 
   const queryClient = useQueryClient(); 
@@ -48,13 +49,16 @@ const Applicants = () => {
   const [debouncedSearch, setDebouncedSearch] = useState(""); 
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  const { id } = useParams()
+
   const { 
     data:applicantPendingResponse, 
     isLoading: isPendingLoading, 
     error: pendingError 
   } = useQuery({
-    queryKey: ["all-applicant"],
-    queryFn: fetchApplicants
+    queryKey: ["all-applicant",id],
+    queryFn: () => fetchApplicants(String(id)),
+    enabled: !!id, // optional but recommended
   });
       
   const { 
@@ -62,8 +66,9 @@ const Applicants = () => {
     isLoading: isCompletedLoading, 
     error: completedError 
   } = useQuery({
-    queryKey: ["short-listed"],
-    queryFn: fetchApplicantsShortList
+    queryKey: ["short-listed",id],
+    queryFn: () => fetchApplicantsShortList(String(id)),
+    enabled: !!id,
   });
 
    const { mutateAsync: shortListed } = useMutation({

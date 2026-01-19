@@ -37,12 +37,13 @@ const JobPosting = () => {
 
   const columns = [
     { id: 'job_reference_number', label: 'Job No.', sortable: true, align: 'left' },
-    { id: 'title', label: 'Title', sortable: false, align: 'left' }, 
+    { id: 'title', label: 'Job Position', sortable: false, align: 'left' }, 
     { id: 'description', label: 'Description', sortable: false, align: 'left' },
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
     { id: 'work_location', label: 'Work Location', sortable: false, align: 'left' }, 
     { id: 'location', label: 'Location', sortable: false, align: 'left' },
-    { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
+    { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' },
+    { id: 'action', label: "Action", sortable: false, align: 'right'}
   ]
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'careers' && p.children_id === '');
