@@ -16,6 +16,26 @@ export interface JobPosting {
 
 import JobPage from '../Careers/components/JobPage';
 
+// this is data for careers page 
+// data: [
+//     {
+//         "title": "Sales Marketing",
+//         "description": "As a Sales Marketing Professional, You'll be promoting a range of tech devices such as Laptops, Tablets, digital Kiosks, interactive Boards, and smart Displays, along with IT services like CCTV installation and network system Setup. You'll help businesses upgrade their Technology, connect with Clients, and deliver smarter Solutions. Testing.",
+//         "job_type": "Full-time",
+//         "location": "South Triangle, Quezon City",
+//         "work_location": "Onsite",
+//         "created_at": "2026-01-19T02:37:56.000Z"
+//     },
+//     {
+//         "title": "Sales Graphic",
+//         "description": "As a Sales Graphic, you’ll be promoting a range of tech innovative devices, along with IT digital solution services. You’ll help businesses upgrade their technology, connect with clients, and deliver smarter solutions.",
+//         "job_type": "Full-time",
+//         "location": "South Triangle, Quezon City",
+//         "work_location": "Onsite",
+//         "created_at": "2026-01-14T05:53:56.000Z"
+//     }
+//   ]
+
 const Career: React.FC = () => {
 
   const { job_ref } = useParams<{ job_ref: string }>();

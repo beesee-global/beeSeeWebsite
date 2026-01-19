@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import beeseelogo from '../../../../../public/beeseelogo.png';
+import QrWithLogo from '../../../../components/ui/QRWithLogo'
 import { 
   Briefcase, 
   MapPin, 
@@ -63,7 +65,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
       
       {/* HERO SECTION */}
       <div 
-        className="relative h-[75vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
+        className="relative h-[80vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
         style={{
           background: 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerBg3.png")',
           backgroundSize: 'cover',
@@ -155,6 +157,14 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
               </div>
             </div>
 
+            <div className='flex items-center justify-center gap-4 mt-6'>
+              <QrWithLogo 
+                value={`${import.meta.env.VITE_API_URL_FRONTEND}/careers/${job.job_reference_number}`} 
+                logoUrl={beeseelogo} 
+                size={120}
+              />
+            </div>
+
           </div>
         </div>
       </div>
@@ -185,7 +195,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
         </section>
 
         {/* RESPONSIBILITIES & QUALIFICATIONS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-12 md:gap-16 mb-20">
           <p 
             className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
             style={{ textAlign: 'left', textAlignLast: 'left' }}
