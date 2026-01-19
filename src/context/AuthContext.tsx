@@ -1,12 +1,20 @@
 import React, { createContext, useState, useEffect } from 'react'
 import { AlertColor } from '@mui/material/Alert';
 
+interface Permission {
+    parent_id: string;
+    children_id: string;
+    module_name: string;
+    module_url: string;
+    actions: string[];
+}
+
 interface User {
     id: number;
     email: string;
     full_name: string;
     role: string;
-    permissions?: string[]
+    permissions?: Permission[]
 }
 
 interface AuthContextType {

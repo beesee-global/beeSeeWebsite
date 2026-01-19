@@ -172,8 +172,7 @@ const Inquiries = () => {
         <div className="flex items-center w-full">
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon /> }, 
-              { label: "Inquiries", isActive: true, icon: <MailQuestionMarkIcon /> }
+              { label: "Inquiries", isActive: true, icon: <QuestionAnswerIcon /> }
             ]}
           />
         </div>
