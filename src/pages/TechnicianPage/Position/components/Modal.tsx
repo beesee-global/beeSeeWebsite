@@ -168,6 +168,10 @@ const Modal: React.FC<ModalProps> = ({
       });
       setPermissions(permMap);
 
+      console.log("=== MODAL INITIALIZED ===");
+      console.log("Initial permissions from props:", initialPermissions);
+      console.log("Converted to permissions map:", permMap);
+
       // Auto-expand settings if any child has permissions
       const hasSettingsPerms = ["device", "model", "issue", "position"].some(
         key => permMap[key] && permMap[key].length > 0
@@ -188,6 +192,20 @@ const Modal: React.FC<ModalProps> = ({
       const updated = current.includes(action)
         ? current.filter((a) => a !== action)
         : [...current, action];
+      
+      console.log(`Toggle action ${action} for ${moduleId}:`, {
+        current,
+        updated,
+        willRemove: updated.length === 0
+      });
+      
+      // If no actions left (empty array), remove module completely
+      if (updated.length === 0) {
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId} (no actions left), remaining:`, rest);
+        return rest;
+      }
+      
       return { ...prev, [moduleId]: updated };
     });
     setPermissionError("");
@@ -199,24 +217,48 @@ const Modal: React.FC<ModalProps> = ({
       const current = prev[moduleId] || [];
       const hasView = current.includes("view");
       
+      console.log(`Toggle Grant Access for ${moduleId}:`, {
+        current,
+        hasView,
+        willRemove: hasView
+      });
+      
       if (hasView) {
-        // Remove all permissions if unchecking Grant Access
-        return { ...prev, [moduleId]: [] };
+        // Remove module completely from permissions object
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId}, remaining:`, rest);
+        return rest;
       } else {
         // Add only "view" permission
-        return { ...prev, [moduleId]: ["view"] };
+        const newState = { ...prev, [moduleId]: ["view"] };
+        console.log(`Added view to ${moduleId}:`, newState);
+        return newState;
       }
     });
     setPermissionError("");
   };
 
-  // Handle module access (for modules without actions like Dashboard)
+  // Handle module access (for modules without actions like Dashboard)  
   const handleModuleToggle = (moduleId: string) => {
     setPermissions((prev) => {
       const current = prev[moduleId] || [];
-      // If has access, remove it
-      // If no access, grant it (set to empty array to indicate access only)
-      return { ...prev, [moduleId]: current.length > 0 ? [] : [""] };
+      
+      console.log(`Toggle module access for ${moduleId}:`, {
+        current,
+        hasAccess: current.length > 0,
+        willRemove: current.length > 0
+      });
+      
+      // If has access, remove it completely from the object
+      if (current.length > 0) {
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId}, remaining:`, rest);
+        return rest;
+      }
+      // If no access, grant it (set to empty array with empty string to indicate access only)
+      const newState = { ...prev, [moduleId]: [""] };
+      console.log(`Added access to ${moduleId}:`, newState);
+      return newState;
     });
     setPermissionError("");
   };
@@ -233,6 +275,10 @@ const Modal: React.FC<ModalProps> = ({
       }
     });
 
+    console.log("=== SUBMIT DEBUG ===");
+    console.log("Current permissions state:", permissions);
+    console.log("Permissions entries:", Object.entries(permissions));
+
     // Check if at least one permission is selected
     const hasPermissions = Object.keys(permissions).length > 0;
     if (!hasPermissions) {
@@ -247,6 +293,8 @@ const Modal: React.FC<ModalProps> = ({
     // Transform permissions to backend format
     const formattedPermissions: Permission[] = [];
     Object.entries(permissions).forEach(([moduleKey, actions]) => {
+      console.log(`Processing module: ${moduleKey}, actions:`, actions);
+      
       // Find module info from permissionTree
       const allModules = permissionTree.flatMap((p) => 
         p.children ? [p, ...p.children] : [p]
@@ -268,6 +316,8 @@ const Modal: React.FC<ModalProps> = ({
         });
       }
     });
+
+    console.log("Formatted permissions to submit:", formattedPermissions);
 
     onSubmit({
       ...formData,

@@ -59,7 +59,7 @@ const JobPosting = () => {
   });
 
   const handleDelete = async(ids: number[]) => { 
-    if (Permission?.actions.includes('delete')) {
+    if (!Permission?.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete careers.")
       setSnackBarType("error")
       setSnackBarOpen(true)
@@ -93,14 +93,11 @@ const JobPosting = () => {
     }
   }
   
-  const handleEdit = (job_reference_number: string | number) => { 
-    console.log(Permission?.actions)
-    if (!Permission?.actions.includes('edit')) {
-      setSnackBarMessage("You do not have permission to edit careers.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-      return
-    }
+  const handleEdit = (job_reference_number: string | number) => {   
+    navigate(`/beesee/job-posting/applicants/${job_reference_number}`)
+  }
+  
+  const handleView = (job_reference_number: string | number) => {
     navigate(`/beesee/job-posting/form/${job_reference_number}`)
   }
 
@@ -185,11 +182,12 @@ const JobPosting = () => {
       </div>
 
       {/* Table Section */}
-      <TableJobPosting 
+      <TableJobPosting
         rows={filteredJob}
         columns={columns}
         handleDelete={handleDelete}
         handleEdit={handleEdit}
+        handleView={handleView}
         isLoading={isLoading}
       />
     </div>
