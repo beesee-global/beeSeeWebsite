@@ -87,11 +87,21 @@ export default function EmailConversationApp() {
 
     const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
       auth: { ticket_id: userTicketInformation.ticket_id },
-      transports: ["websocket"],
+      path: "/socket.io/",
+      transports: ["polling", "websocket"], // try polling first, then upgrade
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
     });
 
     s.on("connect", () => {
+      console.log("Connected to socket server");
       s.emit("join_ticket_room", userTicketInformation.ticket_id);
+    });
+
+    s.on("connect_error", (error) => {
+      console.error("Connection error:", error);
     });
 
     s.on("new_ticket_message", (msg: any) => {
@@ -339,19 +349,20 @@ export default function EmailConversationApp() {
     }
   }
 
-    const handleDelete = (ids: number[]) => {
-    if (userInfo?.role !== "Admin") {
+  const handleDelete = (ids: number[]) => {
+    const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
+    if (!jobOrderPermission || !jobOrderPermission.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete tickets.")
       setSnackBarType("error")
       setSnackBarOpen(true)
       return
-    } 
+    }
 
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
     setDialogMessage(`Are you sure you want to delete ${ids.length} tickets?`)
- 
+
   };
 
   const handleConfirmDelete = async () => {

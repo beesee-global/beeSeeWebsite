@@ -32,6 +32,7 @@ const Issue = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const { 
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -39,6 +40,8 @@ const Issue = () => {
     snackBarOpen,
     snackBarType
   } = userAuth();
+
+   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'issue');
 
   const { data: issuesResponse, isLoading } = useQuery({
     queryKey: ['issues'],
@@ -61,6 +64,12 @@ const Issue = () => {
   ];
 
   const handleDelete = (ids: number[]) => {
+    if (Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete issue.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     setDeleteIds(ids);
     setDialogTitle("Confirm Delete");
     setDialogOpen(true);
@@ -68,6 +77,12 @@ const Issue = () => {
   };
 
   const handleEdit = (pid : string | number) => { 
+    if (Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit issue.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    } 
     const issue = issues.find((c: any) => c.pid === pid || c.id === pid);
     if (!issue) return; 
     setSelectedProduct(issue); 
@@ -174,7 +189,6 @@ const Issue = () => {
         <div className="flex items-center w-full">
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon className="w-4 h-4"/> }, 
               { label: "Issue Type", isActive: true, icon: <Package /> },
             ]}
           />
@@ -193,15 +207,17 @@ const Issue = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          <div className="w-full sm:w-auto">
-            <button 
-              onClick={() => {setModalOpen(true), setIsEditMode(false)}} 
-              className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Issue Type</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') && 
+            <div className="w-full sm:w-auto">
+              <button 
+                onClick={() => {setModalOpen(true), setIsEditMode(false)}} 
+                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Issue Type</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 

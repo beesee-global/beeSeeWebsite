@@ -11,6 +11,7 @@ import {
   Send
 } from 'lucide-react';
 import Apply from './Apply';
+import DOMPurify from 'dompurify';
 
 interface JobPosting {
   job_reference_number: string;
@@ -19,10 +20,7 @@ interface JobPosting {
   job_type: 'Full-time' | 'Part-time' | 'Internship' | 'Contract';
   created_at: string;
   description: string;
-  responsibilities: string[];
-  qualifications: string[];
-  benefits: string[];
-  salary?: string;
+  careers_job_details: string; 
   workLocation?: string;
 }
 
@@ -32,6 +30,14 @@ interface JobPageProps {
 
 const JobPage: React.FC<JobPageProps> = ({ job }) => {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  // Sanitize HTML function
+  const sanitizeHTML = (html: string): string => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'i', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'b'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+      ALLOW_DATA_ATTR: false,
+    });
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -180,47 +186,11 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
         {/* RESPONSIBILITIES & QUALIFICATIONS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 mb-20">
-          {[{
-            title: "What You'll Do",
-            icon: <Users size={26} style={{ color: 'var(--beesee-gold)' }} />,
-            data: job.responsibilities
-          },{
-            title: "What We're Looking For",
-            icon: <Award size={26} style={{ color: 'var(--beesee-gold)' }} />,
-            data: job.qualifications
-          }].map((block, idx) => (
-            <section key={idx} className="fade-up-init beesee-card-content1 text-left">
-              <div className="flex items-center gap-4 mb-8">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(253, 204, 0, 0.2), rgba(255, 215, 0, 0.1))',
-                    border: '2px solid rgba(253, 204, 0, 0.35)'
-                  }}
-                >
-                  {block.icon}
-                </div>
-                <h2 className="bee-title-sm" style={{ color: 'var(--beesee-gold)' }}>
-                  {block.title}
-                </h2>
-              </div>
-
-              <ul className="space-y-5">
-                {block.data.map((item, i) => (
-                  <li key={i} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 mt-1">
-                      <ChevronRight 
-                        size={20} 
-                        className="text-[var(--beesee-gold)]"
-                        style={{ color: 'var(--beesee-gold)' }} 
-                      />
-                    </div>
-                    <span className="bee-body leading-relaxed flex-1">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          <p 
+            className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
+            style={{ textAlign: 'left', textAlignLast: 'left' }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(job.careers_job_details) }}
+          />
         </div>
 
         {/* FINAL CTA */}

@@ -16,7 +16,6 @@ import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
-import WorkIcon from '@mui/icons-material/Work';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 
 const Faqs = () => {
@@ -32,6 +31,7 @@ const Faqs = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const { 
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType, 
@@ -40,6 +40,8 @@ const Faqs = () => {
     snackBarType 
   } = userAuth();
 
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
+ 
   // Fetch FAQs
   const { data: faqsResponse, isLoading } = useQuery({
     queryKey: ['faqs'],
@@ -156,18 +158,30 @@ const Faqs = () => {
 
   // Edit FAQ
   const handleEdit = (pid: string | number) => {
-    const faq = faqs.find((c: any) => c.pid === pid || c.id === pid);
-    if (!faq) return;
-    setSelectedFaqs(faq); 
-    setIsEditMode(true);
-    setModalOpen(true);
+    if (Permission?.actions.includes('edit')) {
+      const faq = faqs.find((c: any) => c.pid === pid || c.id === pid);
+      if (!faq) return;
+      setSelectedFaqs(faq); 
+      setIsEditMode(true);
+      setModalOpen(true);
+    } else {
+      setSnackBarMessage("You do not have permission to edit faqs.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    } 
   };
 
   const handleDelete = (ids: number[]) => {
-    setDeleteIds(ids);
-    setDialogTitle("Confirm Delete");
-    setDialogOpen(true);
-    setDialogMessage(`Are you sure you want to delete ${ids.length} faqs?`);
+    if (Permission?.actions.includes('delete')) {
+      setDeleteIds(ids);
+      setDialogTitle("Confirm Delete");
+      setDialogOpen(true);
+      setDialogMessage(`Are you sure you want to delete ${ids.length} faqs?`);
+    } else {
+      setSnackBarMessage("You do not have permission to delete faqs.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    } 
   };
 
   // Search debounce
@@ -250,7 +264,6 @@ const Faqs = () => {
         <div className="flex items-center w-full">
           <Breadcrumb 
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon /> },
               { label: "Faqs", isActive: true, icon: <MessageCircleQuestionMark /> }
             ]} 
           />
@@ -269,19 +282,21 @@ const Faqs = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          <div className="w-full sm:w-auto">
-            <button 
-              onClick={() => {
-                setIsEditMode(false);
-                setSelectedFaqs(null);
-                setModalOpen(true);
-              }} 
-              className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Faqs</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') &&
+            <div className="w-full sm:w-auto">
+              <button 
+                onClick={() => {
+                  setIsEditMode(false);
+                  setSelectedFaqs(null);
+                  setModalOpen(true);
+                }} 
+                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Faqs</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 

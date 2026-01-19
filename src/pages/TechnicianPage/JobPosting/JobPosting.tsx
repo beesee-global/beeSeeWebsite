@@ -45,6 +45,8 @@ const JobPosting = () => {
     { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
 
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'careers' && p.children_id === '');
+  
   const { data: jobResponse, isLoading } = useQuery({
      queryKey: ['job', userInfo?.id],
     queryFn: () => getAllJobPosting(),   // FIXED
@@ -56,6 +58,12 @@ const JobPosting = () => {
   });
 
   const handleDelete = async(ids: number[]) => { 
+    if (Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete careers.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     setDeleteIds(ids)
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
@@ -85,6 +93,13 @@ const JobPosting = () => {
   }
   
   const handleEdit = (job_reference_number: string | number) => { 
+    console.log(Permission?.actions)
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit careers.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
+    }
     navigate(`/beesee/job-posting/form/${job_reference_number}`)
   }
 
@@ -136,8 +151,7 @@ const JobPosting = () => {
         <div className='flex items-center w-full'>
           <Breadcrumb
             items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon/> }, 
-              { label: 'Job Posting', isActive: true, icon:<User2 /> }
+              { label: 'Careers', isActive: true, icon:<User2 /> }
             ]}
           />
         </div>
@@ -155,15 +169,17 @@ const JobPosting = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          <div className="w-full sm:w-auto">
-            <button 
-              onClick={() => navigate('/beesee/job-posting/form')} 
-              className="flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base"
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Job Post</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') &&
+            <div className="w-full sm:w-auto">
+              <button 
+                onClick={() => navigate('/beesee/job-posting/form')} 
+                className="flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base"
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Job Post</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 

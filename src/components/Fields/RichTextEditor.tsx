@@ -200,7 +200,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
   )
 
   return (
-    <div className="w-full max-w-4xl mx-auto border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+    <div className="w-full max-w-8xl mx-auto border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b border-gray-200">
         {/* Basic Formatting */}
@@ -237,13 +237,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
           icon={ListOrdered} 
           title="Numbered List"
           active={isActive('orderedList')}
-        />
-        <ToolbarButton 
-          onClick={() => formatBlock('blockquote')} 
-          icon={Quote} 
-          title="Quote"
-        />
-
+        /> 
         <div className="w-px bg-gray-300 mx-1" />
 
         {/* Insert */}
@@ -354,14 +348,6 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
         
         [contenteditable] li {
           margin: 0.5em 0;
-        }
-        
-        [contenteditable] blockquote {
-          border-left: 4px solid #ccc;
-          padding-left: 1em;
-          margin: 1em 0;
-          font-style: italic;
-          color: #666;
         }
         
         [contenteditable] h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }

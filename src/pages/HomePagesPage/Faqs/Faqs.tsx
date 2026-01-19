@@ -86,7 +86,7 @@ const FAQs = () => {
   // Sanitize HTML function
   const sanitizeHTML = (html: string): string => {
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr'],
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'i', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'b'],
       ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
       ALLOW_DATA_ATTR: false,
     });
