@@ -93,12 +93,18 @@ const Applicants = () => {
     return uniqueRows;
   }, [statusFilter, applicantPendingResponse, applicantShortListedResponse])
 
-  const handleEdit = async(ids: string) => { 
-    setDeleteApplicant(false)
-    setShortListedId(ids)
-    setDialogTitle("Confirm Short Listed")
-    setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to short list applicants?`)
+  const handleEdit = async(ids: string) => {  
+    const applicant = rows.find(row => row.id === Number(ids));
+
+    if (!applicant) return;
+
+    if (applicant?.status === "NOT_SHORTLISTED") {
+      setDeleteApplicant(false);
+      setShortListedId(ids);
+      setDialogTitle("Confirm Short Listed");
+      setDialogOpen(true);
+      setDialogMessage("Are you sure you want to short list this applicant?");
+    }
   };
 
   const handleConfirm = async () => {

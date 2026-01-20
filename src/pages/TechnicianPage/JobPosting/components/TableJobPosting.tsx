@@ -110,7 +110,8 @@ interface TableMailProps {
   rows: RowData[];
   columns: ColumnConfig[];
   handleDelete: (ids: number[]) => void;
-  handleEdit: (id: number) => void;
+  handleEdit: (id: string | number) => void;
+  handleView: (id: string | number) => void;
   isLoading: boolean;
 }
 
@@ -123,6 +124,7 @@ export default function TableJobPosting({
   columns,
   handleDelete,
   handleEdit,
+  handleView,
   isLoading = false,
 }: TableMailProps) { 
 
@@ -182,6 +184,11 @@ export default function TableJobPosting({
   const handleEditing = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     if (handleEdit) handleEdit(id);
+  };
+
+  const handleViewing = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    if (handleView) handleView(id);
   };
 
   const handleSelect = (e: React.MouseEvent, id: number) => {
@@ -369,7 +376,7 @@ export default function TableJobPosting({
                                   >
                                     <button 
                                       title="Edit"
-                                      onClick={(e) => handleEditing(e, row.job_reference_number)}
+                                      onClick={(e) => handleViewing(e, row.job_reference_number)}
                                       style={{ 
                                         color: '#15803d',
                                         background: '#dcfce7',

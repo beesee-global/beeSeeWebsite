@@ -27,7 +27,7 @@ export const fetchApplicantsShortList = async (id: string) => {
   }
 };
  
-export const shortList = async (id: number) => {
+export const shortList = async (id: string) => {
   try {
     const response = await axiosClient.put(`${API_URL}/${id}`);
     return response.data
