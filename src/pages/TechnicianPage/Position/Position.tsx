@@ -104,7 +104,7 @@ const Position = () => {
     };
   
     const handleDelete = async(ids: number[]) => { 
-    if (Permission?.actions.includes('delete')) {
+    if (!Permission?.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete position.")
       setSnackBarType("error")
       setSnackBarOpen(true)
@@ -151,7 +151,7 @@ const Position = () => {
       const position = positions.find((c: any) => c.pid === pid || c.id === pid);
       if (!position) return;
 
-      if (Permission?.actions.includes('edit')) {
+      if (!Permission?.actions.includes('edit')) {
         setSnackBarMessage("You do not have permission to edit position.")
         setSnackBarType("error")
         setSnackBarOpen(true)
@@ -179,10 +179,7 @@ const Position = () => {
           is_protected: 0, // New positions are not protected by default
           permissions: formDataPosition.permissions
         };
-
-        // Log the payload for debugging
-        console.log("=== CREATE POSITION PAYLOAD ===");
-        console.log(JSON.stringify(payload, null, 2));
+ 
 
         const response = await createPosition(payload)
   
@@ -324,8 +321,7 @@ const Position = () => {
         {/* Breadcrumb Section */}
         <div className="flex items-center w-full"> 
           <Breadcrumb 
-            items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon /> }, 
+            items={[ 
               { label: "Position", isActive: true, icon: <ManageAccountsIcon /> },
             ]}
           />
@@ -344,20 +340,22 @@ const Position = () => {
           </div>
           
           {/* Add Button */}
-          <div className="w-full sm:w-auto">
-            <button 
-              onClick={() => {
-                setModalOpen(true)
-                setIsEditMode(false)
-                setSelectedPosition(null)
-                setIsPermissionLocked(false)
-              }} 
-              className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
-            >
-              <Plus size={18} className="sm:size-5" /> 
-              <span className="whitespace-nowrap">Add Position</span>
-            </button>
-          </div>
+          {Permission?.actions.includes('add') &&
+            <div className="w-full sm:w-auto">
+              <button 
+                onClick={() => {
+                  setModalOpen(true)
+                  setIsEditMode(false)
+                  setSelectedPosition(null)
+                  setIsPermissionLocked(false)
+                }} 
+                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+              >
+                <Plus size={18} className="sm:size-5" /> 
+                <span className="whitespace-nowrap">Add Position</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
 

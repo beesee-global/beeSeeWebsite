@@ -87,7 +87,7 @@ const Product = () => {
   ];
 
   const handleDelete = (ids: number[]) => {
-    if (Permission?.actions.includes('delete')) {
+    if (!Permission?.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete model.")
       setSnackBarType("error")
       setSnackBarOpen(true)
@@ -100,7 +100,7 @@ const Product = () => {
   };
 
   const handleEdit = (pid : string | number) => { 
-    if (Permission?.actions.includes('edit')) {
+    if (!Permission?.actions.includes('edit')) {
       setSnackBarMessage("You do not have permission to edit model.")
       setSnackBarType("error")
       setSnackBarOpen(true)
