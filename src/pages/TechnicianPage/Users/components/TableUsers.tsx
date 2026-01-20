@@ -243,7 +243,7 @@ export default function TableUsers({
                   visibleRows.map(row => (
                     <div 
                       key={row.id} 
-                      onClick={(e) => onActionEdit(e, row.id)} 
+                      onClick={(e) => onActionEdit(e, row.pid)} 
                       className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b hover:bg-gray-50 transition-colors`}
                       style={{ borderColor: COLORS.border }}
                     >
@@ -270,6 +270,12 @@ export default function TableUsers({
                                 </span>
                               </div>
                             </div>
+                          ) : column.id === 'employment_status' ? (
+                            <div className="flex items-center justify-start gap-3">
+                              <span className='text-md text-gray-600 truncate'>
+                                {row.details?.employment_status}
+                              </span>
+                            </div>
                           ) : column.id === 'created_at' ? (
                             <div className="flex items-center justify-end gap-3">
                               <span className="text-sm text-gray-500 mr-1">
@@ -279,7 +285,7 @@ export default function TableUsers({
                               {/* ✅ ALWAYS VISIBLE GREEN EDIT BUTTON */}
                               <button 
                                 title="Edit"
-                                onClick={(e) => onActionEdit(e, row.id)}
+                                onClick={(e) => onActionEdit(e, row.pid)}
                                 className="text-green-700 hover:text-green-600 bg-green-100 p-2 rounded-md transition-colors"
                               >
                                 <Pencil size={18} strokeWidth={2} />
