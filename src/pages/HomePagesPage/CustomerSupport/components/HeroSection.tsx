@@ -61,7 +61,7 @@ interface FormError {
   contact_number?: string;
   category_id?: string; 
   device_id?: string; 
-  issue_id: string;
+  issue_id?: string;
   questions?: string; 
 }
 
@@ -193,8 +193,10 @@ const HeroSection: React.FC = () => {
     if (!formData?.city.trim()) errors.city = "City is required."
     if (!formData?.email.trim()) errors.email = 'Email is required.';  
     else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Email is invalid format.";
+    
     if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.'; 
     else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
+    
     if (!formData?.category_id) errors.category_id = "Device is required.";
     if (!formData?.device_id) errors.device_id = "Model is required.";
     if (!formData?.issue_id) errors.issue_id = "Issue type is required"
@@ -710,9 +712,7 @@ const handleCancelDisclaimer = () => {
                       multiline={false}
                       rows={1}
                       maxLength={100}
-                      icon={<PersonIcon sx={{ fontSize: 18 }} />} 
-                      error={!!formError?.serial_number} 
-                      helperText={formError?.serial_number} 
+                      icon={<PersonIcon sx={{ fontSize: 18 }} />}  
                     /> 
 
                     <CustomTextField 
