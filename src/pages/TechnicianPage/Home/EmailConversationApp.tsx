@@ -226,94 +226,57 @@ export default function EmailConversationApp() {
 
     setReplyText('');
     setAttachedFiles([]);  
+    
+    const formData = new FormData();
+      formData.append('sender_email', userTicketInformation.email || 'admin@beesee.com');
+      formData.append('tickets_id', userTicketInformation?.ticket_id);
+      formData.append('sender_name', userInfo?.full_name || 'Support Team');
+      formData.append('message_body', currentReplyText);
+      formData.append('user_role', userInfo?.role);
+      formData.append('is_inbound', "0");
 
-    const payload = {
-      sender_email: userTicketInformation.email || 'admin@beesee.com',
-      tickets_id: userTicketInformation?.ticket_id,
-      sender_name: userInfo?.full_name || 'Support Team',
-      message_body: currentReplyText,
-      user_role: userInfo?.role,
-      is_inbound: false,
-    }
-
+      if (currentAttachedFiles.length > 0) {
+        currentAttachedFiles.forEach((fileObj) => {
+         formData.append('attachments', fileObj.file);
+        });
+      }
+ 
     try {
-      const response = await insertConversations(payload)
+      const response = await insertConversations(formData)
 
       if (response?.success) {
-  
-          // If there are attachments, send them separately via multipart/form-data
-        if (currentAttachedFiles.length > 0) {
-            const formData = new FormData();
-            formData.append('ticket_conversation_id', String(response?.data?.ticket_conversation_id));
-  
-            currentAttachedFiles.forEach((fileObj) => {
-            formData.append('attachments', fileObj.file);
-          });
-
-          try {
-            await insertImageConversations(formData);
-
-            if (userTicketInformation.status === 'open') {
-              setSnackBarMessage("Mark as Completed")
-              setSnackBarType('success')
-              setSnackBarOpen(true)
-            }
-
-            // emit to server for real-time
-            socket?.emit("send_ticket_message", {
-              ticket_id: userTicketInformation?.ticket_id,
-              message: {
-                ...payload,
-                id: response.data.ticket_ids,
-                created_at: new Date().toISOString(),
-              }
-            });
-
-            // Refetch conversations to get the message with attachments from server
-            queryClient.invalidateQueries({
-              queryKey: ['conversations', userTicketInformation?.ticket_id]
-            })
-          } catch (attachmentError) {
-            console.error('Error uploading attachments:', attachmentError);
-            setSnackBarMessage("Message sent but attachments failed to upload.")
-            setSnackBarType("warning")
-            setSnackBarOpen(true);
-            
-            // Still refetch to show the message without attachments
-            queryClient.invalidateQueries({
-              queryKey: ['conversations', userTicketInformation?.ticket_id]
-            })
-          }
-        } else {
-          if (userTicketInformation.status === 'open') {
-            setSnackBarMessage("Mark as Completed")
-            setSnackBarType('success')
-            setSnackBarOpen(true)
-          }
-
-          // Add locally for messages without attachments
-          const newMessage = {
-            ...payload,
-            id: response.data.ticket_ids,
-            created_at: new Date().toISOString(),
-          };
-          
-          // Add message to screen immediately
-          setMessages(prev => [
-            ...prev,
-            newMessage
-          ]);
-
-          // emit to server for real-time
-          socket?.emit("send_ticket_message", {
-            ticket_id: userTicketInformation?.ticket_id,
-            message: newMessage
-          });
-
-          queryClient.invalidateQueries({
-            queryKey: ['conversations', userTicketInformation?.ticket_id]
-          })
+        if (userTicketInformation.status === 'open') {
+          setSnackBarMessage("Mark as Completed")
+          setSnackBarType('success')
+          setSnackBarOpen(true)
         }
+
+        // Add locally for messages without attachments
+        const newMessage = {
+          id: response.data.ticket_ids,
+          sender_name: userInfo?.full_name || 'Support Team',
+          sender_email: userTicketInformation.email,
+          message_body: currentReplyText,
+          is_inbound: false,
+          attachments: [], // optional optimistic placeholder
+          created_at: new Date().toISOString(),
+        };
+ 
+        // Add message to screen immediately
+        setMessages(prev => [
+          ...prev,
+          newMessage
+        ]);
+
+        // emit to server for real-time
+        socket?.emit("send_ticket_message", {
+          ticket_id: userTicketInformation?.ticket_id,
+          message: newMessage
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation?.ticket_id]
+        }) 
       }
 
     } catch (error) {
@@ -463,7 +426,7 @@ export default function EmailConversationApp() {
           <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
             <div>
               <h2 className="bee-title-sm text-gray-900">
-                Issue: {userTicketInformation.issue_type || 'No Subject'}
+                Issue: {userTicketInformation.issue_name || 'No Subject'}
               </h2> 
             </div>
 
@@ -484,7 +447,7 @@ export default function EmailConversationApp() {
                 <div className='md:hidden'>
                   <button 
                     onClick={() => setShowSidebar(true)}
-                    title="View Ticket Information"
+                    title="View Job Order Information"
                     className='p-2 hover:bg-gray-100 rounded-md transition'>
                   <ArrowLeftToLine />
                 </button>
@@ -696,9 +659,9 @@ export default function EmailConversationApp() {
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
             <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <h2 className="text-xl text-[20px] font-bold text-white flex items-center gap-2">
                 <Inbox className="w-5 h-5" />
-                Ticket Information
+                Job Order Information
               </h2>
 
               <div className='flex items-center gap-2'>

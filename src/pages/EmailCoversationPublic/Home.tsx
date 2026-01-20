@@ -139,78 +139,49 @@ export default function EmailConversationApp() {
     setReplyText('');
     setAttachedFiles([]);
 
-    const payload = {
-      sender_email: userTicketInformation.email,
-      tickets_id: userTicketInformation.ticket_id,
-      sender_name: userTicketInformation.full_name,
-      message_body: currentReplyText,
-      user_role: "Customer",
-      is_inbound: true,
-    };
+    const formData = new FormData();
+    formData.append('sender_email', userTicketInformation.email);
+    formData.append('tickets_id', userTicketInformation?.ticket_id);
+    formData.append('sender_name', userTicketInformation.full_name);
+    formData.append('message_body', currentReplyText);
+    formData.append('user_role', "Customer");
+    formData.append('is_inbound', "1");
+
+    if (currentAttachedFiles.length > 0) {
+      currentAttachedFiles.forEach((fileObj) => {
+        formData.append('attachments', fileObj.file);
+      });
+    } 
 
     try {
-      const response = await insertConversationMutation.mutateAsync(payload);
+      const response = await insertConversationMutation.mutateAsync(formData);
 
-      if (response?.success) {
-        // If there are attachments, send them separately via multipart/form-data
-        if (currentAttachedFiles.length > 0) {
-          const formData = new FormData();
-          formData.append('ticket_conversation_id', String(response?.data?.ticket_conversation_id));
+      if (response?.success) { 
+        // Add locally for messages without attachments
+        const newMessage = {
+          id: response.data.ticket_ids,
+          sender_name: userTicketInformation?.full_name || 'Support Team',
+          sender_email: userTicketInformation.email,
+          message_body: currentReplyText,
+          is_inbound: false,
+          attachments: [], // optional optimistic placeholder
+          created_at: new Date().toISOString(),
+        };
+  
+        setMessages(prev => [
+          ...prev,
+          newMessage
+        ]);
 
-          currentAttachedFiles.forEach((fileObj) => {
-            formData.append('attachments', fileObj.file);
-          });
+        // Emit to server for real-time
+        socket?.emit("send_ticket_message", {
+          ticket_id: userTicketInformation.ticket_id,
+          message: newMessage
+        });
 
-          try {
-            await insertImageConversations(formData);
-
-            // emit to server for real-time
-            socket?.emit("send_ticket_message", {
-              ticket_id: userTicketInformation?.ticket_id,
-              message: {
-                ...payload,
-                id: response.data.ticket_ids,
-                created_at: new Date().toISOString(),
-              }
-            });
-
-            // Refetch conversations to get the message with attachments from server
-            queryClient.invalidateQueries({
-              queryKey: ['conversations', userTicketInformation?.ticket_id]
-            });
-          } catch (attachmentError) {
-            console.error('Error uploading attachments:', attachmentError);
-            setSnackBarMessage("Message sent but attachments failed to upload.")
-            setSnackBarType("warning")
-            setSnackBarOpen(true);
-            
-            // Still refetch to show the message without attachments
-            queryClient.invalidateQueries({
-              queryKey: ['conversations', userTicketInformation?.ticket_id]
-            });
-          }
-        } else {
-          // Add locally for messages without attachments
-          const newMessage = {
-            ...payload,
-            id: response.data.ticket_ids,
-            created_at: new Date().toISOString(),
-          };
-          setMessages(prev => [
-            ...prev,
-            newMessage
-          ]);
-
-          // Emit to server for real-time
-          socket?.emit("send_ticket_message", {
-            ticket_id: userTicketInformation.ticket_id,
-            message: newMessage
-          });
-
-          queryClient.invalidateQueries({
-            queryKey: ['conversations', userTicketInformation.ticket_id]
-          });
-        }
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation.ticket_id]
+        }); 
       }
     } catch (error) {
       setSnackBarOpen(true)
@@ -556,6 +527,7 @@ export default function EmailConversationApp() {
               placeholder="Type your reply..."
               className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
               rows="3"
+              style={{color: '#000000', caretColor: '#000000'}}
               disabled={loading}
             />
             <button
@@ -587,9 +559,9 @@ export default function EmailConversationApp() {
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
             <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
-              <h2 className='text-white font-bold flex items-center gap-2'>
+              <h2 className='text-white text-[20px] font-bold flex items-center gap-2'>
                 <Inbox className='w-5 h-5'/>
-                Ticket Information
+                Job Order Information
               </h2>
               <button className='text-white' onClick={() => setShowSidebar(false)}>
                 <X />
@@ -617,7 +589,7 @@ export default function EmailConversationApp() {
         <div className="p-4 border-b border-gray-200" style={{ backgroundColor: '#000000'}}>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Inbox className="w-5 h-5" />
-            Ticket Information
+            Job Order Information
           </h2>
         </div>
 
