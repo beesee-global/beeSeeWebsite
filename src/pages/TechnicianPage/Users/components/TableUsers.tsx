@@ -43,6 +43,34 @@ const RADIUS = {
     checkbox: 'rounded-md',
 };
 
+const EMPLOYMENT_STATUS_CONFIG: Record<
+  string,
+  { label: string; classes: string }
+> = {
+  Active: {
+    label: 'Active',
+    classes: 'bg-green-100 text-green-800 border border-green-200',
+  },
+  Resigned: {
+    label: 'Resigned',
+    classes: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  },
+  Terminated: {
+    label: 'Terminated',
+    classes: 'bg-red-100 text-red-800 border border-red-200',
+  },
+  'On-leave': {
+    label: 'On Leave',
+    classes: 'bg-blue-100 text-blue-800 border border-blue-200',
+  },
+};
+
+const getEmploymentStatusConfig = (status?: string) =>
+  EMPLOYMENT_STATUS_CONFIG[status ?? ''] ?? {
+    label: status ?? 'Unknown',
+    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+  };
+
 // ============================================
 // 🛠️ UTILITY FUNCTIONS
 // ============================================
@@ -256,9 +284,16 @@ export default function TableUsers({ rows = [], columns, selectedRowId = null, o
                                                                     </div>
                                                                 </div>
                                                             ) : column.id === 'employment_status' ? (
-                                                                <div className="flex items-center justify-start gap-3">
-                                                                    <span className="text-md text-gray-600 truncate">{row.details?.employment_status}</span>
-                                                                </div>
+                                                               (() => {
+                                                                    const { label, classes } = getEmploymentStatusConfig(row.details?.employment_status);
+                                                                    return (
+                                                                    <span
+                                                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}
+                                                                    >
+                                                                        {label}
+                                                                    </span>
+                                                                    );
+                                                                })()
                                                             ) : column.id === 'created_at' ? (
                                                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>{formatDate(row.created_at)}</span>
                                                             ) : (

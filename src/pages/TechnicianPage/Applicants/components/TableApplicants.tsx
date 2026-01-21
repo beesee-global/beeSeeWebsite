@@ -50,6 +50,31 @@ const COLUMN_WIDTHS = {
     date: 'w-20',
 };
 
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; classes: string }
+> = {
+  NEW_APPLICANT: {
+    label: 'New Applicant',
+    classes: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  },
+  SHORTLISTED: {
+    label: 'Shortlisted',
+    classes: 'bg-blue-100 text-blue-800 border border-blue-200',
+  },
+  REJECTED: {
+    label: 'Rejected',
+    classes: 'bg-red-100 text-red-800 border border-red-200',
+  },
+};
+
+const getStatusConfig = (status: string) =>
+  STATUS_CONFIG[status] ?? {
+    label: status,
+    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+  };
+
+
 // ============================================
 // 🛠️ UTILITY FUNCTIONS
 // ============================================
@@ -269,7 +294,18 @@ export default function TableApplicants({
                                         >
                                             {effectiveColumns.map((col) => (
                                                 <td key={col.id} className={`px-4 py-3 align-middle ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
-                                                    {col.id === 'created_at' ? (
+                                                    {col.id === 'status' ? (
+                                                        (() => {
+                                                            const { label, classes } = getStatusConfig(row.status);
+                                                            return (
+                                                            <span
+                                                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}
+                                                            >
+                                                                {label}
+                                                            </span>
+                                                            );
+                                                        })()
+                                                    ) :col.id === 'created_at' ? (
                                                         <span className="text-sm text-gray-500">{formatDate(row[col.id])}</span>
                                                     ) : (
                                                         <div className="text-sm text-gray-900 truncate max-w-[200px]">{row[col.id]}</div>

@@ -206,7 +206,7 @@ const JobPosting = () => {
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search job postings..."
+              placeholder="Search..."
               className="w-full"
             />
           </div>

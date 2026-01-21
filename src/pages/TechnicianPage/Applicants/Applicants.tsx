@@ -149,8 +149,8 @@ const Applicants = () => {
       return
     }
 
-    if (selectedRow?.status !== 'NOT_SHORTLISTED') {
-      setSnackBarMessage("This action is only available for non-shortlisted applicants")
+    if (selectedRow?.status !== 'NEW_APPLICANT') {
+      setSnackBarMessage("This action is only available for new applicants")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
