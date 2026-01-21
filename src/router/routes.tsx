@@ -56,6 +56,7 @@ import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailCo
 const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
+const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Applicants/ApplicantsEmail'))
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -287,6 +288,10 @@ const routes = [
                 path:  "job-posting/form/:id?",
                 element: <TechnicianJobPostingForm />
             },
+            {
+                path: 'job-posting/applicant/email/:id',
+                element: <TechnicianApplicantEmail />
+            }
         ]
     },
        /* conversation */

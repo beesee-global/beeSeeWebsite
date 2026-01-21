@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
 import TableDefault from "../../../components/DataDisplay/TableDefault";
-import { MessageCircleQuestionMark, Plus } from 'lucide-react';
+import { MessageCircleQuestionMark, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   fetchFaqsAll, 
@@ -28,6 +28,7 @@ const Faqs = () => {
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedFaqs, setSelectedFaqs] = useState<any>(null);
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   const { 
@@ -40,7 +41,7 @@ const Faqs = () => {
     snackBarType 
   } = userAuth();
 
-  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'faqs' && p.children_id === '');
  
   // Fetch FAQs
   const { data: faqsResponse, isLoading } = useQuery({
@@ -80,6 +81,7 @@ const Faqs = () => {
   }, [productResponse]);
 
   const faqs = faqsResponse?.data || [];
+  const selectedFaq = faqs.find((f: any) => f.id === selectedRowId);
 
   const columns = [
     { id: "title", label: 'Title', sortable: true, align: 'left' }, 
@@ -87,6 +89,74 @@ const Faqs = () => {
     { id: "category", label: 'Category', sortable: false, align: 'left' },
     { id: 'created_at', label: '', sortable: false, align: 'right' }
   ];
+
+  // Handle Row Click (Select)
+  const handleRowClick = (row: any) => {
+    setSelectedRowId(row.id);
+  };
+
+  // Handle Row Double Click (Edit)
+  const handleRowDoubleClick = (row: any) => {
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit FAQs.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+    
+    const faq = faqs.find((f: any) => f.id === row.id);
+    if (!faq) return;
+    
+    setSelectedFaqs(faq);
+    setIsEditMode(true);
+    setModalOpen(true);
+  };
+
+  // Handle Update Button Click
+  const handleUpdate = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an FAQ first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit FAQs.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    const faq = faqs.find((f: any) => f.id === selectedRowId);
+    if (!faq) return;
+    
+    setSelectedFaqs(faq);
+    setIsEditMode(true);
+    setModalOpen(true);
+  };
+
+  // Handle Delete Button Click
+  const handleDeleteClick = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an FAQ first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    if (!Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete FAQs.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    setDeleteIds([selectedRowId]);
+    setDialogTitle("Confirm Delete");
+    setDialogOpen(true);
+    setDialogMessage("Are you sure you want to delete this FAQ?");
+  };
 
   // Delete FAQ
   const handleConfirmDelete = async () => {
@@ -96,14 +166,15 @@ const Faqs = () => {
         setDialogOpen(false);
         setDialogMessage('');
         setDialogTitle("");
-        setSnackBarMessage("Faqs deleted successfully");
+        setSelectedRowId(null);
+        setSnackBarMessage("FAQ deleted successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
         queryClient.invalidateQueries({ queryKey: ['faqs'] });
       }
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Failed to delete faqs";
-      setDialogOpen(false)
+      const message = error?.response?.data?.message || "Failed to delete FAQ";
+      setDialogOpen(false);
       setSnackBarMessage(message);
       setSnackBarType("error");
       setSnackBarOpen(true);
@@ -122,7 +193,7 @@ const Faqs = () => {
       const response = await createFaqs(formDataFaqs);
 
       if (response?.success) {
-        setSnackBarMessage("Faqs created successfully");
+        setSnackBarMessage("FAQ created successfully");
         setSnackBarType('success');
         setSnackBarOpen(true);
         queryClient.invalidateQueries({ queryKey: ['faqs'] });
@@ -145,43 +216,17 @@ const Faqs = () => {
 
       const response = await updateFaqs(selectedFaqs.id, payload);
       if (response?.success) {
-        setSnackBarMessage("Faqs updated successfully");
+        setSnackBarMessage("FAQ updated successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
         queryClient.invalidateQueries({ queryKey: ["faqs"] });
         setModalOpen(false);
       }
     } catch (error) {
-      throw error;
+      setSnackBarMessage("Failed to update FAQ. Please try again.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
     }
-  };
-
-  // Edit FAQ
-  const handleEdit = (pid: string | number) => {
-    if (Permission?.actions.includes('edit')) {
-      const faq = faqs.find((c: any) => c.pid === pid || c.id === pid);
-      if (!faq) return;
-      setSelectedFaqs(faq); 
-      setIsEditMode(true);
-      setModalOpen(true);
-    } else {
-      setSnackBarMessage("You do not have permission to edit faqs.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-    } 
-  };
-
-  const handleDelete = (ids: number[]) => {
-    if (Permission?.actions.includes('delete')) {
-      setDeleteIds(ids);
-      setDialogTitle("Confirm Delete");
-      setDialogOpen(true);
-      setDialogMessage(`Are you sure you want to delete ${ids.length} faqs?`);
-    } else {
-      setSnackBarMessage("You do not have permission to delete faqs.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-    } 
   };
 
   // Search debounce
@@ -194,6 +239,10 @@ const Faqs = () => {
     if (!debouncedSearch.trim()) return faqs;
     return faqs.filter((c: any) => c.title.toLowerCase().includes(debouncedSearch.toLowerCase()));
   }, [faqs, debouncedSearch]);
+
+  // Check if buttons should be enabled
+  const isUpdateEnabled = !!selectedRowId;
+  const isDeleteEnabled = !!selectedRowId;
 
   if (isLoading) return <SpinningRingLoader />;
 
@@ -215,7 +264,7 @@ const Faqs = () => {
       <FaqsDialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={isEditMode ? "Edit Faqs" : "Add New Faqs"}
+        title={isEditMode ? "Edit FAQ" : "Add New FAQ"}
         fields={[
           { 
             name: 'title', 
@@ -244,9 +293,7 @@ const Faqs = () => {
           { 
             name: 'product', 
             placeholder: 'Select product', 
-            type: 'select', 
-            // For Add mode, no value selected -> show placeholder
-            // For Edit mode, use product ID, fallback to 'others' if undefined
+            type: 'select',
             value: isEditMode 
               ? (selectedFaqs?.products_id ? selectedFaqs.products_id.toString() : 'others')
               : "", 
@@ -254,7 +301,6 @@ const Faqs = () => {
             validator: v => !v ? 'Product is required' : undefined 
           }
         ]}
-
         onSubmit={isEditMode ? handleUpdateFaqs : handleAddFaqs}
       />
 
@@ -264,12 +310,12 @@ const Faqs = () => {
         <div className="flex items-center w-full">
           <Breadcrumb 
             items={[
-              { label: "Faqs", isActive: true, icon: <MessageCircleQuestionMark /> }
+              { label: "FAQs", isActive: true, icon: <MessageCircleQuestionMark /> }
             ]} 
           />
         </div>
         
-        {/* Search and Add Button Section - Search first, then Add button */}
+        {/* Search and Action Buttons Section */}
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full'>
           {/* Search Field - Full width on mobile, auto width on larger screens */}
           <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
@@ -281,32 +327,64 @@ const Faqs = () => {
             />
           </div>
           
-          {/* Add Button - Full width on mobile, auto width on larger screens */}
-          {Permission?.actions.includes('add') &&
-            <div className="w-full sm:w-auto">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2">
+            {/* Add FAQ Button */}
+            {Permission?.actions.includes('add') && (
               <button 
                 onClick={() => {
                   setIsEditMode(false);
                   setSelectedFaqs(null);
                   setModalOpen(true);
                 }} 
-                className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
+                className='flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm'
               >
-                <Plus size={18} className="sm:size-5" /> 
-                <span className="whitespace-nowrap">Add Faqs</span>
+                <Plus size={18} /> 
+                <span className="whitespace-nowrap">Add FAQ</span>
               </button>
-            </div>
-          }
+            )}
+
+            {/* Update Button */}
+            {Permission?.actions.includes('edit') && (
+              <button
+                onClick={handleUpdate}
+                disabled={!isUpdateEnabled}
+                className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                style={{
+                  background: isUpdateEnabled ? '#15803d' : '#9ca3af',
+                }}
+              >
+                <Pencil size={18} /> 
+                <span className="whitespace-nowrap">Update</span>
+              </button>
+            )}
+
+            {/* Delete Button */}
+            {Permission?.actions.includes('delete') && (
+              <button
+                onClick={handleDeleteClick}
+                disabled={!isDeleteEnabled}
+                className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                style={{
+                  background: isDeleteEnabled ? '#dc2626' : '#9ca3af',
+                }}
+              >
+                <Trash2 size={18} /> 
+                <span className="whitespace-nowrap">Delete</span>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </div> 
 
       {/* Table Section */}
       <TableDefault 
         rows={filteredFaqs} 
         columns={columns} 
-        isLoading={isLoading} 
-        handleDelete={handleDelete}
-        handleEdit={handleEdit}
+        isLoading={isLoading}
+        selectedRowId={selectedRowId}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
       />
     </div>
   );

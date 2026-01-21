@@ -165,7 +165,7 @@ const Users = () => {
           </div>
           
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-           {Permission?.actions.includes('add') && 
+          {Permission?.actions.includes('add') && 
             <div className="w-full sm:w-auto">
               <button 
                 onClick={() => navigate('/beesee/users/form')} 
