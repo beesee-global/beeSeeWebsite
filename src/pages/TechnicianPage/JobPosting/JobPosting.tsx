@@ -129,7 +129,7 @@ const JobPosting = () => {
     const selectedJob = job.find((j: any) => j.id === selectedRowId);
     if (selectedJob) {
       const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
-      const linkToCopy = `${apiUrl}/careers/${selectedJob.job_reference_number}`;
+      const linkToCopy = `${apiUrl}/career/${selectedJob.job_reference_number}`;
       
       window.open(
         `${linkToCopy}`,

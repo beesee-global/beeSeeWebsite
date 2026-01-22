@@ -22,6 +22,7 @@ const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
+const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
 
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
@@ -102,6 +103,10 @@ const routes = [
             {
                 path: 'career',
                 element: <Careers />
+            },
+            {
+                path: 'career/:id',
+                element: <CareerDetails />
             },
             {
                 path: 'projects',
