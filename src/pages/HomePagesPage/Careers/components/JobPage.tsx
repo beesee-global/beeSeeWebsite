@@ -7,13 +7,15 @@ import {
   Clock, 
   ChevronRight, 
   Calendar,
-  Users,
-  Award,
-  Target,
+  AlertCircle,
+  Loader2,
   Send
 } from 'lucide-react';
 import Apply from './Apply';
 import DOMPurify from 'dompurify';
+import { getSpecificJobPublic } from '../../../../services/Technician/careersServices'
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom';
 
 interface JobPosting {
   job_reference_number: string;
@@ -24,14 +26,12 @@ interface JobPosting {
   description: string;
   careers_job_details: string; 
   workLocation?: string;
-}
+} 
 
-interface JobPageProps {
-  job: JobPosting;
-}
-
-const JobPage: React.FC<JobPageProps> = ({ job }) => {
+const JobPage: React.FC = () => {
+  const { id } = useParams();
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  
   // Sanitize HTML function
   const sanitizeHTML = (html: string): string => {
     return DOMPurify.sanitize(html, {
@@ -40,6 +40,15 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
       ALLOW_DATA_ATTR: false,
     });
   };
+
+  const { data: jobResponse, isLoading } = useQuery<JobPosting>({
+    queryKey: ['job', id],
+    queryFn: () => getSpecificJobPublic(String(id)),
+    enabled: !!id
+  })
+
+  // FIXED: Change from [] to null
+  const job: JobPosting | null = jobResponse?.data ?? null;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -58,9 +67,65 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [job]);
 
-  return (
+  // Loading State
+  return isLoading ? (
+    <div className="min-h-screen bg-[#000] flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 
+          className="w-12 h-12 animate-spin mx-auto mb-4" 
+          style={{ color: 'var(--beesee-gold, #FDCC00)' }}
+        />
+        <p className="text-white/60 text-lg">Loading job details...</p>
+      </div>
+    </div>
+  ) : !job ? (
+    <div className="min-h-screen bg-[#000] flex items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <div 
+          className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{
+            background: 'rgba(253, 204, 0, 0.1)',
+            border: '2px solid rgba(253, 204, 0, 0.3)'
+          }}
+        >
+          <AlertCircle 
+            className="w-10 h-10" 
+            style={{ color: 'var(--beesee-gold, #FDCC00)' }}
+          />
+        </div>
+        
+        <h2 
+          className="text-3xl md:text-4xl font-bold mb-4"
+          style={{ 
+            fontFamily: '"Bebas Neue", sans-serif',
+            color: 'var(--beesee-light, #fff)',
+            letterSpacing: '0.02em'
+          }}
+        >
+          Job Not Found
+        </h2>
+        
+        <p className="text-white/60 text-base md:text-lg mb-8 leading-relaxed">
+          Sorry, we couldn't find the job posting you're looking for. 
+          It may have been filled or removed.
+        </p>
+        
+        <button
+          onClick={() => window.location.href = '/careers'}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all"
+          style={{
+            background: 'var(--beesee-gold, #FDCC00)',
+            color: '#000',
+          }}
+        >
+          <ChevronRight size={18} className="rotate-180" />
+          Back to Careers
+        </button>
+      </div>
+    </div>
+  ) : (
     <div className="job-page min-h-screen bg-[#000] text-white overflow-x-hidden">
       
       {/* HERO SECTION */}
@@ -78,7 +143,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
         <div className="relative z-10 text-center max-w-5xl mx-auto px-4 md:px-6">
           <div className="fade-up-init">
-
+        
             {/* JOB TITLE */}
             <h1
               className="mb-6 mt-10"
@@ -174,10 +239,10 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
         {/* ABOUT */}
         <section className="mb-16 md:mb-20 fade-up-init beesee-card-content1 text-left">
-          <div className="flex items-center gap-4 mb-6 md:mb-8"> 
-            <h2 className="bee-title-md" style={{ color: 'var(--beesee-gold)' }}>
+          <div className="flex items-center gap-4 mb-6 md:mb-2"> 
+            <p className="bee-title-md" style={{ color: 'var(--beesee-gold)' }}>
               About the Role
-            </h2>
+            </p>
           </div>
 
           <p 
