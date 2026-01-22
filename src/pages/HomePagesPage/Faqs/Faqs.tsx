@@ -267,7 +267,7 @@ const FAQs = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/faqsCopy.jpg')",
+          backgroundImage: "url('/faqsReal.jpeg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -416,11 +416,12 @@ const FAQs = () => {
               <>
                 {currentFaqs.map((f, i) => (
                   <div key={f.id}>
-                    <div className="beesee-card-content transition hover:shadow-lg">
-                      <div
-                        onClick={() => setActive(active === f.id ? null : f.id)}
-                        className="faq-card-header"
-                      >
+                    {/* ENTIRE CARD CLICKABLE - WRAPPER DIV */}
+                    <div 
+                      className="beesee-card-content transition hover:shadow-lg cursor-pointer"
+                      onClick={() => setActive(active === f.id ? null : f.id)}
+                    >
+                      <div className="faq-card-header">
                         <div className="flex justify-between items-start gap-3">
                           <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex-1">
                             {f.title}

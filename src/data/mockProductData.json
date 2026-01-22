@@ -1,0 +1,710 @@
+{
+  "categories": [
+    {
+      "id": "laptop",
+      "name": "Laptops",
+      "icon": "Laptop",
+      "hoverSpecs": ["cpu", "ram", "storage", "display"]
+    },
+    {
+      "id": "smartwatch",
+      "name": "Smart Watches",
+      "icon": "Watch",
+      "hoverSpecs": ["display", "battery", "sensors", "connectivity"]
+    },
+    {
+      "id": "smarttv",
+      "name": "Smart TVs",
+      "icon": "Tv",
+      "hoverSpecs": ["display", "resolution", "refresh_rate", "smart_features"]
+    },
+    {
+      "id": "tablet",
+      "name": "Tablets",
+      "icon": "Tablet",
+      "hoverSpecs": ["cpu", "ram", "storage", "display"]
+    },
+    {
+      "id": "kiosk",
+      "name": "Kiosk Machines",
+      "icon": "Monitor",
+      "hoverSpecs": ["display", "cpu", "storage", "touchscreen"]
+    }
+  ],
+  "products": [
+    {
+      "pid": "LAP-001",
+      "name": "Fusion",
+      "tagline": "Power meets elegance in every pixel",
+      "category": "laptop",
+      "image": "/productHub/LaptopFusion.png",
+      "gallery": [
+        "/productHub/LaptopFusion.png",
+        "/productHub/LaptopFusion.png",
+        "/productHub/LaptopFusion.png"
+      ],
+      "price": 45999,
+      "description": "Experience seamless performance with the Fusion laptop. Engineered for professionals who demand reliability, speed, and stunning visual clarity in a sleek, portable design.",
+      "keyFeatures": [
+        "Intel Core i5 11th Gen processor",
+        "16GB DDR4 RAM for smooth multitasking",
+        "512GB NVMe SSD storage",
+        "14-inch Full HD IPS display",
+        "Up to 10 hours battery life",
+        "Lightweight aluminum chassis"
+      ],
+      "detailedSpecs": {
+        "Performance": {
+          "Processor": "Intel Core i5-1135G7 (4-core, up to 4.2GHz)",
+          "RAM": "16GB DDR4 3200MHz",
+          "Graphics": "Intel Iris Xe Graphics",
+          "Storage": "512GB M.2 NVMe PCIe 3.0 SSD",
+          "Thermal System": "Dual-fan cooling system"
+        },
+        "Display": {
+          "Size": "14\" diagonal",
+          "Resolution": "1920 × 1080 (Full HD)",
+          "Technology": "IPS anti-glare",
+          "Color Gamut": "100% sRGB",
+          "Refresh Rate": "60Hz",
+          "Brightness": "300 nits"
+        },
+        "Battery & Power": {
+          "Capacity": "56Wh lithium-polymer",
+          "Battery Life": "Up to 10 hours",
+          "Charging": "65W USB-C fast charging",
+          "Charge Time": "0-50% in 45 minutes"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 6 (802.11ax)",
+          "Bluetooth": "Bluetooth 5.1",
+          "Ports": "2× USB-C 3.2, 2× USB-A 3.2, HDMI 2.0, 3.5mm audio",
+          "Webcam": "720p HD webcam",
+          "Audio": "Stereo speakers with Smart Amp"
+        },
+        "Physical": {
+          "Weight": "1.4 kg (3.1 lbs)",
+          "Dimensions": "32.1 × 22.5 × 1.69 cm",
+          "Material": "Aluminum alloy chassis",
+          "Colors": "Space Gray, Silver"
+        },
+        "Operating System": {
+          "OS": "Windows 11 Pro",
+          "Pre-installed": "Microsoft Office Trial"
+        },
+        "Warranty": {
+          "Duration": "2-year limited warranty",
+          "Support": "Email and phone support"
+        }
+      }
+    },
+    {
+      "pid": "LAP-002",
+      "name": "Duos",
+      "tagline": "Dual-core brilliance for modern workflows",
+      "category": "laptop",
+      "image": "/productHub/LaptopDuos.png",
+      "gallery": [
+        "/productHub/LaptopDuos.png",
+        "/productHub/LaptopDuos.png",
+        "/productHub/LaptopDuos.png"
+      ],
+      "price": 58999,
+      "description": "The Duos delivers exceptional processing power with intelligent thermal management. Perfect for content creators and multitaskers who need responsive performance without compromise.",
+      "keyFeatures": [
+        "Intel Core i7 12th Gen processor",
+        "16GB DDR5 RAM",
+        "1TB NVMe SSD storage",
+        "15.6-inch QHD display",
+        "NVIDIA MX450 dedicated graphics",
+        "Advanced cooling system"
+      ],
+
+      "detailedSpecs": {
+        "Performance": {
+          "Processor": "Intel Core i7-1255U (10-core, up to 4.7GHz)",
+          "RAM": "16GB DDR5 4800MHz",
+          "Graphics": "NVIDIA GeForce MX450 2GB GDDR6",
+          "Storage": "1TB M.2 NVMe PCIe 4.0 SSD",
+          "Thermal System": "Dual-fan with heat pipes"
+        },
+        "Display": {
+          "Size": "15.6\" diagonal",
+          "Resolution": "2560 × 1440 (QHD)",
+          "Technology": "IPS with 100% sRGB",
+          "Refresh Rate": "60Hz",
+          "Brightness": "350 nits"
+        },
+        "Battery & Power": {
+          "Capacity": "70Wh lithium-polymer",
+          "Battery Life": "Up to 8 hours",
+          "Charging": "90W USB-C fast charging"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 6E (802.11ax)",
+          "Bluetooth": "Bluetooth 5.2",
+          "Ports": "3× USB-C 3.2, 1× USB-A 3.2, HDMI 2.0",
+          "Webcam": "1080p Full HD webcam",
+          "Audio": "Quad speakers with Dolby Audio"
+        },
+        "Physical": {
+          "Weight": "1.8 kg (4.0 lbs)",
+          "Dimensions": "35.9 × 24.2 × 1.79 cm",
+          "Material": "Premium aluminum chassis"
+        }
+      }
+    },
+    {
+      "pid": "LAP-003",
+      "name": "Elite",
+      "tagline": "Professional-grade performance unleashed",
+      "category": "laptop",
+      "image": "/productHub/LaptopElite.png",
+      "gallery": [
+        "/productHub/LaptopElite.png",
+        "/productHub/LaptopElite.png",
+        "/productHub/LaptopElite.png"
+      ],
+      "price": 89999,
+      "description": "The Elite redefines premium computing with cutting-edge hardware, stunning 4K visuals, and uncompromising build quality. Built for professionals who accept nothing less than excellence.",
+      "keyFeatures": [
+        "Intel Core i9 13th Gen processor",
+        "32GB DDR5 RAM",
+        "2TB NVMe SSD storage",
+        "16-inch 4K OLED display",
+        "NVIDIA RTX 4060 graphics",
+        "Thunderbolt 4 connectivity"
+      ],
+      "detailedSpecs": {
+        "Performance": {
+          "Processor": "Intel Core i9-13900H (14-core, up to 5.4GHz)",
+          "RAM": "32GB DDR5 5200MHz",
+          "Graphics": "NVIDIA RTX 4060 8GB GDDR6",
+          "Storage": "2TB M.2 NVMe PCIe 4.0 SSD",
+          "Thermal System": "Vapor chamber cooling"
+        },
+        "Display": {
+          "Size": "16\" diagonal",
+          "Resolution": "3840 × 2400 (4K UHD+)",
+          "Technology": "OLED with HDR600",
+          "Color Gamut": "100% DCI-P3",
+          "Refresh Rate": "60Hz",
+          "Brightness": "500 nits"
+        },
+        "Battery & Power": {
+          "Capacity": "99Wh lithium-polymer",
+          "Battery Life": "Up to 12 hours",
+          "Charging": "140W USB-C fast charging"
+        }
+      }
+    },
+    {
+      "pid": "LAP-004",
+      "name": "Pro",
+      "tagline": "Workstation performance for creative professionals",
+      "category": "laptop",
+      "image": "/productHub/LaptopPro.png",
+      "gallery": [
+        "/productHub/LaptopPro.png",
+        "/productHub/LaptopPro.png",
+        "/productHub/LaptopPro.png"
+      ],
+      "price": 109999,
+      "description": "The Pro laptop is engineered for creative professionals who demand maximum performance. With workstation-grade components and color-accurate displays, it's built for video editing, 3D rendering, and design.",
+      "keyFeatures": [
+        "Intel Core i9 14th Gen processor",
+        "64GB DDR5 RAM",
+        "4TB NVMe SSD storage",
+        "17-inch 4K Mini-LED display",
+        "NVIDIA RTX 4070 graphics",
+        "Professional color calibration"
+      ],
+      "detailedSpecs": {
+        "Performance": {
+          "Processor": "Intel Core i9-14900HX (24-core, up to 5.8GHz)",
+          "RAM": "64GB DDR5 5600MHz",
+          "Graphics": "NVIDIA RTX 4070 8GB GDDR6",
+          "Storage": "4TB M.2 NVMe PCIe 5.0 SSD (2x 2TB RAID 0)",
+          "Thermal System": "Triple-fan cooling with liquid metal"
+        },
+        "Display": {
+          "Size": "17\" diagonal",
+          "Resolution": "3840 × 2400 (4K UHD+)",
+          "Technology": "Mini-LED with 1200 nits peak",
+          "Color Gamut": "100% Adobe RGB, 99% DCI-P3",
+          "Refresh Rate": "120Hz",
+          "Brightness": "1000 nits sustained",
+          "Color Accuracy": "Delta E < 1 factory calibrated"
+        },
+        "Battery & Power": {
+          "Capacity": "99.9Wh lithium-polymer",
+          "Battery Life": "Up to 8 hours (productivity)",
+          "Charging": "230W GaN fast charging",
+          "Charge Time": "0-50% in 30 minutes"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 7 (802.11be)",
+          "Bluetooth": "Bluetooth 5.3",
+          "Ports": "2× Thunderbolt 4, 2× USB-C 3.2, HDMI 2.1, SD card reader (UHS-II)",
+          "Webcam": "1080p IR camera with Windows Hello",
+          "Audio": "Six speakers with Dolby Atmos"
+        },
+        "Physical": {
+          "Weight": "2.4 kg (5.3 lbs)",
+          "Dimensions": "39.7 × 27.1 × 1.99 cm",
+          "Material": "CNC-machined magnesium alloy",
+          "Colors": "Graphite Black"
+        },
+        "Operating System": {
+          "OS": "Windows 11 Pro",
+          "Pre-installed": "Adobe Creative Cloud Trial"
+        },
+        "Warranty": {
+          "Duration": "3-year premium warranty",
+          "Support": "24/7 priority support",
+          "On-site": "Next business day service"
+        }
+      }
+    },
+    {
+      "pid": "WAT-001",
+      "name": "S7 Sport Smartwatch",
+      "tagline": "Track every heartbeat, conquer every challenge",
+      "category": "smartwatch",
+      "image": "/productHub/S7Watch.png",
+      "gallery": [
+        "/productHub/S7Watch.png",
+        "/productHub/S7Watch.png",
+        "/productHub/S7Watch.png"
+      ],
+      "price": 12999,
+      "description": "The S7 Sport Smartwatch is your ultimate fitness companion. With advanced health tracking, GPS navigation, and water resistance, it's built for athletes and adventurers.",
+      "keyFeatures": [
+        "1.4-inch AMOLED always-on display",
+        "5-day battery life",
+        "Heart rate & SpO2 monitoring",
+        "50+ sport modes",
+        "5ATM water resistance",
+        "Built-in GPS"
+      ],
+
+      "detailedSpecs": {
+        "Display": {
+          "Size": "1.4 inches",
+          "Type": "AMOLED Always-On Display",
+          "Resolution": "454 × 454 pixels",
+          "Brightness": "1000 nits peak",
+          "Glass": "Corning Gorilla Glass"
+        },
+        "Health & Fitness": {
+          "Heart Rate": "24/7 monitoring",
+          "Blood Oxygen": "SpO2 tracking",
+          "Sleep Tracking": "Advanced sleep analysis",
+          "Sport Modes": "50+ activities",
+          "GPS": "Built-in GPS/GLONASS",
+          "Water Resistance": "5ATM (50m)"
+        },
+        "Battery": {
+          "Capacity": "450mAh",
+          "Typical Use": "5 days",
+          "GPS Mode": "20 hours",
+          "Charging": "Magnetic charging dock"
+        },
+        "Connectivity": {
+          "Bluetooth": "5.2",
+          "GPS": "GPS + GLONASS",
+          "Compatibility": "Android 6.0+, iOS 12+",
+          "WiFi": "Not supported"
+        },
+        "Physical": {
+          "Weight": "45g (without strap)",
+          "Dimensions": "46 × 46 × 10.7 mm",
+          "Strap": "Silicone sport band",
+          "Material": "Aluminum alloy"
+        },
+        "Warranty": {
+          "Duration": "1-year warranty",
+          "Support": "Email support"
+        }
+      }
+    },
+    {
+      "pid": "WAT-002",
+      "name": "M7 Medical Smartwatch",
+      "tagline": "Precision health monitoring at your wrist",
+      "category": "smartwatch",
+      "image": "/productHub/M7Watch.png",
+      "gallery": [
+        "/productHub/M7Watch.png",
+        "/productHub/M7Watch.png",
+        "/productHub/M7Watch.png"
+      ],
+      "price": 18999,
+      "description": "The M7 Medical Smartwatch offers clinical-grade health monitoring with ECG, blood pressure tracking, and sleep analysis. Designed for those who prioritize wellness and medical accuracy.",
+      "keyFeatures": [
+        "1.5-inch Retina display",
+        "7-day battery life",
+        "ECG & blood pressure monitoring",
+        "Advanced sleep analysis",
+        "Fall detection & SOS",
+        "Medical-grade sensors"
+      ],
+
+      "detailedSpecs": {
+        "Display": {
+          "Size": "1.5 inches",
+          "Type": "Retina AMOLED",
+          "Resolution": "466 × 466 pixels",
+          "Brightness": "1200 nits peak",
+          "Always-On": "Yes"
+        },
+        "Medical Features": {
+          "ECG": "FDA-approved ECG monitoring",
+          "Blood Pressure": "Medical-grade BP tracking",
+          "Temperature": "Body temperature sensor",
+          "Blood Oxygen": "Continuous SpO2",
+          "Fall Detection": "Emergency SOS",
+          "Sleep Analysis": "Clinical-grade tracking"
+        },
+        "Battery": {
+          "Capacity": "520mAh",
+          "Typical Use": "7 days",
+          "Charging": "Fast magnetic charging",
+          "Charge Time": "0-100% in 90 minutes"
+        },
+        "Connectivity": {
+          "Bluetooth": "5.3",
+          "Wi-Fi": "2.4GHz",
+          "Compatibility": "Android 7.0+, iOS 13+",
+          "GPS": "Not included"
+        },
+        "Certifications": {
+          "Medical": "FDA Class II Medical Device",
+          "Durability": "IP68 water resistant",
+          "Standards": "CE, FCC certified"
+        },
+        "Physical": {
+          "Weight": "52g",
+          "Dimensions": "47 × 47 × 11.2 mm",
+          "Material": "Stainless steel",
+          "Strap": "Medical-grade silicone"
+        },
+        "Warranty": {
+          "Duration": "2-year warranty",
+          "Support": "24/7 medical support"
+        }
+      }
+    },
+    {
+      "pid": "TV-001",
+      "name": "Educational Smart TV - 86 Inch",
+      "tagline": "Immersive learning through intelligent display technology",
+      "category": "smarttv",
+      "image": "/productHub/InteractiveTV86.png",
+      "gallery": [
+        "/productHub/InteractiveTV86.png",
+        "/productHub/InteractiveTV86.png",
+        "/productHub/InteractiveTV86.png"
+      ],
+      "price": 149999,
+      "description": "Transform any classroom into an interactive learning environment. This 86-inch educational smart TV features 4K resolution, built-in educational apps, and advanced screen sharing capabilities.",
+      "keyFeatures": [
+        "86-inch 4K UHD display",
+        "Interactive touch capability",
+        "Built-in educational platform",
+        "Multi-device screen sharing",
+        "Eye-care technology",
+        "20,000+ educational resources"
+      ],
+
+      "detailedSpecs": {
+        "Display": {
+          "Size": "86 inches diagonal",
+          "Resolution": "3840 × 2160 (4K UHD)",
+          "Panel Type": "LED-backlit LCD",
+          "Brightness": "400 nits",
+          "Contrast Ratio": "5000:1",
+          "Viewing Angle": "178° H/V"
+        },
+        "Smart Features": {
+          "OS": "Educational Smart OS",
+          "Apps": "20,000+ educational apps",
+          "Screen Share": "Wireless mirroring",
+          "Touch": "20-point capacitive touch",
+          "Whiteboard": "Built-in digital whiteboard",
+          "Cloud Storage": "100GB included"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 6 (802.11ax)",
+          "Bluetooth": "Bluetooth 5.0",
+          "HDMI": "3× HDMI 2.1",
+          "USB": "4× USB 3.0",
+          "LAN": "Gigabit Ethernet"
+        },
+        "Audio": {
+          "Speakers": "2× 20W stereo",
+          "Audio Tech": "Dolby Audio",
+          "Microphone": "Built-in array",
+          "Audio Output": "3.5mm jack, optical"
+        },
+        "Physical": {
+          "Dimensions": "192 × 110 × 9 cm",
+          "Weight": "52 kg",
+          "VESA Mount": "600 × 400mm",
+          "Stand": "Adjustable height"
+        },
+        "Features": {
+          "Eye Care": "Blue light filter",
+          "Remote": "Voice control",
+          "Certifications": "Energy Star",
+          "Operating Hours": "50,000 hours"
+        },
+        "Warranty": {
+          "Duration": "3-year commercial warranty",
+          "Support": "24/7 technical support",
+          "On-site": "Available"
+        }
+      }
+    },
+    {
+      "pid": "TV-002",
+      "name": "Interactive Smart TV - 75 Inch",
+      "tagline": "Collaboration reimagined for modern spaces",
+      "category": "smarttv",
+      "image": "/productHub/InteractiveTV75.png",
+      "gallery": [
+        "/productHub/InteractiveTV75.png",
+        "/productHub/InteractiveTV75.png",
+        "/productHub/InteractiveTV75.png"
+      ],
+      "price": 119999,
+      "description": "Elevate collaboration with the Interactive Smart TV. Featuring 4K clarity, seamless wireless connectivity, and intuitive touch controls for presentations, meetings, and creative sessions.",
+      "keyFeatures": [
+        "75-inch 4K UHD display",
+        "10-point touch interaction",
+        "Wireless presentation system",
+        "Built-in video conferencing",
+        "Cloud collaboration tools",
+        "4K streaming capability"
+      ],
+
+      "detailedSpecs": {
+        "Display": {
+          "Size": "75 inches diagonal",
+          "Resolution": "3840 × 2160 (4K UHD)",
+          "Panel Type": "QLED",
+          "Refresh Rate": "120Hz",
+          "Brightness": "500 nits",
+          "HDR": "HDR10+, Dolby Vision"
+        },
+        "Collaboration": {
+          "Video Conference": "4K built-in camera",
+          "Wireless Present": "4 devices simultaneously",
+          "Cloud Tools": "Teams, Zoom certified",
+          "Touch": "10-point capacitive",
+          "Annotation": "Real-time annotation",
+          "Recording": "Session recording"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 6 (802.11ax)",
+          "Bluetooth": "Bluetooth 5.2",
+          "HDMI": "4× HDMI 2.1",
+          "USB": "3× USB 3.1",
+          "Network": "Gigabit Ethernet"
+        },
+        "Audio": {
+          "Speakers": "2× 30W",
+          "Audio Tech": "Dolby Atmos",
+          "Microphone": "Far-field array",
+          "Noise Cancellation": "AI-powered"
+        },
+        "Physical": {
+          "Dimensions": "167 × 96 × 8 cm",
+          "Weight": "38 kg",
+          "VESA Mount": "400 × 400mm",
+          "Stand": "Included"
+        },
+        "Features": {
+          "Operating Hours": "60,000 hours",
+          "Security": "Enterprise-grade",
+          "Updates": "OTA firmware updates"
+        },
+        "Warranty": {
+          "Duration": "3-year warranty",
+          "Support": "Priority support",
+          "On-site": "Next business day"
+        }
+      }
+    },
+    {
+  "pid": "TAB-001",
+  "name": "Beepad",
+  "tagline": "Foldable innovation that transforms productivity",
+  "category": "tablet",
+  "image": "/productHub/TabletBeepad.png",
+  "gallery": [
+    "/productHub/TabletBeepad.png",
+    "/productHub/TabletBeepad.png",
+    "/productHub/TabletBeepad.png"
+  ],
+  "price": 39999,
+  "description": "The Beepad redefines tablet versatility with its revolutionary foldable design. Seamlessly transition from compact tablet to expansive workspace, delivering premium performance for creative professionals and digital nomads.",
+  "keyFeatures": [
+    "8.3-inch Foldable OLED Display",
+    "Snapdragon 8 Gen 3 Processor",
+    "12GB LPDDR5X RAM for fluid multitasking",
+    "1TB UFS 4.0 Storage",
+    "Dual-mode hinge for multiple viewing angles",
+    "S-Pen Pro compatibility with 2.8ms latency"
+  ],
+
+  "detailedSpecs": {
+    "Display": {
+      "Size": "8.3 inches diagonal (unfolded)",
+      "Resolution": "2208 × 1768 pixels",
+      "Technology": "Foldable Dynamic AMOLED 2X",
+      "Refresh Rate": "120Hz adaptive",
+      "Brightness": "1750 nits peak (HDR)",
+      "HDR": "HDR10+, Dolby Vision",
+      "Cover Display": "6.2-inch Super AMOLED"
+    },
+    "Performance": {
+      "Processor": "Qualcomm Snapdragon 8 Gen 3 (4nm)",
+      "CPU": "1x 3.3GHz Cortex-X4 + 3x 3.2GHz Cortex-A720 + 4x 2.3GHz Cortex-A520",
+      "GPU": "Adreno 750 with hardware-accelerated ray tracing",
+      "RAM": "12GB LPDDR5X (8533 Mbps)",
+      "Storage": "1TB UFS 4.0 (sequential read: 4200MB/s)",
+      "Cooling": "Vapor chamber with graphene layer"
+    },
+    "Battery & Charging": {
+      "Capacity": "4400mAh dual-battery",
+      "Battery Life": "Up to 18 hours (video playback)",
+      "Fast Charging": "45W wired (0-65% in 30 minutes)",
+      "Wireless Charging": "15W Qi/PMA compatible",
+      "Reverse Wireless": "4.5W (can charge other devices)"
+    },
+    "Camera & Audio": {
+      "Main Camera": "50MP wide (f/1.8, OIS) + 12MP ultra-wide + 10MP telephoto (3x optical)",
+      "Front Camera": "12MP under-display + 10MP cover display camera",
+      "Video Recording": "8K@30fps, 4K@120fps",
+      "Audio": "Quad speakers tuned by AKG, Dolby Atmos",
+      "Microphones": "3-microphone array with noise cancellation"
+    },
+    "Design & Build": {
+      "Dimensions (Unfolded)": "158.2 × 128.1 × 5.4mm",
+      "Dimensions (Folded)": "158.2 × 67.1 × 13.4mm",
+      "Weight": "285 grams",
+      "Materials": "Armor Aluminum frame, Victus 2 Gorilla Glass",
+      "Hinge": "Ultra-thin glass (UTG) with Flex Mode",
+      "IP Rating": "IPX8 water resistant",
+      "Colors": "Phantom Black, Cream, Lavender"
+    },
+    "Connectivity": {
+      "Cellular": "5G (Sub-6 + mmWave), 4G LTE",
+      "WiFi": "Wi-Fi 7 (802.11be), tri-band",
+      "Bluetooth": "Bluetooth 5.3 with LE Audio",
+      "Ports": "USB 3.2 Gen 2 Type-C",
+      "Positioning": "GPS, GLONASS, Galileo, BeiDou"
+    },
+    "Software & Features": {
+      "Operating System": "Android 14 with One UI 6.1",
+      "Desktop Mode": "Samsung DeX support",
+      "Multi-tasking": "Up to 3 apps simultaneously",
+      "S-Pen": "Pro version with 2.8ms latency, 4096 pressure levels",
+      "Security": "Under-display fingerprint, face recognition",
+      "Special Features": "Flex Mode, App Continuity, Second Screen"
+    },
+    "Accessories": {
+      "Included": "S-Pen Pro, 45W fast charger, USB-C cable, SIM ejector",
+      "Optional": "Standing cover with S-Pen slot, Bluetooth keyboard case"
+    },
+    "Warranty & Support": {
+      "Warranty": "2-year manufacturer warranty",
+      "Screen Protection": "1-year free screen replacement for manufacturing defects",
+      "Support": "24/7 premium support, in-person service at authorized centers",
+      "Software Updates": "4 years of OS updates, 5 years of security updates"
+    }
+  }
+},
+    {
+      "pid": "KIO-001",
+      "name": "Kiosk Machine",
+      "tagline": "Self-service innovation for the digital age",
+      "category": "kiosk",
+      "image": "/productHub/Kiosk.png",
+      "gallery": [
+        "/productHub/Kiosk.png",
+        "/productHub/Kiosk.png",
+        "/productHub/Kiosk.png"
+      ],
+      "price": 199999,
+      "description": "Revolutionary self-service kiosk designed for retail, hospitality, and corporate environments. Features a robust touchscreen interface, secure payment integration, and enterprise-grade reliability.",
+      "keyFeatures": [
+        "32-inch Full HD touchscreen",
+        "Intel Core i5 processor",
+        "256GB SSD storage",
+        "Integrated payment terminal",
+        "24/7 operation capable",
+        "Weatherproof outdoor option"
+      ],
+
+      "detailedSpecs": {
+        "Display": {
+          "Size": "32 inches diagonal",
+          "Resolution": "1920 × 1080 (Full HD)",
+          "Type": "Capacitive touchscreen",
+          "Touch Points": "10-point multi-touch",
+          "Brightness": "500 nits",
+          "Anti-glare": "Yes"
+        },
+        "Computing": {
+          "Processor": "Intel Core i5-11400 (6-core)",
+          "RAM": "8GB DDR4 (expandable 32GB)",
+          "Storage": "256GB M.2 NVMe SSD",
+          "Graphics": "Intel UHD 730",
+          "OS": "Windows 11 IoT Enterprise"
+        },
+        "Payment Systems": {
+          "Card Reader": "EMV chip & magnetic",
+          "NFC": "Contactless payment",
+          "QR Code": "Built-in scanner",
+          "Receipt Printer": "Thermal 80mm",
+          "Cash Acceptor": "Optional module"
+        },
+        "Connectivity": {
+          "WiFi": "Wi-Fi 6 (802.11ax)",
+          "Ethernet": "Gigabit Ethernet",
+          "Bluetooth": "Bluetooth 5.1",
+          "USB": "6× USB ports",
+          "Serial": "2× RS-232 ports"
+        },
+        "Security": {
+          "Encryption": "AES-256",
+          "Biometric": "Optional fingerprint",
+          "Camera": "Surveillance camera",
+          "Physical": "Tamper-proof",
+          "Software": "Secure boot, TPM 2.0"
+        },
+        "Physical": {
+          "Dimensions": "180 × 60 × 50 cm",
+          "Weight": "85 kg",
+          "Material": "Powder-coated steel",
+          "Mounting": "Floor/wall-mount",
+          "Rating": "IP54 (outdoor option)"
+        },
+        "Environmental": {
+          "Operating Temp": "0°C to 40°C",
+          "Humidity": "20% to 80%",
+          "Cooling": "Active cooling",
+          "Power": "100-240V AC, 300W"
+        },
+        "Warranty & Support": {
+          "Duration": "5-year hardware warranty",
+          "Software Updates": "Lifetime updates",
+          "Support": "24/7 remote monitoring",
+          "On-site": "Next business day"
+        }
+      }
+    }
+  ]
+}
