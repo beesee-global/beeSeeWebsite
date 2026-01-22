@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const axiosClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL_BACKEND}/api`, // 👈 adjust if your routes are prefixed
+  baseURL: `http://192.168.1.110:4003/api`, // 👈 adjust if your routes are prefixed
   withCredentials: false, // set to true if using cookies / auth sessions
 });
  

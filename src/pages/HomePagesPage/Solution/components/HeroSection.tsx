@@ -200,7 +200,7 @@ const HeroSection = () => {
   SERVICES WE OFFER
 </h2>
 
-          <p
+         <p
             style={{ fontFamily: "Segoe UI, sans-serif" }}
             className="
               text-sm sm:text-base md:text-lg

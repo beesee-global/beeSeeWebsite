@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cpu, Database, Cloud, Microchip, Zap, Monitor, Keyboard, Volume2, Battery, HardDrive, Wifi, Settings } from "lucide-react";
+import { Cpu, Monitor, Heart, Wifi, Settings, Zap, Cloud, Microchip, Battery } from "lucide-react";
 
-type ProductLike = {
-  id?: number;
-  pid?: string;
+type Product = {
+  pid: string;
   name: string;
-  tagline?: string;
-  image?: string;
-  specs?: { [k: string]: string | undefined };
+  tagline: string;
+  category: string;
+  image: string;
+  price: number;
+  specs: { [key: string]: string };
+  category_id?: string; // Add this for category detection
 };
 
-// Mobile detection hook for ProductCard
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -19,7 +20,6 @@ const useIsMobile = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -28,156 +28,161 @@ const useIsMobile = () => {
   return isMobile;
 };
 
+// Category-specific hover specs mapping
+const categoryHoverSpecs: Record<string, string[]> = {
+  laptop: ["cpu", "ram", "storage", "display"],
+  smartwatch: ["display", "battery", "sensors", "connectivity"],
+  smarttv: ["display", "resolution", "refresh_rate", "smart_features"],
+  tablet: ["cpu", "ram", "storage", "display"],
+  kiosk: ["display", "cpu", "storage", "touchscreen"],
+  // Default fallback
+  default: ["cpu", "ram", "storage", "display"]
+};
+
+// Get 4 specs for hover based on category
+const getHoverSpecs = (product: Product, categoryId?: string): Array<[string, string]> => {
+  const specs = product.specs || {};
+  
+  // Get category-specific spec keys
+  const categoryKeys = categoryId ? categoryHoverSpecs[categoryId] || categoryHoverSpecs.default : categoryHoverSpecs.default;
+  
+  // Collect specs based on category keys
+  const hoverSpecs: Array<[string, string]> = [];
+  
+  // First, try to get category-specific specs
+  for (const key of categoryKeys) {
+    if (specs[key] && hoverSpecs.length < 4) {
+      hoverSpecs.push([key, specs[key]]);
+    }
+  }
+  
+  // If we still need more specs, fill with any available specs
+  if (hoverSpecs.length < 4) {
+    const remainingKeys = Object.keys(specs).filter(key => 
+      !hoverSpecs.some(([hoverKey]) => hoverKey === key)
+    );
+    
+    for (const key of remainingKeys) {
+      if (hoverSpecs.length < 4 && specs[key]) {
+        hoverSpecs.push([key, specs[key]]);
+      }
+    }
+  }
+  
+  // If still less than 4, fill with placeholder
+  while (hoverSpecs.length < 4) {
+    const placeholderKey = `spec_${hoverSpecs.length + 1}`;
+    hoverSpecs.push([placeholderKey, "N/A"]);
+  }
+  
+  return hoverSpecs;
+};
+
 const ProductCard: React.FC<{
-  product: ProductLike;
+  product: Product;
   index: number;
   onClick?: () => void;
+  categoryHoverSpecs?: string[];
 }> = ({ product, index, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
 
-  // EXPANDED specIcons object to include more spec types
+  // Icon mapping for all spec types
   const specIcons: Record<string, any> = {
     cpu: Cpu,
     ram: Microchip,
-    ssd: Database,
     storage: Cloud,
     display: Monitor,
     battery: Battery,
     gpu: Cpu,
-    switches: Keyboard,
-    backlight: Settings,
     connectivity: Wifi,
     resolution: Monitor,
-    brightness: Zap,
-    microphone: Volume2,
-    capacity: HardDrive,
-    dpi: Settings,
-    buttons: Settings,
-    ports: Settings,
-    compatibility: Settings,
-    pattern: Settings,
-    frequency: Settings,
-    material: Settings,
-    height: Settings,
-    // Add fallbacks for capitalized keys
-    SWITCHES: Keyboard,
-    BACKLIGHT: Settings,
-    CONNECTIVITY: Wifi,
-    RESOLUTION: Monitor,
-    BRIGHTNESS: Zap,
-    MICROPHONE: Volume2,
-    CAPACITY: HardDrive,
-    DPI: Settings,
-    BUTTONS: Settings,
-    PORTS: Settings,
-    COMPATIBILITY: Settings,
-    PATTERN: Settings,
-    FREQUENCY: Settings,
-    MATERIAL: Settings,
-    HEIGHT: Settings,
+    refresh_rate: Zap,
+    sensors: Heart,
+    smart_features: Settings,
+    touchscreen: Settings,
   };
 
-  // EXPANDED specLabels object
+  // Label mapping for all spec types
   const specLabels: Record<string, string> = {
     cpu: "Processor",
     ram: "RAM",
-    ssd: "SSD",
     storage: "Storage",
     display: "Display",
     battery: "Battery",
     gpu: "Graphics",
-    switches: "Switches",
-    backlight: "Backlight",
     connectivity: "Connectivity",
     resolution: "Resolution",
-    brightness: "Brightness",
-    microphone: "Microphone",
-    capacity: "Capacity",
-    dpi: "DPI",
-    buttons: "Buttons",
-    ports: "Ports",
-    compatibility: "Compatibility",
-    pattern: "Pattern",
-    frequency: "Frequency",
-    material: "Material",
-    height: "Height",
-    // Add fallbacks for capitalized keys
-    SWITCHES: "Switches",
-    BACKLIGHT: "Backlight",
-    CONNECTIVITY: "Connectivity",
-    RESOLUTION: "Resolution",
-    BRIGHTNESS: "Brightness",
-    MICROPHONE: "Microphone",
-    CAPACITY: "Capacity",
-    DPI: "DPI",
-    BUTTONS: "Buttons",
-    PORTS: "Ports",
-    COMPATIBILITY: "Compatibility",
-    PATTERN: "Pattern",
-    FREQUENCY: "Frequency",
-    MATERIAL: "Material",
-    HEIGHT: "Height",
+    refresh_rate: "Refresh Rate",
+    sensors: "Sensors",
+    smart_features: "Smart Features",
+    touchscreen: "Touchscreen",
   };
 
-  const topSpecs = Object.entries(product.specs || {})
-    .slice(0, 4);
+  // Get exactly 4 hover specs based on category
+  const hoverSpecs = getHoverSpecs(product, product.category_id || product.category.toLowerCase());
 
-  // Function to normalize spec keys (convert to lowercase)
-  const normalizeSpecKey = (key: string): string => {
-    return key.toLowerCase();
+  // Format price
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }).format(price);
   };
 
-  // MOBILE VERSION - No hover effects, simple clickable card, NO VIEW BUTTON
+  // MOBILE VERSION
   if (isMobile) {
     return (
       <div
-        // DISABLED CLICK NAVIGATION
-        // onClick={onClick}
-        className={`product-card-glow-master relative transition-transform duration-200 ${onClick ? "cursor-pointer active:scale-[0.98]" : ""}`}
+        onClick={onClick}
+        className="product-card-glow-master relative transition-transform duration-200 cursor-pointer active:scale-[0.98]"
       >
-        {/* SIMPLIFIED GLOW FOR MOBILE */}
         <div className="glow-container">
           <div className="glow-orbit glow-orbit-1"></div>
         </div>
 
-        {/* CARD CONTENT */}
         <div className="card-content-glow">
-          {/* IMAGE */}
           <div className="product-image-container">
             <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
-            {/* REMOVED VIEW BUTTON - ENTIRE CARD IS CLICKABLE */}
           </div>
 
-          {/* TEXT */}
           <div className="product-info">
             <h3 className="product-name">{product.name}</h3>
             <p className="product-tagline">{product.tagline}</p>
+            <p className="product-price">
+              {formatPrice(product.price)}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // DESKTOP VERSION - With hover effects
+  // DESKTOP VERSION - With elegant hover effects
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="product-card-glow-master"
-      // DISABLED CLICK NAVIGATION
-      // onClick={onClick}
+      className="product-card-glow-master group cursor-pointer"
+      onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* ADVANCED BORDER GLOW SYSTEM */}
+      {/* ELEGANT STATIC GLOW SYSTEM - No moving lights */}
       <div className="glow-container">
-        <div className="glow-orbit glow-orbit-1"></div>
-        <div className="glow-orbit glow-orbit-2"></div>
-        <div className="glow-orbit glow-orbit-3"></div>
-        <div className="glow-pulse"></div>
-        <div className="glow-scan"></div>
+        {/* Static gold border glow - subtle and elegant */}
+        <div className="absolute inset-0 rounded-[24px] border-2 border-transparent group-hover:border-[#FDCC00]/30 transition-all duration-500" />
+        
+        {/* Subtle inner glow that pulses gently */}
+        <div className="absolute inset-[-2px] rounded-[26px] bg-gradient-to-br from-[#FDCC00]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Corner highlights */}
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#FDCC00]/0 rounded-tl-[24px] group-hover:border-[#FDCC00]/40 transition-all duration-500" />
+        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#FDCC00]/0 rounded-tr-[24px] group-hover:border-[#FDCC00]/40 transition-all duration-500" />
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#FDCC00]/0 rounded-bl-[24px] group-hover:border-[#FDCC00]/40 transition-all duration-500" />
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#FDCC00]/0 rounded-br-[24px] group-hover:border-[#FDCC00]/40 transition-all duration-500" />
       </div>
 
       {/* CARD CONTENT */}
@@ -186,9 +191,9 @@ const ProductCard: React.FC<{
         <div className="product-image-container">
           <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
 
-          {/* SPECS - Only show on hover */}
+          {/* SPECS - Only show on hover (4 specs based on category) */}
           <AnimatePresence>
-            {isHovered && topSpecs.length > 0 && (
+            {isHovered && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -197,10 +202,9 @@ const ProductCard: React.FC<{
                 transition={{ duration: 0.18 }}
               >
                 <div className="specs-grid-four">
-                  {topSpecs.map(([key, value], i) => {
-                    const normalizedKey = normalizeSpecKey(key);
-                    const Icon = specIcons[normalizedKey] || specIcons[key] || Settings;
-                    const label = specLabels[normalizedKey] || specLabels[key] || key;
+                  {hoverSpecs.map(([key, value], i) => {
+                    const Icon = specIcons[key] || Settings;
+                    const label = specLabels[key] || key;
 
                     return (
                       <motion.div
@@ -211,7 +215,7 @@ const ProductCard: React.FC<{
                         className="spec-item-enhanced"
                       >
                         <div className="spec-icon-enhanced">
-                          {Icon && <Icon className="w-5 h-5 text-black" />}
+                          <Icon className="w-5 h-5 text-black" />
                         </div>
                         <div className="spec-content">
                           <div className="spec-label-enhanced">{label}</div>
@@ -230,6 +234,9 @@ const ProductCard: React.FC<{
         <div className="product-info">
           <h3 className="product-name">{product.name}</h3>
           <p className="product-tagline">{product.tagline}</p>
+          <p className="product-price">
+            {formatPrice(product.price)}
+          </p>
         </div>
       </div>
     </motion.div>
