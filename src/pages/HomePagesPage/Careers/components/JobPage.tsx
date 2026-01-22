@@ -226,7 +226,7 @@ const JobPage: React.FC = () => {
               <QrWithLogo 
                 value={`${import.meta.env.VITE_API_URL_FRONTEND}/careers/${job.job_reference_number}`} 
                 logoUrl={beeseelogo} 
-                size={150}
+                size={160}
               />
             </div>
 
