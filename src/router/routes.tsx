@@ -101,11 +101,11 @@ const routes = [
                 element: <FaqsHomePage />
             },
             {
-                path: 'career',
+                path: 'bsg/career',
                 element: <Careers />
             },
             {
-                path: 'career/:id',
+                path: 'bsg/career/:id',
                 element: <CareerDetails />
             },
             {
