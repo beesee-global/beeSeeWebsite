@@ -47,6 +47,13 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     if (file) {
       // Validate file type
       const allowedMimeTypes = [
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.gif',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -54,6 +61,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
+
       if (!allowedMimeTypes.includes(file.type)) {
         alert('Please upload only PDF or Word documents');
         return;
@@ -362,7 +370,15 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                       application/vnd.openxmlformats-officedocument.wordprocessingml.document,
                       text/plain,
                       application/vnd.ms-excel,
-                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                      .jpg,
+                      .jpeg,
+                      .png,
+                      .gif,
+                      image/jpeg,
+                      image/png,
+                      image/gif
+                      "
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -401,7 +417,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
 
               {/* Submit Button */}
               <div className="pt-6">
-                <button disabled={isPending} onClick={handleSubmit} className="beesee-button">
+                <button disabled={isPending} onClick={handleSubmit} className={`beesee-button ${isPending ? 'beesee-button--disabled cursor-not-allowed' : ''}`}>
                   <Send size={18} />
                   {isPending ? "Submitting..." :" Submit Application"}
                 </button>
