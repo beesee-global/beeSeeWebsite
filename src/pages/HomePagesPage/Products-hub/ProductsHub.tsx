@@ -190,13 +190,13 @@ const ProductsHub: React.FC = () => {
       icon: "📱",
       hoverSpecs: ["cpu", "ram", "storage", "display"]
     },
-    { 
+/*     { 
       id: "kiosk", 
       name: "Kiosk Machines", 
       count: demoProducts.filter((p) => p.category_id === "kiosk").length,
       icon: "🏧",
       hoverSpecs: ["display", "cpu", "storage", "touchscreen"]
-    }
+    } */
   ];
 
   /* ===========================
