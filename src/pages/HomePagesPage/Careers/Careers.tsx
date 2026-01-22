@@ -1,27 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { Briefcase, MapPin, Clock, Search, Filter, X, ChevronRight } from 'lucide-react';
-
-// Mock data - Replace with API call
-const mockJobs = [
-  {
-    title: "Sales Marketing",
-    description: "As a Sales Marketing Professional, You'll be promoting a range of tech devices such as Laptops, Tablets, digital Kiosks, interactive Boards, and smart Displays, along with IT services like CCTV installation and network system Setup. You'll help businesses upgrade their Technology, connect with Clients, and deliver smarter Solutions.",
-    job_type: "Full-time",
-    location: "South Triangle, Quezon City",
-    work_location: "Onsite",
-    created_at: "2026-01-19T02:37:56.000Z",
-  },
-  {
-    title: "Sales Graphic",
-    description: "As a Sales Graphic, you'll be promoting a range of tech innovative devices, along with IT digital solution services. You'll help businesses upgrade their technology, connect with clients, and deliver smarter solutions.",
-    job_type: "Full-time",
-    location: "South Triangle, Quezon City",
-    work_location: "Onsite",
-    created_at: "2026-01-14T05:53:56.000Z",
-  }
-];
+import { careersList } from '../../../services/Technician/careersServices'
+import { useQuery } from '@tanstack/react-query'
+import DOMPurify from 'dompurify'; 
+import { useNavigate } from 'react-router-dom';
 
 const JobCard = ({ job, index }) => {
+
+  // Sanitize HTML function
+  const sanitizeHTML = (html: string) => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'i', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'b'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+      ALLOW_DATA_ATTR: false,
+    })
+  }
+
+  const navigate = useNavigate();
+
   // Calculate time ago from created_at
   const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -50,8 +46,7 @@ const JobCard = ({ job, index }) => {
         position: 'relative',
         overflow: 'hidden'
       }}
-    >
-     
+    > 
 
       <div style={{ 
         position: 'relative', 
@@ -75,9 +70,9 @@ const JobCard = ({ job, index }) => {
           color: 'var(--muted)',
           lineHeight: '1.6',
           fontSize: '0.95rem'
-        }}>
-          {job.description}
-        </p>
+        }}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(job.description)}}
+        />
         
         <div style={{ 
           display: 'flex', 
@@ -148,10 +143,15 @@ const JobCard = ({ job, index }) => {
               {getTimeAgo(job.created_at)}
             </span>
           </div>
-          <button className="beesee-button beesee-button--small" style={{
-            padding: '0.625rem 1.25rem',
-            fontWeight: '500'
-          }}>
+          <button
+            onClick={() => {
+              navigate(`/career/${job.job_reference_number}`)
+            }} 
+            className="beesee-button beesee-button--small" style={{
+              padding: '0.625rem 1.25rem',
+              fontWeight: '500'
+            }}
+          >
             View Details
             <ChevronRight size={16} />
           </button>
@@ -166,15 +166,23 @@ const CareerPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
 
+  const { data: careerResponse  } = useQuery({
+    queryKey: ['careers'],
+    queryFn: () => careersList()
+  })
+
+  const jobData = careerResponse?.data ?? []
+
   // Filter jobs
   const filteredJobs = useMemo(() => {
-    return mockJobs.filter(job => {
-      const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          job.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return jobData.filter(job => {
+      const matchesSearch = 
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesSearch;
     });
-  }, [searchTerm]);
+  }, [searchTerm, jobData]);
 
   const clearFilters = () => {
     setSearchTerm('');
