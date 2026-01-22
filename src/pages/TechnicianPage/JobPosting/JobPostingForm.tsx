@@ -2,16 +2,12 @@ import React, { useEffect, useState } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"  
 import { useParams } from "react-router-dom";
 import {  
-  Save, 
-  Plus,
-  X,
+  Save,  
   Briefcase,
   MapPin, 
-  FileText,
-  Settings
+  FileText, 
 } from "lucide-react";
-import { 
-  Mail,
+import {  
   User2,  
   FilePenLine, 
 } from "lucide-react"
