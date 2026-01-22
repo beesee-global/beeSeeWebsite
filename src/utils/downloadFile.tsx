@@ -12,3 +12,44 @@ export function downloadFile(url: string, mode: "view" | "download", filename?: 
         document.body.removeChild(link);
     }
 } 
+
+export async function downloadFileDesktop(
+  url: string,
+  options?: {
+    filename?: string;
+    onSuccess?: () => void;
+    onError?: (error: unknown) => void;
+  }
+) {
+  if (!url) return;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch file");
+    }
+
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+
+    const resolvedFilename =
+      options?.filename || url.split("/").pop() || "file";
+
+    link.download = resolvedFilename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(blobUrl);
+
+    options?.onSuccess?.();
+  } catch (error) {
+    console.error("Download error:", error);
+    options?.onError?.(error);
+  }
+}

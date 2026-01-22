@@ -65,7 +65,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
       
       {/* HERO SECTION */}
       <div 
-        className="relative h-[80vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
+        className="relative h-[85vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
         style={{
           background: 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerBg3.png")',
           backgroundSize: 'cover',
@@ -161,7 +161,7 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
               <QrWithLogo 
                 value={`${import.meta.env.VITE_API_URL_FRONTEND}/careers/${job.job_reference_number}`} 
                 logoUrl={beeseelogo} 
-                size={120}
+                size={150}
               />
             </div>
 
@@ -174,34 +174,27 @@ const JobPage: React.FC<JobPageProps> = ({ job }) => {
 
         {/* ABOUT */}
         <section className="mb-16 md:mb-20 fade-up-init beesee-card-content1 text-left">
-          <div className="flex items-center gap-4 mb-6 md:mb-8">
-            <div
-              className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(253, 204, 0, 0.2), rgba(255, 215, 0, 0.1))',
-                border: '2px solid rgba(253, 204, 0, 0.35)'
-              }}
-            >
-              <Target size={24} style={{ color: 'var(--beesee-gold)' }} />
-            </div>
+          <div className="flex items-center gap-4 mb-6 md:mb-8"> 
             <h2 className="bee-title-md" style={{ color: 'var(--beesee-gold)' }}>
               About the Role
             </h2>
           </div>
 
-          <p className="bee-body leading-relaxed text-[16px] md:text-[18px]">
-            {job.description}
-          </p>
+          <p 
+            className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
+            style={{ textAlign: 'left', textAlignLast: 'left' }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(job.description) }}
+          /> 
         </section>
 
         {/* RESPONSIBILITIES & QUALIFICATIONS */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-12 md:gap-16 mb-20">
+        <section className="mb-16 md:mb-20 fade-up-init beesee-card-content1 text-left"> 
           <p 
             className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
             style={{ textAlign: 'left', textAlignLast: 'left' }}
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(job.careers_job_details) }}
           />
-        </div>
+        </section> 
 
         {/* FINAL CTA */}
         <section className="fade-up-init text-center">

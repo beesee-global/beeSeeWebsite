@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Send, CheckCircle2, Upload, X, FileText } from 'lucide-react';
+import { 
+  Send, 
+  CheckCircle2, 
+  Upload, 
+  X, 
+  FileText 
+} from 'lucide-react';
 import {
   careersEmail
 } from '../../../../services/Technician/careersServices'
@@ -40,15 +46,22 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
+      const allowedMimeTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+      if (!allowedMimeTypes.includes(file.type)) {
         alert('Please upload only PDF or Word documents');
         return;
       }
       
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should not exceed 5MB');
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size should not exceed 10MB');
         return;
       }
       
@@ -84,8 +97,8 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         return;
       }
       
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should not exceed 5MB');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size should not exceed 10MB');
         return;
       }
       
@@ -112,9 +125,9 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     }
 
     // Phone validation (basic PH format)
-    const phoneRegex = /^(\+63|0)?9\d{9}$/;
-    if (!phoneRegex.test(formData.phone.replace(/[\s-]/g, ''))) {
-      alert('Please enter a valid Philippine phone number');
+    const phoneRegex = /^09\d{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert('Phone number must start with 09 and be 11 digits long.');
       return;
     }
 
@@ -130,30 +143,22 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     } 
 
     const response = await sentEmailCareers(submitData);
-    if(response?.success) {
-      console.log('Application submitted:', { 
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        resume: formData.resume?.name, 
-      });
-
+    if(response?.success) { 
       setIsSubmitted(true);
-
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setIsSubmitted(false);
-        onClose();
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          subject: '',
-          resume: null
-        });
-      }, 3000);
     } 
   };
+
+  const handleCloseSubmit = () => {
+    setIsSubmitted(false);
+      onClose();
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        resume: null
+    });
+  }
 
   const handleClose = () => {
     if (!isSubmitted) {
@@ -181,8 +186,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         background: 'rgba(0, 0, 0, 0.88)',
         backdropFilter: 'blur(10px)',
         animation: 'fadeIn 0.3s ease-out'
-      }}
-      onClick={handleClose}
+      }} 
     >
       <div
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 md:p-10"
@@ -197,24 +201,33 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {isSubmitted ? (
-          <div className="text-center py-16">
-            <div
-              className="w-24 h-24 mx-auto mb-8 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(253, 204, 0, 0.3), rgba(255, 215, 0, 0.2))',
-                border: '2px solid rgba(253, 204, 0, 0.5)',
-                animation: 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
+          <div className="text-center relative">
+            <button
+              onClick={handleCloseSubmit}
+              className='absolute top-0 right-0 p-2 rounded-full hover:bg-white/50 transition'
             >
-              <CheckCircle2 size={48} style={{ color: 'var(--beesee-gold)' }} />
+               <X size={38} style={{ color: 'var(--beesee-gold)' }} />
+            </button>
+            <div className='py-16'>
+              <div
+                className="w-24 h-24 mx-auto mb-8 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(253, 204, 0, 0.3), rgba(255, 215, 0, 0.2))',
+                  border: '2px solid rgba(253, 204, 0, 0.5)',
+                  animation: 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                
+                <CheckCircle2 size={48} style={{ color: 'var(--beesee-gold)' }} />
+              </div>
+              <h3 className="bee-title-md mb-5" style={{ color: 'var(--text-light)' }}>
+                Application Submitted Successfully!
+              </h3>
+              <p className="bee-body max-w-md mx-auto">
+                Thank you for applying to BEESEE. Our HR team will review your application
+                and get back to you within 5-7 business days.
+              </p>
             </div>
-            <h3 className="bee-title-md mb-5" style={{ color: 'var(--text-light)' }}>
-              Application Submitted Successfully!
-            </h3>
-            <p className="bee-body max-w-md mx-auto">
-              Thank you for applying to BEESEE. Our HR team will review your application
-              and get back to you within 5-7 business days.
-            </p>
           </div>
         ) : (
           <>
@@ -277,29 +290,14 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 <input
                   type="tel"
                   required
+                  maxLength={11}
                   className="input-default"
-                  placeholder="+63 912 345 6789"
+                  placeholder="09XXXXXXXXX"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
-
-              {/*  <div>
-                <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
-                  Subject *
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="input-default"
-                  placeholder="Role applied for"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                />
-              </div> */}
-
-            
-
+  
               {/* Resume Upload */}
               <div>
                 <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
@@ -353,7 +351,18 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                     <input
                       type="file"
                       id="resume-upload"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,
+                      .doc,
+                      .docx,
+                      .txt,
+                      .xls,
+                      .xlsx,
+                      application/pdf,
+                      application/msword,
+                      application/vnd.openxmlformats-officedocument.wordprocessingml.document,
+                      text/plain,
+                      application/vnd.ms-excel,
+                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -383,7 +392,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                         {isDragging ? 'Drop your file here' : 'Click to upload or drag and drop'}
                       </p>
                       <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                        PDF or Word document (Max 5MB)
+                       (Max 10MB)
                       </p>
                     </label>
                   </div>
@@ -392,9 +401,9 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
 
               {/* Submit Button */}
               <div className="pt-6">
-                <button onClick={handleSubmit} className="beesee-button">
+                <button disabled={isPending} onClick={handleSubmit} className="beesee-button">
                   <Send size={18} />
-                  Submit Application
+                  {isPending ? "Submitting..." :" Submit Application"}
                 </button>
               </div>
             </div>

@@ -373,19 +373,15 @@ const JobPostingForm: React.FC = () => {
                   <label className="block text-sm  text-black dark:text-black mb-2">
                     Job Description *
                   </label>
-                  <CustomTextField 
-                    name="description"
-                    placeholder="Brief description of the role and responsibilities"
-                    value={formJobData.description}
-                    multiline={true}
-                    rows={4}
-                    type="text"
-                    maxLength={500} 
-                    onChange={handleInputChange}  
-                    error={!!formError.description}
-                    helperText={formError.description}
-                    icon={<FileText className="w-4 h-4" />}
-                  /> 
+                   <RichTextEditor
+                      value={formJobData.description || ''}
+                      onChange={(value) =>
+                        setJobData(prev => ({ ...prev, description: value }))
+                      }
+                    />
+                    {formError.description && (
+                      <p className="text-red-500 text-sm mt-1">{formError.description}</p>
+                    )}  
                 </div>
 
                 <div className="md:col-span-2">
