@@ -1,16 +1,14 @@
 import React from 'react'
 import { pdf } from "@react-pdf/renderer";
-import JobOrderPDF from "../../utils/JobOrderPDF";
-import { Buffer } from "buffer";
- 
+import JobOrderPDF from "../../utils/JobOrderPDF"; 
+import { downloadFile } from '../../utils/downloadFile'
  
 import {
   Mail,
-  Ticket,
-  Building2,
-  School,
+  Ticket, 
   Phone,
   MessageSquare,
+  Eye,
   AlertCircle,
   Laptop,
   User,
@@ -61,31 +59,26 @@ const generateAndDownloadPDF = async () => {
     <div>  
       <div className="p-4 space-y-4">
         {/* Status Badge */}
-        <div className="flex items-center justify-between"> 
-            {!publicConversation && (
-              <div className='flex gap-2'>
-                <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
-                >
-                  {userTicketInformation.status === "open" ? "OPEN" :  userTicketInformation.status === "resolved" ? "COMPLETED" : "Expired"}
-                </span>
-
-                <button
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent default navigation
-                    generateAndDownloadPDF();
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <Download size={14} />
-                  DOWNLOAD
-                </button>
-
-              </div>
-            )} 
+        <div className="md:flex items-center justify-between ">  
           <span className="text-md text-gray-500 flex items-center gap-1">
             <Calendar size={14} />
             {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
           </span>
+          {!publicConversation && (
+            <div className='flex gap-2 mt-3 md:mt-0'> 
+              <button
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent default navigation 
+                  downloadFile(userTicketInformation.job_order_url, "view", "test")
+                }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <Eye size={14} />
+                View Job Order
+              </button>
+
+            </div>
+          )} 
         </div>
 
         {/* Ticket ID */}

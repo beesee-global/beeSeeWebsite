@@ -94,28 +94,40 @@ const permissionTree = [
     name: "Job Order", 
     url: "/beesee/job-order", 
     parent: null,
-    hasActions: true
+    hasActions: true,
+    allowedActions: ["view", "add", "delete"] // All actions
+  },
+  { 
+    id: "users", 
+    name: "Users", 
+    url: "/beesee/users", 
+    parent: null,
+    hasActions: true,
+    allowedActions: ["view", "add", "edit", "delete"] // Only view and delete
   },
   { 
     id: "faqs", 
     name: "Faqs", 
     url: "/beesee/faqs", 
     parent: null,
-    hasActions: true
+    hasActions: true,
+    allowedActions: ["view", "add", "edit", "delete"] // All actions
   },
   { 
     id: "inquiries", 
     name: "Inquiries", 
     url: "/beesee/inquiries", 
     parent: null,
-    hasActions: true
+    hasActions: true,
+    allowedActions: ["view", "delete"] // Only view and delete
   },
   { 
     id: "careers", 
     name: "Careers", 
     url: "/beesee/job-posting", 
     parent: null,
-    hasActions: true
+    hasActions: true,
+    allowedActions: ["view", "add", "edit", "delete"] // All actions
   },
   {
     id: "settings",
@@ -123,10 +135,10 @@ const permissionTree = [
     parent: null,
     hasActions: false,
     children: [
-      { id: "device", name: "Device type", url: "/beesee/device", hasActions: true },
-      { id: "model", name: "Model type", url: "/beesee/model", hasActions: true },
-      { id: "issue", name: "Issue type", url: "/beesee/issue", hasActions: true },
-      { id: "position", name: "Position", url: "/beesee/position", hasActions: true },
+      { id: "device", name: "Device type", url: "/beesee/device", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
+      { id: "model", name: "Model type", url: "/beesee/model", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
+      { id: "issue", name: "Issue type", url: "/beesee/issue", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
+      { id: "position", name: "Position", url: "/beesee/position", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
     ],
   },
 ];
@@ -168,6 +180,10 @@ const Modal: React.FC<ModalProps> = ({
       });
       setPermissions(permMap);
 
+      console.log("=== MODAL INITIALIZED ===");
+      console.log("Initial permissions from props:", initialPermissions);
+      console.log("Converted to permissions map:", permMap);
+
       // Auto-expand settings if any child has permissions
       const hasSettingsPerms = ["device", "model", "issue", "position"].some(
         key => permMap[key] && permMap[key].length > 0
@@ -188,6 +204,20 @@ const Modal: React.FC<ModalProps> = ({
       const updated = current.includes(action)
         ? current.filter((a) => a !== action)
         : [...current, action];
+      
+      console.log(`Toggle action ${action} for ${moduleId}:`, {
+        current,
+        updated,
+        willRemove: updated.length === 0
+      });
+      
+      // If no actions left (empty array), remove module completely
+      if (updated.length === 0) {
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId} (no actions left), remaining:`, rest);
+        return rest;
+      }
+      
       return { ...prev, [moduleId]: updated };
     });
     setPermissionError("");
@@ -199,24 +229,48 @@ const Modal: React.FC<ModalProps> = ({
       const current = prev[moduleId] || [];
       const hasView = current.includes("view");
       
+      console.log(`Toggle Grant Access for ${moduleId}:`, {
+        current,
+        hasView,
+        willRemove: hasView
+      });
+      
       if (hasView) {
-        // Remove all permissions if unchecking Grant Access
-        return { ...prev, [moduleId]: [] };
+        // Remove module completely from permissions object
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId}, remaining:`, rest);
+        return rest;
       } else {
         // Add only "view" permission
-        return { ...prev, [moduleId]: ["view"] };
+        const newState = { ...prev, [moduleId]: ["view"] };
+        console.log(`Added view to ${moduleId}:`, newState);
+        return newState;
       }
     });
     setPermissionError("");
   };
 
-  // Handle module access (for modules without actions like Dashboard)
+  // Handle module access (for modules without actions like Dashboard)  
   const handleModuleToggle = (moduleId: string) => {
     setPermissions((prev) => {
       const current = prev[moduleId] || [];
-      // If has access, remove it
-      // If no access, grant it (set to empty array to indicate access only)
-      return { ...prev, [moduleId]: current.length > 0 ? [] : [""] };
+      
+      console.log(`Toggle module access for ${moduleId}:`, {
+        current,
+        hasAccess: current.length > 0,
+        willRemove: current.length > 0
+      });
+      
+      // If has access, remove it completely from the object
+      if (current.length > 0) {
+        const { [moduleId]: removed, ...rest } = prev;
+        console.log(`Removed ${moduleId}, remaining:`, rest);
+        return rest;
+      }
+      // If no access, grant it (set to empty array with empty string to indicate access only)
+      const newState = { ...prev, [moduleId]: [""] };
+      console.log(`Added access to ${moduleId}:`, newState);
+      return newState;
     });
     setPermissionError("");
   };
@@ -233,6 +287,10 @@ const Modal: React.FC<ModalProps> = ({
       }
     });
 
+    console.log("=== SUBMIT DEBUG ===");
+    console.log("Current permissions state:", permissions);
+    console.log("Permissions entries:", Object.entries(permissions));
+
     // Check if at least one permission is selected
     const hasPermissions = Object.keys(permissions).length > 0;
     if (!hasPermissions) {
@@ -247,6 +305,8 @@ const Modal: React.FC<ModalProps> = ({
     // Transform permissions to backend format
     const formattedPermissions: Permission[] = [];
     Object.entries(permissions).forEach(([moduleKey, actions]) => {
+      console.log(`Processing module: ${moduleKey}, actions:`, actions);
+      
       // Find module info from permissionTree
       const allModules = permissionTree.flatMap((p) => 
         p.children ? [p, ...p.children] : [p]
@@ -269,6 +329,8 @@ const Modal: React.FC<ModalProps> = ({
       }
     });
 
+    console.log("Formatted permissions to submit:", formattedPermissions);
+
     onSubmit({
       ...formData,
       permissions: formattedPermissions,
@@ -281,6 +343,7 @@ const Modal: React.FC<ModalProps> = ({
     moduleId: string, 
     moduleName: string, 
     hasActions: boolean = true,
+    allowedActions: string[] = ["view", "add", "edit", "delete"],
     isChild = false
   ) => {
     const moduleActions = permissions[moduleId] || [];
@@ -365,151 +428,159 @@ const Modal: React.FC<ModalProps> = ({
         </Box>
 
         <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-          {/* Grant Access Checkbox (Master Toggle) */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={hasGrantAccess}
-                onChange={() => handleGrantAccessToggle(moduleId)}
-                disabled={isPermissionLocked}
-                sx={{
-                  color: "#9ca3af",
-                  padding: "6px",
-                  "&.Mui-checked": { color: "#6366f1" },
-                  "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" },
-                }}
-              />
-            }
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                <Eye 
-                  size={16} 
-                  color={hasGrantAccess ? "#6366f1" : "#9ca3af"} 
+          {/* Grant Access Checkbox (Master Toggle) - Always show if view is allowed */}
+          {allowedActions.includes("view") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={hasGrantAccess}
+                  onChange={() => handleGrantAccessToggle(moduleId)}
+                  disabled={isPermissionLocked}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#6366f1" },
+                    "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" },
+                  }}
                 />
-                <span style={{ 
-                  fontSize: "14px", 
-                  fontWeight: 600, 
-                  color: hasGrantAccess ? "#6366f1" : "#374151" 
-                }}>
-                  Grant Access
-                </span>
-              </Box>
-            }
-          />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Eye 
+                    size={16} 
+                    color={hasGrantAccess ? "#6366f1" : "#9ca3af"} 
+                  />
+                  <span style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 600, 
+                    color: hasGrantAccess ? "#6366f1" : "#374151" 
+                  }}>
+                    Grant Access
+                  </span>
+                </Box>
+              }
+            />
+          )}
 
-          {/* Add Checkbox - Disabled if no Grant Access */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={moduleActions.includes("add")}
-                onChange={() => handleActionToggle(moduleId, "add")}
-                disabled={isPermissionLocked || !hasGrantAccess}
-                sx={{
-                  color: "#9ca3af",
-                  padding: "6px",
-                  "&.Mui-checked": { color: "#10b981" },
-                  "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" },
-                  "&.Mui-disabled": {
-                    color: "#e5e7eb",
-                  },
-                }}
-              />
-            }
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                <Plus 
-                  size={16} 
-                  color={
-                    !hasGrantAccess ? "#e5e7eb" : 
-                    moduleActions.includes("add") ? "#10b981" : "#9ca3af"
-                  } 
+          {/* Add Checkbox - Only show if allowed */}
+          {allowedActions.includes("add") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={moduleActions.includes("add")}
+                  onChange={() => handleActionToggle(moduleId, "add")}
+                  disabled={isPermissionLocked || !hasGrantAccess}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#10b981" },
+                    "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" },
+                    "&.Mui-disabled": {
+                      color: "#e5e7eb",
+                    },
+                  }}
                 />
-                <span style={{ 
-                  fontSize: "14px", 
-                  fontWeight: 500, 
-                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                }}>
-                  Add
-                </span>
-              </Box>
-            }
-          />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Plus 
+                    size={16} 
+                    color={
+                      !hasGrantAccess ? "#e5e7eb" : 
+                      moduleActions.includes("add") ? "#10b981" : "#9ca3af"
+                    } 
+                  />
+                  <span style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 500, 
+                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                  }}>
+                    Add
+                  </span>
+                </Box>
+              }
+            />
+          )}
 
-          {/* Edit Checkbox - Disabled if no Grant Access */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={moduleActions.includes("edit")}
-                onChange={() => handleActionToggle(moduleId, "edit")}
-                disabled={isPermissionLocked || !hasGrantAccess}
-                sx={{
-                  color: "#9ca3af",
-                  padding: "6px",
-                  "&.Mui-checked": { color: "#f59e0b" },
-                  "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" },
-                  "&.Mui-disabled": {
-                    color: "#e5e7eb",
-                  },
-                }}
-              />
-            }
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                <Edit 
-                  size={16} 
-                  color={
-                    !hasGrantAccess ? "#e5e7eb" : 
-                    moduleActions.includes("edit") ? "#f59e0b" : "#9ca3af"
-                  } 
+          {/* Edit Checkbox - Only show if allowed */}
+          {allowedActions.includes("edit") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={moduleActions.includes("edit")}
+                  onChange={() => handleActionToggle(moduleId, "edit")}
+                  disabled={isPermissionLocked || !hasGrantAccess}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#f59e0b" },
+                    "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" },
+                    "&.Mui-disabled": {
+                      color: "#e5e7eb",
+                    },
+                  }}
                 />
-                <span style={{ 
-                  fontSize: "14px", 
-                  fontWeight: 500, 
-                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                }}>
-                  Edit
-                </span>
-              </Box>
-            }
-          />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Edit 
+                    size={16} 
+                    color={
+                      !hasGrantAccess ? "#e5e7eb" : 
+                      moduleActions.includes("edit") ? "#f59e0b" : "#9ca3af"
+                    } 
+                  />
+                  <span style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 500, 
+                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                  }}>
+                    Edit
+                  </span>
+                </Box>
+              }
+            />
+          )}
 
-          {/* Delete Checkbox - Disabled if no Grant Access */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={moduleActions.includes("delete")}
-                onChange={() => handleActionToggle(moduleId, "delete")}
-                disabled={isPermissionLocked || !hasGrantAccess}
-                sx={{
-                  color: "#9ca3af",
-                  padding: "6px",
-                  "&.Mui-checked": { color: "#ef4444" },
-                  "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" },
-                  "&.Mui-disabled": {
-                    color: "#e5e7eb",
-                  },
-                }}
-              />
-            }
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                <Trash2 
-                  size={16} 
-                  color={
-                    !hasGrantAccess ? "#e5e7eb" : 
-                    moduleActions.includes("delete") ? "#ef4444" : "#9ca3af"
-                  } 
+          {/* Delete Checkbox - Only show if allowed */}
+          {allowedActions.includes("delete") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={moduleActions.includes("delete")}
+                  onChange={() => handleActionToggle(moduleId, "delete")}
+                  disabled={isPermissionLocked || !hasGrantAccess}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#ef4444" },
+                    "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" },
+                    "&.Mui-disabled": {
+                      color: "#e5e7eb",
+                    },
+                  }}
                 />
-                <span style={{ 
-                  fontSize: "14px", 
-                  fontWeight: 500, 
-                  color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                }}>
-                  Delete
-                </span>
-              </Box>
-            }
-          />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Trash2 
+                    size={16} 
+                    color={
+                      !hasGrantAccess ? "#e5e7eb" : 
+                      moduleActions.includes("delete") ? "#ef4444" : "#9ca3af"
+                    } 
+                  />
+                  <span style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 500, 
+                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
+                  }}>
+                    Delete
+                  </span>
+                </Box>
+              }
+            />
+          )}
         </Box>
       </Box>
     );
@@ -617,7 +688,12 @@ const Modal: React.FC<ModalProps> = ({
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {permissionTree
                 .filter((item) => item.id !== "settings")
-                .map((item) => renderModuleCheckboxes(item.id, item.name, item.hasActions))}
+                .map((item) => renderModuleCheckboxes(
+                  item.id, 
+                  item.name, 
+                  item.hasActions,
+                  item.allowedActions || ["view", "add", "edit", "delete"]
+                ))}
             </Box>
 
             {/* Settings Section */}
@@ -663,7 +739,13 @@ const Modal: React.FC<ModalProps> = ({
                   {permissionTree
                     .find((p) => p.id === "settings")
                     ?.children?.map((child) =>
-                      renderModuleCheckboxes(child.id, child.name, child.hasActions, true)
+                      renderModuleCheckboxes(
+                        child.id, 
+                        child.name, 
+                        child.hasActions,
+                        child.allowedActions || ["view", "add", "edit", "delete"],
+                        true
+                      )
                     )}
                 </Box>
               </Collapse>

@@ -21,6 +21,8 @@ const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/Produ
 const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
+const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
+const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
 
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
@@ -53,9 +55,11 @@ const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organi
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
 import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
+import Projects from '../pages/HomePagesPage/Projects/Projects';
 const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
+const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Applicants/ApplicantsEmail'))
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -97,10 +101,17 @@ const routes = [
                 element: <FaqsHomePage />
             },
             {
-                path: 'careers/:job_ref',
+                path: 'bsg/career',
                 element: <Careers />
             },
-
+            {
+                path: 'bsg/career/:id',
+                element: <CareerDetails />
+            },
+            {
+                path: 'projects',
+                element: <Projects />
+            },
             {
                 path: 'privacy-policy',
                 element: <PrivacyPolicy />
@@ -280,13 +291,17 @@ const routes = [
                 element: <TechnicianJobPosting />
             }, 
             {
-                path:  "applicants",
+                path:  "job-posting/applicants/:id",
                 element: <TechnicianApplicant />
             },, 
             {
                 path:  "job-posting/form/:id?",
                 element: <TechnicianJobPostingForm />
             },
+            {
+                path: 'job-posting/applicant/email/:id',
+                element: <TechnicianApplicantEmail />
+            }
         ]
     },
        /* conversation */

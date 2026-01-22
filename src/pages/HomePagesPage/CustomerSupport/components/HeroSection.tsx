@@ -61,7 +61,7 @@ interface FormError {
   contact_number?: string;
   category_id?: string; 
   device_id?: string; 
-  issue_id: string;
+  issue_id?: string;
   questions?: string; 
 }
 
@@ -193,8 +193,10 @@ const HeroSection: React.FC = () => {
     if (!formData?.city.trim()) errors.city = "City is required."
     if (!formData?.email.trim()) errors.email = 'Email is required.';  
     else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Email is invalid format.";
+    
     if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.'; 
     else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
+    
     if (!formData?.category_id) errors.category_id = "Device is required.";
     if (!formData?.device_id) errors.device_id = "Model is required.";
     if (!formData?.issue_id) errors.issue_id = "Issue type is required"
@@ -342,7 +344,7 @@ const handleCancelDisclaimer = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/live-background/download.jpg')",
+          backgroundImage: "url('/live-background/download.jpeg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -423,16 +425,29 @@ const handleCancelDisclaimer = () => {
                 }}
               >
                 <FiZap className="text-[var(--beesee-gold)]" size={18} />
-                <span className="bee-body-sm font-bold text-[var(--beesee-gold)]">Professional Support Hub</span>
+                <span className="bee-body-sm font-bold text-[var(--beesee-gold)]">Support Hub</span>
               </motion.div>
 
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.7 }}
-                className="bee-title-lg text-[var(--beesee-gold)] mb-4 sm:mb-6 leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+                style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                className="
+                  font-bebas 
+                  text-[#FDCC00] 
+                  leading-[0.9] 
+                  tracking-wide 
+                  select-none 
+                  text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl 
+                  px-4 
+                  mb-6 
+                  text-center 
+                  drop-shadow-md
+                  break-words
+                "
               >
-                Connect with Our Technical Specialists
+                CONNECT WITH OUR TECHNICAL SPECIALISTS
               </motion.h1>
 
               <motion.p 
@@ -697,9 +712,7 @@ const handleCancelDisclaimer = () => {
                       multiline={false}
                       rows={1}
                       maxLength={100}
-                      icon={<PersonIcon sx={{ fontSize: 18 }} />} 
-                      error={!!formError?.serial_number} 
-                      helperText={formError?.serial_number} 
+                      icon={<PersonIcon sx={{ fontSize: 18 }} />}  
                     /> 
 
                     <CustomTextField 

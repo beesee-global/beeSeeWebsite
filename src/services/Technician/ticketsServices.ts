@@ -108,7 +108,7 @@ export const insertConversation = async(conversationData: any) => {
     try {
         const response = await axiosClient.post(`${API_URL}/conversations/reply`, conversationData, {
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "multipart/form-data"
             }
         });
 
@@ -122,7 +122,7 @@ export const insertConversationPublic = async(conversationData: any) => {
     try {
         const response = await axiosClient.post(`${API_URL}/conversations/reply/public`, conversationData, {
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "multipart/form-data"
             }
         });
 
@@ -132,9 +132,9 @@ export const insertConversationPublic = async(conversationData: any) => {
     }
 }
 
-export const insertImageConversation = async() => {
+export const insertImageConversation = async(formData: FormData) => {
     try {
-        const response = await axiosClient.post(`${API_URL}/conversations/attachment/reply`, {
+        const response = await axiosClient.post(`${API_URL}/conversations/attachment/reply`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

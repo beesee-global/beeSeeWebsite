@@ -1,109 +1,115 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { downloadFile } from '../../../../utils/downloadFile'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Mail, 
-  Trash2, 
-  Plus, 
-  Eye
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
 // ============================================
 
 const COLORS = {
-  primary: '#000000',
-  primaryHover: '#1f2937',
-  background: '#ffffff',
-  surface: '#ffffff',
-  surfaceHover: '#f9fafb',
-  border: '#e5e7eb',
-  text: '#111827',
-  textMuted: '#6b7280', 
-  checkboxBorder: '#d1d5db',
-  danger: '#3f4042',
+    primary: '#000000',
+    primaryHover: '#1f2937',
+    background: '#ffffff',
+    surface: '#ffffff',
+    surfaceHover: '#f9fafb',
+    border: '#e5e7eb',
+    text: '#111827',
+    textMuted: '#6b7280',
+    selected: '#dbeafe', // Light blue for selected row
+    checkboxBorder: '#d1d5db',
+    danger: '#3f4042',
 };
 
 const TYPOGRAPHY = {
-  nameSize: 'text-sm',
-  nameWeight: 'font-medium',
-  concernSize: 'text-sm',
-  concernWeight: 'font-normal',
-  dateSize: 'text-xs',
-  dateWeight: 'font-normal',
-  headerSize: 'text-sm',
-  headerWeight: 'font-medium',
+    nameSize: 'text-sm',
+    nameWeight: 'font-medium',
+    concernSize: 'text-sm',
+    concernWeight: 'font-normal',
+    dateSize: 'text-xs',
+    dateWeight: 'font-normal',
+    headerSize: 'text-sm',
+    headerWeight: 'font-medium',
 };
 
 const SPACING = {
-  containerPadding: 'p-3 md:p-4',
-  rowPadding: 'py-2.5 px-3', 
-  gap: 'gap-3',
+    containerPadding: 'p-3 md:p-4',
+    rowPadding: 'py-2.5 px-3',
+    gap: 'gap-3',
 };
 
 const RADIUS = {
-  container: 'rounded-lg',
-  button: 'rounded-md',
-  checkbox: 'rounded',
-  row: 'rounded-md',
+    container: 'rounded-lg',
+    button: 'rounded-md',
+    checkbox: 'rounded',
+    row: 'rounded-md',
 };
 
 const COLUMN_WIDTHS = {
-  checkbox: 'w-8',
-  name: 'w-44',
-  concern: 'flex-1',
-  date: 'w-20',
+    checkbox: 'w-8',
+    name: 'w-44',
+    concern: 'flex-1',
+    date: 'w-20',
 };
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; classes: string }
+> = {
+  NEW_APPLICANT: {
+    label: 'New Applicant',
+    classes: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  },
+  SHORTLISTED: {
+    label: 'Shortlisted',
+    classes: 'bg-blue-100 text-blue-800 border border-blue-200',
+  },
+  REJECTED: {
+    label: 'Rejected',
+    classes: 'bg-red-100 text-red-800 border border-red-200',
+  },
+};
+
+const getStatusConfig = (status: string) =>
+  STATUS_CONFIG[status] ?? {
+    label: status,
+    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+  };
+
 
 // ============================================
 // 🛠️ UTILITY FUNCTIONS
 // ============================================
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
 function ascendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  const aValue = a[orderBy];
-  const bValue = b[orderBy];
+    const aValue = a[orderBy];
+    const bValue = b[orderBy];
 
-  // Handle null / undefined
-  if (aValue == null && bValue == null) {
-    if ('id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
+    if (aValue == null && bValue == null) {
+        if ('id' in a && 'id' in b) return (a as any).id - (b as any).id;
+        return 0;
     }
-    return 0;
-  }
-  if (aValue == null) return 1;
-  if (bValue == null) return -1;
+    if (aValue == null) return 1;
+    if (bValue == null) return -1;
 
-  // String sorting (A–Z, locale aware)
-  if (typeof aValue === 'string' && typeof bValue === 'string') {
-    const comparison = aValue.localeCompare(bValue, undefined, { sensitivity: 'base' });
-    if (comparison === 0 && 'id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue, undefined, { sensitivity: 'base' });
+        if (comparison === 0 && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
+        return comparison;
     }
-    return comparison;
-  }
 
-  // Date sorting (earliest first)
-  if (orderBy === 'updated_at' || orderBy === 'created_at') {
-    const dateComparison = new Date(aValue as string).getTime() - new Date(bValue as string).getTime();
-    if (dateComparison === 0 && 'id' in a && 'id' in b) {
-      return (a as any).id - (b as any).id;
+    if (orderBy === 'updated_at' || orderBy === 'created_at') {
+        const dateComparison = new Date(aValue as string).getTime() - new Date(bValue as string).getTime();
+        if (dateComparison === 0 && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
+        return dateComparison;
     }
-    return dateComparison;
-  }
 
-  // Number sorting
-  if (aValue === bValue && 'id' in a && 'id' in b) {
-    return (a as any).id - (b as any).id;
-  }
-  
-  return aValue > bValue ? 1 : -1;
+    if (aValue === bValue && 'id' in a && 'id' in b) return (a as any).id - (b as any).id;
+    return aValue > bValue ? 1 : -1;
 }
 
 // ============================================
@@ -111,29 +117,28 @@ function ascendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 // ============================================
 
 interface RowData {
-  id: number; 
-  [key: string]: any;
+    id: number;
+    status: string;
+    [key: string]: any;
 }
 
 interface ColumnConfig {
-  id: string;
-  label: string;
-  sortable?: boolean;
-  width?: string;
-  align?: string;
+    id: string;
+    label: string;
+    sortable?: boolean;
+    width?: string;
+    align?: string;
 }
 
-interface TableMailProps {
-  rows: RowData[];
-  columns?: ColumnConfig[];
-  handleDelete?: (ids: number[]) => void;
-  handleEdit: (pid: number | string) => void;
-  isLoading: boolean;
-
-  organization: string;
-  setOrganization: (val: string) => void;
-  statusFilter: string;
-  setStatusFilter: (val: string) => void;
+interface TableApplicantsProps {
+    rows: RowData[];
+    columns?: ColumnConfig[];
+    selectedRowId: number | null;
+    onRowClick: (row: RowData) => void;
+    onRowDoubleClick: (row: RowData) => void;
+    isLoading: boolean;
+    statusFilter: string;
+    setStatusFilter: (val: string) => void;
 }
 
 // ============================================
@@ -143,364 +148,201 @@ interface TableMailProps {
 export default function TableApplicants({ 
   rows = [], 
   columns,
-  handleEdit,
-  handleDelete,
+  selectedRowId,
+  onRowClick,
+  onRowDoubleClick,
   isLoading = false, 
-  statusFilter,
-  setStatusFilter,
-}: TableMailProps) { 
- 
-  const [page, setPage] = useState(0); 
-  const [orderBy, setOrderBy] = useState<string>(''); // Empty means no sorting
-  const rowsPerPage = 20;
+  statusFilter, 
+  setStatusFilter 
+}: TableApplicantsProps) {
+    const [page, setPage] = useState(0);
+    const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+    const [orderBy, setOrderBy] = useState<string>('');
+    const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  // Reset page when status filter changes
-  useEffect(() => {
-    setPage(0);
-  }, [statusFilter]);
+    const rowsPerPage = 15;
 
-  const safeRows = Array.isArray(rows) ? rows : [];
+    useEffect(() => {
+        setPage(0);
+    }, [statusFilter]);
 
-  const sortedRows = useMemo(
-    () => {
-      if (!Array.isArray(safeRows) || safeRows.length === 0) return [];
-      if (!orderBy) return safeRows; // No sorting if orderBy is empty
-      return [...safeRows].sort((a, b) => ascendingComparator(a, b, orderBy));
-    },
-    [safeRows, orderBy]
-  );
+    const safeRows = Array.isArray(rows) ? rows : [];
 
-  const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
-  const totalPages = Math.ceil(safeRows.length / rowsPerPage);
-  const startIndex = page * rowsPerPage + 1;
-  const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
+    const sortedRows = useMemo(() => {
+        if (safeRows.length === 0) return [];
+        if (!orderBy) return safeRows;
+        return [...safeRows].sort((a, b) => ascendingComparator(a, b, orderBy));
+    }, [safeRows, orderBy]);
 
-  const defaultColumns: ColumnConfig[] = [
-    { id: 'name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
-    { id: 'email', label: 'Email', sortable: false, width: COLUMN_WIDTHS.concern },
-    { id: 'created_at', label: 'Date', sortable: true, width: COLUMN_WIDTHS.date },
-    { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' },
-  ];
+    const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+    const totalPages = Math.ceil(safeRows.length / rowsPerPage);
+    const startIndex = safeRows.length > 0 ? page * rowsPerPage + 1 : 0;
+    const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
-  const effectiveColumns = columns && columns.length > 0 ? columns : defaultColumns;
- 
-  const handleComplete = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (handleEdit) handleEdit(id);
-  };
+    const defaultColumns: ColumnConfig[] = [
+        { id: 'full_name', label: 'Name', sortable: true },
+        { id: 'phone', label: 'Phone', sortable: true },
+        { id: 'email', label: 'Email', sortable: true },
+        { id: 'status', label: 'Status', sortable: true },
+    ];
 
-  const onDelete = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (handleDelete) handleDelete([id]);
-  }; 
+    const effectiveColumns = columns && columns.length > 0 ? columns : defaultColumns;
 
-  if (isLoading) {
-    return (
-      <div className="w-full" style={{ background: COLORS.background }}>
-        <div className="w-full mx-auto p-4 md:p-6">
-          <div 
-            className={`${RADIUS.container} ${SPACING.containerPadding} border`} 
-            style={{ background: COLORS.surface, borderColor: COLORS.border }}
-          >
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-              <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    const handleRowClick = (row: RowData) => {
+        if (clickTimeout) {
+            // Double click detected
+            clearTimeout(clickTimeout);
+            setClickTimeout(null);
+            onRowDoubleClick(row);
+        } else {
+            // Single click - set timeout to detect double click
+            const timeout = setTimeout(() => {
+                onRowClick(row);
+                setClickTimeout(null);
+            }, 250);
+            setClickTimeout(timeout);
+        }
+    };
 
-  return (
-    <div className="w-full" style={{ background: COLORS.background }}>
-        <div className="w-full mx-auto">
-        <div 
-          className={`${RADIUS.container} ${SPACING.containerPadding} border`} 
-          style={{ background: COLORS.surface, borderColor: COLORS.border }}
-        >
-            {/* Filter Section */}
-            <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
-              <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setStatusFilter("all")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
-                      ${statusFilter === "all" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
-                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    ALL
-                  </button>
-    
-                  <button
-                    onClick={() => setStatusFilter("short_listed")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
-                      ${statusFilter === "short_listed" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
-                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    Short Listed
-                  </button>
-                </div> 
-    
-              </div>
-            </div>
-    
-            {/* Mobile/Tablet Card View with Scroll */}
-            <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-270px)] md:hidden">
-                {visibleRows.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 border-b">
-                        <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+    if (isLoading) {
+        return (
+            <div className="w-full" style={{ background: COLORS.background }}>
+                <div className="w-full mx-auto p-4 md:p-6">
+                    <div
+                        className={`${RADIUS.container} ${SPACING.containerPadding} border flex flex-col items-center justify-center py-16`}
+                        style={{ background: COLORS.surface, borderColor: COLORS.border }}
+                    >
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
                         <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                            No data found
+                            Loading...
                         </p>
                     </div>
-                ) : (
-                    visibleRows.map(row => (
-                    <div 
-                        key={row.id}
-                        onClick={() => handleEdit(row.pid)}
-                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                        style={{ borderColor: COLORS.border }}
-                    >
-                        {/* Card Header */}
-                        <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                                {row.name}
-                            </h3>
-                            <h4 className="text-sm text-gray-600 mb-1">
-                                {row.email}
-                            </h4>
-                            <h4 className="text-sm text-gray-600 mb-1">
-                                {row.contact_number}
-                            </h4>
-                            <p className="text-sm text-gray-500 mt-1">
-                            {formatDate(row.created_at)}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full" style={{ background: COLORS.background }}>
+            <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+                {/* Filter Section */}
+                <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setStatusFilter('all')}
+                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'all' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                        >
+                            ALL
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('short_listed')}
+                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'short_listed' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                        >
+                            Short Listed
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('rejected')}
+                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'rejected' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                        >
+                            Rejected
+                        </button>
+                    </div>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                    {visibleRows.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16">
+                            <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+                            <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
+                                No data found
                             </p>
                         </div>
-                        <div className="flex gap-2 ml-2">
-                            <button 
-                            title="Reply"
-                            onClick={(e) => handleComplete(e, row.pid)}
-                            className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
-                            >
-                            <Plus size={16} />
-                            </button>
-                            {handleDelete && (
-                            <button 
-                                onClick={(e) => onDelete(e, row.ticket_id)}
-                                className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                            )}
-                        </div>
-                        </div>
+                    ) : (
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-white sticky top-0">
+                                <tr>
+                                    {effectiveColumns.map((col) => (
+                                        <th
+                                            key={col.id}
+                                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer select-none' : ''}`}
+                                            onClick={() => col.sortable && setOrderBy(orderBy === col.id ? '' : col.id)}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <span>{col.label}</span>
+                                                {col.sortable && orderBy === col.id && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                                            </div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-100">
+                                {visibleRows.map((row) => {
+                                    const isHovered = hoveredRow === row.id;
+                                    const isSelected = selectedRowId === row.id;
 
-                        {/* Card body */}
-                        <div className='space-y-2'>
-                            <div className='border-t border-gray-200 pt-2'></div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Company:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.company || '-'}
-                                </span>
-                            </div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Position:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.position || '-'}
-                                </span>
-                            </div>
-                            <div className='flex'>
-                                <span className='text-sm font-medium text-gray-500 w-28'>
-                                    Subject:
-                                </span>
-                                <span className='text-sm text-gray-900'>
-                                    {row.subject || '-'}
-                                </span>
-                            </div>
+                                    return (
+                                        <tr 
+                                            key={row.id} 
+                                            onClick={() => handleRowClick(row)}
+                                            onMouseEnter={() => setHoveredRow(row.id)}
+                                            onMouseLeave={() => setHoveredRow(null)}
+                                            className="cursor-pointer transition-all duration-200"
+                                            style={{
+                                                background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                                            }}
+                                        >
+                                            {effectiveColumns.map((col) => (
+                                                <td key={col.id} className={`px-4 py-3 align-middle ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
+                                                    {col.id === 'status' ? (
+                                                        (() => {
+                                                            const { label, classes } = getStatusConfig(row.status);
+                                                            return (
+                                                            <span
+                                                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}
+                                                            >
+                                                                {label}
+                                                            </span>
+                                                            );
+                                                        })()
+                                                    ) :col.id === 'created_at' ? (
+                                                        <span className="text-sm text-gray-500">{formatDate(row[col.id])}</span>
+                                                    ) : (
+                                                        <div className="text-sm text-gray-900 truncate max-w-[200px]">{row[col.id]}</div>
+                                                    )}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
 
-                            <div className='border-t border-gray-200 pt-2 mt-2'></div>
-                            <div className='flex flex-col mt-2 p-2 bg-gray-50 rounded-md'>
-                                <span className='text-sm font-medium text-gray-500 mb-1'>Description:</span>
-                                <span className='text-sm text-gray-700 line-clamp-3'>{row.description || 'No description'}</span>
-                            </div>
+                {/* Pagination Footer */}
+                <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">
+                    <div className="flex items-center gap-6">
+                        <span className="text-xs text-gray-500">{safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}</span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                disabled={page === 0}
+                                className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <button
+                                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                                disabled={page >= totalPages - 1 || safeRows.length === 0}
+                                className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
                         </div>
                     </div>
-                    ))
-                )}
-            </div>
-
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              {visibleRows.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                  <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                    No data found
-                  </p>
-                </div>
-              ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-white sticky top-0">
-                    <tr>
-                      {effectiveColumns.map((col) => (
-                        <th
-                          key={col.id}
-                          scope="col"
-                          className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.width || ''} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
-                          onClick={() => {
-                            if (!col.sortable) return;
-                            // Toggle between sorting this column and no sort
-                            setOrderBy(orderBy === col.id ? '' : col.id);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span>{col.label}</span>
-                            {col.sortable && orderBy === col.id && (
-                              <svg
-                                className="w-3 h-3 text-blue-500"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                              >
-                                <path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-    
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {visibleRows.map((row) => (
-                        <tr
-                            key={row.id}
-                            className="hover:bg-gray-200 cursor-pointer"
-                            onClick={() => handleEdit(row.id)}
-                        >
-                            {effectiveColumns.map((col) => (
-                            <td
-                                key={col.id}
-                                className={`px-4 py-3 align-top ${col.align === 'right' ? 'text-right' : 'text-left'}`}
-                            >
-                                {col.id === 'actions' ? (
-                                row.status !== 'SHORTLISTED' ? ( // ✅ fixed syntax
-                                    <div className="flex items-center gap-2"> 
-                                    
-                                    <button
-                                      title="View Resume"
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click 
-                                        downloadFile(row.attachment_url,"view", row.name)
-                                      }}
-                                      className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
-                                    >
-                                        <Eye size={16} />
-                                    </button>
-                                    <button
-                                      title="Add to short listed"
-                                      onClick={(e) => {
-                                      e.stopPropagation(); // prevent row click
-                                      handleComplete(e, row.id);
-                                      }}
-                                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
-                                    >
-                                        <Plus size={16} />
-                                    </button>
-                                    <button
-                                      title="Delete"
-                                      onClick={(e) => {
-                                      e.stopPropagation(); // prevent row click
-                                      onDelete(e, row.id);
-                                      }}
-                                      className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                    </div>
-                                ) : (
-                                    <div className='flex items-center gap-2'>
-                                      <button
-                                        title="View Resume"
-                                        onClick={(e) => {
-                                          e.stopPropagation(); // prevent row click
-                                          downloadFile(row.attachment_url,"view", row.name)
-                                        }}
-                                        className=" text-blue-600 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
-                                      >
-                                          <Eye size={16} />
-                                      </button>
-                                      <button
-                                        title="Delete"
-                                        onClick={(e) => {
-                                        e.stopPropagation(); // prevent row click
-                                        onDelete(e, row.id);
-                                        }}
-                                        className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                                      >
-                                          <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                )
-                                ) : col.id === 'updated_at' || col.id === 'created_at' ? (
-                                <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
-                                ) : (
-                                <div className="text-sm text-gray-900 truncate" style={{ maxWidth: 320 }}>
-                                    {row[col.id]}
-                                </div>
-                                )}
-                            </td>
-                            ))}
-                        </tr>
-                    ))}
-
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Pagination */}
-            <div className="w-full flex justify-end mt-3 border-t border-gray-200 pt-2">      
-            <div className="flex items-center gap-6">
-                <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
-                {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
-                </span>
-
-                <div className="flex items-center gap-1">
-                <button 
-                    onClick={() => setPage(p => Math.max(0, p - 1))} 
-                    disabled={page === 0} 
-                    className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                    style={{ color: COLORS.text }}
-                >
-                    <ChevronLeft size={18} />
-                </button>
-                <button 
-                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} 
-                    disabled={page === totalPages - 1 || safeRows.length === 0} 
-                    className={`p-1.5 ${RADIUS.button} hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`} 
-                    style={{ color: COLORS.text }}
-                >
-                    <ChevronRight size={18} />
-                </button>
                 </div>
             </div>
-            </div>
-
         </div>
-        </div>
-    </div>
-    )
+    );
 }

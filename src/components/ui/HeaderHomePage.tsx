@@ -341,11 +341,13 @@ const HeaderHomePage = () => {
     /* Navigation Items */
     const navLeft = [
         { label: 'ABOUT', to: '/about-beesee' },
-        { label: 'SERVICES', to: '/solution' },
         { label: 'PRODUCTS', to: '/products' },
+        { label: 'SERVICES', to: '/solution' },
+        /* { label: 'PROJECTS', to: '/projects' }, */
     ];
 
     const navRight = [
+       /*  { label: 'ACTIVITIES', to: '/activities' }, */
         { label: 'INQUIRIES', to: '/inquiries' },
         { label: 'FAQS', to: '/faqs' },
         { label: 'SUPPORT', to: '/customer-support' },

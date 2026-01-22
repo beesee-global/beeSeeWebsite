@@ -1,7 +1,7 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
 import TableDefault from "../../../components/DataDisplay/TableDefault";
 import { useState, useEffect, useMemo } from "react";
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { 
   deleteIssues, 
@@ -11,8 +11,7 @@ import {
   fetchProducts,
   fetchCategory,
   Issues
-} from '../../../services/Technician/issuesServices';
-import WorkIcon from '@mui/icons-material/Work'; 
+} from '../../../services/Technician/issuesServices'; 
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
@@ -30,6 +29,7 @@ const Issue = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
   const { 
     userInfo,
@@ -63,33 +63,53 @@ const Issue = () => {
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
-  const handleDelete = (ids: number[]) => {
-    if (Permission?.actions.includes('delete')) {
-      setSnackBarMessage("You do not have permission to delete issue.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-      return
+  
+  // Handle Delete Button Click
+  const handleDeleteClick = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an issue first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
     }
-    setDeleteIds(ids);
+
+    if (!Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete issue.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    setDeleteIds([selectedRowId]);
     setDialogTitle("Confirm Delete");
     setDialogOpen(true);
-    setDialogMessage(`Are you sure you want to delete ${ids.length} issues?`);
+    setDialogMessage("Are you sure you want to delete this issue?");
   };
 
-  const handleEdit = (pid : string | number) => { 
-    if (Permission?.actions.includes('edit')) {
-      setSnackBarMessage("You do not have permission to edit issue.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-      return
-    } 
-    const issue = issues.find((c: any) => c.pid === pid || c.id === pid);
-    if (!issue) return; 
-    setSelectedProduct(issue); 
+    // Handle Update Button Click
+  const handleUpdate = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an issue first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit issue.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    const issue = issues.find((f: any) => f.id === selectedRowId);
+    if (!issue) return;
+    
+    setSelectedProduct(issue);
     setIsEditMode(true);
     setModalOpen(true);
   };
-
+     
   const handleConfirmDelete = async () => {
     if (!deleteIds?.length) {
       setSnackBarMessage("No items selected to delete.");
@@ -142,6 +162,29 @@ const Issue = () => {
     }
   };
 
+    // Handle Row Click (Select)
+  const handleRowClick = (row: any) => {
+    setSelectedRowId(row.id);
+  };
+
+  // Handle Row Double Click (Edit)
+  const handleRowDoubleClick = (row: any) => {
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit issue.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+    
+    const issue = issues.find((f: any) => f.id === row.id);
+    if (!issue) return;
+    
+    setSelectedProduct(issue);
+    setIsEditMode(true);
+    setModalOpen(true);
+  };
+ 
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchValue), 1000);
     return () => clearTimeout(timer);
@@ -154,6 +197,10 @@ const Issue = () => {
       c.name.toLowerCase().includes(debouncedSearch?.toLowerCase())
     );
   }, [issues, debouncedSearch]);
+
+  // Check if buttons should be enabled
+  const isUpdateEnabled = !!selectedRowId;
+  const isDeleteEnabled = !!selectedRowId;
 
   return (
     <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
@@ -218,6 +265,35 @@ const Issue = () => {
               </button>
             </div>
           }
+          {/* Update Button */}
+          {Permission?.actions.includes('edit') && (
+            <button
+              onClick={handleUpdate}
+              disabled={!isUpdateEnabled}
+              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              style={{
+                background: isUpdateEnabled ? '#15803d' : '#9ca3af',
+              }}
+            >
+              <Pencil size={18} /> 
+              <span className="whitespace-nowrap">Update</span>
+            </button>
+          )}
+
+          {/* Delete Button */}
+          {Permission?.actions.includes('delete') && (
+            <button
+              onClick={handleDeleteClick}
+              disabled={!isDeleteEnabled}
+              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              style={{
+                background: isDeleteEnabled ? '#dc2626' : '#9ca3af',
+              }}
+            >
+              <Trash2 size={18} /> 
+              <span className="whitespace-nowrap">Delete</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -225,9 +301,10 @@ const Issue = () => {
       <TableDefault 
         rows={filteredProduct}
         columns={columns}
-        handleDelete={handleDelete}
-        handleEdit={handleEdit}
         isLoading={isLoading}
+        selectedRowId={selectedRowId}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
       />
     </div>
   );

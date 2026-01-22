@@ -6,11 +6,62 @@ import "../../../../assets/css/featuredProduct.css";
 import "../../../../assets/css/global.css";
 import { useNavigate } from "react-router-dom";
 
+// TypeScript interfaces for API data structure
+interface ProductBadge {
+  id: string;
+  text: string;
+  position: number; // 1-6 for badge positioning
+}
+
+interface FeaturedProduct {
+  id: string;
+  name: string;
+  imageUrl: string;
+  badges: ProductBadge[];
+  position: number; // 1 or 2 (left or right product)
+}
+
+interface TechStat {
+  id: string;
+  value: string;
+  label: string;
+  order: number;
+}
+
+interface FeaturedProductData {
+  title: string;
+  description: string;
+  products: FeaturedProduct[];
+  techStats: TechStat[];
+}
+
 export default function ProductShowcase() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [featuredData, setFeaturedData] = useState<FeaturedProductData | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch featured products data from API
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        // Replace with actual API endpoint
+        const response = await fetch('/api/featured-products');
+        const data = await response.json();
+        setFeaturedData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching featured products:', error);
+        // Fallback to default data if API fails
+        setFeaturedData(getDefaultData());
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +89,66 @@ export default function ProductShowcase() {
     }
   }, [isMobile]);
 
-  if (!mounted) return null;
+  // Default/fallback data structure
+  const getDefaultData = (): FeaturedProductData => ({
+    title: "FEATURED PRODUCTS",
+    description: "The ultra-slim chassis houses a long-life battery system calibrated for extended uptime without performance throttling. With optimized hardware acceleration and modern connectivity support, the device is built to meet the requirements of power users, professionals, and performance-driven environments.",
+    products: [
+      {
+        id: "product-1",
+        name: "Product Model X",
+        imageUrl: "/featuredProduct/LaptopPro.png",
+        position: 1,
+        badges: [
+          { id: "badge-1", text: "144Hz", position: 1 },
+          { id: "badge-2", text: "Premium", position: 2 },
+          { id: "badge-3", text: "4.9★", position: 3 }
+        ]
+      },
+      {
+        id: "product-2",
+        name: "Product Model Pro",
+        imageUrl: "/featuredProduct/LaptopDuos.png",
+        position: 2,
+        badges: [
+          { id: "badge-4", text: "Advanced", position: 4 },
+          { id: "badge-5", text: "Turbo Mode", position: 5 },
+          { id: "badge-6", text: "99% EF", position: 6 }
+        ]
+      }
+    ],
+    techStats: [
+      {
+        id: "stat-1",
+        value: "HIGH-PERFORMANCE",
+        label: "PROCESSING",
+        order: 1
+      },
+      {
+        id: "stat-2",
+        value: "LONG-LASTING",
+        label: "BATTERY LIFE",
+        order: 2
+      },
+      {
+        id: "stat-3",
+        value: "LUXURIOUS",
+        label: "DESIGN",
+        order: 3
+      }
+    ]
+  });
+
+  if (!mounted || loading) return null;
+
+  const data = featuredData || getDefaultData();
+  
+  // Sort products and stats by their order/position
+  const sortedProducts = [...data.products].sort((a, b) => a.position - b.position);
+  const sortedStats = [...data.techStats].sort((a, b) => a.order - b.order);
+  
+  const product1 = sortedProducts[0];
+  const product2 = sortedProducts[1];
 
   // Mobile view (static)
   if (isMobile) {
@@ -62,23 +172,35 @@ export default function ProductShowcase() {
               ))}
             </div>
 
-            <div className="watch-item-optimized watch-red-optimized">
-              <img src="/assets/images/featuredProduct/laptop1.png"
-                   alt="Laptop Model X"
-                   className="watch-img-optimized" />
-              <div className="data-badge badge-1">144Hz</div>
-              <div className="data-badge badge-2">RTX</div>
-              <div className="data-badge badge-3">4.9★</div>
-            </div>
+            {product1 && (
+              <div className="watch-item-optimized watch-red-optimized">
+                <img 
+                  src={product1.imageUrl}
+                  alt={product1.name}
+                  className="watch-img-optimized" 
+                />
+                {product1.badges.map((badge) => (
+                  <div key={badge.id} className={`data-badge badge-${badge.position}`}>
+                    {badge.text}
+                  </div>
+                ))}
+              </div>
+            )}
 
-            <div className="watch-item-optimized watch-green-optimized">
-              <img src="/assets/images/featuredProduct/laptop2.png"
-                   alt="Laptop Model Pro"
-                   className="watch-img-optimized" />
-              <div className="data-badge badge-4">Ryzen 7</div>
-              <div className="data-badge badge-5">TURBO MODE</div>
-              <div className="data-badge badge-6">99% EF</div>
-            </div>
+            {product2 && (
+              <div className="watch-item-optimized watch-green-optimized">
+                <img 
+                  src={product2.imageUrl}
+                  alt={product2.name}
+                  className="watch-img-optimized" 
+                />
+                {product2.badges.map((badge) => (
+                  <div key={badge.id} className={`data-badge badge-${badge.position}`}>
+                    {badge.text}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="orbital-ring ring-1" />
             <div className="orbital-ring ring-2" />
@@ -86,29 +208,30 @@ export default function ProductShowcase() {
 
           {/* RIGHT SECTION */}
           <div className="text-content-optimized">
-            <h1 className="featured-title-optimized single-line-title bee-title-md">
-              FEATURED PRODUCTS
+            <h1 
+              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+              className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden"
+            >
+              {data.title}
             </h1>
 
             <p className="featured-description-optimized bee-body">
-               The ultra-slim chassis houses a long-life battery system calibrated for extended uptime without performance throttling. With optimized hardware acceleration and modern connectivity support, the device is built to meet the requirements of power users, professionals, and performance-driven environments.
+              {data.description}
             </p>
 
             <div className="cta-wrapper-optimized" />
 
             <div className="tech-stats-optimized">
-              <div className="stat-item-optimized">
-                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>HIGH-PERFORMANCE</span>
-                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>PROCESSING</span>
-              </div>
-              <div className="stat-item-optimized">
-                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LONG-LASTING</span>
-                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>BATTERY LIFE</span>
-              </div>
-              <div className="stat-item-optimized">
-                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LUXURIOUS</span>
-                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>DESIGN</span>
-              </div>
+              {sortedStats.map((stat) => (
+                <div key={stat.id} className="stat-item-optimized">
+                  <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>
+                    {stat.value}
+                  </span>
+                  <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>
+                    {stat.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -147,35 +270,47 @@ export default function ProductShowcase() {
             ))}
           </div>
 
-          <motion.div
-            className="watch-item-optimized watch-red-optimized"
-            initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
-            animate={{ opacity: 1, scale: 1, rotate: -8 }}
-            transition={{ duration: 1.2 }}
-            whileHover={{ scale: 1.05, rotate: -5 }}
-          >
-            <img src="/assets/images/featuredProduct/laptop1.png"
-                 alt="Laptop Model X"
-                 className="watch-img-optimized" />
-            <div className="data-badge badge-1">144Hz</div>
-            <div className="data-badge badge-2">RTX</div>
-            <div className="data-badge badge-3">4.9★</div>
-          </motion.div>
+          {product1 && (
+            <motion.div
+              className="watch-item-optimized watch-red-optimized"
+              initial={{ opacity: 0, scale: 0.8, rotate: -20 }}
+              animate={{ opacity: 1, scale: 1, rotate: -8 }}
+              transition={{ duration: 1.2 }}
+              whileHover={{ scale: 1.05, rotate: -5 }}
+            >
+              <img 
+                src={product1.imageUrl}
+                alt={product1.name}
+                className="watch-img-optimized" 
+              />
+              {product1.badges.map((badge) => (
+                <div key={badge.id} className={`data-badge badge-${badge.position}`}>
+                  {badge.text}
+                </div>
+              ))}
+            </motion.div>
+          )}
 
-          <motion.div
-            className="watch-item-optimized watch-green-optimized"
-            initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
-            animate={{ opacity: 1, scale: 1, rotate: 12 }}
-            transition={{ duration: 1.2, delay: 0.2 }}
-            whileHover={{ scale: 1.05, rotate: 15 }}
-          >
-            <img src="/assets/images/featuredProduct/laptop2.png"
-                 alt="Laptop Model Pro"
-                 className="watch-img-optimized" />
-            <div className="data-badge badge-4">Ryzen 7</div>
-            <div className="data-badge badge-5">TURBO MODE</div>
-            <div className="data-badge badge-6">99% EF</div>
-          </motion.div>
+          {product2 && (
+            <motion.div
+              className="watch-item-optimized watch-green-optimized"
+              initial={{ opacity: 0, scale: 0.8, rotate: 20 }}
+              animate={{ opacity: 1, scale: 1, rotate: 12 }}
+              transition={{ duration: 1.2, delay: 0.2 }}
+              whileHover={{ scale: 1.05, rotate: 15 }}
+            >
+              <img 
+                src={product2.imageUrl}
+                alt={product2.name}
+                className="watch-img-optimized" 
+              />
+              {product2.badges.map((badge) => (
+                <div key={badge.id} className={`data-badge badge-${badge.position}`}>
+                  {badge.text}
+                </div>
+              ))}
+            </motion.div>
+          )}
 
           <div className="orbital-ring ring-1" />
           <div className="orbital-ring ring-2" />
@@ -194,7 +329,7 @@ export default function ProductShowcase() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            FEATURED PRODUCTS
+            {data.title}
           </motion.h1>
 
           <motion.p
@@ -203,7 +338,7 @@ export default function ProductShowcase() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            The ultra-slim chassis houses a long-life battery system calibrated for extended uptime without performance throttling. With optimized hardware acceleration and modern connectivity support, the device is built to meet the requirements of power users, professionals, and performance-driven environments.
+            {data.description}
           </motion.p>
 
           <motion.div className="cta-wrapper-optimized" />
@@ -214,18 +349,16 @@ export default function ProductShowcase() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
           >
-            <div className="stat-item-optimized">
-              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>HIGH-PERFORMANCE</span>
-              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>PROCESSING</span>
-            </div>
-            <div className="stat-item-optimized">
-              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LONG-LASTING</span>
-              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>BATTERY LIFE</span>
-            </div>
-            <div className="stat-item-optimized">
-              <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>LUXURIOUS</span>
-              <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>DESIGN</span>
-            </div>
+            {sortedStats.map((stat) => (
+              <div key={stat.id} className="stat-item-optimized">
+                <span className={`stat-value-optimized bee-title-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>
+                  {stat.value}
+                </span>
+                <span className={`stat-label-optimized bee-body-sm ${!isMobile ? "whitespace-nowrap" : ""}`}>
+                  {stat.label}
+                </span>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
       </div>

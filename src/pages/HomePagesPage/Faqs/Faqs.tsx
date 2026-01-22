@@ -267,7 +267,7 @@ const FAQs = () => {
       <div 
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/faqsCopy.jpg')",
+          backgroundImage: "url('/faqsReal.jpeg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -320,10 +320,25 @@ const FAQs = () => {
 
         <div className="relative z-10">
           {/* TITLE */}
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="bee-title-md text-[var(--beesee-gold)] text-xl sm:text-2xl md:text-3xl lg:text-4xl drop-shadow-md">
-              FREQUENTLY ASKED QUESTIONS
-            </h1>
+<div className="text-center w-full max-w-[95vw] mx-auto">
+            <h1 
+  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+  className="
+    font-bebas 
+    text-[#FDCC00] 
+    leading-[0.9] 
+    tracking-wide 
+    select-none 
+    text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl 
+    px-4 
+    mb-6 
+    text-center 
+    drop-shadow-md
+    break-words
+  "
+>
+  FREQUENTLY ASKED QUESTIONS
+</h1>
             <p className="bee-body mt-3 sm:mt-4 text-xs sm:text-sm md:text-base opacity-90 max-w-xl mx-auto">
               Discover answers to common inquiries about our products and services.
             </p>
@@ -401,11 +416,12 @@ const FAQs = () => {
               <>
                 {currentFaqs.map((f, i) => (
                   <div key={f.id}>
-                    <div className="beesee-card-content transition hover:shadow-lg">
-                      <div
-                        onClick={() => setActive(active === f.id ? null : f.id)}
-                        className="faq-card-header"
-                      >
+                    {/* ENTIRE CARD CLICKABLE - WRAPPER DIV */}
+                    <div 
+                      className="beesee-card-content transition hover:shadow-lg cursor-pointer"
+                      onClick={() => setActive(active === f.id ? null : f.id)}
+                    >
+                      <div className="faq-card-header">
                         <div className="flex justify-between items-start gap-3">
                           <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex-1">
                             {f.title}

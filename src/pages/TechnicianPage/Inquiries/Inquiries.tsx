@@ -11,6 +11,7 @@ import TableInquiries from './components/TableInquiries';
 import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import WorkIcon from '@mui/icons-material/Work';
+import { MailQuestionMarkIcon,} from "lucide-react";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFieldModal';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'

@@ -10,19 +10,20 @@ const HomePageLayout = () => {
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
-
   const hideLayoutRoutes = []; 
   const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
   );
-  const hideHeader = hideHeaderRoutes.some((path) =>
-    location.pathname.startsWith(path)
-  );
-
+  
   // Detect product detail page using regex
   const isProductDetailPage = /^\/product\/[^/]+$/.test(location.pathname);
+  
+  // Check if header should be hidden
+  const hideHeader = hideHeaderRoutes.some((path) =>
+    location.pathname.startsWith(path)
+  ) || isProductDetailPage;
 
   // Scroll logic for header
   useEffect(() => {
@@ -57,10 +58,10 @@ const HomePageLayout = () => {
         <Outlet />
       </div>
 
-      {/* Footer */}
-      {!shouldHideLayout && !hideHeader && (
+      {/* Footer - Show on product detail pages but not on auth pages */}
+      {!shouldHideLayout && (
         <>
-          {isProductDetailPage ? <FooterHomePageProducts /> : <FooterHomePage />}
+          {isProductDetailPage ? <FooterHomePageProducts /> : !hideHeader && <FooterHomePage />}
         </>
       )}
     </div>

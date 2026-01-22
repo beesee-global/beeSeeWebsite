@@ -24,15 +24,16 @@ import WorkIcon from '@mui/icons-material/Work';
 import ImageUploadModal from "../../HomePagesPage/CustomerSupport/components/ImageUploadModal"
 
 interface CustomerIssue {
-  full_name: string;
+  full_name: string; 
   company: string;
   city: string;
-  email: string;
+  email: string; 
   contact_number: string; 
   category_id: string;
+  device_id: string; 
   issue_id: string;
-  device_id: string;
-  questions: string; 
+  questions: string;  
+  serial_number: string;
 }
 
 interface FormError {
@@ -72,22 +73,15 @@ const TicketForm = () => {
   const [formData, setFormData] = useState<CustomerIssue>({
     full_name: '',
     company: '',
+    city: '',
     email: '',
-    contact_number: '',  
-    category_id: '', 
+    contact_number: '',
+    category_id: '',
     device_id: '',
+    issue_id: '',
     questions: '',
-    issue_id: "",
-  });
-
-  const { data: schoolResponse = [] } = useQuery({
-    queryKey: ["schools"],
-    queryFn: fetchSchools,
-    select: (res) => res.data.map((item: any) => ({
-      value: item.id,
-      label: item.name
-    }))
-  })
+    serial_number: '',
+  }); 
 
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ["categories"],
@@ -173,7 +167,7 @@ const TicketForm = () => {
  
       if (!formData?.device_id) errors.device_id = "Model is required";
       if (!formData?.issue_id) errors.issue_id = "Issue Type is required"
-      if (!formData?.questions.trim()) errors.questions = "Your issue is required."; 
+      if (!formData?.questions.trim()) errors.questions = "Please provide details about your issue."; 
    
     return errors;
   }
@@ -226,6 +220,7 @@ const TicketForm = () => {
           categories_id: formData?.category_id,
           products_id: formData?.device_id,
           issues_id: formData?.issue_id,
+          serial_number: formData?.serial_number,
           status: "open",
           questions: formData?.questions, 
         }
@@ -265,6 +260,7 @@ const TicketForm = () => {
             issue_id: "",  
             category_id: '',
             device_id: '',
+            serial_number: '',
             questions: '', 
           });
 
@@ -314,8 +310,7 @@ const TicketForm = () => {
       <div>
         <div className="flex items-center">
           <Breadcrumb 
-            items={[
-              { label: "Job Order", href: "/beesee/job-order", icon: <WorkIcon/> },
+            items={[ 
               { label: "Ticket Form", isActive: true, icon: <FilePenLine /> }
             ]}
           />
@@ -518,6 +513,26 @@ const TicketForm = () => {
                       placeholder="Select a Issue type" 
                       error={!!formError?.issue_id} 
                       helperText={formError?.issue_id} 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center mt-3">
+                  <div className="w-48">
+                      <span>
+                        Serial Number
+                      </span>
+                  </div>
+                  <div className="w-full max-w-lg">
+                    <CustomTextField 
+                      name="serial_number" 
+                      value={formData?.serial_number}  
+                      onChange={handleChangeInput} 
+                      placeholder="Serial Number"  
+                      type="text"
+                      multiline={false}
+                      rows={1}
+                      maxLength={100}
                     />
                   </div>
                 </div>

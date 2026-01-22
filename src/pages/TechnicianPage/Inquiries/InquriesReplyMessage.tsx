@@ -406,7 +406,7 @@ export default function InquriesReplyMessage() {
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
-                  accept="image/*,.pdf,.docx"
+                  accept=".pdf,.docx"
                 />
 
                 {/* Attach File Button */}

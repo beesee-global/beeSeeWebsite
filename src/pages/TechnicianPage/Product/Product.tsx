@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react"
 import { 
   Package,
   Plus, 
+  Pencil,
+  Trash2
 } from 'lucide-react'
 import { 
   useQuery, 
@@ -16,8 +18,7 @@ import {
   updateProducts,
   createProduct,
   fetchCategories
-} from '../../../services/Technician/productServices'
-import WorkIcon from '@mui/icons-material/Work';
+} from '../../../services/Technician/productServices' 
 import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import AlertDialog from "../../../components/feedback/AlertDialog"
@@ -36,7 +37,7 @@ const Product = () => {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const { 
@@ -86,33 +87,50 @@ const Product = () => {
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
-  const handleDelete = (ids: number[]) => {
-    if (Permission?.actions.includes('delete')) {
-      setSnackBarMessage("You do not have permission to delete model.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-      return
+      // Handle Delete Button Click
+  const handleDeleteClick = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an model first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
     }
-    setDeleteIds(ids)
-    setDialogTitle("Confirm Delete")
-    setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete ${ids.length} model?`)
-  };
 
-  const handleEdit = (pid : string | number) => { 
-    if (Permission?.actions.includes('edit')) {
-      setSnackBarMessage("You do not have permission to edit model.")
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-      return
-    } 
-    const product = products.find((c: any) => c.pid === pid || c.id === pid);
+    if (!Permission?.actions.includes('delete')) {
+      setSnackBarMessage("You do not have permission to delete model.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    setDeleteIds([selectedRowId]);
+    setDialogTitle("Confirm Delete");
+    setDialogOpen(true);
+    setDialogMessage("Are you sure you want to delete this model?");
+  }; 
+
+  const handleUpdate = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an model first");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit model.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    const product = products.find((f: any) => f.id === selectedRowId);
     if (!product) return;
-
+    
     setSelectedProduct(product);
     setIsEditMode(true);
     setModalOpen(true);
-  }
+  };
 
   const handleConfirmDelete = async () => {
     try {
@@ -145,7 +163,7 @@ const Product = () => {
       const response = await Products(formData)
 
       if (response?.success) {
-        setSnackBarMessage("Product created successfully")
+        setSnackBarMessage("Model created successfully")
         setSnackBarType('success')
         setSnackBarOpen(true)
 
@@ -202,7 +220,32 @@ const Product = () => {
       c.product_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
       c.category_name.toLowerCase().includes(debouncedSearch?.toLowerCase())
     )
-  }, [products, debouncedSearch])
+  }, [products, debouncedSearch]);
+
+  const isUpdateEnabled = !!selectedRowId;
+  const isDeleteEnabled = !!selectedRowId
+
+  // Handle Row Click (Select)
+  const handleRowClick = (row: any) => {
+    setSelectedRowId(row.id);
+  };
+
+  // Handle Row Double Click (Edit)
+  const handleRowDoubleClick = (row: any) => {
+    if (!Permission?.actions.includes('edit')) {
+      setSnackBarMessage("You do not have permission to edit product.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      return;
+    }
+    
+  const product = products.find((f: any) => f.id === row.id);
+    if (!product) return;
+    
+    setSelectedProduct(product);
+    setIsEditMode(true);
+    setModalOpen(true);
+  };
 
   if (isLoading) return <SpinningRingLoader />
 
@@ -290,6 +333,36 @@ const Product = () => {
               </button>
             </div>
           }
+
+          {/* Update Button */}
+          {Permission?.actions.includes('edit') && (
+            <button
+              onClick={handleUpdate}
+              disabled={!isUpdateEnabled}
+              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              style={{
+                background: isUpdateEnabled ? '#15803d' : '#9ca3af',
+              }}
+            >
+              <Pencil size={18} /> 
+              <span className="whitespace-nowrap">Update</span>
+            </button>
+          )}
+
+          {/* Delete Button */}
+          {Permission?.actions.includes('delete') && (
+            <button
+              onClick={handleDeleteClick}
+              disabled={!isDeleteEnabled}
+              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              style={{
+                background: isDeleteEnabled ? '#dc2626' : '#9ca3af',
+              }}
+            >
+              <Trash2 size={18} /> 
+              <span className="whitespace-nowrap">Delete</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -297,9 +370,10 @@ const Product = () => {
       <TableDefault 
         rows={filteredProduct}
         columns={columns}
-        handleDelete={handleDelete}
-        handleEdit={handleEdit}
         isLoading={isLoading}
+        selectedRowId={selectedRowId}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
       />
     </div>
   )

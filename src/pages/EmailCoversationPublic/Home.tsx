@@ -10,11 +10,11 @@ import {
   File,
   Inbox,
   ArrowLeftToLine,
-  FileText, 
+  FileText,
   Image as ImageIcon,
-  AlertCircle, 
-  Mail,
-  FileQuestion, 
+  FileQuestion,
+  Download,
+  Paperclip 
 } from 'lucide-react';
 
 import { SpinningRingLoader } from '../../components/ui/LoadingScreens'
@@ -23,6 +23,7 @@ import {
   fetchTicketDetailsPublic,
   fetchConversation,
   insertConversationPublic,
+  insertImageConversation
 } from '../../services/Technician/ticketsServices';
 import Snackbar from '../../components/feedback/Snackbar';
 import ConversationsDetails from '../../components/ui/ConversationsDetails';
@@ -72,6 +73,13 @@ export default function EmailConversationApp() {
     mutationFn: insertConversationPublic,
   });
 
+  // --- inserting image ---
+  const {
+    mutateAsync: insertImageConversations
+  } = useMutation({
+    mutationFn: insertImageConversation
+  });
+
   // Initialize socket connection per ticket 
   useEffect(() => {
     if (!userTicketInformation?.ticket_id) return;
@@ -97,6 +105,11 @@ export default function EmailConversationApp() {
 
     s.on("new_ticket_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
+      // Only invalidate queries to refetch from server - this ensures we get attachments
+      // Don't add msg directly to state as it doesn't contain attachment data
+      queryClient.invalidateQueries({
+        queryKey: ['conversations', userTicketInformation?.ticket_id]
+      });
     });
 
     setSocket(s);
@@ -120,42 +133,55 @@ export default function EmailConversationApp() {
     if (!replyText.trim() && attachedFiles.length === 0) return;
     setLoading(true)
     
+    const currentReplyText = replyText;
+    const currentAttachedFiles = [...attachedFiles];
+
     setReplyText('');
     setAttachedFiles([]);
 
-    const payload = {
-      sender_email: userTicketInformation.email,
-      tickets_id: userTicketInformation.ticket_id,
-      sender_name: userTicketInformation.full_name,
-      message_body: replyText,
-      user_role: "Customer",
-      is_inbound: true,
-    };
+    const formData = new FormData();
+    formData.append('sender_email', userTicketInformation.email);
+    formData.append('tickets_id', userTicketInformation?.ticket_id);
+    formData.append('sender_name', userTicketInformation.full_name);
+    formData.append('message_body', currentReplyText);
+    formData.append('user_role', "Customer");
+    formData.append('is_inbound', "1");
+
+    if (currentAttachedFiles.length > 0) {
+      currentAttachedFiles.forEach((fileObj) => {
+        formData.append('attachments', fileObj.file);
+      });
+    } 
 
     try {
-      const response = await insertConversationMutation.mutateAsync(payload);
+      const response = await insertConversationMutation.mutateAsync(formData);
 
       if (response?.success) { 
-        // Add locally
+        // Add locally for messages without attachments
         const newMessage = {
-          ...payload,
           id: response.data.ticket_ids,
+          sender_name: userTicketInformation?.full_name || 'Support Team',
+          sender_email: userTicketInformation.email,
+          message_body: currentReplyText,
+          is_inbound: false,
+          attachments: [], // optional optimistic placeholder
           created_at: new Date().toISOString(),
         };
+  
         setMessages(prev => [
-          ...prev, 
+          ...prev,
           newMessage
         ]);
 
         // Emit to server for real-time
-        socket?.emit("send_ticket_message", { 
-          ticket_id: userTicketInformation.ticket_id, 
-          message: newMessage 
+        socket?.emit("send_ticket_message", {
+          ticket_id: userTicketInformation.ticket_id,
+          message: newMessage
         });
 
-        queryClient.invalidateQueries([
-          'conversations', userTicketInformation.ticket_id
-        ]);
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation.ticket_id]
+        }); 
       }
     } catch (error) {
       setSnackBarOpen(true)
@@ -389,13 +415,41 @@ export default function EmailConversationApp() {
                   {msg.attachments?.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {msg.attachments.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                          {getFileIcon(file.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{file.name}</p>
-                            <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
+                        file.type?.startsWith('image/') ? (
+                          // Display images automatically
+                          <div key={idx} className="mt-2">
+                            <img
+                              src={file.attachment_url}
+                              alt={file.name}
+                              className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                              onClick={() => setSelectedImage(file.attachment_url)}
+                            />
+                            <p className="text-xs mt-1 opacity-70">{file.name}</p>
                           </div>
-                        </div>
+                        ) : (
+                          // Display other file types as downloadable items
+                          <div key={idx} className={`flex items-center gap-2 p-2 rounded ${
+                            msg.is_inbound
+                              ? 'bg-gray-700 bg-opacity-50'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}>
+                            {getFileIcon(file.type)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">{file.name}</p>
+                              <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
+                            </div>
+                            <a
+                              href={file.attachment_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={file.name}
+                              className="p-1 hover:bg-gray-200 rounded transition"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </div>
+                        )
                       ))}
                     </div>
                   )}
@@ -458,14 +512,14 @@ export default function EmailConversationApp() {
             />
 
             {/* Attach File Button */}
-            {/* <button
+            <button
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
               className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               title="Attach files"
             >
               <Paperclip className="w-5 h-5 text-gray-600" />
-            </button> */}
+            </button>
 
             <textarea
               value={replyText}
@@ -473,6 +527,7 @@ export default function EmailConversationApp() {
               placeholder="Type your reply..."
               className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
               rows="3"
+              style={{color: '#000000', caretColor: '#000000'}}
               disabled={loading}
             />
             <button
@@ -504,9 +559,9 @@ export default function EmailConversationApp() {
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
             <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
-              <h2 className='text-white font-bold flex items-center gap-2'>
+              <h2 className='text-white text-[20px] font-bold flex items-center gap-2'>
                 <Inbox className='w-5 h-5'/>
-                Ticket Information
+                Job Order Information
               </h2>
               <button className='text-white' onClick={() => setShowSidebar(false)}>
                 <X />
@@ -534,7 +589,7 @@ export default function EmailConversationApp() {
         <div className="p-4 border-b border-gray-200" style={{ backgroundColor: '#000000'}}>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Inbox className="w-5 h-5" />
-            Ticket Information
+            Job Order Information
           </h2>
         </div>
 

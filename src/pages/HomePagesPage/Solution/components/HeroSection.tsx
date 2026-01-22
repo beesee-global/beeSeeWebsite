@@ -193,25 +193,14 @@ const HeroSection = () => {
             EXCELLENCE IN EVERY SOLUTION
           </div>
 
-          <h2
-            style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-            className="
-              font-bebas
-              text-[#FDCC00]
-              leading-none
-              tracking-wide
-              select-none
-              text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
-              px-2 sm:px-4
-              mb-2 sm:mb-3 md:mb-4
-              whitespace-nowrap
-              overflow-hidden
-            "
-          >
-            SERVICES WE OFFER
-          </h2>
+<h2
+  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+  className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden"
+>
+  SERVICES WE OFFER
+</h2>
 
-          <p
+         <p
             style={{ fontFamily: "Segoe UI, sans-serif" }}
             className="
               text-sm sm:text-base md:text-lg

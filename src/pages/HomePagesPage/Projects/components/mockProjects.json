@@ -1,0 +1,58 @@
+[
+  {
+    "id": "enterprise-erp-platform",
+    "title": "Enterprise ERP Platform",
+    "subtitle": "End-to-end internal operations system",
+    "description": "A large-scale ERP platform designed and built by the company to streamline finance, HR, inventory, and reporting across multiple departments.",
+    "coverImage": "https://images.unsplash.com/photo-1581090700227-0428f2b51f44?auto=format&fit=crop&w=800&q=80",
+    "gallery": [
+      "https://images.unsplash.com/photo-1605902711622-cfb43c4433e2?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1581092334041-c1c13c6b9f0e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1612831669925-7f6f5b1e23a7?auto=format&fit=crop&w=800&q=80"
+    ],
+    "techStack": ["React", "TypeScript", "Node.js", "PostgreSQL"],
+    "scope": [
+      "Company-wide internal system",
+      "Multi-department usage",
+      "Role-based access control",
+      "Scalable architecture"
+    ],
+    "year": "2024"
+  },
+  {
+    "id": "customer-support-portal",
+    "title": "Customer Support Portal",
+    "subtitle": "Unified ticketing and communication system",
+    "description": "A centralized customer support platform used by the entire organization to manage inquiries, tickets, and technician workflows.",
+    "coverImage": "https://images.unsplash.com/photo-1554774853-1c2b9f92ed57?auto=format&fit=crop&w=800&q=80",
+    "gallery": [
+      "https://images.unsplash.com/photo-1573497491208-6b1acb260507?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80"
+    ],
+    "techStack": ["React", "React Query", "Node.js"],
+    "scope": [
+      "Public + internal access",
+      "Technician dashboards",
+      "Ticket lifecycle automation"
+    ],
+    "year": "2023"
+  },
+  {
+    "id": "inventory-management-system",
+    "title": "Inventory Management System",
+    "subtitle": "Track products across warehouses",
+    "description": "A company-wide solution to monitor inventory in real-time, track stock movement, and generate automated reports for decision-making.",
+    "coverImage": "https://images.unsplash.com/photo-1590080871611-7d90208c5f6e?auto=format&fit=crop&w=800&q=80",
+    "gallery": [
+      "https://images.unsplash.com/photo-1611974789895-c876c4c56468?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1581091215365-12e31d564f8c?auto=format&fit=crop&w=800&q=80"
+    ],
+    "techStack": ["Vue.js", "Laravel", "MySQL"],
+    "scope": [
+      "Warehouse-wide tracking",
+      "Real-time stock monitoring",
+      "Automated alerts for low stock"
+    ],
+    "year": "2023"
+  }
+]

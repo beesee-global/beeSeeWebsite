@@ -2,16 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Mail, 
-  Trash2, 
-  Pencil,
+  Mail,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Copy,
-  Eye
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
@@ -26,7 +21,7 @@ const COLORS = {
   border: '#e5e7eb',
   text: '#111827',
   textMuted: '#6b7280',
-  selected: '#f3f4f6',
+  selected: '#dbeafe', // Light blue for selected row
   checkboxBorder: '#d1d5db',
   danger: '#3f4042',
 };
@@ -106,11 +101,12 @@ interface ColumnConfig {
   align?: string;
 }
 
-interface TableMailProps {
+interface TableJobPostingProps {
   rows: RowData[];
   columns: ColumnConfig[];
-  handleDelete: (ids: number[]) => void;
-  handleEdit: (id: number) => void;
+  selectedRowId: number | null;
+  onRowClick: (row: RowData) => void;
+  onRowDoubleClick: (row: RowData) => void;
   isLoading: boolean;
 }
 
@@ -121,25 +117,24 @@ interface TableMailProps {
 export default function TableJobPosting({ 
   rows = [], 
   columns,
-  handleDelete,
-  handleEdit,
+  selectedRowId,
+  onRowClick,
+  onRowDoubleClick,
   isLoading = false,
-}: TableMailProps) { 
+}: TableJobPostingProps) { 
 
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<string>('name');
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [orderBy, setOrderBy] = useState<string>('job_reference_number');
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const rowsPerPage = 20;
-  const navigate = useNavigate();
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
   const defaultColumns: ColumnConfig[] = [
-    { id: 'full_name', label: 'Name', sortable: true, width: COLUMN_WIDTHS.name },
-    { id: 'status', label: 'Status', sortable: true, width: 'w-32' },
-    { id: 'created_at', label: 'Date', sortable: true, width: COLUMN_WIDTHS.date, align: 'right' },
+    { id: 'job_reference_number', label: 'Job No.', sortable: true, align: 'left' },
+    { id: 'title', label: 'Job Position', sortable: false, align: 'left' },   
   ];
 
   const tableColumns = columns || defaultColumns;
@@ -175,72 +170,29 @@ export default function TableJobPosting({
   const startIndex = page * rowsPerPage + 1;
   const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length);
 
-  const onDelete = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (handleDelete) handleDelete([id]);
-  };
-
-  const handleEditing = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (handleEdit) handleEdit(id);
-  };
-
-  const handleSelect = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    const newSelected = new Set(selectedRows);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
+  const handleRowClick = (row: RowData) => {
+    if (clickTimeout) {
+      // Double click detected
+      clearTimeout(clickTimeout);
+      setClickTimeout(null);
+      onRowDoubleClick(row);
     } else {
-      newSelected.add(id);
+      // Single click - set timeout to detect double click
+      const timeout = setTimeout(() => {
+        onRowClick(row);
+        setClickTimeout(null);
+      }, 250);
+      setClickTimeout(timeout);
     }
-    setSelectedRows(newSelected);
   };
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} style={{ opacity: 0 }} />;
+      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
     }
     return order === 'asc' 
       ? <ArrowUp size={14} style={{ opacity: 1 }} />
       : <ArrowDown size={14} style={{ opacity: 1 }} />;
-  };
-
-  const handleCopy = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
-      const linkToCopy = `${apiUrl}/careers/${id}`;
-
-      navigate(linkToCopy)
-      
-/*       // Fallback method using textarea (works in all browsers)
-      const textArea = document.createElement('textarea');
-      textArea.value = linkToCopy;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          console.log('Link copied to clipboard:', linkToCopy);
-          // You can add a success notification here
-        } else {
-          console.error('Copy command was unsuccessful');
-        }
-      } catch (err) {
-        console.error('Fallback copy failed:', err);
-      }
-      
-      document.body.removeChild(textArea); */
-    } catch (error) {
-      console.error('Error copying link:', error);
-      // You can add an error notification here
-    }
   };
 
   if (isLoading) {
@@ -276,9 +228,6 @@ export default function TableJobPosting({
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 {/* Column Headers */}
                 <div className="flex items-center py-2">
-                  {/* Checkbox Header */}
-                {/*   <div className={`${COLUMN_WIDTHS.checkbox} px-4`}></div> */}
-                  
                   {tableColumns.map((column) => (
                     <div 
                       key={column.id}
@@ -322,37 +271,20 @@ export default function TableJobPosting({
                 ) : (
                   visibleRows.map(row => {
                     const isHovered = hoveredRow === row.id;
-                    const selectedRow = selectedRows.has(row.id);
+                    const isSelected = selectedRowId === row.id;
 
                     return (
                       <div 
                         key={row.id} 
-                        onClick={(e) => handleEditing(e, row.job_reference_number)} 
+                        onClick={() => handleRowClick(row)}
                         onMouseEnter={() => setHoveredRow(row.id)} 
                         onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-colors`}
+                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-all duration-200`}
                         style={{ 
-                          background: selectedRow ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                          background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
                           borderColor: COLORS.border
                         }}
-                      >
-                        
-                        {/* Checkbox */}
-                        {/* <div onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelect(e, row.id);
-                        }} className={`${COLUMN_WIDTHS.checkbox} px-4`}>
-                          <div 
-                            className={`w-5 h-5 ${RADIUS.checkbox} border-2 flex items-center justify-center transition-colors`} 
-                            style={{ 
-                              borderColor: selectedRow ? COLORS.primary : COLORS.checkboxBorder, 
-                              background: selectedRow ? COLORS.primary : 'transparent' 
-                            }}
-                          >
-                            {selectedRow && <Check size={14} color="white" strokeWidth={3} />}
-                          </div>
-                        </div> */}
-
+                      > 
                         {/* Dynamic Columns */}
                         {tableColumns.map((column) => {
                           return (
@@ -364,111 +296,10 @@ export default function TableJobPosting({
                                 position: 'relative'
                               }}
                             >
-                              {column.id === 'full_name' ? (
-                                <div className="flex items-center gap-3">
-                                  {/* Avatar */}
-                                  <img 
-                                    src={row.image_url} 
-                                    alt={row.first_name} 
-                                    className="w-10 h-10 rounded-full object-cover border"
-                                  />
-
-                                  {/* Name & Position */}
-                                  <div className="flex flex-col leading-tight">
-                                    <span className="font-medium text-gray-900">
-                                      {row.first_name} {row.last_name}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {row.details?.position ?? "No position"}
-                                    </span>
-                                  </div>
-                                </div>
-                              ) : column.id === 'status' ? (
-                                <div>
-                                  <span className="text-gray-900">
-                                    {row.details?.employment_status ?? "No status"}
-                                  </span>
-                                </div>
-                              ) : column.id === 'created_at' ? (
-                                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                                  {/* Date - shown when NOT hovered */}
-                                  <div 
-                                    style={{ 
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'flex-end',
-                                      visibility: isHovered ? 'hidden' : 'visible',
-                                      position: 'absolute',
-                                      right: 0,
-                                      top: 0,
-                                      width: '100%',
-                                      height: '100%'
-                                    }}
-                                  >
-                                    <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`} style={{ color: COLORS.textMuted }}>
-                                      {formatDate(row.created_at)}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Action buttons - shown when hovered */}
-                                  <div 
-                                    style={{ 
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'flex-end',
-                                      gap: '8px',
-                                      visibility: isHovered ? 'visible' : 'hidden'
-                                    }}
-                                  >
-                                    <button 
-                                      title="Edit"
-                                      onClick={(e) => handleEditing(e, row.job_reference_number)}
-                                      style={{ 
-                                        color: '#15803d',
-                                        background: '#dcfce7',
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        outline: 'none'
-                                      }}
-                                    >
-                                      <Pencil size={18} strokeWidth={2} />
-                                    </button>
-
-                                    <button 
-                                      title="View Link"
-                                      onClick={(e) => handleCopy(e, row.job_reference_number)}
-                                      style={{ 
-                                        color: '#1e40af',
-                                        background: '#dbeafe',
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        outline: 'none'
-                                      }}
-                                    >
-                                      <Eye size={18} strokeWidth={2} />
-                                    </button>
-
-                                    <button 
-                                      title="Delete"
-                                      onClick={(e) => onDelete(e, row.id)}
-                                      style={{ 
-                                        color: '#dc2626',
-                                        background: '#fee2e2',
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        outline: 'none'
-                                      }}
-                                    >
-                                      <Trash2 size={18} strokeWidth={2} />
-                                    </button>
-                                  </div>
-                                </div>
+                              {column.id === 'created_at' ? (
+                                <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
+                                  {formatDate(row.created_at)}
+                                </span>
                               ) : (
                                 <span className="text-sm">{row[column.id]}</span>
                               )}

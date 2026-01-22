@@ -76,3 +76,15 @@ export const fetchPositions = async () => {
         throw error;
     }
 }
+
+export const deleteUsers = async (ids: number[] | string[]) => {
+  try {
+    const response = await axiosClient.delete(`${API_URL}`, {
+      data: { ids }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}

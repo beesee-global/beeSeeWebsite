@@ -12,6 +12,9 @@ import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduc
 
 import "../../../assets/css/Product.css";
 
+// Import mock data
+import mockProducts from "../../../data/mockProductData.json";
+
 // Mobile detection hook
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -47,146 +50,154 @@ const FadeReveal: React.FC<{ children: React.ReactNode; isMobile: boolean }> = (
   );
 };
 
-// UPDATED PRODUCTS BASED ON YOUR IMAGES
-const demoProducts: Product[] = [
-  {
-    id: 1,
-    pid: "P1001",
-    name: "EDUCATIONAL SMART TV - 86 INCH",
-    tagline: "Immersive display for collaborative learning",
-    category_id: "tvs",
-    category: "Interactive TVs",
-    price: 149999,
-    image: "/assets/images/productHub/InteractiveTV86.png",
-    specs: {
-      display: '86" 4K UHD',
-      resolution: "3840 x 2160",
-      connectivity: "Wi-Fi 6, Bluetooth 5.2",
-      ports: "HDMI, USB-C, Ethernet",
-      touch_points: "20-point multi-touch",
-    },
-    description: "EDUCATIONAL SMART TV - 86 INCH",
-  },
-  {
-    id: 2,
-    pid: "P1002",
-    name: "INTERACTIVE SMART TV - 75 INCH",
-    tagline: "Immersive display for collaborative learning",
-    category_id: "tvs",
-    category: "Interactive TVs",
-    price: 129999,
-    image: "/assets/images/productHub/InteractiveTV75.png",
-    specs: {
-      display: '75" 4K UHD',
-      resolution: "3840 x 2160",
-      connectivity: "Wi-Fi 6, Bluetooth 5.2",
-      ports: "HDMI, USB-C, Ethernet",
-      touch_points: "20-point multi-touch",
-    },
-    description: "INTERACTIVE SMART TV - 75 INCH",
-  },
-  {
-    id: 3,
-    pid: "P1003",
-    name: "DUOS",
-    tagline: "Double the productivity, double the innovation",
-    category_id: "laptops",
-    category: "Laptops",
-    price: 89999,
-    image: "/assets/images/productHub/LaptopDuos.png",
-    specs: {
-      display: '14" FHD Dual Screens',
-      cpu: "Intel Core i7-1360P",
-      ram: "16GB DDR5",
-      storage: "1TB NVMe SSD",
-      os: "Windows 11 Pro",
-    },
-    description: " DUOS",
-  },
-  {
-    id: 4,
-    pid: "P1004",
-    name: "ELITE",
-    tagline: "Premium performance for education leaders",
-    category_id: "laptops",
-    category: "Laptops",
-    price: 74999,
-    image: "/assets/images/productHub/LaptopElite.png",
-    specs: {
-      display: '15.6" QHD IPS',
-      cpu: "AMD Ryzen 7 7840U",
-      ram: "32GB LPDDR5",
-      storage: "2TB PCIe 4.0 SSD",
-      battery: "20 hours",
-    },
-    description: "ELITE",
-  },
-  {
-    id: 5,
-    pid: "P1005",
-    name: "FUSION",
-    tagline: "Where versatility meets performance",
-    category_id: "laptops",
-    category: "Laptops",
-    price: 64999,
-    image: "/assets/images/productHub/LaptopFusion.png",
-    specs: {
-      display: '13.3" 2-in-1 Touch',
-      cpu: "Intel Core i5-1345U",
-      ram: "16GB LPDDR4X",
-      storage: "512GB SSD",
-      os: "Windows 11 Education",
-    },
-    description: "FUSION",
-  },
-  {
-    id: 6,
-    pid: "P1006",
-    name: "PRO",
-    tagline: "Professional-grade computing for educators",
-    category_id: "laptops",
-    category: "Laptops",
-    price: 84999,
-    image: "/assets/images/productHub/LaptopPro.png",
-    specs: {
-      display: '16" QHD+ IPS',
-      cpu: "Intel Core i9-13900H",
-      ram: "64GB DDR5",
-      storage: "4TB NVMe SSD",
-      gpu: "NVIDIA RTX 4060",
-    },
-    description: "PRO",
-  },
-  {
-    id: 7,
-    pid: "P1007",
-    name: "BEEPAD",
-    tagline: "Innovation that fits in your pocket",
-    category_id: "tablets",
-    category: "Tablets",
-    price: 39999,
-    image: "/assets/images/productHub/TabletBeepad.png",
-    specs: {
-      display: '8.3" Foldable OLED',
-      cpu: "Snapdragon 8 Gen 3",
-      ram: "12GB LPDDR5X",
-      storage: "1TB UFS 4.0",
-      battery: "18 hours",
-    },
-    description: "BEEPAD",
-  },
-];
+// Format price for display
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
+};
 
-const categories: Category[] = [
-  { id: "all", name: "All Products", count: demoProducts.length },
-  { id: "tvs", name: "Interactive TVs", count: demoProducts.filter((p) => p.category_id === "tvs").length },
-  { id: "laptops", name: "Laptops", count: demoProducts.filter((p) => p.category_id === "laptops").length },
-  { id: "tablets", name: "Tablets", count: demoProducts.filter((p) => p.category_id === "tablets").length },
-];
+// Process mock products to match our structure
+const processMockProducts = (mockData: any): Product[] => {
+  return mockData.products.map((product: any, index: number) => {
+    // Get category-specific hover specs
+    const category = mockData.categories.find((c: any) => c.id === product.category);
+    const hoverSpecs = category?.hoverSpecs || [];
+    
+    // Extract the 4 main specs for hover effect from detailedSpecs
+    const hoverSpecsData: Record<string, string> = {};
+    
+    // Map hover spec keys to detailedSpecs
+    hoverSpecs.forEach((specKey: string) => {
+      // Search through detailedSpecs to find matching values
+      if (product.detailedSpecs) {
+        for (const [category, specs] of Object.entries(product.detailedSpecs)) {
+          const specsObj = specs as Record<string, string>;
+          
+          // Match common spec keys
+          switch(specKey) {
+            case 'cpu':
+              if (specsObj['Processor']) hoverSpecsData['cpu'] = specsObj['Processor'];
+              break;
+            case 'ram':
+              if (specsObj['RAM']) hoverSpecsData['ram'] = specsObj['RAM'];
+              break;
+            case 'storage':
+              if (specsObj['Storage']) hoverSpecsData['storage'] = specsObj['Storage'];
+              break;
+            case 'display':
+              if (specsObj['Size']) hoverSpecsData['display'] = specsObj['Size'];
+              else if (specsObj['Resolution']) hoverSpecsData['display'] = specsObj['Resolution'];
+              break;
+            case 'battery':
+              if (specsObj['Battery Life']) hoverSpecsData['battery'] = specsObj['Battery Life'];
+              else if (specsObj['Typical Use']) hoverSpecsData['battery'] = specsObj['Typical Use'];
+              else if (specsObj['Capacity']) hoverSpecsData['battery'] = specsObj['Capacity'];
+              break;
+            case 'sensors':
+              if (specsObj['Heart Rate']) hoverSpecsData['sensors'] = specsObj['Heart Rate'];
+              break;
+            case 'connectivity':
+              if (specsObj['Bluetooth']) hoverSpecsData['connectivity'] = specsObj['Bluetooth'];
+              else if (specsObj['WiFi']) hoverSpecsData['connectivity'] = specsObj['WiFi'];
+              break;
+            case 'resolution':
+              if (specsObj['Resolution']) hoverSpecsData['resolution'] = specsObj['Resolution'];
+              break;
+            case 'refresh_rate':
+              if (specsObj['Refresh Rate']) hoverSpecsData['refresh_rate'] = specsObj['Refresh Rate'];
+              break;
+            case 'smart_features':
+              if (specsObj['OS']) hoverSpecsData['smart_features'] = specsObj['OS'];
+              break;
+            case 'touchscreen':
+              if (specsObj['Touch Points']) hoverSpecsData['touchscreen'] = specsObj['Touch Points'];
+              else if (specsObj['Type']) hoverSpecsData['touchscreen'] = specsObj['Type'];
+              break;
+          }
+        }
+      }
+    });
+
+    return {
+      id: index + 1,
+      pid: product.pid,
+      name: product.name,
+      tagline: product.tagline,
+      category_id: product.category,
+      category: mockData.categories.find((c: any) => c.id === product.category)?.name || product.category,
+      price: product.price,
+      formattedPrice: formatPrice(product.price),
+      image: product.image,
+      gallery: product.gallery,
+      description: product.description,
+      keyFeatures: product.keyFeatures,
+      specs: hoverSpecsData, // Only include hover specs for the card
+      detailedSpecs: product.detailedSpecs, // Full specs for detail page
+      hoverSpecs: hoverSpecs,
+      inStock: true,
+      rating: 4.5,
+      reviews: 120,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  });
+};
 
 const ProductsHub: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Process mock data
+  const demoProducts = useMemo(() => processMockProducts(mockProducts), []);
+
+  // Create categories with counts
+  const categories: Category[] = [
+    { 
+      id: "all", 
+      name: "All Products", 
+      count: demoProducts.length,
+      hoverSpecs: []
+    },
+    { 
+      id: "laptop", 
+      name: "Laptops", 
+      count: demoProducts.filter((p) => p.category_id === "laptop").length,
+      icon: "💻",
+      hoverSpecs: ["cpu", "ram", "storage", "display"]
+    },
+    { 
+      id: "smartwatch", 
+      name: "Smart Watches", 
+      count: demoProducts.filter((p) => p.category_id === "smartwatch").length,
+      icon: "⌚",
+      hoverSpecs: ["display", "battery", "sensors", "connectivity"]
+    },
+    { 
+      id: "smarttv", 
+      name: "Smart TVs", 
+      count: demoProducts.filter((p) => p.category_id === "smarttv").length,
+      icon: "📺",
+      hoverSpecs: ["display", "resolution", "refresh_rate", "smart_features"]
+    },
+    { 
+      id: "tablet", 
+      name: "Tablets", 
+      count: demoProducts.filter((p) => p.category_id === "tablet").length,
+      icon: "📱",
+      hoverSpecs: ["cpu", "ram", "storage", "display"]
+    },
+/*     { 
+      id: "kiosk", 
+      name: "Kiosk Machines", 
+      count: demoProducts.filter((p) => p.category_id === "kiosk").length,
+      icon: "🏧",
+      hoverSpecs: ["display", "cpu", "storage", "touchscreen"]
+    } */
+  ];
 
   /* ===========================
      FILTERS / SORT / PAGINATION
@@ -227,7 +238,7 @@ const ProductsHub: React.FC = () => {
 
       return matchCategory && matchSearch && matchPrice;
     });
-  }, [selectedCategory, searchQuery, priceRange]);
+  }, [selectedCategory, searchQuery, priceRange, demoProducts]);
 
   const sortedProducts = useMemo(() => {
     let arr = [...filteredProducts];
@@ -279,12 +290,8 @@ const ProductsHub: React.FC = () => {
   const goToPrevPage = () => goToPage(Math.max(1, currentPage - 1));
   const goToNextPage = () => goToPage(Math.min(totalPages, currentPage + 1));
 
-  /* ======================================================
-       UI / PAGE RENDER
-  ====================================================== */
   return (
     <div className="products-hub min-h-screen bg-[#000000]">
-
       {/* 🔥 HERO SECTION */}
       <HeroProducts />
 
@@ -342,7 +349,7 @@ const ProductsHub: React.FC = () => {
                 />
               </div>
 
-              {/* PAGINATION - Using FAQs design */}
+              {/* PAGINATION */}
               {totalPages > 1 && (
                 <div className="mt-8 flex flex-col gap-4">
                   <div className="bee-body-sm text-[#C7B897] text-center pagination-info">
@@ -520,7 +527,7 @@ const ProductsHub: React.FC = () => {
                 </div>
               </FadeReveal>
 
-              {/* PAGINATION - Using FAQs design */}
+              {/* PAGINATION */}
               {totalPages > 1 && (
                 <FadeReveal isMobile={isMobile}>
                   <div className="mt-8 flex flex-col gap-4">

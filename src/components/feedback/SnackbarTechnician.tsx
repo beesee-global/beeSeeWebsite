@@ -20,7 +20,7 @@ const SnackbarTechnician: React.FC <SnackbarProps> = ({
         if (open) {
             const timer = setTimeout(() => {
                 handleClose()
-            }, 2000);
+            }, 4000);
 
             return () => clearTimeout(timer)
         }
