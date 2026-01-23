@@ -160,6 +160,8 @@ const ApplicantsEmail = () => {
     time: string;
     date: string;
     schedule: string;
+    duration: string;
+    format: string;
   }) => {
     const payload = {
       id: formData.id,
@@ -169,7 +171,9 @@ const ApplicantsEmail = () => {
       location: emailData.location,
       time: emailData.time,
       date: emailData.date,
-      schedule_details: emailData.schedule
+      schedule_details: emailData.schedule,
+      format: emailData.format,
+      duration: emailData.duration
     };
 
     const response = await sendInterviewInvitations(payload)
@@ -343,6 +347,7 @@ const ApplicantsEmail = () => {
             <div className="flex flex-wrap gap-3"> 
               {/* Send Email Button */}
               <button
+                title="Send Email"
                 onClick={handleOpenEmailDialog}
                 disabled={formData.status !== 'SHORTLISTED'}
                 className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
@@ -351,37 +356,36 @@ const ApplicantsEmail = () => {
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                <Send className="w-6 h-6" />
-                <span>Send Email</span>
+                <Send className="w-6 h-6" /> 
               </button>
 
               {/* Action Buttons based on status */}
               {formData.status === 'NEW_APPLICANT' && (
                 <>
                   <button
+                    title="Shortlist"
                     onClick={handleShortlist}
                     className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     <Plus className="w-5 h-5" />
-                    <span>Shortlist</span>
                   </button>
                   <button
+                    title="Reject"
                     onClick={handleReject}
                     className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                   >
-                    <X className="w-5 h-5" />
-                    <span>Reject</span>
+                    <X className="w-5 h-5" /> 
                   </button>
                 </>
               )}
 
               {formData.status === 'SHORTLISTED' && (
                 <button
+                  title="Reject"
                   onClick={handleReject}
                   className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                 >
-                  <X className="w-5 h-5" />
-                  <span>Reject</span>
+                  <X className="w-5 h-5" /> 
                 </button>
               )}
 

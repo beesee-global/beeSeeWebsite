@@ -85,7 +85,7 @@ const routes = [
                 element: <Solution />
             },
             {
-            path: 'inquiries',
+            path: 'inquiries/:id?',
             element: <InquiriesPage />
             },
             {

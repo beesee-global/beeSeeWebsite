@@ -453,7 +453,7 @@ const JobPostingForm: React.FC = () => {
                     value={formJobData.status}
                     onChange={handleInputChange}
                     options={[
-                      { value: "Accepting Applications", label: "Accepting Applications" },
+                      { value: "Accepting_Applications", label: "Accepting Applications" },
                       { value: "Closed", label: "Closed" }, 
                     ]}
                     error={!!formError.job_type}
