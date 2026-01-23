@@ -145,7 +145,7 @@ const JobCard = ({ job, index }) => {
           </div>
           <button
             onClick={() => {
-              navigate(`/career/${job.job_reference_number}`)
+              navigate(`/bsg/career/${job.job_reference_number}`)
             }} 
             className="beesee-button beesee-button--small" style={{
               padding: '0.625rem 1.25rem',
