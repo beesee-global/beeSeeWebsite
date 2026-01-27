@@ -33,7 +33,7 @@ const Hero = () => {
                                 x: rowIndex % 2 === 0 ? ['0%', '-33.33%'] : ['-33.33%', '0%'],
                             }}
                             transition={{
-                                duration: 150,
+                                duration: 50,
                                 repeat: Infinity,
                                 ease: 'linear',
                             }}
@@ -55,8 +55,8 @@ const Hero = () => {
                 ))}
             </div>
 
-            {/* DARK OVERLAY */}
-            <div className="absolute inset-0 bg-black/50 z-[1]"></div>
+            {/* DARK OVERLAY 
+            <div className="absolute inset-0 bg-black/70 z-[1]"></div> /*}
 
             {/* MAIN CONTENT */}
             <div className="relative z-10 max-w-7xl mx-auto px-6 text-center text-white">
@@ -74,8 +74,8 @@ const Hero = () => {
                         style={{ fontFamily: "'Bebas Neue', sans-serif" }}
                         className="font-normal leading-none text-center text-[#FDCC00] tracking-wide whitespace-nowrap text-[50px] sm:text-[70px] md:text-[90px] lg:text-[110px] max-sm:whitespace-normal max-sm:flex max-sm:flex-col max-sm:space-y-1"
                     >
-                        <span className="max-sm:text-[60px] max-sm:leading-[0.9]">SOFTWARE</span>{" "}
-                        <span className="max-sm:text-[45px] max-sm:leading-[0.9]">DEVELOPMENTS</span>
+                        <span className="max-sm:text-[60px] max-sm:leading-[0.9]">OUR</span>{" "}
+                        <span className="max-sm:text-[45px] max-sm:leading-[0.9]">MOMENTS</span>
                     </motion.h1>
 
                     {/* SUBTITLE */}
@@ -86,7 +86,7 @@ const Hero = () => {
                         style={{ fontFamily: "Georgia, serif" }}
                         className="text-[#FDCC00]/80 uppercase mx-auto mb-2 text-base md:text-lg tracking-[0.3em] max-sm:text-[10px] max-sm:tracking-[0.15em] max-sm:whitespace-nowrap overflow-hidden"
                     >
-                        Innovation in Action Crafting Quality Projects
+                        Join our Journey!
                     </motion.h2>
                 </motion.div>
             </div>
