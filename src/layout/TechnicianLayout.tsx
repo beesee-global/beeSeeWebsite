@@ -19,18 +19,19 @@ const TechnicianLayout = () => {
     // if we don't have a token, go back to home
     if (!token) {
       navigate("/", { replace: true });
+      localStorage.clear();
       return;
     }
 
-    // if user is admin, redirect to admin dashboard
+    /* // if user is admin, redirect to admin dashboard
     if (userInfo?.role) {
       setIsChecking(false)
       navigate("/beesee/dashboard", { replace: true });
       return;
-    }
+    } */
     // Done checking
     setIsChecking(false);
-  }, [token, userInfo, navigate]);
+  }, [token, userInfo]);
 
   /* automatic close on wider screens */
   useEffect(() => {

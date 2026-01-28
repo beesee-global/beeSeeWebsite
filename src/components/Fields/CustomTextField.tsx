@@ -62,22 +62,22 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
       newValue = newValue.replace(/\S+/g, (word) => {
         let processedWord = word;
 
-        // Fully lowercase → allowed
-        if (/^[a-z]+$/.test(word)) {
-          processedWord = word;
-        }
-        // Proper Capital Case → allowed
-        else if (/^[A-Z][a-z]*$/.test(word)) {
-          processedWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }
-        // Fully uppercase (acronyms) → allowed
-        else if (/^[A-Z]+$/.test(word)) {
-          processedWord = word;
-        }
-        // Mixed case → force Capital Case
-        else {
-          processedWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }
+        // // Fully lowercase → allowed
+        // if (/^[a-z]+$/.test(word)) {
+        //   processedWord = word;
+        // }
+        // // Proper Capital Case → allowed
+        // else if (/^[A-Z][a-z]*$/.test(word)) {
+        //   processedWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        // }
+        // // Fully uppercase (acronyms) → allowed
+        // else if (/^[A-Z]+$/.test(word)) {
+        //   processedWord = word;
+        // }
+        // // Mixed case → force Capital Case
+        // else {
+        //   processedWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        // }
 
         // Ensure the first word always starts with a capital letter
         if (!firstWordProcessed) {

@@ -7,7 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
 import { Box, Button, Collapse, Checkbox, FormControlLabel } from "@mui/material";
-import { Shield, ChevronDown, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Shield, ChevronDown,} from "lucide-react";
 
 /* ================= TYPES ================= */
 interface FieldConfig {
@@ -41,23 +41,29 @@ interface ModalProps {
 }
 
 /* ================= STYLES ================= */
-const StyledInput = styled("input")(({ error }: { error?: boolean }) => ({
+const StyledInput = styled("input")<{ error?: boolean }>(({ error }) => ({
   width: "100%",
   padding: "12px 16px",
   fontSize: "15px",
   fontFamily: "inherit",
-  border: `2px solid ${error ? "#ef4444" : "#e5e7eb"}`,
+  border: `2px solid ${error ? "#ef4444" : "#d1d5db"}`, // gray border
   borderRadius: "12px",
   outline: "none",
   transition: "all 0.2s ease",
   backgroundColor: "#fff",
+  color: "#111827", // <-- THIS IS THE TEXT COLOR
+  "&::placeholder": {
+    color: "#6b7280", // optional placeholder color (gray-500)
+  },
   "&:focus": {
-    borderColor: error ? "#ef4444" : "#6366f1",
-    boxShadow: error 
-      ? "0 0 0 3px rgba(239, 68, 68, 0.1)"
-      : "0 0 0 3px rgba(99, 102, 241, 0.1)",
+    borderColor: error ? "#ef4444" : "#4b5563", // gray-600
+    boxShadow: error
+      ? "0 0 0 3px rgba(239, 68, 68, 0.15)"
+      : "0 0 0 3px rgba(107, 114, 128, 0.15)", // gray-500 glow
   },
 }));
+
+
 
 const StyledSelect = styled("select")(({ error }: { error?: boolean }) => ({
   width: "100%",
@@ -384,7 +390,7 @@ const Modal: React.FC<ModalProps> = ({
                   sx={{
                     color: "#9ca3af",
                     padding: "6px",
-                    "&.Mui-checked": { color: "#6366f1" },
+                    "&.Mui-checked": { color: "#374151", },
                   }}
                 />
               }
@@ -439,21 +445,21 @@ const Modal: React.FC<ModalProps> = ({
                   sx={{
                     color: "#9ca3af",
                     padding: "6px",
-                    "&.Mui-checked": { color: "#6366f1" },
+                    "&.Mui-checked": { color: "#374151" },
                     "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" },
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <Eye 
+                  {/* <Eye 
                     size={16} 
                     color={hasGrantAccess ? "#6366f1" : "#9ca3af"} 
-                  />
+                  /> */}
                   <span style={{ 
                     fontSize: "14px", 
                     fontWeight: 600, 
-                    color: hasGrantAccess ? "#6366f1" : "#374151" 
+                    // color: hasGrantAccess ? "#6366f1" : "#374151" 
                   }}>
                     Grant Access
                   </span>
@@ -473,7 +479,7 @@ const Modal: React.FC<ModalProps> = ({
                   sx={{
                     color: "#9ca3af",
                     padding: "6px",
-                    "&.Mui-checked": { color: "#10b981" },
+                    "&.Mui-checked": { color: "#374151" },
                     "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" },
                     "&.Mui-disabled": {
                       color: "#e5e7eb",
@@ -483,13 +489,13 @@ const Modal: React.FC<ModalProps> = ({
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <Plus 
+                  {/* <Plus 
                     size={16} 
                     color={
                       !hasGrantAccess ? "#e5e7eb" : 
                       moduleActions.includes("add") ? "#10b981" : "#9ca3af"
                     } 
-                  />
+                  /> */}
                   <span style={{ 
                     fontSize: "14px", 
                     fontWeight: 500, 
@@ -513,7 +519,7 @@ const Modal: React.FC<ModalProps> = ({
                   sx={{
                     color: "#9ca3af",
                     padding: "6px",
-                    "&.Mui-checked": { color: "#f59e0b" },
+                    "&.Mui-checked": { color: "#374151" },
                     "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" },
                     "&.Mui-disabled": {
                       color: "#e5e7eb",
@@ -523,13 +529,13 @@ const Modal: React.FC<ModalProps> = ({
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <Edit 
+                  {/* <Edit 
                     size={16} 
                     color={
                       !hasGrantAccess ? "#e5e7eb" : 
                       moduleActions.includes("edit") ? "#f59e0b" : "#9ca3af"
                     } 
-                  />
+                  /> */}
                   <span style={{ 
                     fontSize: "14px", 
                     fontWeight: 500, 
@@ -553,7 +559,7 @@ const Modal: React.FC<ModalProps> = ({
                   sx={{
                     color: "#9ca3af",
                     padding: "6px",
-                    "&.Mui-checked": { color: "#ef4444" },
+                    "&.Mui-checked": { color: "#374151" },
                     "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" },
                     "&.Mui-disabled": {
                       color: "#e5e7eb",
@@ -563,13 +569,13 @@ const Modal: React.FC<ModalProps> = ({
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <Trash2 
+                  {/* <Trash2 
                     size={16} 
                     color={
                       !hasGrantAccess ? "#e5e7eb" : 
                       moduleActions.includes("delete") ? "#ef4444" : "#9ca3af"
                     } 
-                  />
+                  /> */}
                   <span style={{ 
                     fontSize: "14px", 
                     fontWeight: 500, 
@@ -666,11 +672,11 @@ const Modal: React.FC<ModalProps> = ({
                 borderBottom: "2px solid #f3f4f6",
               }}
             >
-              <Box
+              <Box 
                 sx={{
                   width: 36,
                   height: 36,
-                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                  background: "linear-gradient(90deg, #FCD000 0%, rgba(252, 208, 0, 0.9) 100%)",
                   borderRadius: "10px",
                   display: "flex",
                   alignItems: "center",
@@ -797,17 +803,17 @@ const Modal: React.FC<ModalProps> = ({
           type="submit"
           form="permission-form"
           variant="contained"
+          className=" bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 text-black"
           sx={{
             px: 3,
             py: 1.25,
             borderRadius: "10px",
             textTransform: "none",
             fontWeight: 600,
-            fontSize: "15px",
-            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            fontSize: "15px", 
             boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
             "&:hover": {
-              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+              background: "",
               boxShadow: "0 6px 16px rgba(99, 102, 241, 0.4)",
               transform: "translateY(-1px)",
             },

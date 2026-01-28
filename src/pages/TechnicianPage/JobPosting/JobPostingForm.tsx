@@ -296,7 +296,7 @@ const JobPostingForm: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className="rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-black dark:text-black mb-2">
@@ -338,7 +338,7 @@ const JobPostingForm: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* Basic Information */}
-            <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center mb-6">
                 <div className="p-3 bg-var(--bo-border-gold) dark:bg-blue-900/20 rounded-lg mr-4">
                   <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
