@@ -22,7 +22,6 @@ const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
-const activities = lazy(() => import("../pages/HomePagesPage/Activities/Activities"));
 
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
@@ -59,8 +58,7 @@ const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organi
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
 import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
-import Projects from '../pages/HomePagesPage/Projects/Projects';
-import path from 'path';
+import Projects from '../pages/HomePagesPage/Projects/Projects'; 
 import Activities from '../pages/HomePagesPage/Activities/Activities';
 const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
