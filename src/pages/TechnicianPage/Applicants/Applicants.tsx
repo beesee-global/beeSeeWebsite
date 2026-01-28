@@ -372,15 +372,16 @@ const Applicants = () => {
 
       {/* Header */}
       <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
-        <div>
+        <div className='w-full max-w-md'>
           <Breadcrumb 
             items={[
               { label: "Applicants", isActive: true, icon: <QuestionAnswerIcon /> }
             ]}
           />
           
-          <p className='text-[20px] mt-2 font-bold'>
-            {`${jobDetailed.title} ${jobDetailed.job_reference_number}`}
+          <p className='mt-5 text-[20px] font-bold'>
+            {`${jobDetailed.title}`}
+            <p className='text-[16px] text-gray-600'>{`${jobDetailed.job_reference_number}`}</p>
           </p>
         </div>
 
