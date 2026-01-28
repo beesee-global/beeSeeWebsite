@@ -20,7 +20,9 @@ import {
   X,
   Trash2,
   Send,
-  FileText
+  FileText,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react"
 import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
@@ -57,6 +59,7 @@ const ApplicantsEmail = () => {
   const [dialogTitle, setDialogTitle] = useState<string>("");
   const [actionType, setActionType] = useState<string>("");
   const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
+  const [isImageZoomed, setIsImageZoomed] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<ApplicantFormProps>({
     id: 0,
@@ -119,6 +122,10 @@ const ApplicantsEmail = () => {
     }));
   };
 
+  const handleImageZoomToggle = () => {
+    setIsImageZoomed(!isImageZoomed);
+  }
+
   const handleDownload = () => {
     if (!formData.attachment_url) {
       setSnackBarMessage("No file available to download");
@@ -160,6 +167,8 @@ const ApplicantsEmail = () => {
     time: string;
     date: string;
     schedule: string;
+    duration: string;
+    format: string;
   }) => {
     const payload = {
       id: formData.id,
@@ -169,7 +178,9 @@ const ApplicantsEmail = () => {
       location: emailData.location,
       time: emailData.time,
       date: emailData.date,
-      schedule_details: emailData.schedule
+      schedule_details: emailData.schedule,
+      format: emailData.format,
+      duration: emailData.duration
     };
 
     const response = await sendInterviewInvitations(payload)
@@ -343,6 +354,7 @@ const ApplicantsEmail = () => {
             <div className="flex flex-wrap gap-3"> 
               {/* Send Email Button */}
               <button
+                title="Send Email"
                 onClick={handleOpenEmailDialog}
                 disabled={formData.status !== 'SHORTLISTED'}
                 className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
@@ -351,37 +363,36 @@ const ApplicantsEmail = () => {
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                <Send className="w-6 h-6" />
-                <span>Send Email</span>
+                <Send className="w-6 h-6" /> 
               </button>
 
               {/* Action Buttons based on status */}
               {formData.status === 'NEW_APPLICANT' && (
                 <>
                   <button
+                    title="Shortlist"
                     onClick={handleShortlist}
                     className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     <Plus className="w-5 h-5" />
-                    <span>Shortlist</span>
                   </button>
                   <button
+                    title="Reject"
                     onClick={handleReject}
                     className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                   >
-                    <X className="w-5 h-5" />
-                    <span>Reject</span>
+                    <X className="w-5 h-5" /> 
                   </button>
                 </>
               )}
 
               {formData.status === 'SHORTLISTED' && (
                 <button
+                  title="Reject"
                   onClick={handleReject}
                   className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
                 >
-                  <X className="w-5 h-5" />
-                  <span>Reject</span>
+                  <X className="w-5 h-5" /> 
                 </button>
               )}
 
@@ -496,44 +507,72 @@ const ApplicantsEmail = () => {
             </div>
           </div>
 
-          {/* Resume Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center"> 
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Resume/CV</h2>
-                  <p className="text-gray-600">Applicant's resume</p>
-                </div>
+          {/* Resume Card */}  
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center"> 
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Resume/CV</h2>
+                <p className="text-gray-600">Applicant's resume</p>
               </div>
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                <Download className="w-5 h-5" />
-                <span>Download</span>
-              </button>
             </div>
-            
-            {formData.attachment_url ? (
-              <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <Download className="w-5 h-5" />
+              <span>Download</span>
+            </button>
+          </div>
+          
+          {formData.attachment_url ? (
+            <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
+              {/* Check if file is an image */}
+              {applicantDetails?.file_type?.startsWith('image/') ? (
+                <div 
+                  className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
+                  onClick={handleImageZoomToggle}
+                >
+                  <img
+                    src={formData.attachment_url}
+                    alt="Resume"
+                    className={`transition-all duration-300 ${
+                      isImageZoomed 
+                        ? 'max-w-none w-full cursor-zoom-out' 
+                        : 'max-w-full max-h-full object-contain cursor-zoom-in'
+                    }`}
+                  />
+                  
+                  {/* Zoom Indicator Icon */}
+                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    {isImageZoomed ? (
+                      <>
+                        <ZoomOut className="w-5 h-5" />
+                        <span className="text-sm font-medium">Click to zoom out</span>
+                      </>
+                    ) : (
+                      <>
+                        <ZoomIn className="w-5 h-5" />
+                        <span className="text-sm font-medium">Click to zoom in</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
                 <iframe
                   src={formData.attachment_url}
                   className="w-full h-[600px]"
                   title="Resume Preview"
                 />
-                {/* <div className="p-4 bg-white border-t-2 border-gray-300">
-                  <p className="text-xs text-gray-500 break-all font-mono">
-                    {formData.attachment_url}
-                  </p>
-                </div> */}
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">No resume uploaded</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No resume uploaded</p>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </div>

@@ -305,7 +305,7 @@ export default function TableApplicants({
                                                             </span>
                                                             );
                                                         })()
-                                                    ) :col.id === 'created_at' ? (
+                                                    ) : col.id === 'created_at' ? (
                                                         <span className="text-sm text-gray-500">{formatDate(row[col.id])}</span>
                                                     ) : (
                                                         <div className="text-sm text-gray-900 truncate max-w-[200px]">{row[col.id]}</div>

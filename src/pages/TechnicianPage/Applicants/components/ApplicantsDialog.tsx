@@ -9,7 +9,10 @@ import { styled } from '@mui/material/styles';
 import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-import { Send, MapPin, Clock, Calendar } from 'lucide-react';
+import { Send, MapPin, Clock, CalendarClock } from 'lucide-react';
+import CustomTimePicker from '../../../../components/Fields/CustomTimePicker';
+import CustomDuration from '../../../../components/Fields/CustomDuration';
+import CustomFormat from '../../../../components/Fields/CustomFormat';
 
 interface ApplicantsDialogProps {
   open: boolean;
@@ -19,13 +22,15 @@ interface ApplicantsDialogProps {
     time: string;
     date: string;
     schedule: string;
+    duration: string;
+    format: string;
   }) => void;
   applicantName?: string;
   applicantEmail?: string;
 }
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': { width: '700px', maxWidth: '95%' },
+  '& .MuiDialog-paper': { width: '1000px', maxWidth: '95%' },
   '& .MuiDialogContent-root': { padding: theme.spacing(3) },
   '& .MuiDialogActions-root': { padding: theme.spacing(2) },
 }));
@@ -41,7 +46,9 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     location: '',
     time: '',
     date: '',
-    schedule: ''
+    schedule: '',
+    duration: '',
+    format: ''
   });
 
   const [formError, setFormError] = useState<Record<string, string>>({});
@@ -53,7 +60,9 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
         location: '',
         time: '',
         date: '',
-        schedule: ''
+        schedule: '',
+        duration: '',
+        format: ''
       });
       setFormError({});
     }
@@ -81,7 +90,15 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     }
     
     if (!formData.schedule.trim()) {
-      errors.schedule = "Schedule is required";
+      errors.schedule = "Message is required";
+    }
+
+    if (!formData.format.trim()) {
+      errors.format = "Format is required";
+    }
+
+    if (!formData.duration.trim()) {
+      errors.duration = "Duration is required";
     }
 
     return errors;
@@ -113,15 +130,10 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       <DialogTitle sx={{ m: 0, p: 2, color: '#000', fontSize: '1.5rem', fontWeight: 'bold' }}>
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-            <Send className="w-6 h-6 text-white" />
+            <CalendarClock className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div>Send Interview Invitation</div>
-            {applicantName && (
-              <div className="text-sm font-normal text-gray-600">
-                To: {applicantName} ({applicantEmail})
-              </div>
-            )}
+            <div className='text-[20px]'>Schedule With {applicantName}</div> 
           </div>
         </div>
       </DialogTitle>
@@ -142,80 +154,115 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
           Send an interview invitation to the applicant with all the necessary details.
         </DialogContentText>
         <form onSubmit={handleSubmit} id="applicants-dialog-form" className="space-y-4"> 
+          <div className='flex gap-4'>
+            <div className="w-full max-w-sm space-y-2">             
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700">
+                  Date *
+                </label>
+                <CustomTextField
+                  name="date"
+                  placeholder="Enter interview date"
+                  value={formData.date}
+                  onChange={handleTextChange}
+                  multiline={false}
+                  rows={1}
+                  type="date"
+                  error={!!formError.date}
+                  helperText={formError.date} 
+                />
+              </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Location *
-            </label>
-            <CustomTextField
-              name="location"
-              placeholder="Enter interview location"
-              value={formData.location}
-              onChange={handleTextChange}
-              multiline={false}
-              rows={1}
-              type="text"
-              error={!!formError.location}
-              helperText={formError.location}
-              icon={<MapPin className="w-4 h-4" />}
-            />
-          </div>
+              {/* Time */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Start Time *
+                </label>
+                <CustomTimePicker 
+                  value={formData.time}
+                  onChange={(time) => {
+                    setFormData(prev => ({ ...prev, time }));
+                    setFormError(prev => ({ ...prev, time: '' }));
+                  }}
+                  placeholder="Select start time"
+                  error={!!formError.time}
+                  helperText={formError.time}
+                />
+              </div>
 
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Date *
-            </label>
-            <CustomTextField
-              name="date"
-              placeholder="Enter interview date"
-              value={formData.date}
-              onChange={handleTextChange}
-              multiline={false}
-              rows={1}
-              type="date"
-              error={!!formError.date}
-              helperText={formError.date}
-              icon={<Calendar className="w-4 h-4" />}
-            />
-          </div>
+              {/* duration */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Duration *
+                </label>
+                <CustomDuration 
+                  value={formData.duration}
+                  onChange={(duration) => {
+                    setFormData(prev => ({ ...prev, duration}));
+                    setFormError(prev => ({...prev, duration: ''}))
+                  }}
+                  placeholder="Select duration"
+                  error={!!formError.duration}
+                  helperText={formError.duration}
+                />
+              </div>
+            </div>
 
-          {/* Time */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Time *
-            </label>
-            <CustomTextField
-              name="time"
-              placeholder="Enter interview time"
-              value={formData.time}
-              onChange={handleTextChange}
-              multiline={false}
-              rows={1}
-              type="time"
-              error={!!formError.time}
-              helperText={formError.time}
-              icon={<Clock className="w-4 h-4" />}
-            />
-          </div>
+            <div className="w-full max-w-xl space-y-2">
+              {/* Format */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Interview Format *
+                </label>
+                <CustomFormat 
+                  value={formData.format}
+                  onChange={(format) => {
+                    setFormData(prev => ({ ...prev, format }));
+                    setFormError(prev => ({ ...prev, format: '' }));
+                  }}
+                  error={!!formError.format}
+                  helperText={formError.format}
+                />
+              </div>
 
-          {/* Schedule */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Schedule Details *
-            </label>
-            <CustomTextField
-              name="schedule"
-              placeholder="Enter schedule details (e.g., Interview format, duration, etc.)"
-              value={formData.schedule}
-              onChange={handleTextChange}
-              multiline={true}
-              rows={3}
-              type="text"
-              error={!!formError.schedule}
-              helperText={formError.schedule}
-            />
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700">
+                  Interview Address *
+                </label>
+                <CustomTextField
+                  name="location"
+                  placeholder="Enter interview location"
+                  value={formData.location}
+                  onChange={handleTextChange}
+                  multiline={false}
+                  rows={1}
+                  type="text"
+                  error={!!formError.location}
+                  helperText={formError.location}
+                  icon={<MapPin className="w-4 h-4" />}
+                />
+              </div>
+
+              {/* Schedule */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Message To {applicantName} *
+                </label>
+                <CustomTextField
+                  name="schedule"
+                  placeholder="Enter schedule details (e.g., Interview format, duration, etc.)"
+                  value={formData.schedule}
+                  onChange={handleTextChange}
+                  multiline={true}
+                  rows={3}
+                  type="text"
+                  error={!!formError.schedule}
+                  helperText={formError.schedule}
+                />
+              </div>
+            </div>
           </div>
         </form>
       </DialogContent>
@@ -245,7 +292,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
             }
           }}
         >
-          Send Invitation
+          Send Interview request
         </Button>
       </DialogActions>
     </BootstrapDialog>

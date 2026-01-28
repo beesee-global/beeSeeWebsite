@@ -1,5 +1,8 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
-import {getAllJobPosting, deleteCareers} from '../../../services/Technician/careersServices'
+import {
+  getAllJobPosting, 
+  deleteCareers
+} from '../../../services/Technician/careersServices'
 import { useNavigate } from "react-router-dom"
 import { 
   User2, 
@@ -45,6 +48,7 @@ const JobPosting = () => {
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
     { id: 'work_location', label: 'Work Location', sortable: false, align: 'left' }, 
     { id: 'location', label: 'Location', sortable: false, align: 'left' },
+    { id: 'status', label: "Status", sortable: false, align: 'left' },
     { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
 
@@ -129,7 +133,7 @@ const JobPosting = () => {
     const selectedJob = job.find((j: any) => j.id === selectedRowId);
     if (selectedJob) {
       const apiUrl = import.meta.env.VITE_API_URL_FRONTEND;
-      const linkToCopy = `${apiUrl}/careers/${selectedJob.job_reference_number}`;
+      const linkToCopy = `${apiUrl}/bsg/career/${selectedJob.job_reference_number}`;
       
       window.open(
         `${linkToCopy}`,

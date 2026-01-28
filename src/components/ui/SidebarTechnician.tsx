@@ -4,6 +4,7 @@ import {
     ChevronDown,
     ChevronRight,
     ChevronLeft,  
+    Menu,
     User2,
     LayoutDashboard,
     MessageCircleQuestionMark,
@@ -114,8 +115,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 }
                 return item;
             });
-
-            console.log(userInfo)
+ 
         setMenuItems(filteredMenu);
     }, [userInfo]);
 
@@ -174,7 +174,8 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    {isCollapsed ? <ChevronRight size={26} /> : <ChevronLeft size={26} />}
+                    {/* {isCollapsed ? <ChevronRight size={26} /> : <ChevronLeft size={26} />} */}
+                    {isCollapsed ? <Menu size={26} /> : <Menu size={26} />}
                 </button>
             </div>
 

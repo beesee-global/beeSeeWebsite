@@ -2,16 +2,12 @@ import React, { useEffect, useState } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"  
 import { useParams } from "react-router-dom";
 import {  
-  Save, 
-  Plus,
-  X,
+  Save,  
   Briefcase,
   MapPin, 
-  FileText,
-  Settings
+  FileText, 
 } from "lucide-react";
-import { 
-  Mail,
+import {  
   User2,  
   FilePenLine, 
 } from "lucide-react"
@@ -34,6 +30,7 @@ interface FormJobData {
   location: string;
   work_location: string;
   job_type: string;
+  status?: string;
   careers_job_details: string;
 }
 
@@ -67,6 +64,7 @@ const JobPostingForm: React.FC = () => {
     location: "",
     work_location: "",
     job_type: "",
+    status: "",
     careers_job_details: ""
   });
 
@@ -197,6 +195,7 @@ const JobPostingForm: React.FC = () => {
         location: formJobData.location,
         work_location: formJobData.work_location,
         job_type: formJobData.job_type,
+        status: formJobData.status,
         careers_job_details: formJobData.careers_job_details
         // responsibilities: validResponsibilities,
         // qualifications: validQualifications
@@ -257,6 +256,7 @@ const JobPostingForm: React.FC = () => {
         location: jobInfo.location || "",
         work_location: jobInfo.work_location || "",
         job_type: jobInfo.job_type || "",
+        status: jobInfo.status || "",
         careers_job_details: jobInfo.careers_job_details || ""
       });
 
@@ -403,7 +403,7 @@ const JobPostingForm: React.FC = () => {
                   /> 
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm text-black dark:text-black mb-2">
                     Work Location *
                   </label>
@@ -422,7 +422,7 @@ const JobPostingForm: React.FC = () => {
                   />
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm  text-black dark:text-black mb-2">
                     Job Type *
                   </label>
@@ -441,6 +441,26 @@ const JobPostingForm: React.FC = () => {
                     helperText={formError.job_type}
                   />
                 </div>
+
+                {id && (
+                  <div className="md:col-span-2">
+                  <label className="block text-sm  text-black dark:text-black mb-2">
+                    Status *
+                  </label>
+                  <CustomSelectField
+                    name="status"
+                    placeholder="Select status"
+                    value={formJobData.status}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: "Accepting_Applications", label: "Accepting Applications" },
+                      { value: "Closed", label: "Closed" }, 
+                    ]}
+                    error={!!formError.job_type}
+                    helperText={formError.job_type}
+                  />
+                </div>
+                )}
 
                 <div className="md:col-span-2">
                   <label className="block text-sm  text-black dark:text-black mb-2">

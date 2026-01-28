@@ -47,7 +47,16 @@ export const deleteCareers = async (ids: number[] | string[]) => {
 export const getSpecificJob = async (id: string) => {
   try {
     const response = await axiosClient.get(`/careers/${id}`);
-    return response.data.data;
+    return response.data;
+  } catch (error) {
+    throw error
+  }
+}
+
+export const getSpecificJobPublic = async (id: string) => {
+  try {
+    const response = await axiosClient.get(`/careers/${id}/public`);
+    return response?.data;
   } catch (error) {
     throw error
   }
@@ -81,3 +90,11 @@ export const createJob = async (data: any) => {
     }
 } 
 
+export const careersList = async () => {
+  try {
+    const response = await axiosClient.get(`/careers/public`);
+    return response.data
+  } catch (error)  {
+    throw error
+  }
+}

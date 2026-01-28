@@ -26,6 +26,7 @@ const activities = lazy(() => import("../pages/HomePagesPage/Activities/Activiti
 
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
+const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
 
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
@@ -90,8 +91,8 @@ const routes = [
                 element: <Solution />
             },
             {
-                path: 'inquiries',
-                element: <InquiriesPage />
+            path: 'inquiries/:id?',
+            element: <InquiriesPage />
             },
             {
                 path: 'products',
@@ -106,8 +107,12 @@ const routes = [
                 element: <FaqsHomePage />
             },
             {
-                path: 'career',
+                path: 'bsg/career',
                 element: <Careers />
+            },
+            {
+                path: 'bsg/career/:id',
+                element: <CareerDetails />
             },
             {
                 path: 'projects',
