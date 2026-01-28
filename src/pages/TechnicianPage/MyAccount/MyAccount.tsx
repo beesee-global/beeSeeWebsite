@@ -126,7 +126,7 @@ const MyAccount = () => {
     const handleOpenModal = () => {
         setOpenModal(true);
         setTitle('Update Information');
-        setMessage('Are you sure you want to update your information?');
+        setMessage('Are you sure you want to update your information? You will be logged out and need to log in again.');
     };
 
     // --- fetching data from backend

@@ -61,10 +61,19 @@ const formatDate = (dateString: string) => {
 
 // Sorting comparator
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) return -1;
-  if (b[orderBy] > a[orderBy]) return 1;
+  const aValue = a[orderBy];
+  const bValue = b[orderBy];
+
+  // parse if date column
+  if (orderBy === 'created_at') {
+    return new Date(bValue as string).getTime() - new Date(aValue as string).getTime();
+  }
+
+  if (bValue < aValue) return -1;
+  if (bValue > aValue) return 1;
   return 0;
 }
+
 
 type Order = 'asc' | 'desc';
 
@@ -118,17 +127,23 @@ export default function TableDefault({
 
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
-  const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<string>('title');
+  const [order, setOrder] = useState<Order>('desc');
+  const [orderBy, setOrderBy] = useState<string>('created_at');
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const rowsPerPage = 20;
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
   const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+    if (orderBy === property) {
+      // same column, toggle order
+      setOrder(order === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column selected
+      // If switching to created_at, use desc; otherwise use asc
+      setOrder(property === 'created_at' ? 'desc' : 'asc');
+      setOrderBy(property);
+    }
   };
 
   const sortedRows = useMemo(
