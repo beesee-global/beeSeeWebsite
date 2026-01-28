@@ -405,6 +405,9 @@ const MyAccount = () => {
 
                         {/* Image upload */}
                         <div className="md:col-span-1">
+                            <label htmlFor="" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Profile Picture *
+                            </label>
                             {/* <div className="flex items-center mb-6">
                                 <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
                                     <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />

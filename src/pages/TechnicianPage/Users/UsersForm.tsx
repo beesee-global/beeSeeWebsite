@@ -429,7 +429,7 @@ const UsersForm = () => {
                     <div className="col-span-3 md:grid md:grid-cols-2 md:gap-4">
                        {/* Role */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Position *
                       </label>
                       <CustomSelectField
@@ -445,7 +445,7 @@ const UsersForm = () => {
                     
                     {/* First name */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         First Name *
                       </label>
                       <CustomTextField 
@@ -465,7 +465,7 @@ const UsersForm = () => {
 
                     {/* Last name */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Last Name *
                       </label>
                       <CustomTextField 
@@ -485,7 +485,7 @@ const UsersForm = () => {
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Email *
                       </label>
                       <CustomTextField 
@@ -506,7 +506,7 @@ const UsersForm = () => {
 
                     {/* Password */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Password *
                       </label>
                       <CustomTextField 
@@ -526,7 +526,7 @@ const UsersForm = () => {
 
                     {/* Confirm Password */}
                     <div>
-                      <label className="block text-sm  text-black mb-22">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Confirm Password *
                       </label>
                       <CustomTextField 
@@ -547,7 +547,7 @@ const UsersForm = () => {
                     {id && (
                       <div>
                         {/* status */}
-                        <label className="block text-sm  text-black mb-22">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Status *
                         </label>
                         <CustomSelectField
@@ -572,6 +572,9 @@ const UsersForm = () => {
                     <div className="md:col-span-1">
                     {/* Image upload */} 
                     <div className="rounded-xl">
+                      <label htmlFor="" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Profile Picture *
+                      </label>
                       {/* <div className="flex items-center mb-6">
                         <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
                           <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
