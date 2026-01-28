@@ -157,7 +157,8 @@ const Users = () => {
     return users.filter((u: any) => 
       u.full_name?.toLowerCase().includes(debouncedSearch?.toLowerCase()) || 
       u.email?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      u.status?.toLowerCase().includes(debouncedSearch?.toLowerCase())
+      u.status?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
+      u.details?.position?.toLowerCase().includes(debouncedSearch?.toLowerCase())
     )
   }, [users, debouncedSearch]);
 

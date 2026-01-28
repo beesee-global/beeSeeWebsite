@@ -14,6 +14,7 @@ interface User {
     email: string;
     full_name: string;
     role: string;
+    url_permission: string;
     permissions?: Permission[]
 }
 
@@ -66,7 +67,7 @@ export const AuthProvider: React.FC <AuthProviderProps> = ({ children }) => {
     const login = (data: { token: string; userInfo: User }) => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.userInfo));
-        setUserInfo(userInfo);
+        setUserInfo(data.userInfo);
         setToken(data.token)
     }
 
