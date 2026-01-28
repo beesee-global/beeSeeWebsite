@@ -646,7 +646,7 @@ const UsersForm = () => {
                         )} */}
 
                         {/* Upload Button */}
-                        <div className="flex justify-center">
+                        <div className="flex justify-center  border-t py-2 border-gray-200">
                             <label
                                 htmlFor="image-upload"
                                 className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
