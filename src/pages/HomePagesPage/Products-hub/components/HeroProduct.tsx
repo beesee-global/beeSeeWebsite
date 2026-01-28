@@ -45,22 +45,25 @@ export default function ProductShowcase() {
 
   // Fetch featured products data from API
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        // Replace with actual API endpoint
-        const response = await fetch('/api/featured-products');
-        const data = await response.json();
-        setFeaturedData(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching featured products:', error);
-        // Fallback to default data if API fails
-        setFeaturedData(getDefaultData());
-        setLoading(false);
-      }
-    };
+    // const fetchFeaturedProducts = async () => {
+    //   try {
+    //     // Replace with actual API endpoint
+    //     const response = await fetch('/api/featured-products');
+    //     const data = await response.json();
+    //     setFeaturedData(data);
+    //     setLoading(false);
+    //   } catch (error) {
+    //     console.error('Error fetching featured products:', error);
+    //     // Fallback to default data if API fails
+    //     setFeaturedData(getDefaultData());
+    //     setLoading(false);
+    //   }
+    // };
 
-    fetchFeaturedProducts();
+    // fetchFeaturedProducts();
+    // Fallback to default data if API fails
+      setFeaturedData(getDefaultData());
+      setLoading(false);
   }, []);
 
   useEffect(() => {
