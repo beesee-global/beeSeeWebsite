@@ -22,6 +22,9 @@ const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
+
+/* Activity Details */
+const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
 const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
 
 /* MainLayout */
@@ -55,7 +58,8 @@ const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organi
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
 import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
-import Projects from '../pages/HomePagesPage/Projects/Projects';
+import Projects from '../pages/HomePagesPage/Projects/Projects'; 
+import Activities from '../pages/HomePagesPage/Activities/Activities';
 const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
@@ -113,6 +117,14 @@ const routes = [
                 element: <Projects />
             },
             {
+                path: 'activities',
+                element: <Activities />   
+            },
+            {
+                path: 'activity/:id',  // ACTIVITY DETAILS ROUTE - ADDED
+                element: <ActivitiesDetails />,
+            },
+            {
                 path: 'privacy-policy',
                 element: <PrivacyPolicy />
             },
@@ -148,7 +160,7 @@ const routes = [
     },
 
     /* Main Admin */
-/*     {
+    /* {
         path: '/beesee',
         element: <MainLayout />,
         layout: 'blank',
@@ -214,7 +226,7 @@ const routes = [
                 element: <MainSalesBannerForm />
             },  
         ]
-    },  */
+    }, */
 
     /* technician */
     {
@@ -293,7 +305,7 @@ const routes = [
             {
                 path:  "job-posting/applicants/:id",
                 element: <TechnicianApplicant />
-            },, 
+            },
             {
                 path:  "job-posting/form/:id?",
                 element: <TechnicianJobPostingForm />
@@ -304,7 +316,7 @@ const routes = [
             }
         ]
     },
-       /* conversation */
+    /* conversation */
     {
         path: '/c',
         element: <ConversationLayout />,
@@ -321,7 +333,7 @@ const routes = [
         ]
     },
     /* Not found routes */ 
-{
+    {
         path: '*', // Catch-all route
         element: <Navigate to="/home" replace />, // CHANGED: Redirect to home instead of 404
         layout: 'blank', 
