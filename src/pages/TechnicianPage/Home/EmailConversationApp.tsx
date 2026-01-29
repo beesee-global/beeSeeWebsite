@@ -110,6 +110,10 @@ export default function EmailConversationApp() {
       queryClient.invalidateQueries({
         queryKey: ['conversations', userTicketInformation?.ticket_id]
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ['ticketInformation', pid],
+      })
     });
 
     setSocket(s);
@@ -480,7 +484,7 @@ export default function EmailConversationApp() {
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-4 h-4" />
                         <span className="font-semibold text-sm">
-                          {msg.sender_name || msg.sender_email}
+                          {msg.sender_name}
                         </span>
                         <span
                           className={`text-xs px-2 py-0.5 rounded ${
