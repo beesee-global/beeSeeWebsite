@@ -71,7 +71,12 @@ const MyAccount = () => {
 
         if (!formData.first_name.trim()) errors.first_name = 'First name is required';
         if (!formData.last_name.trim()) errors.last_name = 'Last name is required';
-        if (!formData.email.trim()) errors.email = 'Email is required';
+        if (!formData.email.trim()) {
+            errors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            errors.email = 'Email is invalid';
+        }
+
         // password validation
         if (formData.password || formData.confirm_password) {
             if (!formData.password) {
