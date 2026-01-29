@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomTextField from '../../components/Fields/CustomTextField';
 import { motion } from 'framer-motion';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
-import Snackbar from '../../components/feedback/SnackbarTechnician';
+import Snackbar from '../../components/feedback/Snackbar';
 import { useMutation } from '@tanstack/react-query';
-import { loggedInUser } from '../../services/Technician/userServices';
+import { loggedInUser } from '../../services/Ecommerce/userServices';
 import { AlertColor } from '@mui/material/Alert';
 import { userAuth } from '../../hooks/userAuth'
 
@@ -19,13 +19,14 @@ interface FormError {
   password?: string;
 }
 
-const LoginTechnician = () => { 
+const Login = () => {
+  const navigate = useNavigate(); 
   const { login, token, userInfo } = userAuth()
-  const [isChecking, setIsChecking] = useState(false); 
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success")
+  const [checked, setChecked] = useState(false)
 
   const [formError, setFormError] = useState<FormError>({})
 
@@ -49,39 +50,39 @@ const LoginTechnician = () => {
     }))
   };
 
+  // login 
   const {
-    mutateAsync: loginMutate, 
+    mutateAsync: loggedMutate,
     isPending
   } = useMutation({
-    mutationFn: loggedInUser,
+    mutationFn: loggedInUser
   })
 
   const handleSubmit = async(e: React.FormEvent) => {
     try {    
       e.preventDefault();
       const errors = validateForm();
-      setFormError(errors);
-      if (Object.keys(errors).length > 0) return;
+      setFormError(errors)  
+      if (Object.keys(errors).length > 0) return
 
-      const response = await loginMutate(formData); 
-      // response.data contains your API response
-      if (response?.success) {  
+      const response = await loggedMutate(formData); 
+      if (response?.success) {
         const userInfo = {
           id: response.userInfo.id,
-          email: formData.email, // Use the email from the form
           full_name: response.userInfo.full_name,
+          email: response.userInfo.email,
           role: response.userInfo.role,
-          permissions: response.userInfo.permissions,
           url_permission: response.userInfo.url_permission
-        };  
+        };
+
         // token is at response.data.token (root level of API response)
         login({ token: response.token, userInfo });  
-        window.location.href = "/beesee/dashboard" 
       }
     } catch (err) {
-      setSnackbarOpen(true);
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Invalid email or password, please try again.");
+      console.error("Login Error:", err);
+      setSnackbarOpen(true)
+      setSnackbarSeverity("error")
+      setSnackbarMessage("Invalid email or password, please try again.")
     }  
   };
 
@@ -94,27 +95,6 @@ const LoginTechnician = () => {
     if (!formData.password.trim()) errors.password = "Password is required."
     
     return errors;
-  }
-
-  useEffect(() => {
-    // if we don't have a token, go back to home
-    if (token) { 
-      if (userInfo?.url_permission === 'technician_url')
-      window.location.href = "/beesee/dashboard" 
-      return;
-    }  
-
-    // Done checking
-    setIsChecking(false);
-  }, [token, login]);
-
-    // 👇 Prevent rendering layout until checks are done
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        
-      </div>
-    );
   }
   
   // Variants for parent (staggering children)
@@ -134,8 +114,33 @@ const LoginTechnician = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   }; 
 
+  // Mark as checked when token/userInfo ready
+  useEffect(() => {
+    if (token !== undefined) {
+      setChecked(true);
+    }
+  }, [token]);
+  
+  // ✅ Redirect immediately if token exists
+  useEffect(() => {
+    if (token) {
+      if (userInfo?.url_permission === 'ecommerce')
+      window.location.href = "/beesee/ecommerce" 
+      return;  
+    }
+  }, [token, navigate]);
+
+  if (!checked) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+      
+      </div>
+    );
+  }
+
+
   return (
-    <div className='flex justify-center items-center bg-white min-h-screen p-4'>
+    <div className='flex justify-center items-center bg-white min-h-screen'>
       {/* Notification */}
       <Snackbar 
         open={snackbarOpen}
@@ -144,32 +149,49 @@ const LoginTechnician = () => {
         onClose={() => setSnackbarOpen(false)}
       />
 
-      <div className='w-full max-w-md flex items-center justify-center p-4 sm:p-8'> 
+      <div className='grid grid-cols-1 md:grid-cols-2 w-full h-screen'>
+        <div className='hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br
+        from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden'>
+          {/* Decorative background element */}
+          <div className='absolute top-0 left-0 w-full h-full opacity-10'>
+            <div className='absolute top-20 left-10 w-72 h-72 bg-yellow-400 rounded-full blur-3xl'></div>
+            <div className='absolute bottom-20 right-10 w-96 h-96 bg-yellow-500 rounded-full blur-3xl'></div>
+          </div>
+          {/* logo */}
+          <div className='relative z-10 mb-8'>
+            <img 
+              src="" 
+              alt="" 
+            />
+          </div>
+
+          {/* Main heading */}
+          <div className='relative z-10 text-center max-w-md'>
+            <h1 className='text-4xl font-bold text-white mb-4 leading-tight'>
+              Welcome to Beesee Global Technologies Inc.
+            </h1>
+            <p className='text-gray-300 text-lg mb-8 leading-relaxed'>
+              Join our community and unlock a world of possibilities. Your journey start here.
+            </p>
+
+            {/* Feature Highlight */}
+          </div>
+        </div>
+
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="flex flex-col w-full"
+          className="flex flex-col justify-center p-8 w-full h-full"
         >
-          <motion.div
+          <motion.h2
             variants={itemVariants}
-            className="flex justify-center mb-6 sm:mb-8"
+            className="bee-title-lg text-[var(--beesee-gold)] text-center  mb-4 sm:mb-6"
           >
-            <img 
-              src="/beeSeeGold.png" 
-              alt="BeeSee Logo" 
-              className="h-20 sm:h-24 w-auto"
-            />
-          </motion.div> 
-
-<motion.h2
-  variants={itemVariants}
-  className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
->
-  Login Your Account
-</motion.h2>
+            Login Your Account
+          </motion.h2>
           <motion.p 
-            className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
+            className="text-center mb-6 text-gray-600"
             variants={itemVariants}
           >
             Welcome back! Please enter your details
@@ -177,7 +199,7 @@ const LoginTechnician = () => {
 
           <motion.form 
             onSubmit={handleSubmit} 
-            className="space-y-5 sm:space-y-7"
+            className="space-y-7"
           >
             {/* Email */}
             <motion.div variants={itemVariants}>
@@ -213,16 +235,16 @@ const LoginTechnician = () => {
               /> 
             </motion.div>
 
-           {/*  <motion.p 
+            <motion.p 
               variants={itemVariants}
               onClick={() => navigate("/forget-password")}
-              className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base">
+              className="text-blue-500 hover:underline cursor-pointer">
               Forget Password
-            </motion.p> */}
+            </motion.p>
 
             <motion.button
               variants={itemVariants}
-              className="beesee-button w-full py-3 text-sm sm:text-base"
+              className="beesee-button"
               type="submit"
               disabled={isPending}
             >
@@ -235,4 +257,4 @@ const LoginTechnician = () => {
   );
 };
 
-export default LoginTechnician;
+export default Login;
