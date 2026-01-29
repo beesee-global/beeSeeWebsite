@@ -499,7 +499,9 @@ const MyAccount = () => {
 
                             <div>
                                 <span className="text-gray-500 dark:text-gray-400">Last Updated:</span>
-                                <span className="ml-2 text-gray-900 dark:text-whte">{new Date(userInformation?.data?.updated_at).toLocaleDateString()}</span>
+                                <span className="ml-2 text-gray-900 dark:text-whte">
+                                    { userInformation?.data?.updated_at ? new Date(userInformation?.data?.updated_at).toLocaleDateString() : "N/A"}
+                                </span>
                             </div>
 
                             <div>
