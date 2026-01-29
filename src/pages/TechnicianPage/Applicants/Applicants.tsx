@@ -343,7 +343,7 @@ const Applicants = () => {
   
   // Check if buttons should be enabled based on selected row status
   const isViewEnabled = !!selectedRowId;
-  const isAddEnabled = selectedRowId && selectedRow?.status === 'NOT_SHORTLISTED';
+  const isAddEnabled = selectedRowId && selectedRow?.status === 'NEW_APPLICANT';
   const isUndoEnabled = selectedRowId && (selectedRow?.status === 'SHORTLISTED' || selectedRow?.status === 'REJECTED');
   const isRejectEnabled = selectedRowId && selectedRow?.status !== 'REJECTED';
   const isDeleteEnabled = selectedRowId && selectedRow?.status === 'REJECTED';

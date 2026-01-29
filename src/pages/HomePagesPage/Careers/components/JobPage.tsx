@@ -224,7 +224,7 @@ const JobPage: React.FC = () => {
 
             <div className='flex items-center justify-center gap-4 mt-6'>
               <QrWithLogo 
-                value={`${import.meta.env.VITE_API_URL_FRONTEND}/careers/${job.job_reference_number}`} 
+                value={`${import.meta.env.VITE_API_URL_FRONTEND}/bsg/career/${job.job_reference_number}`} 
                 logoUrl={beeseelogo} 
                 size={160}
               />
