@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import Navigation from "../components/ui/Navigation";
+import Navigation from "../components/ui/NavigationEcommerce";
 import Sidebar from "../components/ui/Sidebar";
 import { userAuth } from "../hooks/userAuth";
 
@@ -22,8 +22,10 @@ const MainLayout = () => {
     if (!checked) return;
     if (!token) {
       navigate("/", { replace: true });
-    } else if (userInfo?.role === "technician") {
-      navigate("/tech/home", { replace: true });
+      localStorage.clear();
+    } else if (userInfo?.url_permission !== "ecommerce") {
+      navigate("/ecommerce/sign-in", { replace: true });
+      localStorage.clear();
     }
   }, [checked, token, userInfo, navigate]);
 

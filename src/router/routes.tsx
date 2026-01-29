@@ -13,15 +13,14 @@ const PrivacyPolicy = lazy(() => import ('../pages/HomePagesPage/PrivacyPolicy/P
 const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndConditions/TermsAndConditions'))
 const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
 const ProductDetail = lazy(() => import('../pages/HomePagesPage/ProductDetails/ProductDetail'));
-const Loggedin = lazy(() => import('../pages/HomePagesPage/Login'));
+const Loggedin = lazy(() => import('../pages/HomePagesPage/LoginEcom'));
 const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnician'));
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
 const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
-const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
-const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
+const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution")); 
 
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
@@ -145,7 +144,7 @@ const routes = [
                 element: <LoginTechnician />
             },
             { 
-                path: "sign-in/tech",
+                path: "ecommerce/sign-in",
                 element: <Loggedin />
             },
             {
@@ -160,8 +159,8 @@ const routes = [
     },
 
     /* Main Admin */
-    /* {
-        path: '/beesee',
+    {
+        path: '/beesee/ecommerce',
         element: <MainLayout />,
         layout: 'blank',
         children: [
@@ -202,14 +201,6 @@ const routes = [
                 element: <EmployeeForm />
             },
             {
-                path: 'our-journey',
-                element: <OurJourney />
-            },
-            {
-                path: 'our-journey/form/:id?',
-                element: <OurJourneyForm />
-            },
-            {
                 path: 'solutions-overview',
                 element: <MainSolutionsOverview />
             },
@@ -226,7 +217,7 @@ const routes = [
                 element: <MainSalesBannerForm />
             },  
         ]
-    }, */
+    },
 
     /* technician */
     {

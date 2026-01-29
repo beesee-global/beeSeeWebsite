@@ -15,6 +15,7 @@ interface User {
     full_name: string;
     role: string;
     url_permission: string;
+    image?: File | string | null;
     permissions?: Permission[]
 }
 

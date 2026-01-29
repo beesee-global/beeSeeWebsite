@@ -60,7 +60,7 @@ const Users = () => {
   });
 
   const users = userResponse?.data || [];
-  const selectedUser = users.find((u: any) => u.id === selectedRowId);
+  // const selectedUser = users.find((u: any) => u.id === selectedRowId);
 
   // Handle Row Click (Select)
   const handleRowClick = (row: any) => {

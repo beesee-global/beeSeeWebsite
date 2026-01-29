@@ -16,7 +16,7 @@ export const registerUser = async (data: any) => {
 
 export const loggedInUser = async (data: any) => {
   try {
-    const response = await axiosClient.post(`/auth/login`, data);
+    const response = await axiosClient.post(`/ecom_auth/login`, data);
     return response.data;
   } catch (error) {
     throw error
