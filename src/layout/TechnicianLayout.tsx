@@ -19,6 +19,7 @@ const TechnicianLayout = () => {
     // if we don't have a token, go back to home
     if (!token) {
       navigate("/", { replace: true });
+      localStorage.clear();
       return;
     }
 
