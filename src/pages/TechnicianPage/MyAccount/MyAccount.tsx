@@ -363,7 +363,7 @@ const MyAccount = () => {
                                     rows={1}
                                     icon={<Mail className="w-4 h-4" />}
                                     error={!!formError.email}
-                                    helperText={''}
+                                    helperText={formError.email}
                                 />
                             </div>
 
