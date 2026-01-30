@@ -60,7 +60,7 @@
 
 .product-image {
   width: 90%;
-  height: 70%;
+  height: 65%;
   object-fit: contain;
   transition: all 0.5s ease;
   padding: 1rem;

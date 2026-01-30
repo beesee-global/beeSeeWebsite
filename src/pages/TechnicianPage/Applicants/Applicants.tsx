@@ -6,7 +6,8 @@ import {
   deleteApplicants,
   fetchApplicantsRejected,
   rejectedApplicants,
-  undoRejectedApplicants
+  undoRejectedApplicants,
+  jobDetails
 } from '../../../services/Technician/applicantServices'
 import { downloadFile } from '../../../utils/downloadFile';
 import {   
@@ -73,6 +74,13 @@ const Applicants = () => {
     queryFn: () => fetchApplicants(String(id)),
     enabled: !!id,
   });
+
+  const {
+    data: jobDetailsResponse
+  } = useQuery ({
+    queryKey: ['job-details', id],
+    queryFn: () => jobDetails(String(id))
+  })
       
   const { 
     data: applicantShortListedResponse, 
@@ -108,6 +116,10 @@ const Applicants = () => {
   const { mutateAsync: undoApplicant } = useMutation({
     mutationFn: undoRejectedApplicants
   })
+
+  const jobDetailed = jobDetailsResponse?.data || []
+
+  console.log(jobDetailed)
 
   const rows = useMemo(() => {
     let baseRows = [];
@@ -366,6 +378,10 @@ const Applicants = () => {
               { label: "Applicants", isActive: true, icon: <QuestionAnswerIcon /> }
             ]}
           />
+          
+          <p className='text-[20px] mt-2 font-bold'>
+            {`${jobDetailed.title} ${jobDetailed.job_reference_number}`}
+          </p>
         </div>
 
         <div className='flex flex-col sm:flex-row items-stretch lg:col-span-2 sm:items-center justify-end gap-3 w-full'>

@@ -97,3 +97,12 @@ export const sendInterviewInvitation = async (data: any) => {
     throw error
   }
 }
+
+export const jobDetails = async  (id: string) => {
+  try {
+    const response = await axiosClient.post(`${API_URL}/${id}/job-details`)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}

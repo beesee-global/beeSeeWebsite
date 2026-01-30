@@ -8,15 +8,12 @@ import {
   Clock,
   FileText,
   Calendar,
-  Home,
-  Package,
+  Home, 
   Phone,
-  Mail,
-  MessageSquare,
+  Mail, 
   Send,
   User2, 
-  Building2,
-  ArrowLeft,
+  Building2, 
   Map,
   MapPin,
   ExternalLink
@@ -33,6 +30,8 @@ import {
   useMutation, 
   useQuery 
 } from '@tanstack/react-query'  
+import { useParams } from 'react-router-dom';
+import { Subject } from '@mui/icons-material';
 
 interface formData {
   name: string;
@@ -57,6 +56,7 @@ interface FormError {
 const Inquiries = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const { id } = useParams()
   const {
     setSnackBarOpen,
     setSnackBarMessage, 
@@ -77,6 +77,7 @@ const Inquiries = () => {
   });
  
   const [submitted, setSubmitted] = useState<boolean>(false);
+  console.log(id)
 
   const roleOptions = [
     { value: 'cto', label: 'Chief Technology Officer' },
@@ -186,9 +187,7 @@ const Inquiries = () => {
 
 const embedUrl =
   'https://maps.google.com/maps?q=Beesee%20Global%20Technology%20Inc,%20Scout%20Borromeo,%20Quezon%20City&z=17&output=embed';
-
-
-
+ 
   const handleReset = () => {
     setSubmitted(false)
     setFormData({
@@ -201,6 +200,16 @@ const embedUrl =
       description: '',
     });
   }
+
+  useEffect(() => {
+    if (id === 'kiosk') {
+      setFormData((prev) => ({
+        ...prev,
+        subject: 'Inquiry Regarding Kiosk Services',
+      }));
+    }
+  }, [id]);
+
 
   return (
      <div className="min-h-screen relative overflow-hidden">
@@ -756,6 +765,7 @@ const embedUrl =
                       placeholder='Enter a subject'
                       onChange={handleInputChange}
                       multiline={false}
+                      inputProps={{ readOnly: id === 'kiosk' }}
                       maxLength={150}
                       type="text"
                       rows={1}
@@ -904,6 +914,7 @@ const embedUrl =
                       onChange={handleInputChange}
                       multiline={false}
                       maxLength={150}
+                      disabled={id === 'kiosk'}
                       type="text"
                       rows={1}
                       error={!!formError?.subject}

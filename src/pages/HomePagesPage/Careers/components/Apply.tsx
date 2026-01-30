@@ -9,6 +9,8 @@ import {
 import {
   careersEmail
 } from '../../../../services/Technician/careersServices'
+import Snackbar from '../../../../components/feedback/Snackbar';
+import { userAuth } from '../../../../hooks/userAuth'
 
 import {
   useMutation
@@ -41,12 +43,28 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false); 
 
+  const {
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType,
+    snackBarOpen,
+    snackBarMessage,
+    snackBarType
+  } = userAuth()
+
   // File upload handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       const allowedMimeTypes = [
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.gif',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -54,6 +72,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
+
       if (!allowedMimeTypes.includes(file.type)) {
         alert('Please upload only PDF or Word documents');
         return;
@@ -64,7 +83,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         alert('File size should not exceed 10MB');
         return;
       }
-      
+ 
       setFormData({ ...formData, resume: file });
     }
   };
@@ -111,41 +130,52 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   };
 
   const handleSubmit = async() => {
-    // Validation
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.resume) {
-      alert('Please fill in all required fields and upload your resume');
-      return;
+    try {
+      // Validation
+      if (!formData.fullName || !formData.email || !formData.phone || !formData.resume) {
+        alert('Please fill in all required fields and upload your resume');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      // Phone validation (basic PH format)
+      const phoneRegex = /^09\d{9}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        alert('Phone number must start with 09 and be 11 digits long.');
+        return;
+      }
+
+      // TODO: Send to API with FormData for file upload
+      const submitData = new FormData(); 
+      submitData.append('fullName', formData.fullName);
+      submitData.append('email', formData.email);
+      submitData.append('phone', formData.phone);
+      submitData.append("applying", jobTitle);
+      submitData.append("job_number",jobId);
+      if (formData.resume) {
+        submitData.append('resume', formData.resume);
+      } 
+
+      const response = await sentEmailCareers(submitData);
+      if(response?.success) { 
+        setIsSubmitted(true);
+      } 
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+         
+        setSnackBarMessage(error.response.data.message)
+        setSnackBarOpen(true)
+        setSnackBarType("info") 
+        alert(error.response.data.message)
+        return
+      }
     }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-
-    // Phone validation (basic PH format)
-    const phoneRegex = /^09\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      alert('Phone number must start with 09 and be 11 digits long.');
-      return;
-    }
-
-    // TODO: Send to API with FormData for file upload
-    const submitData = new FormData(); 
-    submitData.append('fullName', formData.fullName);
-    submitData.append('email', formData.email);
-    submitData.append('phone', formData.phone);
-    submitData.append("applying", jobTitle);
-    submitData.append("job_number",jobId);
-    if (formData.resume) {
-      submitData.append('resume', formData.resume);
-    } 
-
-    const response = await sentEmailCareers(submitData);
-    if(response?.success) { 
-      setIsSubmitted(true);
-    } 
   };
 
   const handleCloseSubmit = () => {
@@ -188,6 +218,14 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         animation: 'fadeIn 0.3s ease-out'
       }} 
     >
+      
+      <Snackbar 
+        open={snackBarOpen}
+        message={snackBarMessage}
+        type={snackBarType}
+        onClose={() => setSnackBarOpen(false)}
+      />
+
       <div
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 md:p-10"
         style={{
@@ -362,7 +400,15 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                       application/vnd.openxmlformats-officedocument.wordprocessingml.document,
                       text/plain,
                       application/vnd.ms-excel,
-                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                      .jpg,
+                      .jpeg,
+                      .png,
+                      .gif,
+                      image/jpeg,
+                      image/png,
+                      image/gif
+                      "
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -401,7 +447,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
 
               {/* Submit Button */}
               <div className="pt-6">
-                <button disabled={isPending} onClick={handleSubmit} className="beesee-button">
+                <button disabled={isPending} onClick={handleSubmit} className={`beesee-button ${isPending ? 'beesee-button--disabled cursor-not-allowed' : ''}`}>
                   <Send size={18} />
                   {isPending ? "Submitting..." :" Submit Application"}
                 </button>

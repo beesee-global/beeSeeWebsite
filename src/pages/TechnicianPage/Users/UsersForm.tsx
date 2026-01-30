@@ -190,6 +190,7 @@ const UsersForm = () => {
         details: {
           employment_status: string;
           positions_id: string;
+          url_permission: string;
         };
         password?: string;
       } = {
@@ -199,6 +200,7 @@ const UsersForm = () => {
         details: {
           employment_status: formData.status,
           positions_id: formData.role,
+          url_permission: "technician_url",
         },
       };
 

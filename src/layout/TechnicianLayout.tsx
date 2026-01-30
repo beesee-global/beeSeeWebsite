@@ -23,14 +23,15 @@ const TechnicianLayout = () => {
     }
 
     // if user is admin, redirect to admin dashboard
-    if (userInfo?.role) {
+    if (userInfo?.url_permission !== "technician_url") {
       setIsChecking(false)
-      navigate("/beesee/dashboard", { replace: true });
+      navigate("/sign-in", { replace: true });
+      localStorage.clear();
       return;
     }
     // Done checking
     setIsChecking(false);
-  }, [token, userInfo, navigate]);
+  }, [token, userInfo]);
 
   /* automatic close on wider screens */
   useEffect(() => {

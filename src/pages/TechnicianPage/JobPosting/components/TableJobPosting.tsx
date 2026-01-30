@@ -82,7 +82,27 @@ function getComparator<Key extends keyof any>(
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
+};
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; classes: string}
+> = {
+  Accepting_Applications: {
+    label: 'Accepting Applications',
+    classes: 'bg-blue-100 text-blue-800 border border-blue-200',
+  },
+  Closed: {
+    label: 'Closed',
+    classes: 'bg-red-100 text-red-800 border border-red-200',
+  },
 }
+
+const getStatusConfig = (status: string) =>
+  STATUS_CONFIG[status] ?? {
+    label: status, 
+    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+  }
 
 // ============================================
 // 📦 TYPES
@@ -296,7 +316,16 @@ export default function TableJobPosting({
                                 position: 'relative'
                               }}
                             >
-                              {column.id === 'created_at' ? (
+                              {column.id === 'status' ? (
+                               (() => {
+                                const { label,classes } = getStatusConfig(row.status);
+                                return (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}>
+                                    {label}
+                                  </span>
+                                )
+                               })()
+                              ) : column.id === 'created_at' ? (
                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                   {formatDate(row.created_at)}
                                 </span>
