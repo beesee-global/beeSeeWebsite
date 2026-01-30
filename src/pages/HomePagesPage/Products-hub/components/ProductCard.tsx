@@ -235,7 +235,7 @@ const ProductCard: React.FC<{
           <h3 className="product-name">{product.name}</h3>
           <p className="product-tagline">{product.tagline}</p>
           <p className="product-price">
-            {formatPrice(product.price)}
+            {/* {formatPrice(product.price)} */}
           </p>
         </div>
       </div>
