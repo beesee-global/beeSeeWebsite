@@ -490,7 +490,7 @@ const UsersForm = () => {
                       </label>
                       <CustomTextField 
                         name="email"
-                        disabled={userInfo?.id !== 2}
+                        disabled={userInfo?.position_id !== 25}
                         placeholder="Enter email"
                         value={formData.email}
                         onChange={handleChangeInput}

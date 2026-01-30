@@ -32,7 +32,7 @@ const MyAccount = () => {
     const { logout, userInfo } = userAuth();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState<boolean>(false);
-    const id = userInfo?.id;
+    const id = userInfo?.id; 
 
     const [message, setMessage] = useState<string>('');
     const [snackBarType, setSnackBarType] = useState<AlertColor>('success');
@@ -357,7 +357,7 @@ const MyAccount = () => {
                                     value={formData.email}
                                     onChange={handleChangeInput}
                                     multiline={false}
-                                    disabled={id !== 2}
+                                    disabled={userInfo?.position_id !== 25}
                                     maxLength={50}
                                     type="email"
                                     rows={1}
