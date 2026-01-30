@@ -49,7 +49,7 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i5-1135G7 (4-core, up to 4.2GHz)",
+          "Processor": "Intel Core i5-1135G7",
           "RAM": "16GB DDR4 3200MHz",
           "Graphics": "Intel Iris Xe Graphics",
           "Storage": "512GB M.2 NVMe PCIe 3.0 SSD",
@@ -116,7 +116,7 @@
 
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i7-1255U (10-core, up to 4.7GHz)",
+          "Processor": "Intel Core i7-1255U",
           "RAM": "16GB DDR5 4800MHz",
           "Graphics": "NVIDIA GeForce MX450 2GB GDDR6",
           "Storage": "1TB M.2 NVMe PCIe 4.0 SSD",
@@ -171,7 +171,7 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i9-13900H (14-core, up to 5.4GHz)",
+          "Processor": "Intel Core i9-13900H",
           "RAM": "32GB DDR5 5200MHz",
           "Graphics": "NVIDIA RTX 4060 8GB GDDR6",
           "Storage": "2TB M.2 NVMe PCIe 4.0 SSD",
@@ -215,7 +215,7 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i9-14900HX (24-core, up to 5.8GHz)",
+          "Processor": "Intel Core i9-14900HX",
           "RAM": "64GB DDR5 5600MHz",
           "Graphics": "NVIDIA RTX 4070 8GB GDDR6",
           "Storage": "4TB M.2 NVMe PCIe 5.0 SSD (2x 2TB RAID 0)",
@@ -554,7 +554,7 @@
 
   "detailedSpecs": {
     "Display": {
-      "Size": "8.3 inches diagonal (unfolded)",
+      "Size": "8.3 inches",
       "Resolution": "2208 × 1768 pixels",
       "Technology": "Foldable Dynamic AMOLED 2X",
       "Refresh Rate": "120Hz adaptive",
@@ -563,11 +563,11 @@
       "Cover Display": "6.2-inch Super AMOLED"
     },
     "Performance": {
-      "Processor": "Qualcomm Snapdragon 8 Gen 3 (4nm)",
+      "Processor": "Qualcomm Snapdragon",
       "CPU": "1x 3.3GHz Cortex-X4 + 3x 3.2GHz Cortex-A720 + 4x 2.3GHz Cortex-A520",
       "GPU": "Adreno 750 with hardware-accelerated ray tracing",
-      "RAM": "12GB LPDDR5X (8533 Mbps)",
-      "Storage": "1TB UFS 4.0 (sequential read: 4200MB/s)",
+      "RAM": "12GB LPDDR5X ",
+      "Storage": "1TB UFS 4.0",
       "Cooling": "Vapor chamber with graphene layer"
     },
     "Battery & Charging": {

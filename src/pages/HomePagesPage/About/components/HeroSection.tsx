@@ -111,7 +111,7 @@ const UnifiedScrollingPage: React.FC = () => {
           to the world.
         </p>
 
-        {/* WATCH VIDEO + Innovation Stats */}
+        {/* WATCH VIDEO + Innovation Stats
         <div className={`flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 pt-3 md:pt-4 px-2 md:px-0 ${isMobile ? "items-center justify-center" : "items-start justify-start"}`}>
           <button
             onClick={() => setShowVideo(true)}
@@ -124,7 +124,7 @@ const UnifiedScrollingPage: React.FC = () => {
             <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
             <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
           </div>
-        </div>
+        </div>  */}
       </>
     );
 

@@ -132,7 +132,7 @@ const JobPage: React.FC = () => {
       <div 
         className="relative h-[85vh] md:h-[80vh] overflow-hidden flex items-center justify-center"
         style={{
-          background: 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerBg3.png")',
+          background: 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerDesktop.png")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'scroll'
