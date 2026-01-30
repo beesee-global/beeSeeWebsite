@@ -17,21 +17,35 @@ const HomePageLayout = () => {
     location.pathname.startsWith(path)
   );
   
-  // Detect product detail page using regex
+  // Detect product detail page: /product/:id
   const isProductDetailPage = /^\/product\/[^/]+$/.test(location.pathname);
+
+  // Detect activity detail page: /activity/:id
+  const isActivityDetailPage = /^\/activity\/[^/]+$/.test(location.pathname);
+
+  const isProjectDetailPage = /^\/project\/[^/]+$/.test(location.pathname);
   
   // Check if header should be hidden
-  const hideHeader = hideHeaderRoutes.some((path) =>
-    location.pathname.startsWith(path)
-  ) || isProductDetailPage;
+  const hideHeader =
+    hideHeaderRoutes.some((path) =>
+      location.pathname.startsWith(path)
+    ) ||
+    isProductDetailPage ||
+    isActivityDetailPage ||
+    isProjectDetailPage;
 
   // Scroll logic for header
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY <= 0) setShowHeader(true);
-      else if (currentScrollY > lastScrollY.current) setShowHeader(false);
-      else setShowHeader(true);
+
+      if (currentScrollY <= 0) {
+        setShowHeader(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
+      }
 
       lastScrollY.current = currentScrollY;
     };
@@ -46,7 +60,7 @@ const HomePageLayout = () => {
       {!hideHeader && (
         <div
           className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
-            showHeader ? "translate-y-0" : "translate-y-0"
+            showHeader ? "translate-y-0" : "-translate-y-full"
           }`}
         >
           <HeaderHomePage />
@@ -58,10 +72,14 @@ const HomePageLayout = () => {
         <Outlet />
       </div>
 
-      {/* Footer - Show on product detail pages but not on auth pages */}
+      {/* Footer */}
       {!shouldHideLayout && (
         <>
-          {isProductDetailPage ? <FooterHomePageProducts /> : !hideHeader && <FooterHomePage />}
+          {isProductDetailPage ? (
+            <FooterHomePageProducts />
+          ) : (
+            !hideHeader && <FooterHomePage />
+          )}
         </>
       )}
     </div>

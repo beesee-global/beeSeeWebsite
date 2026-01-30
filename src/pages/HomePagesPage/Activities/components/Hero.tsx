@@ -46,7 +46,7 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
                         style={{ fontFamily: "Georgia, serif" }}
                         className="text-[#FDCC00]/80 uppercase mx-auto mb-2 text-base md:text-lg tracking-[0.3em] max-sm:text-[10px] max-sm:tracking-[0.15em] max-sm:whitespace-nowrap overflow-hidden"
                     >
-                        Join our Journey!
+                        explore our Journey!
                     </motion.h2>
                 </motion.div>
             </div>

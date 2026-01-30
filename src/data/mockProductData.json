@@ -46,7 +46,7 @@
       "price": 45999,
       "description": "Experience seamless performance with the Fusion laptop. Engineered for professionals who demand reliability, speed, and stunning visual clarity in a sleek, portable design.",
       "keyFeatures": [
-        "Intel Core i5 11th Gen processor",
+        "Intel Core i5 11th Gen",
         "16GB DDR4 RAM for smooth multitasking",
         "512GB NVMe SSD storage",
         "14-inch Full HD IPS display",
@@ -55,7 +55,7 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i5-1135G7 (4-core, up to 4.2GHz)",
+          "Processor": "Intel Core i5-1135G7",
           "RAM": "16GB DDR4 3200MHz",
           "Graphics": "Intel Iris Xe Graphics",
           "Storage": "512GB M.2 NVMe PCIe 3.0 SSD",
@@ -112,7 +112,7 @@
       "price": 58999,
       "description": "The Duos delivers exceptional processing power with intelligent thermal management. Perfect for content creators and multitaskers who need responsive performance without compromise.",
       "keyFeatures": [
-        "Intel Core i7 12th Gen processor",
+        "Intel Core i7 12th Gen",
         "16GB DDR5 RAM",
         "1TB NVMe SSD storage",
         "15.6-inch QHD display",

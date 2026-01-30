@@ -1,4 +1,4 @@
-// Activities.tsx (Main Page Handler)
+// ProjectPage.tsx
 "use client";
 
 import { useScroll } from "framer-motion";
@@ -6,21 +6,20 @@ import { useRef, useEffect } from "react";
 import Hero from "./components/Hero";
 import ProjectCard from "./components/ProjectCard";
 
-
-export default function ActivitiesPage() {
+export default function ProjectPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
 
   useEffect(() => {
     // Force reflow to ensure scroll is registered
     window.scrollTo(0, 0);
-    
+
     // Ensure document is scrollable
     document.documentElement.style.overflow = "auto";
     document.documentElement.style.height = "auto";
     document.body.style.overflow = "auto";
     document.body.style.height = "auto";
-    
+
     if (containerRef.current) {
       containerRef.current.style.overflow = "visible";
     }
@@ -45,7 +44,7 @@ export default function ActivitiesPage() {
         <Hero scrollYProgress={scrollYProgress} />
       </div>
 
-      {/* NORMAL CONTENT — minimal scrolling for mobile */}
+      {/* MAIN CONTENT */}
       <div className="w-full bg-black relative z-[20] mt-[150vh] lg:mt-[150vh] md:mt-[105vh] sm:mt-[85vh] xs:mt-[75vh]">
         <ProjectCard />
       </div>

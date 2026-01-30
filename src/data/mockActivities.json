@@ -6,10 +6,18 @@
     "location": "BSG Headquarters",
     "coverImage": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
     "description": "A magical evening of celebration, togetherness, and holiday cheer with the entire BeeSee family.",
+    "fullDescription": "A magical evening of celebration, togetherness, and holiday cheer with the entire BeeSee family. This year's Christmas party was a heartwarming gathering filled with laughter, delicious food, engaging games, and memorable performances. Team members and their families came together to celebrate the season, exchange gifts, and create lasting memories. The event featured a spectacular light display, a visit from Santa Claus, caroling sessions, and a sumptuous feast that brought everyone closer. It was truly a night to remember, embodying the spirit of giving, gratitude, and unity that defines our BeeSee culture.",
     "images": [
       "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
       "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=1200&q=80",
-      "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?w=1200&q=80"
+      "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?w=1200&q=80",
+      "https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=1200&q=80",
+      "https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1545816485-3f0177f28346?w=1200&q=80",
+      "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&q=80",
+      "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
+      "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=1200&q=80"
     ]
   },
   {
@@ -19,13 +27,20 @@
     "location": "Manila Convention Center",
     "coverImage": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
     "description": "Industry leaders gathered to explore cutting-edge technologies and digital transformation strategies.",
+    "fullDescription": "Industry leaders gathered to explore cutting-edge technologies and digital transformation strategies. The summit brought together over 500 professionals, innovators, and thought leaders from across the tech industry to discuss the future of digital transformation, artificial intelligence, cloud computing, and cybersecurity. Keynote speakers shared insights on emerging trends, while interactive workshops provided hands-on experience with the latest tools and platforms. Networking sessions allowed participants to forge valuable connections, exchange ideas, and collaborate on future projects. The event highlighted our commitment to staying at the forefront of technological innovation and fostering a culture of continuous learning and growth.",
     "images": [
       "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
       "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&q=80",
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80"
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
+      "https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1560439513-74b037a25d84?w=1200&q=80",
+      "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
+      "https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=1200&q=80"
     ]
   },
-
   {
     "id": "ict-training-workshop-2024",
     "title": "ICT Training Workshop",
@@ -33,10 +48,18 @@
     "location": "BSG Training Facility",
     "coverImage": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80",
     "description": "Comprehensive hands-on training sessions empowering participants with essential digital skills.",
+    "fullDescription": "Comprehensive hands-on training sessions empowering participants with essential digital skills. This intensive workshop provided participants with practical knowledge in software development, data analysis, cloud infrastructure, and project management. Expert trainers guided attendees through real-world scenarios, case studies, and interactive exercises designed to enhance their technical proficiency and problem-solving abilities. The program covered fundamental and advanced topics, ensuring that both beginners and experienced professionals could benefit. Participants left with certifications, new skills, and the confidence to apply their learning in their respective roles. The workshop reinforced our commitment to investing in our people and building a highly skilled, future-ready workforce.",
     "images": [
       "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80",
       "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
-      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=80"
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=80",
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80",
+      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80"
     ]
   },
   {
@@ -46,10 +69,18 @@
     "location": "Quezon City Community Hub",
     "coverImage": "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80",
     "description": "Bringing technology education to underserved communities and inspiring the next generation.",
+    "fullDescription": "Bringing technology education to underserved communities and inspiring the next generation. Our outreach program provided free coding workshops, digital literacy classes, and career guidance sessions to youth and adults in local communities. Volunteers from BeeSee shared their expertise, mentored aspiring technologists, and donated computers and learning materials to support ongoing education. The initiative aimed to bridge the digital divide, create opportunities for economic empowerment, and cultivate a passion for technology among underserved populations. Participants engaged in hands-on activities, built their first websites, and learned about career paths in tech. This event embodied our corporate social responsibility and our belief in giving back to the communities we serve.",
     "images": [
       "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80",
       "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&q=80",
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80"
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=1200&q=80",
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80",
+      "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80"
     ]
   },
   {
@@ -59,10 +90,18 @@
     "location": "BGC Innovation Center",
     "coverImage": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
     "description": "Unveiling our latest innovation with partners, clients, and technology enthusiasts.",
+    "fullDescription": "Unveiling our latest innovation with partners, clients, and technology enthusiasts. The product launch showcased our newest platform designed to revolutionize business operations through automation, data intelligence, and seamless integration. Attendees experienced live demonstrations, explored interactive exhibits, and participated in Q&A sessions with our development team. The event attracted industry leaders, potential clients, media representatives, and tech enthusiasts eager to learn about our breakthrough solution. Presentations highlighted the product's unique features, competitive advantages, and real-world applications across various industries. The launch was a resounding success, generating significant buzz, securing early adopters, and positioning BeeSee as an innovator in the market.",
     "images": [
       "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
       "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1200&q=80",
-      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80"
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80",
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
+      "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&q=80",
+      "https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+      "https://images.unsplash.com/photo-1560439513-74b037a25d84?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
+      "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1200&q=80"
     ]
   },
   {
@@ -72,7 +111,15 @@
     "location": "BSG Headquarters",
     "coverImage": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
     "description": "Celebrating achievements, sharing insights, and aligning on our strategic vision for growth.",
+    "fullDescription": "Celebrating achievements, sharing insights, and aligning on our strategic vision for growth. The quarterly all-hands meeting brought together the entire BeeSee team to review Q2 performance, celebrate milestones, and discuss our roadmap for the coming months. Leadership presented key metrics, project updates, and strategic initiatives while recognizing outstanding individual and team contributions. Employees had the opportunity to ask questions, provide feedback, and participate in breakout sessions focused on innovation, collaboration, and professional development. The meeting fostered transparency, strengthened team cohesion, and reinforced our shared commitment to excellence. It was an inspiring gathering that energized everyone for the challenges and opportunities ahead.",
     "images": [
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=80",
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&q=80",
       "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
       "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
       "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80"
@@ -85,7 +132,15 @@
     "location": "Makati Tech Hub",
     "coverImage": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
     "description": "48 hours of creativity, coding, and collaboration to solve real-world challenges.",
+    "fullDescription": "48 hours of creativity, coding, and collaboration to solve real-world challenges. The BeeSee Innovation Hackathon challenged participants to develop innovative solutions addressing pressing problems in healthcare, education, sustainability, and finance. Teams worked around the clock, fueled by creativity, caffeine, and camaraderie, to design, build, and pitch their prototypes. Mentors from various tech disciplines provided guidance, while sponsors offered prizes for the most impactful, scalable, and technically impressive solutions. The event fostered a culture of experimentation, rapid prototyping, and cross-functional collaboration. Winning teams received funding, mentorship, and the opportunity to further develop their ideas into viable products. It was an exhilarating showcase of talent, determination, and the power of collaborative innovation.",
     "images": [
+      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80",
       "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
       "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80",
       "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80"

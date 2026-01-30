@@ -4,6 +4,7 @@ import { Calendar, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import mockActivities from "../../../../data/mockActivities.json";
 import activitiesBg from "../../../../../public/live-background/activitiesReal.jpeg";
+import "../../../../assets/css/Activities.css";
 
 interface Activity {
   id: string;
@@ -15,9 +16,12 @@ interface Activity {
   images: string[];
 }
 
+const ITEMS_PER_PAGE = 9;
+
 const ActivitiesCard: React.FC = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -27,6 +31,13 @@ const ActivitiesCard: React.FC = () => {
   }, []);
 
   const activities: Activity[] = mockActivities;
+
+  const totalPages = Math.ceil(activities.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentActivities = activities.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   const handleCardClick = (id: string) => {
     navigate(`/activity/${id}`);
@@ -40,13 +51,13 @@ const ActivitiesCard: React.FC = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed", // keep background steady
+        backgroundAttachment: "fixed",
       }}
     >
-      {/* BLACK OVERLAY FOR READABILITY */}
+      {/* BLACK OVERLAY */}
       <div className="absolute inset-0 bg-black/50 z-0" />
 
-      {/* FADE TOP OVERLAY TO BLEND INTO PREVIOUS BLACK PAGE */}
+      {/* FADE TOP OVERLAY */}
       <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-black to-transparent z-10" />
 
       <section className="relative scroll-section z-20 min-h-screen flex flex-col items-center py-16 md:py-24 px-4 md:px-10 lg:px-12 w-full">
@@ -61,9 +72,9 @@ const ActivitiesCard: React.FC = () => {
             </p>
           </div>
 
-          {/* GRID: original spacing and size retained */}
+          {/* GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full">
-            {activities.map((activity, index) => (
+            {currentActivities.map((activity, index) => (
               <ActivityCard
                 key={activity.id}
                 activity={activity}
@@ -73,6 +84,46 @@ const ActivitiesCard: React.FC = () => {
               />
             ))}
           </div>
+
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-3 mt-14">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm border border-[var(--beesee-gold)]/40 text-[var(--beesee-gold)] disabled:opacity-40"
+              >
+                Prev
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm border ${
+                      currentPage === page
+                        ? "bg-[var(--beesee-gold)] text-black"
+                        : "border-[var(--beesee-gold)]/40 text-[var(--beesee-gold)]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm border border-[var(--beesee-gold)]/40 text-[var(--beesee-gold)] disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -104,7 +155,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
     );
 
     observer.observe(cardRef.current);
-
     return () => observer.disconnect();
   }, []);
 
@@ -147,17 +197,14 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
         <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--beesee-gold)]/40 rounded-xl md:rounded-2xl transition-all duration-500" />
 
         <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end">
-          <motion.div
-            className="flex flex-wrap gap-2 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-500"
-            initial={false}
-          >
-            <div className="flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 bg-black/50 backdrop-blur-md rounded-full border border-[var(--beesee-gold)]/30">
+          <motion.div className="flex flex-row flex-nowrap gap-2 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-500 overflow-hidden">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-full border border-[var(--beesee-gold)]/30 max-w-[45%]">
               <Calendar size={12} className="text-[var(--beesee-gold)]" />
-              <span className="text-xs text-white font-medium">{activity.date}</span>
+              <span className="text-xs text-white truncate">{activity.date}</span>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 bg-black/50 backdrop-blur-md rounded-full border border-[var(--beesee-gold)]/30">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-full border border-[var(--beesee-gold)]/30 max-w-[50%]">
               <MapPin size={12} className="text-[var(--beesee-gold)]" />
-              <span className="text-xs text-white font-medium">{activity.location}</span>
+              <span className="text-xs text-white truncate">{activity.location}</span>
             </div>
           </motion.div>
 
@@ -165,7 +212,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             {activity.title}
           </h4>
 
-          {/* FULL DESCRIPTION VISIBLE */}
           <p className="bee-body text-sm text-[#C7B897]/80">
             {activity.description}
           </p>

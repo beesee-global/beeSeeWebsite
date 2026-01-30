@@ -27,6 +27,9 @@ const activities = lazy(() => import("../pages/HomePagesPage/Activities/Activiti
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
 
+/* Project Details - ADDED */
+const ProductDetails = lazy(() => import('../pages/HomePagesPage/Projects/components/ProjectDetails'));
+
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
 const MainDashboard = lazy(() => import ('../pages/EcommerceLayout/Dashboard/Dashboard'));
@@ -114,11 +117,15 @@ const routes = [
                 element: <Projects />
             },
             {
+                path: 'project/:id',  // PROJECT DETAILS ROUTE - ADDED
+                element: <ProductDetails />,
+            },
+            {
                 path: 'activities',
                 element: <Activities />   
             },
             {
-                path: 'activity/:id',  // ACTIVITY DETAILS ROUTE - ADDED
+                path: 'activity/:id',  // ACTIVITY DETAILS ROUTE
                 element: <ActivitiesDetails />,
             },
             {
