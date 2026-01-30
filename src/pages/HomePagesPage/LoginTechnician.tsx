@@ -71,6 +71,7 @@ const LoginTechnician = () => {
           email: formData.email, // Use the email from the form
           full_name: response.userInfo.full_name,
           role: response.userInfo.role,
+          position_id: response.userInfo.position_id,
           permissions: response.userInfo.permissions
         };  
         // token is at response.data.token (root level of API response)
