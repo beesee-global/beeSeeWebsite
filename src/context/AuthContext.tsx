@@ -14,6 +14,7 @@ interface User {
     email: string;
     full_name: string;
     role: string;
+    position_id: number;
     permissions?: Permission[]
 }
 
