@@ -45,6 +45,7 @@ const getHoverSpecs = (product: Product, categoryId?: string): Array<[string, st
   
   // Get category-specific spec keys
   const categoryKeys = categoryId ? categoryHoverSpecs[categoryId] || categoryHoverSpecs.default : categoryHoverSpecs.default;
+  console.log("categoryKeys: ", categoryKeys);
   
   // Collect specs based on category keys
   const hoverSpecs: Array<[string, string]> = [];
