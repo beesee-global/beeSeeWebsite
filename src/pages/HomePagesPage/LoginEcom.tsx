@@ -125,7 +125,8 @@ const Login = () => {
   useEffect(() => {
     if (token) {
       if (userInfo?.url_permission === 'ecommerce')
-      window.location.href = "/beesee/ecommerce" 
+      window.location.href = "/beesee/ecommerce"  
+      setChecked(true);
       return;  
     }
   }, [token, navigate]);

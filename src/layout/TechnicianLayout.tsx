@@ -26,7 +26,7 @@ const TechnicianLayout = () => {
     // if user is admin, redirect to admin dashboard
     if (userInfo?.url_permission !== "technician_url") {
       setIsChecking(false)
-      navigate("/sign-in", { replace: true });
+      navigate("/tech/sign-in", { replace: true });
       localStorage.clear();
       return;
     }

@@ -27,9 +27,7 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 interface AccountData {
   first_name : string;
   last_name : string;
-  email: string;
-  phone: string;
-  address: string; 
+  email: string;  
   password?: string;
   confirm_password?: string;
   image?: File | string | null;
@@ -38,9 +36,7 @@ interface AccountData {
 interface FormError {
   first_name ?: string;
   last_name ?: string;
-  email?: string;
-  phone?: string;
-  address?: string; 
+  email?: string;  
   password?: string;
   confirm_password?: string;
   image?: string;
@@ -62,9 +58,7 @@ const MyAccount = () => {
   const [accountData, setAccountData] = useState<AccountData>({
     first_name : "",
     last_name : "",
-    email: "",
-    phone: "",
-    address: "", 
+    email: "",  
     password: "",
     confirm_password: "", 
   });
@@ -113,15 +107,7 @@ const MyAccount = () => {
 
     if (!accountData.first_name.trim()) errors.first_name = "First name is required"; 
     if (!accountData.last_name.trim()) errors.last_name = "Last name is required"; 
-
-    if (!accountData.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!/^09\d{9}$/.test(accountData.phone)) {
-      errors.phone = "Please enter a valid 11-digit phone number starting with 09";
-    }
-
-    if (!accountData.address.trim()) errors.address = "Address is required";  
-
+ 
     // password validation
     if (accountData.password || accountData.confirm_password) {
       if (!accountData.password) {
@@ -185,7 +171,7 @@ const MyAccount = () => {
         formDataToSend.delete("image")
       }
 
-      await updateAccountMutate({id: userInformation.id, userData: formDataToSend })
+      await updateAccountMutate({id: String(id), userData: formDataToSend })
 
       if (accountData.password) {
       // Clear password fields after successful update
@@ -217,6 +203,8 @@ const MyAccount = () => {
     queryFn: () => fetchUserById(String(id)), 
   });
 
+  console.log(userInformation)
+
   // --- close modal ---
   const handleCloseModal = () => {
       setOpenModal(false); 
@@ -235,11 +223,9 @@ const MyAccount = () => {
   const handleCancel = () => {
     if (userInformation) {
       setAccountData({
-        first_name: userInformation.first_name || "",
-        last_name: userInformation.last_name || "",
-        email: userInformation.email || "",
-        phone: userInformation.phone || "",
-        address: userInformation.address || "",
+        first_name: userInformation?.data?.first_name || "",
+        last_name: userInformation?.data?.last_name || "",
+        email: userInformation?.data?.email || "",  
       });
     }
     setFormError({});
@@ -261,12 +247,10 @@ const MyAccount = () => {
   useEffect(() => {  
     if (userInformation) {
       setAccountData({
-        first_name: userInformation.first_name ,
-        last_name: userInformation.last_name ,
-        email: userInformation.email,
-        phone: userInformation.phone,
-        address: userInformation.address,
-        image: userInformation.image
+        first_name: userInformation?.data?.first_name ,
+        last_name: userInformation?.data?.last_name ,
+        email: userInformation?.data?.email,  
+        image: userInformation?.data?.image_url
       });
     }
   }, [userInformation]);
@@ -424,27 +408,7 @@ const MyAccount = () => {
                 helperText={formError.email}
               />
             </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Phone Number *
-              </label>
-              <CustomTextField
-                name="phone"
-                placeholder="09XXXXXXXXX"
-                value={accountData.phone}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={11}
-                type="tel"
-                rows={1}
-                icon={<Phone className="w-4 h-4" />}
-                error={!!formError.phone}
-                helperText={formError.phone}
-              />
-            </div> 
-
+  
              {/* password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -483,27 +447,7 @@ const MyAccount = () => {
                 error={!!formError.confirm_password}
                 helperText={formError.confirm_password}
               />
-            </div> 
-
-            {/* Address - Full Width */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Address *
-              </label>
-              <CustomTextField
-                name="address"
-                placeholder="Enter your complete address"
-                value={accountData.address}
-                onChange={handleInputChange}
-                multiline={true}
-                maxLength={200}
-                type="text"
-                rows={2}
-                icon={<MapPin className="w-4 h-4" />}
-                error={!!formError.address}
-                helperText={formError.address}
-              />
-            </div>
+            </div>  
 
             {/* Image upload */} 
             <div className="md:col-span-2">
@@ -596,13 +540,13 @@ const MyAccount = () => {
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Account Created:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">
-                  { new Date(userInformation?.created_at).toLocaleDateString() }
+                  { new Date(userInformation?.data?.created_at).toLocaleDateString() }
                 </span>
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Last Updated:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">
-                  {new Date(userInformation?.updated_at).toLocaleDateString() }
+                  {new Date(userInformation?.data?.updated_at).toLocaleDateString() }
                 </span>
               </div>
               <div>

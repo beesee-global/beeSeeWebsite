@@ -140,11 +140,11 @@ const routes = [
                 element: <ProductDetail  />,
             },
             {
-                path: "sign-in",
+                path: "tech/sign-in",
                 element: <LoginTechnician />
             },
             { 
-                path: "ecommerce/sign-in",
+                path: "sign-in",
                 element: <Loggedin />
             },
             {
