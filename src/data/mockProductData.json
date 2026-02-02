@@ -16,7 +16,7 @@
       "id": "smarttv",
       "name": "Smart TVs",
       "icon": "Tv",
-      "hoverSpecs": ["display", "resolution", "refresh_rate", "smart_features"]
+      "hoverSpecs": ["display", "resolution", "refresh_rate", "panel_type"]
     },
     {
       "id": "tablet",
@@ -353,7 +353,7 @@
           "Always-On": "Yes"
         },
         "Medical Features": {
-          "ECG": "FDA-approved ECG monitoring",
+          "ECG": "ECG monitoring",
           "Blood Pressure": "Medical-grade BP tracking",
           "Temperature": "Body temperature sensor",
           "Blood Oxygen": "Continuous SpO2",
@@ -410,6 +410,12 @@
         "Eye-care technology",
         "20,000+ educational resources"
       ],
+      "specs": {
+        "display": "86 inches",
+        "resolution": "4K UHD",
+        "panel_type": "LED-backlit LCD",
+        "refresh_rate": "60Hz"
+      },
 
       "detailedSpecs": {
         "Display": {
@@ -481,6 +487,12 @@
         "Cloud collaboration tools",
         "4K streaming capability"
       ],
+      "specs": {
+        "display": "75 inches",
+        "resolution": "4K UHD",
+        "panel_type": "QLED",
+        "refresh_rate": "120Hz"
+      },
 
       "detailedSpecs": {
         "Display": {

@@ -69,6 +69,13 @@ const processMockProducts = (mockData: any): Product[] => {
     
     // Extract the 4 main specs for hover effect from detailedSpecs
     const hoverSpecsData: Record<string, string> = {};
+
+    // If the product already provides a flat `specs` object, prefer those values first
+    if (product.specs && typeof product.specs === 'object') {
+      Object.entries(product.specs).forEach(([k, v]) => {
+        if (v) hoverSpecsData[k] = String(v);
+      });
+    }
     
     // Map hover spec keys to detailedSpecs
     hoverSpecs.forEach((specKey: string) => {
@@ -99,6 +106,10 @@ const processMockProducts = (mockData: any): Product[] => {
               break;
             case 'sensors':
               if (specsObj['Heart Rate']) hoverSpecsData['sensors'] = specsObj['Heart Rate'];
+              else if (specsObj['ECG']) hoverSpecsData['sensors'] = specsObj['ECG'];
+              else if (specsObj['Blood Oxygen']) hoverSpecsData['sensors'] = specsObj['Blood Oxygen'];
+              else if (specsObj['SpO2']) hoverSpecsData['sensors'] = specsObj['SpO2'];
+              else if (specsObj['Sensors']) hoverSpecsData['sensors'] = specsObj['Sensors'];
               break;
             case 'connectivity':
               if (specsObj['Bluetooth']) hoverSpecsData['connectivity'] = specsObj['Bluetooth'];
@@ -109,6 +120,9 @@ const processMockProducts = (mockData: any): Product[] => {
               break;
             case 'refresh_rate':
               if (specsObj['Refresh Rate']) hoverSpecsData['refresh_rate'] = specsObj['Refresh Rate'];
+              break;
+            case 'panel_type':
+              if (specsObj['Panel Type']) hoverSpecsData['panel_type'] = specsObj['Panel Type'];
               break;
             case 'smart_features':
               if (specsObj['OS']) hoverSpecsData['smart_features'] = specsObj['OS'];
@@ -181,7 +195,7 @@ const ProductsHub: React.FC = () => {
       name: "Smart TVs", 
       count: demoProducts.filter((p) => p.category_id === "smarttv").length,
       icon: "📺",
-      hoverSpecs: ["display", "resolution", "refresh_rate", "smart_features"]
+      hoverSpecs: ["display", "resolution", "refresh_rate", "panel_type"]
     },
     { 
       id: "tablet", 
