@@ -74,13 +74,17 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
       ];
 
       if (!allowedMimeTypes.includes(file.type)) {
-        alert('Please upload only PDF or Word documents');
+        setSnackBarMessage('Please upload only valid file types (PDF, Word, Excel, or Images)');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
       
       // Validate file size (10MB max)
       if (file.size > 10 * 1024 * 1024) {
-        alert('File size should not exceed 10MB');
+        setSnackBarMessage('File size should not exceed 10MB');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
  
@@ -112,12 +116,16 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     if (file) {
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Please upload only PDF or Word documents');
+        setSnackBarMessage('Please upload only PDF or Word documents');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
       
       if (file.size > 10 * 1024 * 1024) {
-        alert('File size should not exceed 10MB');
+        setSnackBarMessage('File size should not exceed 10MB');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
       
@@ -133,21 +141,27 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     try {
       // Validation
       if (!formData.fullName || !formData.email || !formData.phone || !formData.resume) {
-        alert('Please fill in all required fields and upload your resume');
+        setSnackBarMessage('Please fill in all required fields and upload your resume');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
 
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        alert('Please enter a valid email address');
+        setSnackBarMessage('Please enter a valid email address');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
 
       // Phone validation (basic PH format)
       const phoneRegex = /^09\d{9}$/;
       if (!phoneRegex.test(formData.phone)) {
-        alert('Phone number must start with 09 and be 11 digits long.');
+        setSnackBarMessage('Phone number must start with 09 and be 11 digits long');
+        setSnackBarOpen(true);
+        setSnackBarType('warning');
         return;
       }
 
@@ -168,13 +182,16 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
       } 
     } catch (error: any) {
       if (error.response?.status === 409) {
-         
-        setSnackBarMessage(error.response.data.message)
-        setSnackBarOpen(true)
-        setSnackBarType("info") 
-        alert(error.response.data.message)
-        return
+        setSnackBarMessage(error.response.data.message || 'You have already applied for this position');
+        setSnackBarOpen(true);
+        setSnackBarType("info");
+        return;
       }
+      
+      // Handle other errors
+      setSnackBarMessage('Failed to submit application. Please try again.');
+      setSnackBarOpen(true);
+      setSnackBarType("error");
     }
   };
 
@@ -219,12 +236,15 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
       }} 
     >
       
-      <Snackbar 
-        open={snackBarOpen}
-        message={snackBarMessage}
-        type={snackBarType}
-        onClose={() => setSnackBarOpen(false)}
-      />
+      {/* Snackbar wrapper with higher z-index */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10001 }}>
+        <Snackbar 
+          open={snackBarOpen}
+          message={snackBarMessage}
+          type={snackBarType}
+          onClose={() => setSnackBarOpen(false)}
+        />
+      </div>
 
       <div
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 md:p-10"

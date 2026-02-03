@@ -290,45 +290,39 @@ const HeroSection: React.FC = () => {
     setOpenModal(false)
   }
  
-  // Open disclaimer before actual submission
-// Replace your existing handleBeforeSubmit function with this:
+  const handleBeforeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors = validateStep();
+    setFormError(errors);
 
-const handleBeforeSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  const errors = validateStep();
-  setFormError(errors);
-
-  if (Object.keys(errors).length === 0) {
-    // Validate captcha BEFORE showing disclaimer
-    if (!captchaValue) {
-      setSnackBarMessage("Please verify the reCAPTCHA.")
+    if (Object.keys(errors).length === 0) {
+      // Validate captcha BEFORE showing disclaimer
+      if (!captchaValue) {
+        setSnackBarMessage("Please verify the reCAPTCHA.")
+        setSnackBarType('error')
+        setSnackBarOpen(true)
+        return
+      }
+      
+      // Only show disclaimer if all validations pass including captcha
+      setShowDisclaimer(true);
+    } else {
+      setSnackBarMessage("Please fill in all required fields.")
       setSnackBarType('error')
       setSnackBarOpen(true)
-      return
     }
-    
-    // Only show disclaimer if all validations pass including captcha
-    setShowDisclaimer(true);
-  } else {
-    setSnackBarMessage("Please fill in all required fields.")
-    setSnackBarType('error')
-    setSnackBarOpen(true)
   }
-}
 
-// Called when user confirms disclaimer
-const handleProceedDisclaimer = async () => {
-  setShowDisclaimer(false);
-  await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
-}
+  // Called when user confirms disclaimer
+  const handleProceedDisclaimer = async () => {
+    setShowDisclaimer(false);
+    await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
+  }
 
-// Called when user cancels
-const handleCancelDisclaimer = () => {
-  setShowDisclaimer(false);
- /*  setSnackBarMessage("Submission canceled.")
-  setSnackBarType('info')
-  setSnackBarOpen(true) */
-}
+  // Called when user cancels
+  const handleCancelDisclaimer = () => {
+    setShowDisclaimer(false);
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -405,8 +399,8 @@ const handleCancelDisclaimer = () => {
           onSubmit={handleImageSubmit} 
         />
 
-        {/* HERO SECTION - Reduced top padding for mobile */}
-        <section className="pt-19 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">
+        {/* HERO SECTION - Proper top padding for mobile */}
+        <section className="pt-24 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -414,38 +408,13 @@ const handleCancelDisclaimer = () => {
               transition={{ duration: 0.8 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="inline-flex items-center space-x-2 rounded-full px-4 py-2 mb-4 sm:mb-6"
-                style={{
-                  background: 'rgba(253, 204, 0, 0.1)',
-                  border: '1px solid rgba(253, 204, 0, 0.3)'
-                }}
-              >
-                <FiZap className="text-[var(--beesee-gold)]" size={18} />
-                <span className="bee-body-sm font-bold text-[var(--beesee-gold)]">Support Hub</span>
-              </motion.div>
+
 
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.7 }}
-                style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                className="
-                  font-bebas 
-                  text-[#FDCC00] 
-                  leading-[0.9] 
-                  tracking-wide 
-                  select-none 
-                  text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl 
-                  px-4 
-                  mb-6 
-                  text-center 
-                  drop-shadow-md
-                  break-words
-                "
+                className="bee-title-lg text-[#FDCC00] leading-[0.9] tracking-wide select-none px-4 mb-6 text-center drop-shadow-md break-words"
               >
                 CONNECT WITH OUR TECHNICAL SPECIALISTS
               </motion.h1>
@@ -454,7 +423,7 @@ const handleCancelDisclaimer = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.7 }}
-                className="bee-body text-[#C7B897] max-w-3xl mx-auto px-2 sm:px-0 text-sm sm:text-base"
+                className="bee-body-lg text-[#C7B897] max-w-3xl mx-auto px-2 sm:px-0"
               >
                 Get expert consultation, technical support, and custom solutions from our team of specialists.
               </motion.p>
@@ -495,7 +464,7 @@ const handleCancelDisclaimer = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bee-title-md text-[var(--beesee-gold)] mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl"
+                    className="bee-title-md text-[var(--beesee-gold)] mb-3 sm:mb-4"
                   >
                     Thank You for Reporting Your Issue
                   </motion.h2>
@@ -504,7 +473,7 @@ const handleCancelDisclaimer = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bee-body text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto text-sm sm:text-base"
+                    className="bee-body-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto"
                   >
                     Your form has been successfully submitted. We will contact you as soon as possible to resolve your issue.
                   </motion.p>
@@ -535,7 +504,7 @@ const handleCancelDisclaimer = () => {
                           className="flex items-center space-x-3"
                         >
                           <item.icon size={16} className="text-[var(--beesee-gold)] flex-shrink-0" />
-                          <span className="bee-body-sm text-white/80 text-xs sm:text-sm">{item.text}</span>
+                          <span className="bee-body-sm text-white/80">{item.text}</span>
                         </motion.div>
                       ))}
                     </div>
@@ -548,7 +517,7 @@ const handleCancelDisclaimer = () => {
                   >
                     <button  
                       onClick={() => setIsSubmitted(false)}
-                      className="beesee-button py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base"
+                      className="beesee-button py-2 sm:py-3 px-4 sm:px-6"
                     >
                       <Send size={18} className="mr-2" /> Submit Another Issue
                     </button>
@@ -740,7 +709,7 @@ const handleCancelDisclaimer = () => {
                           color: uploadedImages.length > 0 ? 'var(--beesee-gold)' : '#C7B897'
                         }}
                       >
-                        <span className="bee-body-sm font-semibold text-sm sm:text-base">
+                        <span className="bee-body-sm font-semibold">
                           {uploadedImages.length > 0 ? `${uploadedImages.length} File(s) Uploaded ✓` : "File Upload (Optional)"}
                         </span>
                       </button>
@@ -792,7 +761,7 @@ const handleCancelDisclaimer = () => {
                               </>
                             )}
 
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white px-2 py-1 rounded-full text-xs sm:text-sm">
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white px-2 py-1 rounded-full bee-body-sm">
                               {currentImageIndex + 1} / {uploadedImages.length}
                             </div>
                           </div>
@@ -820,11 +789,11 @@ const handleCancelDisclaimer = () => {
                             </div>
                           )}
 
-                          <div className="mt-2 sm:mt-3 text-sm text-[#C7B897]">
-                            <p className="font-medium truncate text-xs sm:text-sm">
+                          <div className="mt-2 sm:mt-3 bee-body-sm text-[#C7B897]">
+                            <p className="font-medium truncate">
                               {uploadedImages[currentImageIndex]?.file?.name}
                             </p>
-                            <p className="text-xs opacity-70">
+                            <p className="opacity-70">
                               {((uploadedImages[currentImageIndex]?.file?.size || 0) / 1024).toFixed(1)} KB
                             </p>
                           </div>
@@ -853,7 +822,7 @@ const handleCancelDisclaimer = () => {
                       type="button"
                       disabled={isCreating || isCreatingImage}
                       onClick={handleBeforeSubmit} 
-                      className="beesee-button w-full py-2 sm:py-3 text-sm sm:text-base"
+                      className="beesee-button w-full py-2 sm:py-3"
                     >
                       {isCreating || isCreatingImage ? (
                         <span className="animate-pulse">Submitting...</span>

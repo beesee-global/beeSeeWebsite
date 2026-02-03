@@ -211,14 +211,11 @@ export default function ProductShowcase() {
 
           {/* RIGHT SECTION */}
           <div className="text-content-optimized">
-            <h1 
-              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-              className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden"
-            >
+            <h1 className="bee-title-lg text-[#FDCC00] mb-4 sm:mb-5">
               {data.title}
             </h1>
 
-            <p className="featured-description-optimized bee-body">
+            <p className="featured-description-optimized bee-body-lg">
               {data.description}
             </p>
 
@@ -327,7 +324,7 @@ export default function ProductShowcase() {
           transition={{ duration: 1 }}
         >
           <motion.h1
-            className="featured-title-optimized single-line-title bee-title-md"
+            className="featured-title-optimized single-line-title bee-title-lg"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -336,7 +333,7 @@ export default function ProductShowcase() {
           </motion.h1>
 
           <motion.p
-            className="featured-description-optimized bee-body"
+            className="featured-description-optimized bee-body-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}

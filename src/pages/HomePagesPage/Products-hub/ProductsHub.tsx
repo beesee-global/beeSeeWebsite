@@ -154,7 +154,6 @@ const ProductsHub: React.FC = () => {
   // Process mock data
   const demoProducts = useMemo(() => processMockProducts(mockProducts), []);
 
-  // Create categories with counts
   const categories: Category[] = [
     { 
       id: "all", 
@@ -171,14 +170,14 @@ const ProductsHub: React.FC = () => {
     },
     { 
       id: "smartwatch", 
-      name: "Smart Watches", 
+      name: "Wearables", 
       count: demoProducts.filter((p) => p.category_id === "smartwatch").length,
       icon: "⌚",
       hoverSpecs: ["display", "battery", "sensors", "connectivity"]
     },
     { 
       id: "smarttv", 
-      name: "Smart TVs", 
+      name: "Interactive Smart TVs", 
       count: demoProducts.filter((p) => p.category_id === "smarttv").length,
       icon: "📺",
       hoverSpecs: ["display", "resolution", "refresh_rate", "smart_features"]
