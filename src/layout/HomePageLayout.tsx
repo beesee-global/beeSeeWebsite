@@ -8,19 +8,7 @@ import { useEffect, useRef, useState } from "react";
 const HomePageLayout = () => {
   const location = useLocation();
   const [showHeader, setShowHeader] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const lastScrollY = useRef(0);
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const hideLayoutRoutes = []; 
   const hideHeaderRoutes = ["/sign-up/2046", "/sign-in", "/forget-password"];
@@ -70,25 +58,17 @@ const HomePageLayout = () => {
     <div className="min-h-screen flex flex-col relative">
       {/* Header */}
       {!hideHeader && (
-        <>
-          {/* Desktop: Header with wrapper */}
-          {!isMobile && (
-            <div
-              className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
-                showHeader ? "translate-y-0" : "-translate-y-full"
-              }`}
-            >
-              <HeaderHomePage />
-            </div>
-          )}
-
-          {/* Mobile: Header without wrapper (no bg-white shadow) */}
-          {isMobile && <HeaderHomePage />}
-        </>
+        <div
+          className={`fixed top-0 left-0 w-full z-[9999] bg-white shadow transition-transform duration-500 ${
+            showHeader ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
+          <HeaderHomePage />
+        </div>
       )}
 
       {/* Main content */}
-      <div className={`flex-1 ${!hideHeader && !isMobile ? "pt-[80px]" : ""}`}>
+      <div className={`flex-1 ${!hideHeader ? "pt-[80px]" : ""}`}>
         <Outlet />
       </div>
 

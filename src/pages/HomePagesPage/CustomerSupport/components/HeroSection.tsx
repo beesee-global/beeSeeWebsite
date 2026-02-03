@@ -290,39 +290,45 @@ const HeroSection: React.FC = () => {
     setOpenModal(false)
   }
  
-  const handleBeforeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const errors = validateStep();
-    setFormError(errors);
+  // Open disclaimer before actual submission
+// Replace your existing handleBeforeSubmit function with this:
 
-    if (Object.keys(errors).length === 0) {
-      // Validate captcha BEFORE showing disclaimer
-      if (!captchaValue) {
-        setSnackBarMessage("Please verify the reCAPTCHA.")
-        setSnackBarType('error')
-        setSnackBarOpen(true)
-        return
-      }
-      
-      // Only show disclaimer if all validations pass including captcha
-      setShowDisclaimer(true);
-    } else {
-      setSnackBarMessage("Please fill in all required fields.")
+const handleBeforeSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  const errors = validateStep();
+  setFormError(errors);
+
+  if (Object.keys(errors).length === 0) {
+    // Validate captcha BEFORE showing disclaimer
+    if (!captchaValue) {
+      setSnackBarMessage("Please verify the reCAPTCHA.")
       setSnackBarType('error')
       setSnackBarOpen(true)
+      return
     }
+    
+    // Only show disclaimer if all validations pass including captcha
+    setShowDisclaimer(true);
+  } else {
+    setSnackBarMessage("Please fill in all required fields.")
+    setSnackBarType('error')
+    setSnackBarOpen(true)
   }
+}
 
-  // Called when user confirms disclaimer
-  const handleProceedDisclaimer = async () => {
-    setShowDisclaimer(false);
-    await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
-  }
+// Called when user confirms disclaimer
+const handleProceedDisclaimer = async () => {
+  setShowDisclaimer(false);
+  await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
+}
 
-  // Called when user cancels
-  const handleCancelDisclaimer = () => {
-    setShowDisclaimer(false);
-  }
+// Called when user cancels
+const handleCancelDisclaimer = () => {
+  setShowDisclaimer(false);
+ /*  setSnackBarMessage("Submission canceled.")
+  setSnackBarType('info')
+  setSnackBarOpen(true) */
+}
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -399,8 +405,8 @@ const HeroSection: React.FC = () => {
           onSubmit={handleImageSubmit} 
         />
 
-        {/* HERO SECTION - Proper top padding for mobile */}
-        <section className="pt-24 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">
+        {/* HERO SECTION - Reduced top padding for mobile */}
+        <section className="pt-19 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}

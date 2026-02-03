@@ -318,7 +318,7 @@ const FAQs = () => {
       </div>
 
       {/* Content */}
-      <section className="relative z-10 pt-24 sm:pt-28 md:pt-36 lg:pt-48 pb-28 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12">
+      <section className="relative z-10 pt-18 sm:pt-28 md:pt-36 lg:pt-48 pb-28 sm:pb-36 md:pb-44 lg:pb-56 px-4 sm:px-6 md:px-10 lg:px-12">
         <Snackbar
           open={showAlert}
           type={snackBarType}
