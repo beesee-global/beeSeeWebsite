@@ -1,0 +1,246 @@
+/* Career.css */
+
+/* Base button style */
+.beesee-button1 {
+  background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
+  color: white;
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 650;
+  border: none;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Button states */
+.beesee-button1:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px rgba(253, 204, 0, 0.45);
+  color: yellow;
+}
+
+/* Mobile-specific button */
+.beesee-button1--mobile {
+  width: 100%;
+  padding: 16px 0;
+  font-size: 1.1rem;
+  border-radius: 12px;
+}
+
+/* Desktop-specific button */
+.beesee-button1--desktop {
+  width: auto;
+  padding: 14px 40px;
+  font-size: 1.05rem;
+  border-radius: 10px;
+}
+
+/* Small button variant */
+.beesee-button1--small {
+  padding: 12px 35px;
+  font-size: 1rem;
+}
+
+/* Apply now button specific styling */
+.apply-now-button {
+  background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
+  color: white;
+  font-weight: 650;
+  letter-spacing: 0.5px;
+  border: none;
+  transition: all 0.25s ease;
+}
+
+/* Desktop specific for apply now */
+.apply-now-button--desktop {
+  padding: 16px 48px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+}
+
+/* Mobile specific for apply now */
+.apply-now-button--mobile {
+  width: 100%;
+  padding: 18px 0;
+  font-size: 1.15rem;
+  border-radius: 12px;
+}
+
+/* Submit application button */
+.submit-application-button {
+  background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
+  color: white;
+  font-weight: 650;
+  letter-spacing: 0.5px;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 40px;
+  font-size: 1.1rem;
+  transition: all 0.25s ease;
+}
+
+.submit-application-button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 28px rgba(253, 204, 0, 0.5);
+}
+
+.beesee-card-content {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08); /* frosted glass */
+  backdrop-filter: blur(12px); /* blur effect */
+  border-radius: 22px;
+  padding: 2rem;
+  border: 1px solid rgba(253, 204, 0, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); /* lighter shadow for readability */
+  text-align: center;
+  overflow: hidden; /* allow glow layers */
+  transition:
+      transform 0.45s ease,
+      box-shadow 0.45s ease,
+      border-color 0.45s ease,
+      background 0.35s ease;
+}
+
+
+/* Hover effect */
+.beesee-card-content:hover {
+  transform: translateY(-10px);
+  border-color: rgba(253, 204, 0, 0.55);
+  box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
+              0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+
+/* Hover Glow Layer */
+.beesee-card-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.12),
+    transparent,
+    rgba(255, 215, 0, 0.12)
+  );
+  border-radius: 22px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+
+/* Light top gradient (was dark previously) */
+.beesee-card-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.15), transparent); /* lighter black for readability */
+  pointer-events: none;
+}
+
+
+
+/* Image inside card */
+.beesee-card-content img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+
+.beesee-card-content:hover img {
+  transform: scale(1.05);
+}
+
+
+/* Icon Circle */
+.beesee-card-content .icon-wrap {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  margin: 0 auto 1.75rem;
+  border: 2px solid rgba(253, 204, 0, 0.30);
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.20),
+    rgba(255, 215, 0, 0.10)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--beesee-gold);
+  transition:
+      transform 0.45s ease,
+      border-color 0.35s ease,
+      background 0.35s ease;
+}
+
+
+.beesee-card-content:hover .icon-wrap {
+  transform: scale(1.12) rotate(6deg);
+  border-color: rgba(253, 204, 0, 0.55);
+}
+
+
+/* Title */
+.beesee-card-content-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  color: var(--text-light);
+  margin: 0.4rem 0 1rem;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.35s ease;
+}
+
+
+.beesee-card-content:hover .beesee-card-content-title {
+  color: var(--beesee-gold);
+}
+
+
+/* Description */
+.beesee-card-content-desc {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  transition: color 0.35s ease;
+}
+
+
+.beesee-card-content:hover .beesee-card-content-desc {
+  color: #C7B897;
+}
+
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .beesee-card-content {
+    padding: 22px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* lighter for mobile */
+  }
+
+
+  .beesee-card-content-title {
+    font-size: 20px;
+  }
+
+
+  .beesee-card-content .icon-wrap {
+    width: 62px;
+    height: 62px;
+  }
+
+
+  .beesee-card-content::after {
+    background: linear-gradient(to top, rgba(0,0,0,0.1), transparent); /* lighter gradient on mobile */
+  }
+}
