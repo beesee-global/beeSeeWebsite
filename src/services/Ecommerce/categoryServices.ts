@@ -1,13 +1,13 @@
 import axiosClient from "../../axiosClient";
 
-const API_URL = "/categories";
+const API_URL = "/ecom_category";
 
 // post insert category 
 export const createCategory = async (data:any) => {
     try {
         const response = await axiosClient.post (`${API_URL}`, data, {
             headers: {
-                "Content-Type": "multipart/form-data",
+                "Content-Type": "application/json",
             }
         });
         return response.data;
@@ -30,7 +30,7 @@ export const deleteCategory = async (id: number | string) => {
 export const fetchAllCategory = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
-        return response.data;
+        return response;
     } catch (error) {
         throw error
     }
@@ -40,7 +40,7 @@ export const fetchAllCategory = async () => {
 export const fetchEmployeeByPid = async (id: number | string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}`);
-        return response.data;
+        return response;
     } catch (error) {
         throw error
     }
@@ -52,10 +52,10 @@ export const updateCategory = async (payload: { id: number | string, categoryDat
         const { id, categoryData } = payload;
         const response = await axiosClient.put(`${API_URL}/${id}`, categoryData, {
             headers: {
-                "Content-Type": "multipart/form-data"
+                "Content-Type": "application/json"
             }
         });
-        return response.data;
+        return response;
     } catch (error) {
         throw error;
     }
@@ -63,7 +63,7 @@ export const updateCategory = async (payload: { id: number | string, categoryDat
 
 export const fetchCategoriesPublic = async () => {
     try {
-        const response = await axiosClient.get(`${API_URL}/home`);
+        const response = await axiosClient.get(`${API_URL}/public`);
         return response.data
     } catch (error) {
         throw error
