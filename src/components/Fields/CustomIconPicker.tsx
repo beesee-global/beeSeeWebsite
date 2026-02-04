@@ -6,13 +6,13 @@ interface CustomIconPickerProps {
   onChange: (iconName: string) => void;
   label?: string;
   error?: string;
-}
+} 
 
 const iconList = [
   // General / Common
   "Home", "Tag", "Save", "SquarePen", "Star", "Settings", "Bell", "User", "Users",
   "Box", "ShoppingCart", "Package", "ClipboardList", "CheckCircle", "AlertCircle",
-  "Search", "Filter", "PlusCircle", "Trash2", "Edit3",
+  "Search", "Filter", "PlusCircle", "Trash2", "Edit3", 'HeartPulse',
 
   // 🖥️ Devices / Tech
   "Monitor", "Laptop", "Tablet", "Smartphone", "Watch", "Keyboard", "MousePointer",
@@ -22,7 +22,7 @@ const iconList = [
   "BatteryFull", "BatteryLow", "BatteryMedium", "BatteryWarning", "SdCard", "SimCard",
   "Cloud", "CloudUpload", "CloudDownload", "CloudOff", "QrCode", "Scan", "Folder",
   "FolderSync", "FileCode", "FileArchive", "FileStack", "Cog", "Power", "PowerOff",
-  "Terminal", "Code", "Command", "Binary", "Robot", "Gauge", "SatelliteDish", "Zap",
+  "Terminal", "Code", "Command", "Binary", "Robot", "Gauge", "SatelliteDish", "Zap", "Microchip",
 
   // Misc / Business
   "CreditCard", "Globe", "Briefcase", "BarChart3", "LineChart", "Calendar",
