@@ -61,45 +61,851 @@ html, body, #root {
   --space-2xl: 48px;
 }
 
+
+
 /* ------------------------------
-   TYPOGRAPHY SCALE
+   TYPOGRAPHY SCALE — SIMPLIFIED & BROWSER-SAFE
+   3 Fonts: Bebas Neue (Titles), Georgia (Subtitles), Segoe UI (Body)
+   2 Sizes Each: Large & Small
 ------------------------------ */
+
+
+
+/* ========== BEBAS NEUE — TITLES ========== */
 .bee-title-lg {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 48px;
-  line-height: 1;
-}
-@media (min-width: 640px) { .bee-title-lg { font-size: 56px; } }
-@media (min-width: 1024px) { .bee-title-lg { font-size: 64px; } }
-
-.bee-title-md {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 40px;
-  line-height: 1.05;
+  font-size: 48px !important;
+  line-height: 1.05 !important;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
-@media (min-width: 640px) { .bee-title-md { font-size: 48px; } }
-@media (min-width: 1024px) { .bee-title-md { font-size: 56px; } }
+@media (min-width: 768px) { 
+  .bee-title-lg { font-size: 64px !important; } 
+}
 
 .bee-title-sm {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 22px;
-  line-height: 1.1;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-title-sm { font-size: 32px !important; } 
 }
 
-.bee-body {
+/* ========== GEORGIA — SUBTITLES ========== */
+.bee-subtitle-lg {
+  font-family: Georgia, serif;
+  font-size: 20px !important;
+  line-height: 1.4 !important;
+  font-weight: 400;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-subtitle-lg { font-size: 24px !important; } 
+}
+
+.bee-subtitle-sm {
+  font-family: Georgia, serif;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  font-weight: 400;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-subtitle-sm { font-size: 18px !important; } 
+}
+
+/* ========== SEGOE UI — BODY TEXT ========== */
+.bee-body-lg {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  color: var(--muted);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-body-lg { font-size: 18px !important; } 
+}
+
+.bee-body-sm {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  color: var(--muted);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-body-sm { font-size: 15px !important; } 
+}
+
+/* LEGACY SUPPORT — map old class to new system */
+.bee-body { 
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  color: var(--muted);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-body { font-size: 18px !important; } 
+}
+
+.bee-title-md {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 40px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 768px) { 
+  .bee-title-md { font-size: 56px !important; } 
+}
+
+/* ------------------------------
+   BUTTON SYSTEM
+------------------------------ */
+.beesee-button {
+  width: 100%;
+  padding: 14px 0;
+  background: linear-gradient(90deg, #ca8a04, var(--beesee-gold), #ca8a04);
+  color: WHITE;
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 650;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: 0.25s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.beesee-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px rgba(253, 204, 0, 0.45);
+  color: yellow;
+  text-shadow: #ffffff;
+}
+
+.beesee-button--small {
+  width: auto !important;
+  padding: 12px 35px !important;
+  font-size: 1.05rem !important;
+  border-radius: 10px !important;
+}
+
+
+
+/* ------------------------------
+   CARD SYSTEM
+------------------------------ */
+
+/* TYPE A — IMAGE CARD (Section Two) */
+.beesee-card-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(253, 204, 0, 0.25);
+  box-shadow: 0 0 45px rgba(253, 204, 0, 0.18);
+  transition: 0.4s ease;
+}
+
+.beesee-card-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-image:hover img {
+  transform: scale(1.05);
+}
+
+.beesee-card-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  pointer-events: none;
+}
+
+/* =========================================================
+   TYPE B — CONTENT CARD (Services style, Section Three)
+   OPTIMIZED FOR READABILITY & FULL EFFECTS
+========================================================= */
+
+.beesee-card-content {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08); /* frosted glass */
+  backdrop-filter: blur(12px); /* blur effect */
+  border-radius: 22px;
+  padding: 2rem;
+  border: 1px solid rgba(253, 204, 0, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); /* lighter shadow for readability */
+  text-align: center;
+  overflow: hidden; /* allow glow layers */
+  transition: 
+      transform 0.45s ease,
+      box-shadow 0.45s ease,
+      border-color 0.45s ease,
+      background 0.35s ease;
+}
+
+/* Hover effect */
+.beesee-card-content:hover {
+  transform: translateY(-10px);
+  border-color: rgba(253, 204, 0, 0.55);
+  box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
+              0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Hover Glow Layer */
+.beesee-card-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.12),
+    transparent,
+    rgba(255, 215, 0, 0.12)
+  );
+  border-radius: 22px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+/* Light top gradient (was dark previously) */
+.beesee-card-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.15), transparent); /* lighter black for readability */
+  pointer-events: none;
+}
+
+
+/* Image inside card */
+.beesee-card-content img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-content:hover img {
+  transform: scale(1.05);
+}
+
+/* Icon Circle */
+.beesee-card-content .icon-wrap {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  margin: 0 auto 1.75rem;
+  border: 2px solid rgba(253, 204, 0, 0.30);
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.20),
+    rgba(255, 215, 0, 0.10)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--beesee-gold);
+  transition: 
+      transform 0.45s ease,
+      border-color 0.35s ease,
+      background 0.35s ease;
+}
+
+.beesee-card-content:hover .icon-wrap {
+  transform: scale(1.12) rotate(6deg);
+  border-color: rgba(253, 204, 0, 0.55);
+}
+
+/* Title */
+.beesee-card-content-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  color: var(--text-light);
+  margin: 0.4rem 0 1rem;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content:hover .beesee-card-content-title {
+  color: var(--beesee-gold);
+}
+
+/* Description */
+.beesee-card-content-desc {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content:hover .beesee-card-content-desc {
+  color: #C7B897;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .beesee-card-content {
+    padding: 22px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* lighter for mobile */
+  }
+
+  .beesee-card-content-title {
+    font-size: 20px;
+  }
+
+  .beesee-card-content .icon-wrap {
+    width: 62px;
+    height: 62px;
+  }
+
+  .beesee-card-content::after {
+    background: linear-gradient(to top, rgba(0,0,0,0.1), transparent); /* lighter gradient on mobile */
+  }
+}
+
+/* ------------------------------
+   INPUTS
+------------------------------ */
+.input-default {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(37,37,37,0.65);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: var(--text-light);
+  transition: 0.25s ease;
+  font-size: 16px;
+}
+
+.input-default:focus {
+  border-color: var(--beesee-gold);
+  box-shadow: 0 6px 20px rgba(253,204,0,.18);
+}
+
+.input-default::placeholder {
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+}
+
+/* ------------------------------
+   ANIMATIONS
+------------------------------ */
+.fade-up-init {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.fade-up {
+  opacity: 1;
+  transform: translateY(0);
+  transition: 0.6s ease-out;
+}
+/* ——————————————— CONTACT FORM HOVER INTERACTIONS ——————————————— */
+/* Input hover */
+#contact-section input:hover,
+#contact-section textarea:hover {
+  border-color: var(--beesee-gold);
+  box-shadow: 0 0 10px rgba(253,204,0,0.25);
+  background: rgba(255,255,255,0.04);
+  transition: 0.25s ease;
+}
+
+/* Label micro-hover brightness */
+#contact-section label:hover {
+  color: #ffe37e;
+  transition: 0.25s ease;
+}
+
+/* Button hover enhancement */
+#contact-section button:hover {
+  box-shadow: 0 0 25px rgba(253,204,0,0.45);
+  transform: scale(1.06) translateY(-2px);
+}
+
+/* Gold sweep animation on hover */
+#contact-section button {
+  position: relative;
+  overflow: hidden;
+}
+
+#contact-section button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.35) 50%,
+    transparent 100%
+  );
+  transition: 0.5s ease-out;
+}
+
+#contact-section button:hover::after {
+  left: 100%;
+}
+
+/* Very subtle section hover responsiveness */
+#contact-section:hover {
+  filter: brightness(1.03);
+  transition: 0.4s ease;
+}
+/* =========================================================
+   MOBILE OPTIMIZATION
+========================================================= */
+
+/* Prevent double-tap zoom on buttons */
+button, a, input, textarea, select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* Improve mobile touch responsiveness */
+@media (max-width: 768px) {
+  /* Better touch targets */
+  button, a[role="button"], input[type="button"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  body, html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Optimize text rendering */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Better mobile input handling */
+  input, textarea, select {
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input:focus {
+    font-size: 16px;
+  }
+
+  /* Improve mobile dropdown/modal performance */
+  .fixed, .absolute {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  /* Better spacing on mobile */
+  .space-y-2 > * {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .space-y-3 > * {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .space-y-4 > * {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Prevent navbar jitter */
+  nav, [role="navigation"] {
+    position: relative;
+    z-index: 50;
+  }
+
+  /* Optimize scrolling performance */
+  .overflow-y-auto, .overflow-hidden {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better modal behavior */
+  .fixed.inset-0 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  button, a, input {
+    border-width: 2px;
+  }
+}
+
+/* ------------------------------
+   GLOBAL TYPOGRAPHY APPLICATION
+   Apply the bee typography scale across common elements
+   ------------------------------ */
+
+/* Body text */
+body, input, textarea, select {
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: var(--muted);
 }
-@media (min-width: 768px) { .bee-body { font-size: 17px; } }
-@media (min-width: 1024px) { .bee-body { font-size: 18px; } }
 
-.bee-body-sm {
+/* Headings map to bee-title styles for consistency */
+h1 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (min-width: 640px) { h1 { font-size: 56px; } }
+@media (min-width: 1024px) { h1 { font-size: 64px; } }
+
+h2 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 40px;
+  line-height: 1.05;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (min-width: 640px) { h2 { font-size: 48px; } }
+@media (min-width: 1024px) { h2 { font-size: 56px; } }
+
+h3 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Links and inline emphasis */
+a {
+  color: var(--beesee-gold);
+  text-decoration: none;
+  transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease;
+}
+
+a:hover, a:focus {
+  color: var(--beesee-gold-soft);
+  text-shadow: 0 0 14px rgba(253,204,0,0.12);
+}
+
+/* Small text variant */
+.bee-body-sm, small {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Privacy Policy — ensure text-black Tailwind classes are not overridden by global p/li rules */
+section.bg-white p, section.bg-white li, section.bg-white ul {
+  color: inherit !important;
+}
+
+/* Inquiries Reply Message — ensure text-black Tailwind classes are not overridden by global p/li rules */
+div:has(h2:contains("Inquiries Reply")) p,
+div:has(h2:contains("Inquiries Reply")) li,
+div:has(h2:contains("Inquiries Reply")) div {
+  color: inherit !important;
+}
+
+/* ------------------------------
+   SIDEBAR & NAV — Hover / Focus Effects
+   Leave existing backgrounds intact; add non-destructive glow/translate effects
+   ------------------------------ */
+
+/* Generic sidebar / nav link styling — non-invasive selectors */
+.sidebar a, .sidebar .nav-link, nav a, .navbar a, .nav-item > a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-light);
+  transition: background 0.25s ease, transform 0.18s ease, box-shadow 0.22s ease, color 0.18s ease;
+}
+
+/* Subtle gold sweep + lift on hover (does not change the container background) */
+.sidebar a:hover, .sidebar .nav-link:hover, nav a:hover, .navbar a:hover, .nav-item > a:hover {
+  background: linear-gradient(90deg, rgba(253,204,0,0.06), rgba(253,204,0,0.02));
+  transform: translateX(6px);
+  box-shadow: 0 12px 30px rgba(253,204,0,0.10);
+  color: var(--beesee-gold);
+}
+
+/* Active / selected state — gentle inset highlight */
+.sidebar a.active, .sidebar .nav-link.active, nav a.active, .navbar a.active, .nav-item > a.active {
+  background: rgba(253,204,0,0.10);
+  color: var(--beesee-gold);
+  box-shadow: inset 0 0 0 1px rgba(253,204,0,0.06);
+}
+
+/* Focus accessibility */
+.sidebar a:focus, nav a:focus, .navbar a:focus {
+  outline: 2px solid rgba(253,204,0,0.16);
+  outline-offset: 3px;
+}
+
+/* Icon accent inside nav — if icons exist, tint them on hover */
+.sidebar a svg, nav a svg, .nav-item svg {
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.sidebar a:hover svg, nav a:hover svg, .nav-item:hover svg {
+  color: var(--beesee-gold);
+  transform: translateX(3px);
+}
+
+/* Small screens: slightly reduce hover translate to prevent layout shifts */
+@media (max-width: 768px) {
+  .sidebar a:hover, nav a:hover { transform: translateX(3px); }
+}
+
+/* Technician sidebar: keep original colors, but make text/icons white on hover or when active */
+.technician-sidebar a, .technician-sidebar .nav-link, .technician-sidebar button {
+  /* keep layout/spacing consistent with existing sidebar rules */
+}
+
+/* Hover and focus: white text & icons (scoped to technician sidebar) */
+.technician-sidebar a:hover, .technician-sidebar .nav-link:hover, .technician-sidebar button:hover,
+.technician-sidebar a:focus, .technician-sidebar .nav-link:focus, .technician-sidebar button:focus {
+  color: #ffffff !important;
+  will-change: transform, color;
+  /* gentle lift + small horizontal slide and scale */
+  transform: translateX(4px) translateY(-3px) scale(1.02) !important;
+  animation: tech-bounce 300ms cubic-bezier(.22,1,.36,1) both;
+}
+.technician-sidebar a:hover svg, .technician-sidebar .nav-link:hover svg, .technician-sidebar button:hover svg,
+.technician-sidebar a:focus svg, .technician-sidebar .nav-link:focus svg, .technician-sidebar button:focus svg {
+  color: #ffffff !important;
+  will-change: transform, color;
+  transform: translateX(4px) translateY(-3px) scale(1.02) !important;
+  animation: tech-bounce 300ms cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Active / clicked: white text & icons */
+.technician-sidebar a.active, .technician-sidebar .nav-link.active, .technician-sidebar button.active,
+.technician-sidebar .nav-item > a.active {
+  color: #ffffff !important;
+}
+.technician-sidebar a.active svg, .technician-sidebar .nav-link.active svg, .technician-sidebar button.active svg {
+  color: #ffffff !important;
+}
+
+/* Bounce keyframes for hover/interaction */
+@keyframes tech-bounce {
+  0% { transform: translateX(0) translateY(0) scale(1); }
+  45% { transform: translateX(3px) translateY(-6px) scale(1.035); }
+  75% { transform: translateX(4px) translateY(-2px) scale(1.02); }
+  100% { transform: translateX(4px) translateY(0) scale(1.02); }
+}
+
+/* Icon and drawer button alignment for smooth visuals */
+.technician-sidebar > .mb-4 > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 8px;
+}
+
+/* Ensure nav item icons are centered and consistent size */
+.technician-sidebar a > span:first-child,
+.technician-sidebar .nav-link > span:first-child,
+.technician-sidebar li > a > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+}
+.technician-sidebar a svg, .technician-sidebar button svg, .technician-sidebar .nav-link svg {
+  display: inline-block;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+}
+
+/* Slight transition smoothing for transform changes */
+.technician-sidebar a, .technician-sidebar .nav-link, .technician-sidebar button {
+  transition: transform 220ms cubic-bezier(.22,1,.36,1), color 180ms ease;
+}
+
+
+/*For Careers */
+.beesee-card-content1 {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08); /* frosted glass */
+  backdrop-filter: blur(12px); /* blur effect */
+  border-radius: 22px;
+  padding: 2rem;
+  border: 1px solid rgba(253, 204, 0, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); /* lighter shadow for readability */
+  text-align: start;
+  overflow: hidden; /* allow glow layers */
+  transition: 
+      transform 0.45s ease,
+      box-shadow 0.45s ease,
+      border-color 0.45s ease,
+      background 0.35s ease;
+}
+
+/* Hover effect */
+.beesee-card-content1:hover {
+  transform: translateY(-10px);
+  border-color: rgba(253, 204, 0, 0.55);
+  box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
+              0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Hover Glow Layer */
+.beesee-card-content1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.12),
+    transparent,
+    rgba(255, 215, 0, 0.12)
+  );
+  border-radius: 22px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+/* Light top gradient (was dark previously) */
+.beesee-card-content1::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.15), transparent); /* lighter black for readability */
+  pointer-events: none;
+}
+
+
+/* Image inside card */
+.beesee-card-content1 img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-content1:hover img {
+  transform: scale(1.05);
+}
+
+/* Icon Circle */
+.beesee-card-content1 .icon-wrap {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  margin: 0 auto 1.75rem;
+  border: 2px solid rgba(253, 204, 0, 0.30);
+  background: linear-gradient(
+    to bottom right,
+    rgba(253, 204, 0, 0.20),
+    rgba(255, 215, 0, 0.10)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--beesee-gold);
+  transition: 
+      transform 0.45s ease,
+      border-color 0.35s ease,
+      background 0.35s ease;
+}
+
+.beesee-card-content1:hover .icon-wrap {
+  transform: scale(1.12) rotate(6deg);
+  border-color: rgba(253, 204, 0, 0.55);
+}
+
+/* Title */
+.beesee-card-content1-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  color: var(--text-light);
+  margin: 0.4rem 0 1rem;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content1:hover .beesee-card-content-title {
+  color: var(--beesee-gold);
+}
+
+/* Description */
+.beesee-card-content1-desc {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  transition: color 0.35s ease;
+}
+
+.beesee-card-content1:hover .beesee-card-content-desc {
+  color: #C7B897;
+}
+
+/*TYPOGRAPHY*/
+.bee-body1 {
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: white;
+}
+@media (min-width: 768px) { .bee-body1 { font-size: 17px; } }
+@media (min-width: 1024px) { .bee-body1 { font-size: 18px; } }
+
+.bee-body1-sm {
   font-family: "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.55;

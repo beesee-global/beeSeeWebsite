@@ -178,39 +178,13 @@ const HeroSection = () => {
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.2, ease: "easeOut" }}
         >
-          <div
-            style={{ fontFamily: "Georgia, serif" }}
-            className="
-              text-[#FDCC00]/80
-              uppercase
-              mx-auto
-              mb-2 sm:mb-3 md:mb-4
-              text-xs sm:text-sm md:text-base lg:text-lg 
-              tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.25em] lg:tracking-[0.3em]
-              px-2
-            "
-          >
-            EXCELLENCE IN EVERY SOLUTION
-          </div>
 
-<h2
-  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-  className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden"
->
-  SERVICES WE OFFER
-</h2>
 
-         <p
-            style={{ fontFamily: "Segoe UI, sans-serif" }}
-            className="
-              text-sm sm:text-base md:text-lg
-              text-[#C7B897]/90
-              leading-relaxed
-              max-w-3xl mx-auto
-              mt-3 sm:mt-4 md:mt-5 lg:mt-6
-              px-3 sm:px-4 md:px-6
-            "
-          >
+          <h2 className="bee-title-lg text-[#FDCC00] mb-4 sm:mb-5">
+            SERVICES WE OFFER
+          </h2>
+
+          <p className="bee-body-lg text-[#C7B897]/90 leading-relaxed max-w-3xl mx-auto mt-3 sm:mt-4 md:mt-5 lg:mt-6 px-3 sm:px-4 md:px-6">
             Discover a complete suite of modern solutions designed to support
             your workflow, enhance productivity, and empower your digital
             experience.
@@ -268,31 +242,12 @@ const HeroSection = () => {
                   </div>
 
                   {/* Title */}
-                  <h3
-                    style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                    className={`
-                      text-lg sm:text-xl md:text-2xl lg:text-3xl 
-                      tracking-wide 
-                      text-white mb-2 sm:mb-3 md:mb-4
-                      ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'}
-                      px-1
-                    `}
-                  >
+                  <h3 className={`bee-title-sm text-white mb-2 sm:mb-3 md:mb-4 ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'} px-1`}>
                     {service.title}
                   </h3>
 
                   {/* Description */}
-                  <p
-                    style={{ fontFamily: "Segoe UI, sans-serif" }}
-                    className={`
-                      text-xs sm:text-sm md:text-base
-                      text-[#C7B897]/80
-                      leading-relaxed sm:leading-relaxed
-                      ${isMobile ? '' : 'group-hover:text-[#C7B897]/100 transition-colors duration-300'}
-                      flex-grow
-                      px-1 sm:px-0
-                    `}
-                  >
+                  <p className={`bee-body-sm text-[#C7B897]/80 leading-relaxed ${isMobile ? '' : 'group-hover:text-[#C7B897]/100 transition-colors duration-300'} flex-grow px-1 sm:px-0`}>
                     {service.description}
                   </p>
                 </div>

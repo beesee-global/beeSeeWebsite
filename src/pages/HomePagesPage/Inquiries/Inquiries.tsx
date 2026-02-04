@@ -244,11 +244,11 @@ const Inquiries = () => {
                                     <CheckCircle size={40} style={{ color: 'var(--beesee-gold)' }} />
                                 </div>
 
-                                <h2 className="bee-title-md" style={{ color: 'var(--beesee-gold)', marginBottom: '1.5rem' }}>
+                                <h2 className="bee-title-lg mb-6" style={{ color: 'var(--beesee-gold)' }}>
                                     Thank You for Your Interest!
                                 </h2>
 
-                                <p className="bee-body" style={{ marginBottom: '2rem', maxWidth: '42rem', marginLeft: 'auto', marginRight: 'auto' }}>
+                                <p className="bee-body-lg mb-8 max-w-2xl mx-auto">
                                     Your inquiry has been received. Our solutions team will contact you within 24 hours to discuss your requirements and schedule a personalized demonstration.
                                 </p>
 
@@ -260,7 +260,7 @@ const Inquiries = () => {
                                         border: '1px solid rgba(253, 204, 0, 0.22)',
                                     }}
                                 >
-                                    <h3 className="bee-title-sm" style={{ marginBottom: '1.5rem', color: 'var(--text-light)' }}>
+                                    <h3 className="bee-title-sm mb-6" style={{ color: 'var(--text-light)' }}>
                                         What happens next?
                                     </h3>
                                     <div className="space-y-3 text-left">
@@ -338,8 +338,8 @@ const Inquiries = () => {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.7, delay: 0.2 }}
-                                    className="bee-title-md"
-                                    style={{ color: 'var(--beesee-gold)', marginBottom: '1.5rem' }}
+                                    className="bee-title-lg mb-6"
+                                    style={{ color: 'var(--beesee-gold)' }}
                                 >
                                     Thank You for Your Interest!
                                 </motion.h2>
@@ -348,8 +348,7 @@ const Inquiries = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.7, delay: 0.3 }}
-                                    className="bee-body"
-                                    style={{ marginBottom: '2rem', maxWidth: '42rem', marginLeft: 'auto', marginRight: 'auto' }}
+                                    className="bee-body-lg mb-8 max-w-2xl mx-auto"
                                 >
                                     Your inquiry has been received. Our solutions team will contact you within 24 hours to discuss your requirements and schedule a personalized demonstration.
                                 </motion.p>
@@ -365,7 +364,7 @@ const Inquiries = () => {
                                         border: '1px solid rgba(253, 204, 0, 0.22)',
                                     }}
                                 >
-                                    <h3 className="bee-title-sm" style={{ marginBottom: '1.5rem', color: 'var(--text-light)' }}>
+                                    <h3 className="bee-title-sm mb-6" style={{ color: 'var(--text-light)' }}>
                                         What happens next?
                                     </h3>
                                     <div className="space-y-3 text-left">
@@ -438,25 +437,10 @@ const Inquiries = () => {
                         <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
                             {isMobile ? (
                                 <>
-                                    <h1
-                                        style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                                        className="
-                    font-bebas
-                    text-[#FDCC00]
-                    leading-none
-                    tracking-wide
-                    select-none
-                    text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl
-                    px-2 sm:px-4
-                    mb-4 sm:mb-5
-                    whitespace-nowrap
-                    overflow-hidden
-                    drop-shadow-md
-                  "
-                                    >
+                                    <h1 className="bee-title-lg text-[#FDCC00] mb-4 sm:mb-5 px-2 sm:px-4 whitespace-nowrap overflow-hidden drop-shadow-md">
                                         BUSINESS INQUIRIES
                                     </h1>
-                                    <p className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto">
+                                    <p className="bee-body-lg opacity-90 max-w-2xl mx-auto">
                                         Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
                                     </p>
                                 </>
@@ -466,8 +450,7 @@ const Inquiries = () => {
                                         initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.7 }}
-                                        style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-                                        className="font-bebas text-[#FDCC00] leading-none tracking-wide select-none text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl px-2 sm:px-4 mb-4 sm:mb-5 whitespace-nowrap overflow-hidden drop-shadow-md"
+                                        className="bee-title-lg text-[#FDCC00] mb-4 sm:mb-5 px-2 sm:px-4 whitespace-nowrap overflow-hidden drop-shadow-md"
                                     >
                                         BUSINESS INQUIRIES
                                     </motion.h1>
@@ -476,7 +459,7 @@ const Inquiries = () => {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.7, delay: 0.1 }}
-                                        className="bee-body text-sm sm:text-base opacity-90 max-w-2xl mx-auto"
+                                        className="bee-body-lg opacity-90 max-w-2xl mx-auto"
                                     >
                                         Get in touch with our solutions team for product demonstrations, system maintenance, and enterprise solutions.
                                     </motion.p>
@@ -492,7 +475,7 @@ const Inquiries = () => {
                                         <h2 className="bee-title-md" style={{ lineHeight: '1.1', color: 'var(--beesee-gold)' }}>
                                             Ready to Transform Your Organization?
                                         </h2>
-                                        <p className="bee-body" style={{ lineHeight: '1.7' }}>
+                                        <p className="bee-body-lg" style={{ lineHeight: '1.7' }}>
                                             Let our experts help you choose the perfect solution for your unique needs. Schedule a consultation or request a custom quote today.
                                         </p>
                                     </div>
@@ -560,7 +543,7 @@ const Inquiries = () => {
                                         <h2 className="bee-title-md" style={{ lineHeight: '1.1', color: 'var(--beesee-gold)' }}>
                                             Ready to Transform Your Organization?
                                         </h2>
-                                        <p className="bee-body" style={{ lineHeight: '1.7' }}>
+                                        <p className="bee-body-lg" style={{ lineHeight: '1.7' }}>
                                             Let our experts help you choose the perfect solution for your unique needs. Schedule a consultation or request a custom quote today.
                                         </p>
                                     </div>
@@ -622,11 +605,9 @@ const Inquiries = () => {
                             {isMobile ? (
                                 <div className="beesee-card-content">
                                     <h3
-                                        className="bee-title-sm"
+                                        className="bee-title-sm mb-6"
                                         style={{
-                                            marginBottom: '1.5rem',
                                             color: '#FDCC00',
-                                            fontSize: '32px',
                                         }}
                                     >
                                         Request Consultation
@@ -745,7 +726,7 @@ const Inquiries = () => {
                                         </button>
                                     </form>
 
-                                    <p className="bee-body-sm" style={{ marginTop: '1rem', textAlign: 'center', color: '#fff' }}>
+                                    <p className="bee-body-sm mt-4 text-center" style={{ color: '#fff' }}>
                                         By submitting this form, you agree to our{' '}
                                         <Link to="/privacy" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
                                             Privacy Policy
@@ -765,11 +746,9 @@ const Inquiries = () => {
                                     className="beesee-card-content"
                                 >
                                     <h3
-                                        className="bee-title-sm"
+                                        className="bee-title-sm mb-6"
                                         style={{
-                                            marginBottom: '1.5rem',
                                             color: '#FDCC00',
-                                            fontSize: '32px',
                                         }}
                                     >
                                         Request Consultation
@@ -888,7 +867,7 @@ const Inquiries = () => {
                                         </button>
                                     </form>
 
-                                    <p className="bee-body-sm" style={{ marginTop: '1rem', textAlign: 'center', color: '#fff' }}>
+                                    <p className="bee-body-sm mt-4 text-center" style={{ color: '#fff' }}>
                                         By submitting this form, you agree to our{' '}
                                         <Link to="/privacy" style={{ color: 'var(--beesee-gold)', textDecoration: 'none' }}>
                                             Privacy Policy
