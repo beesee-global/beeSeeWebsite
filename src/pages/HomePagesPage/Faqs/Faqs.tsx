@@ -38,7 +38,7 @@ import {
   ChevronsRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { fetchFaqsAllPublic, fetchAllDevices } from '../../../services/Technician/faqsServices';
+import { fetchFaqsAllPublic, fetchAllDevicesPublic } from '../../../services/Technician/faqsServices';
 import { useQuery } from '@tanstack/react-query';
 // import { useTawkTo } from '../../../hooks/useTawkTo';
 
@@ -71,7 +71,7 @@ const FAQs = () => {
 
   const { data: devicesData = [] } = useQuery({
     queryKey: ['devices'],
-    queryFn: () => fetchAllDevices(),
+    queryFn: () => fetchAllDevicesPublic(),
   });
 
   const devices = [
