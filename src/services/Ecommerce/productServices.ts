@@ -1,6 +1,6 @@
  import axiosClient from "../../axiosClient";
 
-const API_URL = "/products"
+const API_URL = "/ecom_products"
 
 // post inserting product
 export const createProduct = async (data: any) => {
@@ -30,7 +30,7 @@ export const deleteProduct = async (id: number | string) => {
 export const fetchAllProduct = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
-        return response.data;
+        return response;
     } catch (error) {
         throw error
     }
@@ -39,8 +39,8 @@ export const fetchAllProduct = async () => {
 // get Specific product
 export const fetchSpecificProduct = async (id: number | string) => {
     try {
-        const response = await axiosClient.get(`${API_URL}/public/${id}`);
-        return response.data;
+        const response = await axiosClient.get(`${API_URL}/${id}`);
+        return response;
     } catch (error) {
        throw error
     }
@@ -74,7 +74,7 @@ export const searchProduct = async (term: string) => {
 // fetching category 
 export const fetchCategory = async () => {
     try {
-        const response = await axiosClient.get("/tickets/devices");
+        const response = await axiosClient.get("/ecom_category");
         return response.data
     } catch (error) {
         throw error
