@@ -23,10 +23,11 @@ const TechnicianLayout = () => {
       return;
     }
 
-    /* // if user is admin, redirect to admin dashboard
-    if (userInfo?.role) {
+    // if user is admin, redirect to admin dashboard
+    if (userInfo?.url_permission !== "technician_url") {
       setIsChecking(false)
-      navigate("/beesee/dashboard", { replace: true });
+      navigate("/tech/sign-in", { replace: true });
+      localStorage.clear();
       return;
     } */
     // Done checking

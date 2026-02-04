@@ -20,7 +20,7 @@ interface FormError {
 }
 
 const LoginTechnician = () => { 
-  const { login, token } = userAuth()
+  const { login, token, userInfo } = userAuth()
   const [isChecking, setIsChecking] = useState(false); 
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -71,11 +71,12 @@ const LoginTechnician = () => {
           email: formData.email, // Use the email from the form
           full_name: response.userInfo.full_name,
           role: response.userInfo.role,
-          position_id: response.userInfo.position_id,
-          permissions: response.userInfo.permissions
+          permissions: response.userInfo.permissions,
+          url_permission: response.userInfo.url_permission
         };  
         // token is at response.data.token (root level of API response)
         login({ token: response.token, userInfo });  
+        window.location.href = "/beesee/dashboard" 
       }
     } catch (err) {
       setSnackbarOpen(true);
@@ -97,7 +98,8 @@ const LoginTechnician = () => {
 
   useEffect(() => {
     // if we don't have a token, go back to home
-    if (token) {
+    if (token) { 
+      if (userInfo?.url_permission === 'technician_url')
       window.location.href = "/beesee/dashboard" 
       return;
     }  

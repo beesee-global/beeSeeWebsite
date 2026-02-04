@@ -19,12 +19,13 @@ import {
 import CustomTextField from '../../../components/Fields/CustomTextField';
 import CustomIconPicker from '../../../components/Fields/CustomIconPicker';
 import AddImageIcon from '../../../../public/add-image-icon.jpg';
-import { AlertColor } from '@mui/material/Alert';
-import Snackbar from '../../../components/feedback/Snackbar'; 
+import { AlertColor } from '@mui/material/Alert'; 
+import { userAuth } from '../../../hooks/userAuth';
 import { 
   useNavigate, 
   useParams 
 } from "react-router-dom"; 
+import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
 
 interface FormCategoryData {
   name: string; 
@@ -40,15 +41,21 @@ const CategoryForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [formError, setFormError] = useState<FormError>({});
-  const [message, setMessage] = useState("");
-  const [snackBarType, setSnackBarType] = useState<AlertColor>("success")
-  const [showAlert, setShowAlert] = useState<boolean>(false)   
+  const [formError, setFormError] = useState<FormError>({});  
 
   const [formCategoryData, setFormCategoryData] = useState<FormCategoryData>({
     name: '', 
     icon: '', 
   });
+
+  const {
+    snackBarMessage, 
+    snackBarType, 
+    snackBarOpen, 
+    setSnackBarMessage,
+    setSnackBarType,
+    setSnackBarOpen
+  } = userAuth()
   
   // ✅ Validation
   const validateForm = (): FormError => {
@@ -103,7 +110,7 @@ const CategoryForm: React.FC = () => {
       setFormError(errors);
       if (Object.keys(errors).length > 0) {
         setSnackBarType("error")
-        setMessage("Please fill in all required fields.");
+        setSnackBarMessage("Please fill in all required fields.");
         return
       };
 
@@ -116,17 +123,17 @@ const CategoryForm: React.FC = () => {
 
       if (id) {  
         // pass one object with both id and formData
-        await updateCategoryAsync({ id: categoryInfo.id, categoryData: formDataToSend})
+        await updateCategoryAsync({ id: categoryInfo?.id, categoryData: formDataToSend})
       } else {
         await createCategoryAsync(formDataToSend)
       }
       setSnackBarType('success');
-      setMessage(id ? 'Category updated successfully!' : 'Category created successfully!');
-      navigate('/beesee/category'); 
+      setSnackBarMessage(id ? 'Category updated successfully!' : 'Category created successfully!');
+      navigate('/beesee/ecommerce/category'); 
     } catch (error: any) {
       console.error('❌ Error creating category:', error); 
       setSnackBarType("error");
-      setMessage("Failed to create category. Please try again.");
+      setSnackBarMessage("Failed to create category. Please try again.");
 
       if (error.response?.status === 400) {
         const message = error.response.data?.message;
@@ -138,7 +145,7 @@ const CategoryForm: React.FC = () => {
         }  
       }
     } finally { 
-        setShowAlert(true);  
+        setSnackBarOpen(true);  
     }
   };
   
@@ -146,8 +153,8 @@ const CategoryForm: React.FC = () => {
   useEffect(() => {
     if (categoryInfo) {
       setFormCategoryData({
-        name: categoryInfo.name || "", 
-        icon: categoryInfo.icon, 
+        name: categoryInfo?.name || "", 
+        icon: categoryInfo?.icon, 
       })
     }
   }, [categoryInfo])
@@ -156,18 +163,17 @@ const CategoryForm: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notification */} 
-        <Snackbar 
-          open={showAlert}
+        <SnackbarTechnician 
+          open={snackBarOpen}
           type={snackBarType}
-          message={message}
-          onClose={() => setShowAlert(false)}
+          message={snackBarMessage}
+          onClose={() => setSnackBarOpen(false)}
         />
         
         {/* Breadcrumb */}
         <div className="mb-6">
           <Breadcrumb
-            items={[
-              { label: 'Home', href: '/beesee/dashboard', icon: <Home className="w-4 h-4" /> },
+            items={[ 
               { label: 'Category', href: '/beesee/category', icon: <Tag className="w-4 h-4" /> },
               { label: 'Category Form', isActive: true, icon: <SquarePen className="w-4 h-4" /> },
             ]}
@@ -280,7 +286,8 @@ const CategoryForm: React.FC = () => {
  
             </form>
           </div>
- 
+
+          
         </div>
       </div>
     </div>

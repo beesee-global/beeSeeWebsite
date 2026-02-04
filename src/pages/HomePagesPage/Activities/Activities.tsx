@@ -4,8 +4,7 @@
 import { useScroll } from "framer-motion";
 import { useRef, useEffect } from "react";
 import Hero from "./components/Hero";
-import ProjectCard from "./components/ProjectCard";
-
+import ActivitiesCard from "./components/ActivitiesCard";
 
 export default function ActivitiesPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +46,7 @@ export default function ActivitiesPage() {
 
       {/* NORMAL CONTENT — minimal scrolling for mobile */}
       <div className="w-full bg-black relative z-[20] mt-[150vh] lg:mt-[150vh] md:mt-[105vh] sm:mt-[85vh] xs:mt-[75vh]">
-        <ProjectCard />
+        <ActivitiesCard />
       </div>
     </div>
   );
