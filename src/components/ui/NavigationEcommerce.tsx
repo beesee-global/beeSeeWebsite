@@ -77,7 +77,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
   }, [preview, user.image]);
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 w-full border-b border-gray-300">
+    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-[#000000] w-full border-b border-gray-300">
       <div className="flex gap-2 items-center">
         <button
           onClick={() => setShowSidebar(true)}

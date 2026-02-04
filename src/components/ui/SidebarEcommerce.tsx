@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
   }, []);
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 overflow-y-auto">
+    <div className="p-4 min-h-screen bg-[#000000] border-r border-gray-700 overflow-y-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-yellow-400">Menu</h2>
