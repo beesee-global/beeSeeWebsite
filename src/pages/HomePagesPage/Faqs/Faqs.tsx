@@ -74,10 +74,20 @@ const FAQs = () => {
     queryFn: () => fetchAllDevicesPublic(),
   });
 
+  const deviceNameMap: Record<string, string> = {
+    'SmartTV': 'Interactive Smart TVs',
+    'Laptop': 'Laptops',
+    'Smartwatch': 'Wearables',
+    'Tablet': 'Tablets',
+  };
+
   const devices = [
     'All',
     ...(devicesData.data
-      ? devicesData.data.map((device: any) => device.name)
+      ? devicesData.data.map((device: any) => {
+          // Apply name mapping - if exists in map, use mapped name, otherwise use original
+          return deviceNameMap[device.name] || device.name;
+        })
       : []),
   ];
 
@@ -92,10 +102,18 @@ const FAQs = () => {
     });
   };
 
-  // Replace your existing filteredFaqs useMemo with this corrected version:
+  // Helper function to get original backend name from display name
+  const getOriginalDeviceName = (displayName: string): string => {
+    if (displayName === 'All') return 'All';
+    
+    // Find the original name by looking up the value in the map
+    const entry = Object.entries(deviceNameMap).find(([_, value]) => value === displayName);
+    return entry ? entry[0] : displayName;
+  };
 
   const filteredFaqs = useMemo(() => {
     const search = String(searchTerm || '').toLowerCase();
+    const originalDeviceName = getOriginalDeviceName(selectedDevice);
 
     return faqs.filter((faq) => {
       // Convert all fields to lowercase for case-insensitive comparison
@@ -104,10 +122,10 @@ const FAQs = () => {
       const device = String(faq.device || '').toLowerCase();
       const category = String(faq.category || '').toLowerCase();
 
-      // Check device/category match
+      // Check device/
       const matchesDevice =
-        selectedDevice === 'All' ||
-        category === String(selectedDevice || '').toLowerCase();
+        originalDeviceName === 'All' ||
+        category === String(originalDeviceName || '').toLowerCase();
 
       // Check if search term appears in any field
       const matchesSearch =
@@ -170,81 +188,71 @@ const FAQs = () => {
 
     // Kiosk/ATM Machines
     if (name.includes('kiosk') || name.includes('atm') || name.includes('self-service') || name.includes('terminal')) {
-      return <Monitor className="w-3.5 h-3.5" />;
+      return <Monitor className="w-4 h-4" />;
     }
     
-    // Server/Network related
-    if (name.includes('server') || name.includes('cloud') || name.includes('data center')) {
-      return <Server className="w-3.5 h-3.5" />;
-    }
-    if (name.includes('network') || name.includes('router') || name.includes('switch')) {
-      return <Router className="w-3.5 h-3.5" />;
-    }
-    if (name.includes('storage') || name.includes('hard drive') || name.includes('nas')) {
-      return <HardDrive className="w-3.5 h-3.5" />;
-    }
     
     // Computers/Laptops
     if (name.includes('laptop') || name.includes('notebook') || name.includes('macbook')) {
-      return <LaptopMinimal className="w-3.5 h-3.5" />;
+      return <LaptopMinimal className="w-4 h-4" />;
     }
     if (name.includes('desktop') || name.includes('pc') || name.includes('computer')) {
-      return <Cpu className="w-3.5 h-3.5" />;
+      return <Cpu className="w-4 h-4" />;
     }
     if (name.includes('monitor') || name.includes('display') || name.includes('screen')) {
-      return <Monitor className="w-3.5 h-3.5" />;
+      return <Monitor className="w-4 h-4" />;
     }
     
     // Mobile devices
     if (name.includes('smartphone') || name.includes('phone') || name.includes('iphone') || name.includes('android')) {
-      return <SmartphoneCharging className="w-3.5 h-3.5" />;
+      return <SmartphoneCharging className="w-4 h-4" />;
     }
     if (name.includes('tablet') || name.includes('ipad')) {
-      return <TabletSmartphone className="w-3.5 h-3.5" />;
+      return <TabletSmartphone className="w-4 h-4" />;
     }
     if (name.includes('watch') || name.includes('wearable') || name.includes('smartwatch')) {
-      return <Watch className="w-3.5 h-3.5" />;
+      return <Watch className="w-4 h-4" />;
     }
     
     // Entertainment
     if (name.includes('tv') || name.includes('television') || name.includes('smart tv')) {
-      return <Tv className="w-3.5 h-3.5" />;
+      return <Tv className="w-4 h-4" />;
     }
     if (name.includes('camera') || name.includes('webcam') || name.includes('security')) {
-      return <Camera className="w-3.5 h-3.5" />;
+      return <Camera className="w-4 h-4" />;
     }
     if (name.includes('speaker') || name.includes('sound') || name.includes('audio')) {
-      return <Speaker className="w-3.5 h-3.5" />;
+      return <Speaker className="w-4 h-4" />;
     }
     if (name.includes('headphone') || name.includes('earphone') || name.includes('headset')) {
-      return <Headphones className="w-3.5 h-3.5" />;
+      return <Headphones className="w-4 h-4" />;
     }
     if (name.includes('game') || name.includes('gaming') || name.includes('console')) {
-      return <Gamepad2 className="w-3.5 h-3.5" />;
+      return <Gamepad2 className="w-4 h-4" />;
     }
     
     // Peripherals
     if (name.includes('printer') || name.includes('scanner') || name.includes('copier')) {
-      return <Printer className="w-3.5 h-3.5" />;
+      return <Printer className="w-4 h-4" />;
     }
     if (name.includes('keyboard')) {
-      return <Keyboard className="w-3.5 h-3.5" />;
+      return <Keyboard className="w-4 h-4" />;
     }
     if (name.includes('mouse') || name.includes('trackpad')) {
-      return <Mouse className="w-3.5 h-3.5" />;
+      return <Mouse className="w-4 h-4" />;
     }
     
     // Power/Battery
     if (name.includes('battery') || name.includes('power') || name.includes('charger')) {
-      return <BatteryCharging className="w-3.5 h-3.5" />;
+      return <BatteryCharging className="w-4 h-4" />;
     }
     
     // Default for "All" and unknown devices
     if (deviceName === 'All') {
-      return <Server className="w-3.5 h-3.5" />;
+      return <Server className="w-4 h-4" />;
     }
     
-    return <Cpu className="w-3.5 h-3.5" />;
+    return <Cpu className="w-4 h-4" />;
   };
 
   // Pagination handlers
@@ -320,26 +328,13 @@ const FAQs = () => {
 
         <div className="relative z-10">
           {/* TITLE */}
-<div className="text-center w-full max-w-[95vw] mx-auto">
+          <div className="text-center w-full max-w-[95vw] mx-auto">
             <h1 
-  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-  className="
-    font-bebas 
-    text-[#FDCC00] 
-    leading-[0.9] 
-    tracking-wide 
-    select-none 
-    text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl 
-    px-4 
-    mb-6 
-    text-center 
-    drop-shadow-md
-    break-words
-  "
->
-  FREQUENTLY ASKED QUESTIONS
-</h1>
-            <p className="bee-body mt-3 sm:mt-4 text-xs sm:text-sm md:text-base opacity-90 max-w-xl mx-auto">
+              className="bee-title-lg text-[#FDCC00] leading-[0.9] tracking-wide select-none px-4 mb-6 text-center drop-shadow-md break-words"
+            >
+              FREQUENTLY ASKED QUESTIONS
+            </h1>
+            <p className="bee-body-lg mt-3 sm:mt-4 opacity-90 max-w-xl mx-auto">
               Discover answers to common inquiries about our products and services.
             </p>
           </div>
@@ -358,22 +353,24 @@ const FAQs = () => {
             />
           </div>
 
-          {/* CATEGORY FILTER - PRODUCT HUB EXACT DESIGN */}
+          {/* CATEGORY FILTER */}
           <div className="mt-8 sm:mt-10 w-full">
             {/* DESKTOP */}
-            <div className="hidden md:flex justify-center gap-2 flex-wrap">
+            <div className="hidden md:flex justify-center gap-4 flex-wrap">
               {devices.map((device) => {
                 const isActive = selectedDevice === device;
+
                 return (
                   <button
                     key={device}
                     onClick={() => setSelectedDevice(device)}
-                    className={`category-pill ${isActive ? "active" : ""}`}
+                    className={`category-pill-advanced ${isActive ? "active" : ""}`}
                   >
-                    <div className="category-pill-icon">
+                    <div className="category-pill-icon-advanced">
                       {getDeviceIcon(device)}
                     </div>
-                    <span className="category-pill-name">
+
+                    <span className="category-pill-name-advanced">
                       {device}
                     </span>
                   </button>
@@ -382,19 +379,21 @@ const FAQs = () => {
             </div>
 
             {/* MOBILE */}
-            <div className="grid grid-cols-2 gap-2 md:hidden mt-4">
+            <div className="grid grid-cols-2 gap-3 md:hidden mt-4">
               {devices.map((device) => {
                 const isActive = selectedDevice === device;
+
                 return (
                   <button
                     key={device}
                     onClick={() => setSelectedDevice(device)}
-                    className={`category-pill ${isActive ? "active" : ""}`}
+                    className={`category-pill-advanced ${isActive ? "active" : ""}`}
                   >
-                    <div className="category-pill-icon">
+                    <div className="category-pill-icon-advanced">
                       {getDeviceIcon(device)}
                     </div>
-                    <span className="category-pill-name">
+
+                    <span className="category-pill-name-advanced">
                       {device}
                     </span>
                   </button>
@@ -410,7 +409,7 @@ const FAQs = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-black/30 border border-[#C7B897]/20">
                   <BookOpen className="text-[#C7B897]" />
                 </div>
-                <p className="bee-body">No FAQs Found.</p>
+                <p className="bee-body-lg">No FAQs Found.</p>
               </div>
             ) : (
               <>
@@ -423,7 +422,7 @@ const FAQs = () => {
                     >
                       <div className="faq-card-header">
                         <div className="flex justify-between items-start gap-3">
-                          <h3 className="bee-title-sm text-white text-left text-sm sm:text-base md:text-lg flex-1">
+                          <h3 className="bee-title-sm text-white text-left flex-1">
                             {f.title}
                           </h3>
                           {/* Desktop: Tags + Arrow on right */}
@@ -458,7 +457,7 @@ const FAQs = () => {
                         <div className="mt-4 opacity-100">
                           <div className="bg-black/25 rounded-lg p-4 sm:p-5 border border-[var(--beesee-gold)]/20">
                             <p 
-                              className="bee-body text-sm sm:text-[15px] leading-relaxed text-[#C7B897]/70"
+                              className="bee-body-lg leading-relaxed text-[#C7B897]/70"
                               style={{ textAlign: 'left', textAlignLast: 'left' }}
                               dangerouslySetInnerHTML={{ __html: sanitizeHTML(f.explanation) }}
                             />
@@ -617,7 +616,7 @@ const FAQs = () => {
             <h3 className="bee-title-sm text-[var(--beesee-gold)] mb-4">
               Still Need Help?
             </h3>
-            <p className="bee-body mb-6">
+            <p className="bee-body-lg mb-6">
               Can't find the answer? Our support team is here for you.
             </p>
             <button

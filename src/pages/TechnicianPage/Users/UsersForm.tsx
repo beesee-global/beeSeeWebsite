@@ -50,6 +50,7 @@ const UsersForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const {
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -137,7 +138,7 @@ const UsersForm = () => {
   })
 
   // ✅ 2. Fetch data only when id exists
-  const { data: userInfo } = useQuery({
+  const { data: userInformation } = useQuery({
     queryKey: ["users", id],
     queryFn: () => fetchUsersByPid(String(id)),
     enabled: !!id, // ✅ only fetch when id is defined
@@ -212,7 +213,7 @@ const UsersForm = () => {
       if (id) {
         // UPDATE USER
         await updateUserMutate({
-          id: Number(userInfo?.data.id),
+          id: Number(userInformation?.data.id),
           payload,
         });
 
@@ -223,7 +224,7 @@ const UsersForm = () => {
           payloadImage.append("status", "update");
 
           await insertImage({
-            id: userInfo?.data.id,
+            id: userInformation?.data.id,
             payloadImage,
           });
         }
@@ -319,8 +320,8 @@ const UsersForm = () => {
   }, [formData.image]);
 
   useEffect(() => {
-    if (userInfo?.data) {
-      const u = userInfo.data;
+    if (userInformation?.data) {
+      const u = userInformation.data;
 
       setFormData({
         first_name: u.first_name || "",
@@ -333,7 +334,7 @@ const UsersForm = () => {
         image: u.image_url || "",                    // ✅ correct user image URL
       });
     }
-  }, [userInfo]);
+  }, [userInformation]);
 
   // ✅ 4. Cleanup blob URLs if a File is selected
   useEffect(() => {
@@ -370,7 +371,7 @@ const UsersForm = () => {
         </div>
 
         {/* Header */}
-        <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className=" rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl text-black mb-2">
@@ -414,22 +415,23 @@ const UsersForm = () => {
             <div className="lg:col-span-2 space-y-8">
               <form className="space-y-8" onSubmit={handleSubmit}>
                 {/* Basic Information */}
-                <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <div className="flex items-center mb-6">
                     <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg mr-4">
                       <User2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h2 className="text-xl text-3xl text-black">Basic Information</h2>
+                      <h2 className="text-3xl text-black">Basic Information</h2>
                       <p className="text-gray-600 dark:text-gray-400">Essential user details</p>
                     </div>
                   </div>
 
                   {/* Information */}
-                  <div className="space-y-6">
-                    {/* Role */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="col-span-3 md:grid md:grid-cols-2 md:gap-4">
+                       {/* Role */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Position *
                       </label>
                       <CustomSelectField
@@ -445,7 +447,7 @@ const UsersForm = () => {
                     
                     {/* First name */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         First Name *
                       </label>
                       <CustomTextField 
@@ -465,7 +467,7 @@ const UsersForm = () => {
 
                     {/* Last name */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Last Name *
                       </label>
                       <CustomTextField 
@@ -485,12 +487,12 @@ const UsersForm = () => {
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Email *
                       </label>
                       <CustomTextField 
                         name="email"
-                        disabled={id && true}
+                        disabled={userInfo?.position_id !== 25}
                         placeholder="Enter email"
                         value={formData.email}
                         onChange={handleChangeInput}
@@ -506,7 +508,7 @@ const UsersForm = () => {
 
                     {/* Password */}
                     <div>
-                      <label className="block text-sm  text-black mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Password *
                       </label>
                       <CustomTextField 
@@ -526,7 +528,7 @@ const UsersForm = () => {
 
                     {/* Confirm Password */}
                     <div>
-                      <label className="block text-sm  text-black mb-22">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Confirm Password *
                       </label>
                       <CustomTextField 
@@ -547,7 +549,7 @@ const UsersForm = () => {
                     {id && (
                       <div>
                         {/* status */}
-                        <label className="block text-sm  text-black mb-22">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Status *
                         </label>
                         <CustomSelectField
@@ -567,89 +569,106 @@ const UsersForm = () => {
                         />
                       </div>
                     )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Image upload */} 
-                <div className="bo-stat-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <div className="flex items-center mb-6">
-                    <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
-                      <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl text-black">User Image</h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">Upload a representative image</p>
-                    </div>
-                  </div>
-  
-                  <div className="space-y-4">
-                    <div className="relative group">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        id="image-upload"
-                        className="hidden"
-                        onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
-                      />
-  
-                      <label
-                        htmlFor="image-upload"
-                        className="cursor-pointer block w-full"
-                      >
-                        <div className={`relative border-2 border-dashed ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"} dark:border-gray-600 rounded-xl overflow-hidden transition-colors group`}>
-                          <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                            <img
-                              src={preview}
-                              alt="Preview"
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-  
-                          {/* Upload overlay for empty state */}
-                          {!formData.image && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
-                              <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
-                              <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
-                            </div>
-                          )}
-  
-                          {/* Change image overlay */}
-                          {formData.image && (
-                            <div className="absolute inset-0 bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="text-white text-center">
-                                <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                                <p className="font-medium">Change Image</p>
+                    <div className="md:col-span-1">
+                    {/* Image upload */} 
+                    <div className="rounded-xl">
+                      <label htmlFor="" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Profile Picture *
+                      </label>
+                      {/* <div className="flex items-center mb-6">
+                        <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
+                          <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl text-black">User Image</h2>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">Upload a representative image</p>
+                        </div>
+                      </div> */}
+      
+                      <div className="space-y-4">
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="image-upload"
+                            className="hidden"
+                            onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
+                          />
+      
+                          <label
+                            htmlFor="image-upload"
+                            className="cursor-pointer block w-full"
+                          >
+                            <div className={`relative border-2 ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"} dark:border-gray-600 rounded-xl overflow-hidden transition-colors group`}>
+                              <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                                <img
+                                  src={preview}
+                                  alt="Preview"
+                                  className="object-cover w-full h-full"
+                                />
                               </div>
+      
+                              {/* Upload overlay for empty state */}
+                              {!formData.image && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
+                                  <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
+                                  <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                                </div>
+                              )}
+      
+                               {/* Change image overlay */}
+                                {formData.image && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="text-white text-center">
+                                            <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                                            <p className="font-medium">Change Image</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                          )}
+                          </label> 
                         </div>
-                      </label> 
+      
+                        {/* File info */}
+                        {/* {formData.image && (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="flex items-center">
+                              <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {formData.image?.name}
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {(formData.image.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </div>
+                        )} */}
+
+                        {/* Upload Button */}
+                        <div className="flex justify-center  border-t py-2 border-gray-200">
+                            <label
+                                htmlFor="image-upload"
+                                className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                <Upload className="w-5 h-5 mr-2" />
+                                Upload Picture
+                            </label>
+                        </div>
+                         
+                        {/* Error message */}
+                        {formError.image && (
+                          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <p className="text-red-600 dark:text-red-400 text-sm">{formError.image}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-  
-                    {/* File info */}
-                    {formData.image && (
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center">
-                          <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {formData.image?.name}
-                          </span>
-                        </div>
-                        {/* <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {(formData.image.size / 1024 / 1024).toFixed(2)} MB
-                        </span> */}
-                      </div>
-                    )}
-  
-                    {/* Error message */}
-                    {formError.image && (
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                        <p className="text-red-600 dark:text-red-400 text-sm">{formError.image}</p>
-                      </div>
-                    )}
                   </div>
-                </div>
+                  </div>
+                </div> 
               </form>
             </div>
 

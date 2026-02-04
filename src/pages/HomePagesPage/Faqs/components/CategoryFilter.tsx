@@ -20,25 +20,20 @@ import {
   HardDrive,
 } from "lucide-react";
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
 interface Props {
-  categories: Category[];
-  selectedCategory: string;
-  onCategoryChange: (id: string) => void;
+  devices: string[];
+  selectedDevice: string;
+  onDeviceChange: (device: string) => void;
 }
 
 const CategoryFilter: React.FC<Props> = ({
-  categories,
-  selectedCategory,
-  onCategoryChange,
+  devices,
+  selectedDevice,
+  onDeviceChange,
 }) => {
-  // SAME icon logic as FAQs filter (adapted for category names)
-  const getCategoryIcon = (categoryName: string) => {
-    const name = categoryName.toLowerCase();
+  // 🔥 SAME ICON LOGIC STYLE AS PRODUCT HUB
+  const getCategoryIcon = (deviceName: string) => {
+    const name = deviceName.toLowerCase();
 
     // Kiosk / Terminal
     if (name.includes("kiosk") || name.includes("atm") || name.includes("terminal")) {
@@ -119,21 +114,21 @@ const CategoryFilter: React.FC<Props> = ({
     <div className="w-full">
       {/* DESKTOP */}
       <div className="hidden md:flex justify-center gap-4 flex-wrap">
-        {categories.map((category) => {
-          const isActive = selectedCategory === category.id;
+        {devices.map((device) => {
+          const isActive = selectedDevice === device;
 
           return (
             <button
-              key={category.id}
-              onClick={() => onCategoryChange(category.id)}
+              key={device}
+              onClick={() => onDeviceChange(device)}
               className={`category-pill-advanced ${isActive ? "active" : ""}`}
             >
               <div className="category-pill-icon-advanced">
-                {getCategoryIcon(category.name)}
+                {getCategoryIcon(device)}
               </div>
 
               <span className="category-pill-name-advanced">
-                {category.name}
+                {device}
               </span>
             </button>
           );
@@ -142,21 +137,21 @@ const CategoryFilter: React.FC<Props> = ({
 
       {/* MOBILE */}
       <div className="grid grid-cols-2 gap-3 md:hidden mt-4">
-        {categories.map((category) => {
-          const isActive = selectedCategory === category.id;
+        {devices.map((device) => {
+          const isActive = selectedDevice === device;
 
           return (
             <button
-              key={category.id}
-              onClick={() => onCategoryChange(category.id)}
+              key={device}
+              onClick={() => onDeviceChange(device)}
               className={`category-pill-advanced ${isActive ? "active" : ""}`}
             >
               <div className="category-pill-icon-advanced">
-                {getCategoryIcon(category.name)}
+                {getCategoryIcon(device)}
               </div>
 
               <span className="category-pill-name-advanced">
-                {category.name}
+                {device}
               </span>
             </button>
           );

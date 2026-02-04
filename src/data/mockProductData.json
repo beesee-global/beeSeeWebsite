@@ -16,7 +16,7 @@
       "id": "smarttv",
       "name": "Smart TVs",
       "icon": "Tv",
-      "hoverSpecs": ["display", "resolution", "refresh_rate", "smart_features"]
+      "hoverSpecs": ["display", "resolution", "refresh_rate", "panel_type"]
     },
     {
       "id": "tablet",
@@ -49,14 +49,14 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i5-1135G7 (4-core, up to 4.2GHz)",
-          "RAM": "16GB DDR4 3200MHz",
+          "Processor": "Intel Core i5",
+          "RAM": "16GB DDR4",
           "Graphics": "Intel Iris Xe Graphics",
-          "Storage": "512GB M.2 NVMe PCIe 3.0 SSD",
+          "Storage": "512GB M.2 NVMe",
           "Thermal System": "Dual-fan cooling system"
         },
         "Display": {
-          "Size": "14\" diagonal",
+          "Size": "14\"",
           "Resolution": "1920 × 1080 (Full HD)",
           "Technology": "IPS anti-glare",
           "Color Gamut": "100% sRGB",
@@ -116,14 +116,14 @@
 
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i7-1255U (10-core, up to 4.7GHz)",
-          "RAM": "16GB DDR5 4800MHz",
+          "Processor": "Intel Core i7",
+          "RAM": "16GB DDR5",
           "Graphics": "NVIDIA GeForce MX450 2GB GDDR6",
-          "Storage": "1TB M.2 NVMe PCIe 4.0 SSD",
+          "Storage": "1TB M.2 NVMe",
           "Thermal System": "Dual-fan with heat pipes"
         },
         "Display": {
-          "Size": "15.6\" diagonal",
+          "Size": "15.6\"",
           "Resolution": "2560 × 1440 (QHD)",
           "Technology": "IPS with 100% sRGB",
           "Refresh Rate": "60Hz",
@@ -171,14 +171,14 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i9-13900H (14-core, up to 5.4GHz)",
-          "RAM": "32GB DDR5 5200MHz",
+          "Processor": "Intel Core i9",
+          "RAM": "32GB DDR5",
           "Graphics": "NVIDIA RTX 4060 8GB GDDR6",
-          "Storage": "2TB M.2 NVMe PCIe 4.0 SSD",
+          "Storage": "2TB M.2 NVMe",
           "Thermal System": "Vapor chamber cooling"
         },
         "Display": {
-          "Size": "16\" diagonal",
+          "Size": "16\"",
           "Resolution": "3840 × 2400 (4K UHD+)",
           "Technology": "OLED with HDR600",
           "Color Gamut": "100% DCI-P3",
@@ -215,14 +215,14 @@
       ],
       "detailedSpecs": {
         "Performance": {
-          "Processor": "Intel Core i9-14900HX (24-core, up to 5.8GHz)",
-          "RAM": "64GB DDR5 5600MHz",
+          "Processor": "Intel Core i9",
+          "RAM": "64GB DDR5",
           "Graphics": "NVIDIA RTX 4070 8GB GDDR6",
-          "Storage": "4TB M.2 NVMe PCIe 5.0 SSD (2x 2TB RAID 0)",
+          "Storage": "4TB M.2 NVMe",
           "Thermal System": "Triple-fan cooling with liquid metal"
         },
         "Display": {
-          "Size": "17\" diagonal",
+          "Size": "17\"",
           "Resolution": "3840 × 2400 (4K UHD+)",
           "Technology": "Mini-LED with 1200 nits peak",
           "Color Gamut": "100% Adobe RGB, 99% DCI-P3",
@@ -353,7 +353,7 @@
           "Always-On": "Yes"
         },
         "Medical Features": {
-          "ECG": "FDA-approved ECG monitoring",
+          "ECG": "ECG monitoring",
           "Blood Pressure": "Medical-grade BP tracking",
           "Temperature": "Body temperature sensor",
           "Blood Oxygen": "Continuous SpO2",
@@ -410,11 +410,17 @@
         "Eye-care technology",
         "20,000+ educational resources"
       ],
+      "specs": {
+        "display": "86 inches",
+        "resolution": "4K UHD",
+        "panel_type": "LED-backlit LCD",
+        "refresh_rate": "60Hz"
+      },
 
       "detailedSpecs": {
         "Display": {
-          "Size": "86 inches diagonal",
-          "Resolution": "3840 × 2160 (4K UHD)",
+          "Size": "86 inches",
+          "Resolution": "4K UHD",
           "Panel Type": "LED-backlit LCD",
           "Brightness": "400 nits",
           "Contrast Ratio": "5000:1",
@@ -481,11 +487,17 @@
         "Cloud collaboration tools",
         "4K streaming capability"
       ],
+      "specs": {
+        "display": "75 inches",
+        "resolution": "4K UHD",
+        "panel_type": "QLED",
+        "refresh_rate": "120Hz"
+      },
 
       "detailedSpecs": {
         "Display": {
-          "Size": "75 inches diagonal",
-          "Resolution": "3840 × 2160 (4K UHD)",
+          "Size": "75 inches",
+          "Resolution": "4K UHD",
           "Panel Type": "QLED",
           "Refresh Rate": "120Hz",
           "Brightness": "500 nits",
@@ -554,7 +566,7 @@
 
   "detailedSpecs": {
     "Display": {
-      "Size": "8.3 inches diagonal (unfolded)",
+      "Size": "8.3 inches",
       "Resolution": "2208 × 1768 pixels",
       "Technology": "Foldable Dynamic AMOLED 2X",
       "Refresh Rate": "120Hz adaptive",
@@ -563,11 +575,11 @@
       "Cover Display": "6.2-inch Super AMOLED"
     },
     "Performance": {
-      "Processor": "Qualcomm Snapdragon 8 Gen 3 (4nm)",
+      "Processor": "Snapdragon",
       "CPU": "1x 3.3GHz Cortex-X4 + 3x 3.2GHz Cortex-A720 + 4x 2.3GHz Cortex-A520",
       "GPU": "Adreno 750 with hardware-accelerated ray tracing",
-      "RAM": "12GB LPDDR5X (8533 Mbps)",
-      "Storage": "1TB UFS 4.0 (sequential read: 4200MB/s)",
+      "RAM": "12GB LPDDR5X ",
+      "Storage": "1TB UFS 4.0",
       "Cooling": "Vapor chamber with graphene layer"
     },
     "Battery & Charging": {

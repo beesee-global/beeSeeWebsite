@@ -171,7 +171,9 @@ const Product = () => {
         queryClient.invalidateQueries({ queryKey: ['products'] });
       }
     } catch (error) {
-      setSnackBarMessage("Failed to submit, Please try again.")
+      const message = error?.response?.data?.message?.replace(/^Error:\s*/, '');
+ 
+      setSnackBarMessage(message)
       setSnackBarType('error')
       setSnackBarOpen(true)
     }
@@ -198,9 +200,11 @@ const Product = () => {
         setModalOpen(false);
       }
     } catch (error) {
-      setSnackBarMessage("Failed to update product");
-      setSnackBarType("error");
-      setSnackBarOpen(true);
+      const message = error?.response?.data?.message?.replace(/^Error:\s*/, '');
+ 
+      setSnackBarMessage(message)
+      setSnackBarType('error')
+      setSnackBarOpen(true) 
     }
   };
 

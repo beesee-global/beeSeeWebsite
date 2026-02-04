@@ -105,13 +105,13 @@ const UnifiedScrollingPage: React.FC = () => {
         </div>
 
         {/* Body Text */}
-        <p className={`bee-body max-w-xl text-[#C7B897] leading-relaxed mt-3 md:mt-4 px-2 md:px-0 ${isMobile ? "text-center" : "text-left"}`}>
+        <p className={`bee-body-lg max-w-xl text-[#C7B897] leading-relaxed mt-3 md:mt-4 px-2 md:px-0 ${isMobile ? "text-center" : "text-left"}`}>
           BeeSee Global Technologies creates hardware, software, and scalable
           learning ecosystems built for Philippine environments and deployed
           to the world.
         </p>
 
-        {/* WATCH VIDEO + Innovation Stats */}
+        {/* WATCH VIDEO + Innovation Stats
         <div className={`flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 pt-3 md:pt-4 px-2 md:px-0 ${isMobile ? "items-center justify-center" : "items-start justify-start"}`}>
           <button
             onClick={() => setShowVideo(true)}
@@ -124,7 +124,7 @@ const UnifiedScrollingPage: React.FC = () => {
             <div className="text-[var(--beesee-gold)] font-semibold">10+ Years in Innovation</div>
             <div className="text-[#C7B897]/80">ICT • STEM • Enterprise Development</div>
           </div>
-        </div>
+        </div>  */}
       </>
     );
 
@@ -202,7 +202,7 @@ const UnifiedScrollingPage: React.FC = () => {
         <h2 className="bee-title-md text-[var(--beesee-gold)] leading-[1.1] mb-2 md:mb-3 px-2">
           From Local Vision to Global Footprint
         </h2>
-        <p className="bee-body max-w-2xl mx-auto text-[#C7B897]/90 mt-2 md:mt-3 leading-relaxed px-4">
+        <p className="bee-body-lg max-w-2xl mx-auto text-[#C7B897]/90 mt-2 md:mt-3 leading-relaxed px-4">
           We started as a small team solving pain points in Philippine schools.
           Today, we build devices, content, and programs trusted by institutions
           nationwide—and ready for the world.
@@ -236,7 +236,7 @@ const UnifiedScrollingPage: React.FC = () => {
             {title}
           </h3>
         </div>
-        <p className="bee-body text-[#C7B897]/90 leading-relaxed text-center md:text-left">
+        <p className="bee-body-lg text-[#C7B897]/90 leading-relaxed text-center md:text-left">
           {content}
         </p>
       </div>

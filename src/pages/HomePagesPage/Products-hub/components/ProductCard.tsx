@@ -32,7 +32,7 @@ const useIsMobile = () => {
 const categoryHoverSpecs: Record<string, string[]> = {
   laptop: ["cpu", "ram", "storage", "display"],
   smartwatch: ["display", "battery", "sensors", "connectivity"],
-  smarttv: ["display", "resolution", "refresh_rate", "smart_features"],
+  smarttv: ["display", "resolution", "panel_type", "refresh_rate"],
   tablet: ["cpu", "ram", "storage", "display"],
   kiosk: ["display", "cpu", "storage", "touchscreen"],
   // Default fallback
@@ -115,6 +115,7 @@ const ProductCard: React.FC<{
     resolution: "Resolution",
     refresh_rate: "Refresh Rate",
     sensors: "Sensors",
+    panel_type: "Panel Type",
     smart_features: "Smart Features",
     touchscreen: "Touchscreen",
   };
@@ -151,7 +152,7 @@ const ProductCard: React.FC<{
             <h3 className="product-name">{product.name}</h3>
             <p className="product-tagline">{product.tagline}</p>
             <p className="product-price">
-              {formatPrice(product.price)}
+              {/* {formatPrice(product.price)} */}
             </p>
           </div>
         </div>
@@ -235,7 +236,7 @@ const ProductCard: React.FC<{
           <h3 className="product-name">{product.name}</h3>
           <p className="product-tagline">{product.tagline}</p>
           <p className="product-price">
-            {formatPrice(product.price)}
+            {/* {formatPrice(product.price)} */}
           </p>
         </div>
       </div>

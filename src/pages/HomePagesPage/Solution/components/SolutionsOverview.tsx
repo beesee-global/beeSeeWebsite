@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
-import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail } from "lucide-react";
+import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail, Phone, MapPin } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/Ecommerce/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
 
@@ -89,9 +89,15 @@ const UnifiedPage: React.FC = () => {
   }, [supportRightInView, supportRightControls, isMobile]);
 
   const supportFeatures = [
-    { icon: PhoneCall, title: "Call Local Support", desc: "Talk directly with our local support experts." },
+    { icon: PhoneCall, title: "Local Support", desc: "Talk directly with our local support experts." },
     { icon: RotateCcw, title: "Request a Callback", desc: "Leave a request and we'll reach out at your convenience." },
-    { icon: Mail, title: "Ask-A-Question (After Hours)", desc: "Send your query anytime we'll reply by email promptly." },
+    { icon: Mail, title: "Ask-A-Question", desc: "Send your query anytime we'll reply by email promptly." },
+  ];
+
+  const contactInfo = [
+    { icon: Phone, title: "SALES", desc: "+63 927 609 3575" },
+    { icon: Mail, title: "SUPPORT", desc: "info@beese.ph" },
+    { icon: MapPin, title: "ADDRESS", desc: "#65-D Scout Borromeo, South Triangle, Quezon City" },
   ];
 
   /** ==================== ANIMATION VARIANTS ==================== */
@@ -238,19 +244,11 @@ const UnifiedPage: React.FC = () => {
           variants={solutionsVariants}
           className="relative z-10 max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 text-center mb-12 sm:mb-16 md:mb-20 w-full"
         >
-          {/* Badge */}
-          <motion.div
-            variants={solutionsChildVariants}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FDCC00]/20 to-[#FFD700]/10 backdrop-blur-md border border-[#FDCC00]/30 px-4 py-2 rounded-full mb-4 sm:mb-6 text-xs sm:text-sm text-[var(--beesee-gold)] uppercase tracking-[0.15em] sm:tracking-[0.18em]"
-          >
-            <Layers size={14} className="sm:w-4 sm:h-4 text-[#FDCC00]" />
-            Enterprise Solutions Portfolio
-          </motion.div>
 
           {/* Title */}
           <motion.h2
             variants={solutionsChildVariants}
-            className="bee-title-lg text-[var(--beesee-gold)] tracking-wide text-2xl sm:text-3xl md:text-4xl lg:text-5xl px-2 sm:px-4"
+            className="bee-title-lg text-[var(--beesee-gold)] tracking-wide px-2 sm:px-4"
           >
             COMPLETE INFRASTRUCTURE SOLUTIONS
           </motion.h2>
@@ -258,7 +256,7 @@ const UnifiedPage: React.FC = () => {
           {/* Paragraph */}
           <motion.p
             variants={solutionsChildVariants}
-            className="bee-body max-w-2xl mx-auto mt-4 sm:mt-6 leading-relaxed text-sm sm:text-base md:text-lg px-4 sm:px-6"
+            className="bee-body-lg max-w-2xl mx-auto mt-4 sm:mt-6 leading-relaxed px-4 sm:px-6"
           >
             From high-performance servers to comprehensive cloud infrastructure, our enterprise solutions are designed to scale with your business needs while maintaining the highest standards of reliability and security.
           </motion.p>
@@ -289,13 +287,13 @@ const UnifiedPage: React.FC = () => {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg border border-[#FDCC00]/35 flex items-center justify-center bg-[#FDCC00]/10 flex-shrink-0">
                       <IconComponent size={18} className="sm:w-5 sm:h-5 md:w-6 md:h-6 text-[var(--beesee-gold)]" />
                     </div>
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--beesee-gold)] leading-tight">{solution.title}</h3>
+                    <h3 className="bee-title-sm text-[var(--beesee-gold)] leading-tight">{solution.title}</h3>
                   </div>
 
-                  <p className="text-sm sm:text-base text-white/90 leading-relaxed">{solution.description}</p>
+                  <p className="bee-body-lg text-white/90 leading-relaxed">{solution.description}</p>
 
                   <div className="space-y-2 sm:space-y-3 w-full">
-                    <h4 className="text-base sm:text-lg font-semibold text-white">Key Features</h4>
+                    <h4 className="bee-body font-semibold text-white">Key Features</h4>
                     <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
                       {solution.features.map((feature, i) => (
                         <div 
@@ -303,19 +301,19 @@ const UnifiedPage: React.FC = () => {
                           className="flex items-start gap-2"
                         >
                           <CheckCircle size={14} className="sm:w-4 sm:h-4 text-[var(--beesee-gold)] mt-0.5 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm text-white/75">{feature}</span>
+                          <span className="bee-body-sm text-white/75">{feature}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div className="bg-white/10 backdrop-blur-md rounded-lg border border-[#FDCC00]/25 p-4 sm:p-5">
-                    <h4 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Technical Specifications</h4>
+                    <h4 className="bee-body font-semibold text-white mb-2 sm:mb-3">Technical Specifications</h4>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       {Object.entries(solution.specs).map(([key, value]) => (
                         <div key={key} className="flex flex-col">
-                          <span className="text-xs opacity-70 capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
-                          <span className="text-sm sm:text-base text-white font-medium">{String(value)}</span>
+                          <span className="bee-body-sm opacity-70 capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
+                          <span className="bee-body-lg text-white font-medium">{String(value)}</span>
                         </div>
                       ))}
                     </div>
@@ -343,6 +341,13 @@ const UnifiedPage: React.FC = () => {
 
       {/* ==================== SUPPORT SERVICES SECTION ==================== */}
       <section className="relative w-full py-12 sm:py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-[#000000]">
+        {/* Top Fade to fix overlay issue */}
+        <div className="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0) 100%)'
+          }}
+        ></div>
+
         {/* Animated Background Effects */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute top-10 left-4 sm:left-10 w-48 h-48 sm:w-60 sm:h-60 bg-[#FDCC00]/20 blur-2xl rounded-full"></div>
@@ -365,28 +370,22 @@ const UnifiedPage: React.FC = () => {
             variants={supportLeftVariants}
             className="w-full"
           >
-            <div
-              style={{ fontFamily: "Georgia, serif" }}
-              className="text-[#FDCC00]/80 text-xs sm:text-sm tracking-[0.2em] sm:tracking-[0.25em] uppercase mb-3 sm:mb-4"
-            >
-              We're Here for You
-            </div>
+
 
             <h2
-              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#FDCC00] tracking-wide leading-tight mb-4 sm:mb-6"
+              className="bee-title-md text-[#FDCC00] tracking-wide leading-tight mb-4 sm:mb-6"
             >
-              INTEGRATED SUPPORT & SERVICES
+             WE'RE HERE FOR YOU
             </h2>
 
             <p
-              className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-xl text-white/85"
+              className="bee-body-lg mb-6 sm:mb-8 max-w-xl text-white/85"
             >
               Get the help you need, anytime, anywhere. BeeSee ensures you stay connected and supported because we believe great technology deserves great care.
             </p>
 
             {/* Feature Cards */}
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-4 sm:space-y-5 mb-10">
               {supportFeatures.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
@@ -402,10 +401,22 @@ const UnifiedPage: React.FC = () => {
                     </div>
 
                     <div className="flex-1">
-                      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif" }} className="text-base sm:text-lg text-white mb-1 group-hover:text-[#FDCC00] transition-colors duration-300 tracking-wide">
+                      <h3 className="text-white mb-1 group-hover:text-[#FDCC00] transition-colors duration-300 tracking-wide"
+                        style={{
+                          fontSize: '1.1rem',
+                          fontWeight: 500,
+                          fontFamily: 'var(--font-sans)'
+                        }}
+                      >
                         {item.title}
                       </h3>
-                      <p style={{ fontFamily: "Segoe UI, sans-serif" }} className="text-xs sm:text-sm text-[#C7B897]/80 leading-relaxed group-hover:text-[#C7B897]/100 transition-colors duration-300">
+                      <p className="text-[#C7B897]/80 leading-relaxed group-hover:text-[#C7B897]/100 transition-colors duration-300"
+                        style={{
+                          fontSize: '0.95rem',
+                          lineHeight: '1.6',
+                          fontFamily: 'var(--font-sans)'
+                        }}
+                      >
                         {item.desc}
                       </p>
                     </div>
@@ -413,6 +424,8 @@ const UnifiedPage: React.FC = () => {
                 );
               })}
             </div>
+
+        
           </motion.div>
 
           {/* Right Image */}

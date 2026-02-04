@@ -52,8 +52,12 @@ const ImageUploadModal: React.FC<AddImageUploadModalProps> = ({ open, onClose, o
             try {
                 const base64 = await convertToBase64(selectedFile);
                 onSubmit(selectedFile, base64); // 👈 return both file and base64
+                setSelectedFile(null)
+                setPreview(null);
             } catch (err) {
                 console.error("Base64 conversion failed", err);
+                setSelectedFile(null)
+                setPreview(null);
             }
         }
         onClose();

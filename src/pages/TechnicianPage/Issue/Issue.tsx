@@ -130,35 +130,50 @@ const Issue = () => {
   };
 
   const handleAddIssue = async (formDataIssue: Record<string, string>) => {
-    const response = await IssueCategory({
-      name: formDataIssue.name,
-      /* products_id: Number(formDataIssue.products_id), */
-      categories_id: Number(formDataIssue.categories_id)
-    });
-    if (response?.success) {
-      setSnackBarMessage("Issue created successfully");
-      setSnackBarType('success');
+    try {
+      const response = await IssueCategory({
+        name: formDataIssue.name,
+        /* products_id: Number(formDataIssue.products_id), */
+        categories_id: Number(formDataIssue.categories_id)
+      });
+      if (response?.success) {
+        setSnackBarMessage("Issue created successfully");
+        setSnackBarType('success');
+        setSnackBarOpen(true);
+        setModalOpen(false)
+        queryClient.invalidateQueries({ queryKey: ['issues'] });
+      }
+    } catch (error) {
+      const message = error?.response?.data?.message?.replace(/^Error:\s*/, '');
+      setSnackBarMessage(message || "Failed to create issue");
+      setSnackBarType('error');
       setSnackBarOpen(true);
       setModalOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
     }
   };
 
   const handleUpdateIssue = async (formDataIssue: Record<string, string>) => {
-    const payload = {
-      id: selectedProduct.id,
-      name: formDataIssue.name,
-     /*  products_id: Number(formDataIssue.products_id), */
-      categories_id: Number(formDataIssue.categories_id)
-    };
+    try {
+      const payload = {
+        id: selectedProduct.id,
+        name: formDataIssue.name,
+      /*  products_id: Number(formDataIssue.products_id), */
+        categories_id: Number(formDataIssue.categories_id)
+      };
 
-    const response = await updateProduct({ id: selectedProduct.id, payload });
-    if (response) {
-      setSnackBarMessage("Issue updated successfully");
-      setSnackBarType("success");
+      const response = await updateProduct({ id: selectedProduct.id, payload });
+      if (response) {
+        setSnackBarMessage("Issue updated successfully");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+        queryClient.invalidateQueries({ queryKey: ["issues"] });
+        setModalOpen(false);
+      }
+    } catch (error) {
+      const message = error?.response?.data?.message?.replace(/^Error:\s*/, '');
+      setSnackBarMessage(message || "Failed to update issue");
+      setSnackBarType("error");
       setSnackBarOpen(true);
-      queryClient.invalidateQueries({ queryKey: ["issues"] });
-      setModalOpen(false);
     }
   };
 
