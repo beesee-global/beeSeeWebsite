@@ -42,6 +42,15 @@ export const fetchAllDevices = async() => {
     }
 }
 
+export const fetchAllDevicesPublic = async() => {
+    try {
+        const response = await axiosClient.get(`/categories/public`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const fetchAllProducts = async () => {
     try {
         const response = await axiosClient.get(`/products`);
