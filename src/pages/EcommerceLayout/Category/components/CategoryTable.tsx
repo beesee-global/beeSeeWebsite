@@ -7,6 +7,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
+import { LucideIcon } from "../../../../utils/lucideIconLoader";
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
@@ -325,6 +326,10 @@ export default function CategoryTable({
                                   </span>
                                 )
                                })()
+                              ) :  column.id === 'icon' ? (
+                                <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
+                                   <LucideIcon name={row.icon} size={18} />
+                                </span>
                               ) : column.id === 'created_at' ? (
                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                   {formatDate(row.created_at)}

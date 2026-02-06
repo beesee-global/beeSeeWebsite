@@ -36,6 +36,17 @@ export const fetchAllCategory = async () => {
     }
 }
 
+// get all category
+export const fetchAllCategoryPublic = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/public`);
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
+
 // get Specific category
 export const fetchEmployeeByPid = async (id: number | string) => {
     try {
