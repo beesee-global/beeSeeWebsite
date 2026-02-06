@@ -35,6 +35,15 @@ export const fetchCategory = async () => {
     }
 }
 
+export const fetchProductAll = async () => {
+    try {
+        const response = await axiosClient.get(`/products`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const createIssue = async (issue: Omit<Issues, "id">): Promise<Issues> => {
     try {
         const response = await axiosClient.post(`${API_URL}`, issue)

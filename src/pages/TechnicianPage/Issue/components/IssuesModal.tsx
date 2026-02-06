@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
-import { fetchProducts, fetchCategory } from '../../../../services/Technician/issuesServices';
+import { fetchProducts, fetchProductAll } from '../../../../services/Technician/issuesServices';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions'; 
@@ -64,11 +64,11 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
   // Load categories
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategory,
+    queryFn: fetchProductAll,
     select: (res) =>
       res?.data?.map((item: any) => ({ 
         value: item.id,
-        label: item.name 
+        label: item.product_name 
     })) ?? [],
   });
 

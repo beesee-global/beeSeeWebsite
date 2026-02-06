@@ -111,13 +111,16 @@ interface TableDefaultProps {
   onRowDoubleClick?: (row: RowData) => void;
   isLoading: boolean;
   sortable?: string;
+  filterOptions?: string[];
+  selectedFilter?: string;
+  onFilterChange?: (filter: string) => void;
 }
 
 // ============================================
 // 📊 MAIN COMPONENT
 // ============================================
 
-export default function TableDefault({ 
+export default function TableCustomizableHeaders({ 
   rows = [], 
   columns,
   selectedRowId = null,
@@ -125,6 +128,9 @@ export default function TableDefault({
   onRowDoubleClick,
   isLoading = false,
   sortable,
+  filterOptions,
+  selectedFilter,
+  onFilterChange,
 }: TableDefaultProps) { 
 
   const [page, setPage] = useState(0);
@@ -133,6 +139,11 @@ export default function TableDefault({
   const [orderBy, setOrderBy] = useState<string>(sortable || 'created_at');
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const rowsPerPage = 20;
+
+  // Reset page when filter changes
+  React.useEffect(() => {
+    setPage(0);
+  }, [selectedFilter]);
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -219,6 +230,27 @@ export default function TableDefault({
           {/* Scrollable table container */}
           <div className='overflow-x-auto'>
             <div className='min-w-[900px]'>
+              {/* Filter Section */}
+              {filterOptions && filterOptions.length > 0 && (
+                <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
+                  <div className='flex flex-col md:flex-row md:items-center md:justify-start gap-3 overflow-x-auto pb-2 md:pb-0'>
+                    {filterOptions.map((filter) => (
+                      <button
+                        key={filter}
+                        onClick={() => onFilterChange?.(filter)}
+                        className={`py-2 px-4 border rounded-md transition text-sm font-medium whitespace-nowrap flex-shrink-0
+                          ${selectedFilter === filter 
+                            ? "bg-yellow-500 text-white border-yellow-500" 
+                            : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                          }`}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Header Section */}
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 {/* Column Headers */}

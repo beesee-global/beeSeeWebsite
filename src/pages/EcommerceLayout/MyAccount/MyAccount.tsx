@@ -185,7 +185,7 @@ const MyAccount = () => {
       setMessage("Account information updated successfully!");
  
       logout()
-      navigate("/sign-in", {replace: true}) 
+      navigate("/ecom/sign-in", {replace: true}) 
     } catch (error) {
       console.error("❌ Error updating account:", error);
       setSnackBarType("error");

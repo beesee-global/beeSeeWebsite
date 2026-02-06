@@ -359,6 +359,7 @@ const Category = () => {
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        sortable={"name"}
       />
     </div>
   )

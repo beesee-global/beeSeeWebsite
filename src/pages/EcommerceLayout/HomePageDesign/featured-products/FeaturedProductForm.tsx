@@ -23,7 +23,7 @@ const FeaturedProductForm: React.FC = () => {
 
   const { snackBarMessage, snackBarType, snackBarOpen, setSnackBarMessage, setSnackBarType, setSnackBarOpen } = userAuth();
 
-  const [title, setTitle] = useState('FEATURED PRODUCTS');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [products, setProducts] = useState<SelectedProductEntry[]>([
     { product_id: null, badges: ['', '', ''], file: null },
@@ -187,10 +187,19 @@ const FeaturedProductForm: React.FC = () => {
       formData.append('techStats', techStatsString);
 
       products.forEach((p) => {
-        if (p.product_id && p.file) {
-          formData.append(`gallery[${p.product_id}]`, p.file as File);
+        if (p.product_id) {
+            // Send new file if present
+            if (p.file) {
+                formData.append(`gallery[${p.product_id}]`, p.file as File);
+            }
+            
+            // Always send existing image URL if no new file
+            if (!p.file && p.previewUrl) {
+                formData.append(`existingGallery[${p.product_id}]`, p.previewUrl);
+            }
         }
-      });
+    });
+
 
       if (id) {
         await updateMutation.mutateAsync({ id, formData });
@@ -237,7 +246,8 @@ const FeaturedProductForm: React.FC = () => {
           
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl shadow-lg">
+              <div className="p-3  bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90
+                                hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -260,7 +270,7 @@ const FeaturedProductForm: React.FC = () => {
               <button 
                 onClick={buildAndSubmit}
                 disabled={createMutation.isPending || updateMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-5 h-5" />
                 {id ? 'Update Changes' : 'Create Featured'}

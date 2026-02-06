@@ -38,8 +38,6 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
     [userInformation]
   );
 
-  console.log(userInformation)
-
   const preview = useMemo(() => {
     if (user.image instanceof File) {
       return URL.createObjectURL(user.image);
