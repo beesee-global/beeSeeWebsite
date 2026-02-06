@@ -36,6 +36,25 @@ export const fetchAllProduct = async () => {
     }
 }
 
+// get all product public 
+export const fetchAllProductPublic = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/public`);
+        return response;
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchSpecificProductPublic = async (id: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${id}/public`);
+        return response;
+    } catch (error) {
+        throw error
+    }
+}
+
 // get Specific product
 export const fetchSpecificProduct = async (id: number | string) => {
     try {

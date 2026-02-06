@@ -377,9 +377,10 @@ const ProductForm: React.FC = () => {
       });
 
       // 5️⃣ Call mutation
-      if (id) {  
+      if (id) {   
         const selectedOption = category.find(cat => cat.label === formProductData.category);
-        formData.append("category_id", selectedOption?.value || "");
+        const selectedOptionId = category.find(cat => cat.value === formProductData.category);
+        formData.append("category_id", selectedOption?.value || selectedOptionId?.value);
         await updateProductAsync({
           id: productInfo.id,
           productData: formData
