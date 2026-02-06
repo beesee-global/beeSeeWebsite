@@ -460,8 +460,7 @@ const MyAccount = () => {
                     placeholder="Enter your email address"
                     value={accountData.email}
                     onChange={handleInputChange}
-                    multiline={false}
-                    disabled={true}
+                    multiline={false} 
                     maxLength={100}
                     type="email"
                     rows={1}
