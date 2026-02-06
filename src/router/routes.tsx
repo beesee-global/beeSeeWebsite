@@ -33,13 +33,15 @@ const MainProduct = lazy(() => import('../pages/EcommerceLayout/Product/Products
 const MainProductForm = lazy (() => import ('../pages/EcommerceLayout/Product/ProductForm'));
 const MainCategory = lazy(() => import('../pages/EcommerceLayout/Category/Category'));
 const MainCategoryForm = lazy (() => import ('../pages/EcommerceLayout/Category/CategoryForm'));
-const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount")) 
-const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
-const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
-const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
-const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
-const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
-const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
+const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount"));
+const FeaturedProduct = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts'))
+const FeaturedProductForm = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm'))
+// const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
+// const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
+// const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
+// const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
+// const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
+// const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
  
 /* Technician */
 const TechnicianLayout = lazy(() => import ("../layout/TechnicianLayout")); 
@@ -193,29 +195,37 @@ const routes = [
                 element: <MainMyAccount />
             },
             {
-                path: 'employee',
-                element: <Employee />
+                path: 'feature-product',
+                element: <FeaturedProduct/>
             },
             {
-                path: 'employee/form/:id?',
-                element: <EmployeeForm />
-            },
-            {
-                path: 'solutions-overview',
-                element: <MainSolutionsOverview />
-            },
-            {
-                path: 'solutions-overview/form/:id?',
-                element: <MainSolutionsOverviewForm />
-            },
-            {
-                path: 'manage-banner',
-                element: <MainSalesBanner />
-            },
-            {
-                path: 'manage-banner/form/:id?',
-                element: <MainSalesBannerForm />
-            },  
+                path: 'feature-product/form/:id?',
+                element: <FeaturedProductForm />
+            }
+            // {
+            //     path: 'employee',
+            //     element: <Employee />
+            // },
+            // {
+            //     path: 'employee/form/:id?',
+            //     element: <EmployeeForm />
+            // },
+            // {
+            //     path: 'solutions-overview',
+            //     element: <MainSolutionsOverview />
+            // },
+            // {
+            //     path: 'solutions-overview/form/:id?',
+            //     element: <MainSolutionsOverviewForm />
+            // },
+            // {
+            //     path: 'manage-banner',
+            //     element: <MainSalesBanner />
+            // },
+            // {
+            //     path: 'manage-banner/form/:id?',
+            //     element: <MainSalesBannerForm />
+            // },  
         ]
     },
 
