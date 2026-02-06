@@ -9,6 +9,9 @@ import CategoryFilter, { Category } from "./components/CategoryFilter";
 import SearchAndFilters from "./components/SearchAndFilters";
 import ProductGrid, { Product } from "./components/ProductGrid";
 import HeroProducts from "../../HomePagesPage/Products-hub/components/HeroProduct";
+import { fetchAllProductPublic } from '../../../services/Ecommerce/productServices'
+import { fetchAllCategoryPublic } from '../../../services/Ecommerce/categoryServices'
+import { useQuery } from "@tanstack/react-query";
 
 import "../../../assets/css/Product.css";
 
@@ -165,52 +168,95 @@ const ProductsHub: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Process mock data
-  const demoProducts = useMemo(() => processMockProducts(mockProducts), []);
+  
 
-  const categories: Category[] = [
-    { 
-      id: "all", 
-      name: "All Products", 
-      count: demoProducts.length,
-      hoverSpecs: []
+  const { data: categories } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const categories = await fetchAllCategoryPublic();
+      // Normalize categories: ensure each item has `id`, `name`, `icon`.
+      const mapped = (categories || []).map((c: any, idx: number) => ({
+        id: c.id ?? String(c.name || `cat-${idx}`),
+        name: c.name,
+        icon: c.icon,
+      }));
+      // Add "All Products" at the beginning with id 'all'
+      return [{ id: 'all', name: "All Products", icon: "Server" }, ...mapped];
     },
-    { 
-      id: "laptop", 
-      name: "Laptops", 
-      count: demoProducts.filter((p) => p.category_id === "laptop").length,
-      icon: "💻",
-      hoverSpecs: ["cpu", "ram", "storage", "display"]
-    },
-    { 
-      id: "smartwatch", 
-      name: "Wearables", 
-      count: demoProducts.filter((p) => p.category_id === "smartwatch").length,
-      icon: "⌚",
-      hoverSpecs: ["display", "battery", "sensors", "connectivity"]
-    },
-    { 
-      id: "smarttv", 
-      name: "Interactive Smart TVs", 
-      count: demoProducts.filter((p) => p.category_id === "smarttv").length,
-      icon: "📺",
-      hoverSpecs: ["display", "resolution", "refresh_rate", "panel_type"]
-    },
-    { 
-      id: "tablet", 
-      name: "Tablets", 
-      count: demoProducts.filter((p) => p.category_id === "tablet").length,
-      icon: "📱",
-      hoverSpecs: ["cpu", "ram", "storage", "display"]
-    },
-/*     { 
-      id: "kiosk", 
-      name: "Kiosk Machines", 
-      count: demoProducts.filter((p) => p.category_id === "kiosk").length,
-      icon: "🏧",
-      hoverSpecs: ["display", "cpu", "storage", "touchscreen"]
-    } */
-  ];
+  });
+
+  const {
+    data: products
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: () => fetchAllProductPublic()
+  })
+
+  console.log("product", products)
+ 
+  // Build demo products either from API `products` or fallback to mock data
+  const demoProducts = useMemo(() => {
+    const normalizeKey = (raw: string) => {
+      if (!raw) return raw;
+      const k = raw.toLowerCase().trim();
+      if (k.includes('processor') || k.includes('cpu')) return 'cpu';
+      if (k === 'ram' || k.includes('ram')) return 'ram';
+      if (k.includes('storage')) return 'storage';
+      if (k.includes('display') || k.includes('size')) return 'display';
+      if (k.includes('battery')) return 'battery';
+      if (k.includes('resolution')) return 'resolution';
+      if (k.includes('refresh')) return 'refresh_rate';
+      if (k.includes('panel')) return 'panel_type';
+      if (k.includes('sensor') || k.includes('ecg') || k.includes('spo2') || k.includes('blood')) return 'sensors';
+      if (k.includes('wifi') || k.includes('bluetooth')) return 'connectivity';
+      return k.replace(/[^a-z0-9_]/g, '_');
+    };
+
+    if (products && Array.isArray(products)) {
+      return products.map((product: any, index: number) => {
+        const hover = product.hover_specs || [];
+        const hoverSpecsData: Record<string, string> = {};
+        const hoverSpecIcons: Record<string, string> = {};
+
+        hover.forEach((h: any) => {
+          const key = normalizeKey(h.key || h.key_name || '');
+          if (!key) return;
+          hoverSpecsData[key] = String(h.value ?? '');
+          if (h.icon) hoverSpecIcons[key] = h.icon;
+        });
+
+        // attempt to find category id from fetched categories
+        const matchedCat = (categories || []).find((c: any) => c.name === product.category_name || c.name === product.category);
+
+        return {
+          id: index + 1,
+          pid: product.pid,
+          name: product.name,
+          tagline: product.tagline || '',
+          category_id: matchedCat?.id ?? String(product.category_name || product.category || '').toLowerCase(),
+          category: product.category_name || product.category || 'Unknown',
+          price: product.price ?? 0,
+          formattedPrice: formatPrice(product.price ?? 0),
+          image: product.image_url || product.image || '',
+          gallery: product.gallery || [],
+          description: product.description || '',
+          keyFeatures: product.keyFeatures || [],
+          specs: hoverSpecsData,
+          specIcons: hoverSpecIcons,
+          detailedSpecs: product.detailedSpecs || {},
+          hoverSpecs: hover.map((h: any) => h.key),
+          inStock: product.inStock ?? true,
+          rating: product.rating ?? 4.5,
+          reviews: product.reviews ?? 0,
+          createdAt: product.createdAt || new Date().toISOString(),
+          updatedAt: product.updatedAt || new Date().toISOString()
+        } as Product;
+      });
+    }
+
+    return processMockProducts(mockProducts);
+  }, [products, categories]);
+ 
 
   /* ===========================
      FILTERS / SORT / PAGINATION
@@ -339,7 +385,7 @@ const ProductsHub: React.FC = () => {
 
               <div className="mb-8">
                 <CategoryFilter
-                  categories={categories}
+                  categories={categories || []}
                   selectedCategory={selectedCategory}
                   onCategoryChange={(c) => {
                     setSelectedCategory(c);
@@ -514,7 +560,7 @@ const ProductsHub: React.FC = () => {
               <FadeReveal isMobile={isMobile}>
                 <div className="mb-8">
                   <CategoryFilter
-                    categories={categories}
+                    categories={categories || []}
                     selectedCategory={selectedCategory}
                     onCategoryChange={(c) => {
                       setSelectedCategory(c);
