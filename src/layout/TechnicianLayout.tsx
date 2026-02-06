@@ -29,7 +29,7 @@ const TechnicianLayout = () => {
       navigate("/tech/sign-in", { replace: true });
       localStorage.clear();
       return;
-    } */
+    } 
     // Done checking
     setIsChecking(false);
   }, [token, userInfo]);

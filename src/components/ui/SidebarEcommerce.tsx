@@ -56,10 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         name: "Home display",
         icon: <Home size={20} />,
         children: [
-          { name: "School Process", path: "/beesee/ecommerce/school-process", icon: <BookHeart size={16} /> },
-          /* { name: "Our Journey", path: "/beesee/our-journey", icon: <BookHeart size={16} /> }, 
-          { name: "Solutions Portfolio", path: "/beesee/solutions-overview", icon: <Lightbulb size={16} /> }, 
-          { name: "Manage banner", path: "/beesee/manage-banner", icon: <ViewCarouselIcon sx={{ fontSize: 20 }}/> },  */
+          { name: "Featured Products", path: "/beesee/ecommerce/feature-product", }, 
         ],
       }, 
     ]);
