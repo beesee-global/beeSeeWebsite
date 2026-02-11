@@ -335,7 +335,8 @@ const Applicants = () => {
       i.job_number?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       i.full_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       i.phone?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      i.email?.toLowerCase().includes(debouncedSearch.toLowerCase())
+      i.email?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      i.status?.toLowerCase().includes(debouncedSearch.toLowerCase())
     )
   }, [rows, debouncedSearch])
  

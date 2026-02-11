@@ -7,7 +7,8 @@ import {
 
 interface Option {
   value: string,
-  label: string
+  label: string,
+  is_active?: string | boolean
 }
 
 interface CustomSelectFieldProps {
@@ -83,13 +84,19 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
         ): undefined,
       }}
     >
-      {options.map((option) => (
+      {options.length > 0 ? 
+        options.map((option) => (
         <MenuItem 
           key={option.value} 
           value={option.value}>
           {option.label}
         </MenuItem>
-      ))}
+      ))
+      : (
+        <span className='flex items-center justify-center text-gray-400'>
+          No option
+        </span>
+      )}
     </TextField>
     {helperText && (
         <p className='text-red-500 text-sm mt-1 ml-2'>{helperText}</p>

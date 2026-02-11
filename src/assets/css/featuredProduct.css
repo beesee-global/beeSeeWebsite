@@ -78,6 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 3rem;
 }
 
 /* Floor Glow */
@@ -119,19 +120,19 @@
 
 /* RED WATCH — now floats */
 .watch-red-optimized {
-  left: 5%;
-  top: 8%;
+  left: 0%;
+  top: 6%;
   z-index: 30;
-  width: min(450px, 50vw);
+  width: clamp(240px, 38vw, 350px);
   animation: floatXY 4.5s ease-in-out infinite;
 }
 
 /* GREEN WATCH — now floats too */
 .watch-green-optimized {
-  right: 2%;
-  bottom: 10%;
+  right: 0%;
+  bottom: 8%;
   z-index: 25;
-  width: min(400px, 45vw);
+  width: clamp(220px, 34vw, 380px);
   animation: floatXYalt 5.5s ease-in-out infinite;
 }
 

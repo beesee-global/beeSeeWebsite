@@ -42,12 +42,12 @@ const Users = () => {
 
   const columns = [
     { id: 'full_name', label: 'Full name', sortable: true, align: 'left' },
-    { id: 'email', label: 'Email', sortable: false, align: 'left' }, 
+    { id: 'email', label: 'Email', sortable: true, align: 'left' }, 
     { id: 'employment_status', label: 'Status', sortable: false, align: 'left' },
     { id: 'created_at', label: 'Date', sortable: false, align: 'right' }
   ]
 
-  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === '');
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'list_user');
 
   const { data: userResponse, isLoading } = useQuery({
      queryKey: ['users', userInfo?.id],

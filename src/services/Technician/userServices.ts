@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { UserProfileFormData, UserProfileFormErrors } from "../../models/user";
 
 const API_URL = "/users"
 export const image = async (id:number | string, data: any) => {
@@ -10,6 +11,20 @@ export const image = async (id:number | string, data: any) => {
     })
 
     return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const userInformation = async(formData : UserProfileFormData) => {
+  try {
+    const response = await axiosClient.post(`users_userinfo`, formData, {
+      headers: {
+        "Content-Type" : "application/json"
+      }
+    })
+
+    return response
   } catch (error) {
     throw error
   }

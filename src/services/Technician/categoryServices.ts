@@ -14,10 +14,19 @@ export const createCategories = async(categoriesData: any) => {
         throw error
     }
 }
-
+ 
 export const fetchCategories = async() => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchCategoriesNoIsActive = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/no_is_active`);
         return response.data
     } catch (error) {
         throw error

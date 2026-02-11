@@ -23,7 +23,7 @@ export const fetchSchools = async () => {
     throw error
   }
 }
-
+ 
 export const images = async ({ id, image }: { id: string | number, image: FormData }) => {
   try {
     const response = await axiosClient.post(`${TICKETS_API_URL}/${id}/image`, image, {
@@ -38,7 +38,7 @@ export const images = async ({ id, image }: { id: string | number, image: FormDa
 
 export const fetchCategory = async () => {
   try {
-    const response = await axiosClient.get(`/categories`);
+    const response = await axiosClient.get(`/categories/cs/public`);
     return response.data;
   } catch (error) {
     throw error

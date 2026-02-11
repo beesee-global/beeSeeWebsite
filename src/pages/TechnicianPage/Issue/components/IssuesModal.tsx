@@ -14,13 +14,13 @@ import IconButton from '@mui/material/IconButton';
 
 interface FormError {
   id?: string; 
-  categories_id?: string;
+  product_id?: string;
   name?: string;
 }
 
 interface FormData {
   id?: string; 
-  categories_id: string;
+  product_id: string;
   name: string;
 }
 
@@ -55,14 +55,14 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
   const initialState: FormData = {
     id: '', 
     name: '',
-    categories_id: '',
+    product_id: '',
   };
 
   const [formData, setFormData] = useState<FormData>(initialState);
   const [formError, setFormError] = useState<FormError>({}); 
 
-  // Load categories
-  const { data: categories } = useQuery({
+  // Load model
+  const { data: modelType } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchProductAll,
     select: (res) =>
@@ -74,9 +74,9 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
 
   // Load products based on selected category
   const { data: productsResponse } = useQuery({
-    queryKey: ['products', formData?.categories_id],
-    queryFn: () => fetchProducts(Number(formData?.categories_id)),
-    enabled: !!formData?.categories_id,
+    queryKey: ['products', formData?.product_id],
+    queryFn: () => fetchProducts(Number(formData?.product_id)),
+    enabled: !!formData?.product_id,
     select: (res) =>
       res?.data?.map((item: any) => ({ 
         value: item.id, 
@@ -89,7 +89,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
       setFormData({
         id: selectedProduct.id, 
         name: selectedProduct.name,
-        categories_id: selectedProduct.categories_id,
+        product_id: selectedProduct.product_id,
       });
     }
   }, [isOpen, selectedProduct]);
@@ -121,7 +121,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
 
     // Basic validation
     const errors: FormError = {};
-    if (!formData?.categories_id) errors.categories_id = 'Device is required.';
+    if (!formData?.product_id) errors.product_id = 'Model type is required.';
     if (!formData?.name) errors.name = 'Issue is required.';
 
     setFormError(errors);
@@ -160,13 +160,13 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
       <DialogContent dividers>
         <form onSubmit={handleSubmit} id="reusable-form">
           <CustomSelectField
-            name="categories_id"
-            value={formData?.categories_id}
-            options={categories ?? []}
+            name="product_id"
+            value={formData?.product_id}
+            options={modelType ?? []}
             onChange={handleChangeInput}
-            placeholder="Select a Device Type"
-            error={!!formError?.categories_id}
-            helperText={formError?.categories_id}
+            placeholder="Select a Model Type"
+            error={!!formError?.product_id}
+            helperText={formError?.product_id}
           /> 
 
           <CustomTextField

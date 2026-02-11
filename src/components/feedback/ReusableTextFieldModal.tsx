@@ -11,11 +11,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { useEffect } from 'react';
 import CustomSelectField from '../Fields/CustomSelectField';
+import Checkbox from '@mui/material/Checkbox';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
 
 interface FieldConfig {
   name: string;
   placeholder: string;
-  type: string;            // "text" | "select"
+  type: string;            // "text" | "select" | "checkbox"
   value: string;
 
   // Make optional for select fields
@@ -23,6 +27,7 @@ interface FieldConfig {
   multiline?: boolean;
   rows?: number;
 
+  label?: string;
   options?: { value: string; label: string }[];
   validator?: (value: string) => string | undefined;
 }
@@ -62,7 +67,9 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
   cancelLabel = 'Cancel'
 }) => {
   const initialForm: Record<string, string> = {};
-  fields.forEach(field => initialForm[field.name] = field.value || '');
+  fields.forEach(field => {
+    initialForm[field.name] = field.value ?? (field.type === "checkbox" ? "false" : "");
+  });
 
   const [formData, setFormData] = useState(initialForm);
   const [formError, setFormError] = useState<Record<string, string>>({});
@@ -70,6 +77,12 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setFormError(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked ? "true" : "false" }));
     setFormError(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -97,7 +110,7 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
   useEffect(() => {
     const newForm: Record<string, string> = {};
     fields.forEach(field => {
-      newForm[field.name] = field.value || "";
+      newForm[field.name] = field.value ?? (field.type === "checkbox" ? "false" : "");
     });
 
     setFormData(newForm);
@@ -129,7 +142,23 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
         {description && <DialogContentText>{description}</DialogContentText>}
         <form onSubmit={handleSubmit} id="reusable-form">
           {fields.map(field => (
-            field.type === "select" ? (
+            field.type === "checkbox" ? (
+              <FormControl key={field.name} error={!!formError[field.name]} sx={{ mb: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name={field.name}
+                      checked={formData[field.name] === "true"}
+                      onChange={handleCheckboxChange}
+                    />
+                  }
+                  label={field.label ?? field.placeholder}
+                />
+                {!!formError[field.name] && (
+                  <FormHelperText>{formError[field.name]}</FormHelperText>
+                )}
+              </FormControl>
+            ) : field.type === "select" ? (
               <CustomSelectField
                 key={field.name}
                 name={field.name}

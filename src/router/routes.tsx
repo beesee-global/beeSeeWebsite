@@ -25,6 +25,7 @@ const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
 const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
+const UserForm = lazy(() => import('../pages/HomePagesPage/UserForm/UserForm'));
 
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
@@ -70,6 +71,7 @@ const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Appl
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
 const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
 
+// user
 
 const routes = [
     {
@@ -156,7 +158,7 @@ const routes = [
             {
                 path:  "forget-password",
                 element: <ForgetPassword />
-            }, 
+            }
         ]
     },
 
@@ -331,6 +333,10 @@ const routes = [
                 path: 'conversation/:pid',
                 element: <ConversationDetails />
             }, 
+            {
+                path: "bsg/user-form",
+                element: <UserForm />
+            }
         ]
     },
     /* Not found routes */ 

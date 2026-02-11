@@ -89,7 +89,7 @@ const STATUS_CONFIG: Record<
   { label: string; classes: string}
 > = {
   Accepting_Applications: {
-    label: 'Accepting Applications',
+    label: 'Accepting',
     classes: 'bg-blue-100 text-blue-800 border border-blue-200',
   },
   Closed: {
@@ -101,7 +101,7 @@ const STATUS_CONFIG: Record<
 const getStatusConfig = (status: string) =>
   STATUS_CONFIG[status] ?? {
     label: status, 
-    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+    classes: 'bg-green-100 text-gray-700 border border-gray-200',
   }
 
 // ============================================
@@ -322,6 +322,15 @@ export default function TableJobPosting({
                                 return (
                                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}>
                                     {label}
+                                  </span>
+                                )
+                               })()
+                              ) : column.id === 'num_applicant' ? (
+                               (() => {
+                                const { label,classes } = getStatusConfig(row.num_applicant);
+                                return (
+                                  <span className={`inline-flex items-center ml-2 px-3 py-1 rounded-full text-xs font-medium ${classes}`}>
+                                    {label} New Applicants
                                   </span>
                                 )
                                })()

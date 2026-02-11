@@ -16,9 +16,11 @@ import {
   deleteProducts, 
   fetchProducts, 
   updateProducts,
-  createProduct,
-  fetchCategories
+  createProduct, 
 } from '../../../services/Technician/productServices' 
+import {
+  fetchCategoriesNoIsActive
+} from '../../../services/Technician/categoryServices'
 import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import AlertDialog from "../../../components/feedback/AlertDialog"
@@ -60,15 +62,14 @@ const Product = () => {
 
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories,
+    queryFn: fetchCategoriesNoIsActive,
     select: (res) => res.data.map((item: any) => ({
       value: item.id,
       label: item.name
     }))
   })
  
-  const TabHeaders = ["ALL", ...categoryResponse.map(c => c.label)]
-  console.log("wa", TabHeaders)
+  const TabHeaders = ["ALL", ...categoryResponse.map((c: any) => c.label)] 
 
   const { mutateAsync: Products } = useMutation({
       mutationFn: createProduct

@@ -53,7 +53,7 @@ const Position = () => {
       snackBarType
     } = userAuth()
 
-    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'position');
+    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'position');
   
     const { data: positionResponse, isLoading } = useQuery({
       queryKey: ['positions'],

@@ -8,10 +8,14 @@ import {
   fetchGetStatsCategory,
   fetchGetOverview,
   fetchGetStatsDevice,
-  fetchCountDashboard
+  fetchCountDashboard,
+  fetchApplicants
 } from '../../../services/Technician/dashboardServices'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import {
+  User2 
+} from 'lucide-react'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { useNavigate } from "react-router-dom"
 import { userAuth } from '../../../hooks/userAuth'
@@ -43,10 +47,16 @@ const Dashboard = () => {
     queryFn: fetchCountDashboard
   })
 
+  const { data: countApplicants } = useQuery({
+    queryKey: ['count-applicant'],
+    queryFn: fetchApplicants
+  })
+
   const statsCategory = statsDataCategory?.data?.ticketCounts || [];
   const overview = overviewData?.data || {};
   const statsDevice = statsDataDevice?.data?.ticketCounts || [];
   const countPendingCompleted = countData?.data || [] 
+  const applicant = countApplicants?.data || []
 
   // 🔥 Convert API result → PieChart format
   const pieChartData = statsCategory.map((item: any) => ({
@@ -98,7 +108,7 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ marginBottom: '2.5rem' }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ marginBottom: '2.5rem' }}>
         {/* Pending Stat Card */}
         <div 
           onClick={() => {
@@ -127,6 +137,21 @@ const Dashboard = () => {
           </div>
           <div className="bo-stat-label">Completed</div>
           <div className="bo-stat-value">{countPendingCompleted[0]?.completed || 0}</div>
+        </div>
+
+        {/* Applicants */}
+        <div 
+          onClick={() => {
+            navigate("/beesee/job-posting");
+            setStatusFilter("Completed");
+          }} 
+          className="bo-stat-card"
+        >
+          <div className="bo-stat-icon" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.15))' }}>
+            <User2 style={{ fontSize: 28, color: '#3b82f6' }} />
+          </div>
+          <div className="bo-stat-label">New Applicants</div>
+          <div className="bo-stat-value">{applicant[0]?.new_applicant || 0}</div>
         </div>
       </div>
 

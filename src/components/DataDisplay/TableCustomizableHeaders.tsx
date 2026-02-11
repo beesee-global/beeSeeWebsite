@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -137,7 +137,12 @@ export default function TableCustomizableHeaders({
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<string>(sortable || 'created_at');
+  const [isManualSort, setIsManualSort] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+  const filterScrollRef = useRef<HTMLDivElement | null>(null);
+  const [showFilterArrows, setShowFilterArrows] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const rowsPerPage = 20;
 
   // Reset page when filter changes
@@ -146,25 +151,35 @@ export default function TableCustomizableHeaders({
   }, [selectedFilter]);
 
   const safeRows = Array.isArray(rows) ? rows : [];
+  const safeColumns = Array.isArray(columns) ? columns : [];
 
   const handleRequestSort = (property: string) => {
-    if (orderBy === property) {
-      // same column, toggle order
-      setOrder(order === 'asc' ? 'desc' : 'asc');
+    const column = safeColumns.find(col => col.id === property);
+    if (column?.sortable === false) {
+      return;
+    }
+
+    if (orderBy === property && isManualSort) {
+      // Second click RESETS to backend default
+      setOrder('desc'); // Backend default is DESC
+      setOrderBy(sortable || 'created_at'); // Reset to backend's sort column
+      setIsManualSort(false); // ✅ Turn OFF manual sort = use backend order AS-IS
     } else {
-      // New column selected
-      // If switching to created_at, use desc; otherwise use asc
-      setOrder(property === 'created_at' ? 'desc' : 'asc');
+      setOrder('asc');
       setOrderBy(property);
+      setIsManualSort(true);
     }
   };
 
   const sortedRows = useMemo(
     () => {
       if (!Array.isArray(safeRows) || safeRows.length === 0) return [];
+      if (!isManualSort) {
+        return safeRows;
+      }
       return [...safeRows].sort(getComparator(order, orderBy));
     },
-    [safeRows, order, orderBy]
+    [safeRows, order, orderBy, isManualSort]
   );
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
@@ -193,13 +208,58 @@ export default function TableCustomizableHeaders({
   };
 
   const renderSortIcon = (columnId: string) => {
-    if (orderBy !== columnId) {
+    const column = safeColumns.find(col => col.id === columnId);
+    if (column?.sortable === false) {
+      return null;
+    }
+    if (orderBy !== columnId || !isManualSort) {
       return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
     }
     return order === 'asc' 
       ? <ArrowUp size={14} style={{ opacity: 1 }} />
       : <ArrowDown size={14} style={{ opacity: 1 }} />;
   };
+  
+  const scrollFilters = (direction: 'left' | 'right') => {
+    const container = filterScrollRef.current;
+    if (!container) return;
+    const delta = direction === 'left' ? -220 : 220;
+    container.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+  
+  const updateFilterScrollState = () => {
+    const container = filterScrollRef.current;
+    if (!container) return;
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const hasOverflow = scrollWidth > clientWidth + 1;
+    setShowFilterArrows(hasOverflow);
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    updateFilterScrollState();
+    const container = filterScrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => updateFilterScrollState();
+    container.addEventListener('scroll', handleScroll, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => updateFilterScrollState());
+      resizeObserver.observe(container);
+    }
+
+    const handleWindowResize = () => updateFilterScrollState();
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleWindowResize);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [filterOptions]);
 
   if (isLoading) {
     return (
@@ -228,12 +288,40 @@ export default function TableCustomizableHeaders({
         >
           
           {/* Scrollable table container */}
-          <div className='overflow-x-auto'>
+          <div className="overflow-x-auto">
             <div className='min-w-[900px]'>
               {/* Filter Section */}
               {filterOptions && filterOptions.length > 0 && (
                 <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
-                  <div className='flex flex-col md:flex-row md:items-center md:justify-start gap-3 overflow-x-auto pb-2 md:pb-0'>
+                  <div className="relative">
+                    {showFilterArrows && (
+                      <button
+                        type="button"
+                        aria-label="Scroll filters left"
+                        onClick={() => scrollFilters('left')}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full border bg-white shadow-sm"
+                        style={{ borderColor: COLORS.border, opacity: canScrollLeft ? 1 : 0.3 }}
+                        disabled={!canScrollLeft}
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                    )}
+                    {showFilterArrows && (
+                      <button
+                        type="button"
+                        aria-label="Scroll filters right"
+                        onClick={() => scrollFilters('right')}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full border bg-white shadow-sm"
+                        style={{ borderColor: COLORS.border, opacity: canScrollRight ? 1 : 0.3 }}
+                        disabled={!canScrollRight}
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    )}
+                    <div
+                      ref={filterScrollRef}
+                      className="flex flex-col md:flex-row md:items-center md:justify-start gap-3 overflow-x-hidden pb-2 md:pb-0 px-10"
+                    >
                     {filterOptions.map((filter) => (
                       <button
                         key={filter}
@@ -247,6 +335,7 @@ export default function TableCustomizableHeaders({
                         {filter}
                       </button>
                     ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -255,7 +344,7 @@ export default function TableCustomizableHeaders({
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 {/* Column Headers */}
                 <div className="flex items-center py-2">
-                  {columns.map((column) => (
+                  {safeColumns.map((column) => (
                     <div 
                       key={column.id}
                       className={`${column.width || 'flex-1'} px-4`}
@@ -313,7 +402,7 @@ export default function TableCustomizableHeaders({
                         }}
                       > 
                         {/* Dynamic Columns */}
-                        {columns.map((column) => {
+                        {safeColumns.map((column) => {
                           return (
                             <div 
                               key={column.id}

@@ -5,7 +5,7 @@ const API_URL = "issues"
 export interface Issues {
     id: number;
     name: string;
-    products_id: number
+    product_id: number
 }
 
 export const fetchIssues = async () => {

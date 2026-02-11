@@ -1,298 +1,385 @@
+// Import React hooks for state management and side effects
 import React, { useState, useEffect } from "react";
+
+// Import Material-UI Dialog components for modal functionality
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+
+// Import Material-UI styling utility
 import { styled } from "@mui/material/styles";
+
+// Import Material-UI components for layout and form controls
 import { Box, Button, Collapse, Checkbox, FormControlLabel } from "@mui/material";
-import { Shield, ChevronDown,} from "lucide-react";
+
+// Import Lucide React icons for UI elements
+import { Shield, ChevronDown } from "lucide-react";
 
 /* ================= TYPES ================= */
+
+// Define the structure for each form field configuration
 interface FieldConfig {
-  name: string;
-  placeholder: string;
-  type: "text" | "select";
-  value: string;
-  options?: { value: string; label: string }[];
-  validator?: (value: string) => string | undefined;
+  name: string; // Unique identifier for the field (used as key in formData object)
+  placeholder: string; // Label text shown to user
+  type: "text" | "select"; // Type of input control to render
+  value: string; // Initial/default value for the field
+  options?: { value: string; label: string }[]; // Dropdown options (only for select type)
+  validator?: (value: string) => string | undefined; // Optional validation function that returns error message
 }
 
+// Define the structure for permission data sent to backend
 interface Permission {
-  parent_id: string;
-  children_id: string;
-  module_name: string;
-  module_url: string;
-  actions: string[];
+  parent_id: string; // ID of parent module (e.g., "settings") or module itself if no parent
+  children_id: string; // ID of child module (e.g., "device") or empty string if no children
+  module_name: string; // Display name of the module
+  module_url: string; // URL path for the module
+  actions: string[]; // Array of permitted actions (e.g., ["view", "add", "edit"])
 }
 
+// Define props that the Modal component accepts
 interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  fields: FieldConfig[];
-  onSubmit: (formData: Record<string, any>) => void;
-  submitLabel?: string;
-  cancelLabel?: string;
-  initialPermissions?: Permission[];
-  isPermissionLocked?: boolean;
+  open: boolean; // Controls whether modal is visible
+  onClose: () => void; // Callback function when modal is closed
+  title: string; // Modal header title
+  description?: string; // Optional description text below title
+  fields: FieldConfig[]; // Array of form fields to render
+  onSubmit: (formData: Record<string, any>) => void; // Callback function when form is submitted
+  submitLabel?: string; // Text for submit button (defaults to "Submit")
+  cancelLabel?: string; // Text for cancel button (defaults to "Cancel")
+  initialPermissions?: Permission[]; // Pre-selected permissions (for edit mode)
+  isPermissionLocked?: boolean; // If true, permission checkboxes are disabled
 }
 
 /* ================= STYLES ================= */
+
+// Create styled input component with custom styles and error state
 const StyledInput = styled("input")<{ error?: boolean }>(({ error }) => ({
-  width: "100%",
-  padding: "12px 16px",
-  fontSize: "15px",
-  fontFamily: "inherit",
-  border: `2px solid ${error ? "#ef4444" : "#d1d5db"}`, // gray border
-  borderRadius: "12px",
-  outline: "none",
-  transition: "all 0.2s ease",
-  backgroundColor: "#fff",
-  color: "#111827", // <-- THIS IS THE TEXT COLOR
+  width: "100%", // Full width of container
+  padding: "12px 16px", // Internal spacing
+  fontSize: "15px", // Text size
+  fontFamily: "inherit", // Use parent font
+  border: `2px solid ${error ? "#ef4444" : "#d1d5db"}`, // Red border if error, gray otherwise
+  borderRadius: "12px", // Rounded corners
+  outline: "none", // Remove default browser outline
+  transition: "all 0.2s ease", // Smooth transitions for all property changes
+  backgroundColor: "#fff", // White background
+  color: "#111827", // Dark gray text color - THIS IS THE TEXT COLOR
   "&::placeholder": {
-    color: "#6b7280", // optional placeholder color (gray-500)
+    color: "#6b7280", // Gray placeholder text
   },
   "&:focus": {
-    borderColor: error ? "#ef4444" : "#4b5563", // gray-600
+    // Styles when input is focused
+    borderColor: error ? "#ef4444" : "#4b5563", // Darker border on focus
     boxShadow: error
-      ? "0 0 0 3px rgba(239, 68, 68, 0.15)"
-      : "0 0 0 3px rgba(107, 114, 128, 0.15)", // gray-500 glow
+      ? "0 0 0 3px rgba(239, 68, 68, 0.15)" // Red glow if error
+      : "0 0 0 3px rgba(107, 114, 128, 0.15)", // Gray glow otherwise
   },
 }));
 
-
-
+// Create styled select dropdown component with custom styles and error state
 const StyledSelect = styled("select")(({ error }: { error?: boolean }) => ({
-  width: "100%",
-  padding: "12px 16px",
-  fontSize: "15px",
-  fontFamily: "inherit",
-  border: `2px solid ${error ? "#ef4444" : "#e5e7eb"}`,
-  borderRadius: "12px",
-  outline: "none",
-  transition: "all 0.2s ease",
-  backgroundColor: "#fff",
-  cursor: "pointer",
+  width: "100%", // Full width of container
+  padding: "12px 16px", // Internal spacing
+  fontSize: "15px", // Text size
+  fontFamily: "inherit", // Use parent font
+  border: `2px solid ${error ? "#ef4444" : "#e5e7eb"}`, // Red border if error, light gray otherwise
+  borderRadius: "12px", // Rounded corners
+  outline: "none", // Remove default browser outline
+  transition: "all 0.2s ease", // Smooth transitions
+  backgroundColor: "#fff", // White background
+  cursor: "pointer", // Show pointer cursor on hover
 }));
 
+// Create custom styled Dialog with specific width constraints
 const BootstrapDialog = styled(Dialog)({
   "& .MuiDialog-paper": {
-    width: "750px",
-    maxWidth: "95%",
-    maxHeight: "90vh",
+    width: "750px", // Fixed width for larger screens
+    maxWidth: "95%", // Responsive: 95% of screen width on small screens
+    maxHeight: "90vh", // Max height is 90% of viewport height (prevents overflow)
   },
 });
 
 /* ================= PERMISSION TREE ================= */
+
+// Define the complete permission structure/hierarchy for the application
 const permissionTree = [
-  { 
-    id: "dashboard", 
-    name: "Dashboard", 
-    url: "/beesee/dashboard", 
-    parent: null,
-    hasActions: false // Dashboard has no actions, just access
+  {
+    id: "dashboard", // Unique identifier for this module
+    name: "Dashboard", // Display name shown to user
+    url: "/beesee/dashboard", // Route/path for this module
+    parent: null, // No parent (top-level module)
+    hasActions: false, // This module doesn't have add/edit/delete actions, only access
   },
-  { 
-    id: "job-order", 
-    name: "Job Order", 
-    url: "/beesee/job-order", 
+  {
+    id: "job-order",
+    name: "Job Order",
+    url: "/beesee/job-order",
+    parent: null,
+    hasActions: true, // This module has action permissions
+    allowedActions: ["view", "add", "delete"], // Only these actions are available (no edit)
+  },
+  {
+    id: "faqs",
+    name: "Faqs",
+    url: "/beesee/faqs",
     parent: null,
     hasActions: true,
-    allowedActions: ["view", "add", "delete"] // All actions
+    allowedActions: ["view", "add", "edit", "delete"], // All standard actions available
   },
-  { 
-    id: "users", 
-    name: "Users", 
-    url: "/beesee/users", 
+  {
+    id: "inquiries",
+    name: "Inquiries",
+    url: "/beesee/inquiries",
     parent: null,
     hasActions: true,
-    allowedActions: ["view", "add", "edit", "delete"] // Only view and delete
+    allowedActions: ["view", "delete"], // Only view and delete (no add/edit)
   },
-  { 
-    id: "faqs", 
-    name: "Faqs", 
-    url: "/beesee/faqs", 
+  {
+    id: "careers",
+    name: "Careers",
+    url: "/beesee/job-posting",
     parent: null,
     hasActions: true,
-    allowedActions: ["view", "add", "edit", "delete"] // All actions
+    allowedActions: ["view", "add", "edit", "delete"], // All actions
   },
-  { 
-    id: "inquiries", 
-    name: "Inquiries", 
-    url: "/beesee/inquiries", 
+  {
+    id: "users",
+    name: "Users",
     parent: null,
-    hasActions: true,
-    allowedActions: ["view", "delete"] // Only view and delete
-  },
-  { 
-    id: "careers", 
-    name: "Careers", 
-    url: "/beesee/job-posting", 
-    parent: null,
-    hasActions: true,
-    allowedActions: ["view", "add", "edit", "delete"] // All actions
+    hasActions: false, // Parent doesn't have actions directly
+    children: [
+      // Child modules under Users
+      {
+        id: "list_user",
+        name: "Users",
+        url: "/beesee/users",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
+      {
+        id: "position",
+        name: "Position",
+        url: "/beesee/position",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
+    ],
   },
   {
     id: "settings",
     name: "Settings",
     parent: null,
-    hasActions: false,
+    hasActions: false, // Parent doesn't have actions directly
     children: [
-      { id: "device", name: "Device type", url: "/beesee/device", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
-      { id: "model", name: "Model type", url: "/beesee/model", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
-      { id: "issue", name: "Issue type", url: "/beesee/issue", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
-      { id: "position", name: "Position", url: "/beesee/position", hasActions: true, allowedActions: ["view", "add", "edit", "delete"] },
+      // Child modules under Settings
+      {
+        id: "device",
+        name: "Device type",
+        url: "/beesee/device",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
+      {
+        id: "model",
+        name: "Model type",
+        url: "/beesee/model",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
+      {
+        id: "issue",
+        name: "Issue type",
+        url: "/beesee/issue",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
     ],
   },
 ];
 
 /* ================= COMPONENT ================= */
-const Modal: React.FC<ModalProps> = ({
-  open,
-  onClose,
-  title,
-  description,
-  fields,
-  onSubmit,
-  submitLabel = "Submit",
-  cancelLabel = "Cancel",
-  initialPermissions = [],
-  isPermissionLocked = false,
-}) => {
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<Record<string, string>>({});
-  const [permissions, setPermissions] = useState<Record<string, string[]>>({});
-  const [permissionError, setPermissionError] = useState("");
-  const [expandedSettings, setExpandedSettings] = useState(false);
 
-  // Initialize form data and permissions
+// Main Modal component definition
+const Modal: React.FC<ModalProps> = ({
+  open, // Boolean to control modal visibility
+  onClose, // Function to call when closing modal
+  title, // Modal title text
+  description, // Optional description text
+  fields, // Array of form field configurations
+  onSubmit, // Function to call when submitting form
+  submitLabel = "Submit", // Submit button text (default: "Submit")
+  cancelLabel = "Cancel", // Cancel button text (default: "Cancel")
+  initialPermissions = [], // Pre-selected permissions (default: empty array)
+  isPermissionLocked = false, // Lock permission checkboxes (default: false)
+}) => {
+  // State to store form field values (key: field name, value: field value)
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  
+  // State to store validation errors for form fields
+  const [formError, setFormError] = useState<Record<string, string>>({});
+  
+  // State to store selected permissions (key: module ID, value: array of actions)
+  const [permissions, setPermissions] = useState<Record<string, string[]>>({});
+  
+  // State to store permission validation error message
+  const [permissionError, setPermissionError] = useState("");
+  
+  // State to control whether Settings section is expanded
+  const [expandedSettings, setExpandedSettings] = useState(false);
+  
+  // State to control whether Users section is expanded
+  const [expandedUsers, setExpandedUsers] = useState(false);
+
+  // Effect runs when modal opens - initializes form data and permissions
   useEffect(() => {
     if (open) {
-      // Initialize form fields
+      // Initialize form fields with default values
       const newForm: Record<string, string> = {};
-      fields.forEach((f) => (newForm[f.name] = f.value || ""));
-      setFormData(newForm);
-      setFormError({});
-      setPermissionError("");
+      fields.forEach((f) => (newForm[f.name] = f.value || "")); // Set each field's value
+      setFormData(newForm); // Update form data state
+      setFormError({}); // Clear any previous errors
+      setPermissionError(""); // Clear permission errors
 
-      // Convert initialPermissions array to permissions object
+      // Convert initialPermissions array to permissions object for easier state management
       const permMap: Record<string, string[]> = {};
       initialPermissions.forEach((perm) => {
+        // Use children_id if exists, otherwise use parent_id as key
         const moduleKey = perm.children_id || perm.parent_id;
-        permMap[moduleKey] = perm.actions.filter(a => a !== ""); // Filter out empty strings
+        // Store actions array, filtering out empty strings
+        permMap[moduleKey] = perm.actions.filter((a) => a !== "");
       });
-      setPermissions(permMap);
+      setPermissions(permMap); // Update permissions state
 
+      // Debug logging to console
       console.log("=== MODAL INITIALIZED ===");
       console.log("Initial permissions from props:", initialPermissions);
       console.log("Converted to permissions map:", permMap);
 
-      // Auto-expand settings if any child has permissions
-      const hasSettingsPerms = ["device", "model", "issue", "position"].some(
-        key => permMap[key] && permMap[key].length > 0
+      // Auto-expand Settings section if any child module has permissions
+      const hasSettingsPerms = ["device", "model", "issue"].some(
+        (key) => permMap[key] && permMap[key].length > 0
       );
       setExpandedSettings(hasSettingsPerms);
-    }
-  }, [open, fields, initialPermissions]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setFormError((prev) => ({ ...prev, [name]: "" }));
+      // Auto-expand Users section if any child module has permissions
+      const hasUsersPerms = ["list_user", "position"].some(
+        (key) => permMap[key] && permMap[key].length > 0
+      );
+      setExpandedUsers(hasUsersPerms);
+    }
+  }, [open, fields, initialPermissions]); // Re-run when these dependencies change
+
+  // Handle changes to text inputs and select dropdowns
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target; // Extract field name and new value
+    setFormData((prev) => ({ ...prev, [name]: value })); // Update form data
+    setFormError((prev) => ({ ...prev, [name]: "" })); // Clear error for this field
   };
 
+  // Handle toggling individual action permissions (add, edit, delete)
   const handleActionToggle = (moduleId: string, action: string) => {
     setPermissions((prev) => {
-      const current = prev[moduleId] || [];
-      const updated = current.includes(action)
-        ? current.filter((a) => a !== action)
-        : [...current, action];
+      const current = prev[moduleId] || []; // Get current actions for this module
       
+      // Toggle the action: remove if exists, add if doesn't exist
+      const updated = current.includes(action)
+        ? current.filter((a) => a !== action) // Remove action
+        : [...current, action]; // Add action
+
+      // Debug logging
       console.log(`Toggle action ${action} for ${moduleId}:`, {
         current,
         updated,
-        willRemove: updated.length === 0
+        willRemove: updated.length === 0,
       });
-      
-      // If no actions left (empty array), remove module completely
+
+      // If no actions left (empty array), remove module completely from permissions
       if (updated.length === 0) {
-        const { [moduleId]: removed, ...rest } = prev;
+        const { [moduleId]: removed, ...rest } = prev; // Destructure to remove key
         console.log(`Removed ${moduleId} (no actions left), remaining:`, rest);
-        return rest;
+        return rest; // Return permissions without this module
       }
-      
+
+      // Otherwise, update with new actions array
       return { ...prev, [moduleId]: updated };
     });
-    setPermissionError("");
+    setPermissionError(""); // Clear any permission error
   };
 
-  // Handle Grant Access toggle (view permission)
+  // Handle toggling "Grant Access" (view permission) - master toggle for modules with actions
   const handleGrantAccessToggle = (moduleId: string) => {
     setPermissions((prev) => {
-      const current = prev[moduleId] || [];
-      const hasView = current.includes("view");
-      
+      const current = prev[moduleId] || []; // Get current actions
+      const hasView = current.includes("view"); // Check if view permission exists
+
+      // Debug logging
       console.log(`Toggle Grant Access for ${moduleId}:`, {
         current,
         hasView,
-        willRemove: hasView
+        willRemove: hasView,
       });
-      
+
       if (hasView) {
-        // Remove module completely from permissions object
-        const { [moduleId]: removed, ...rest } = prev;
+        // If has view, remove module completely from permissions object
+        const { [moduleId]: removed, ...rest } = prev; // Destructure to remove
         console.log(`Removed ${moduleId}, remaining:`, rest);
         return rest;
       } else {
-        // Add only "view" permission
+        // If no view, add only "view" permission
         const newState = { ...prev, [moduleId]: ["view"] };
         console.log(`Added view to ${moduleId}:`, newState);
         return newState;
       }
     });
-    setPermissionError("");
+    setPermissionError(""); // Clear any permission error
   };
 
-  // Handle module access (for modules without actions like Dashboard)  
+  // Handle toggling access for modules without actions (like Dashboard)
   const handleModuleToggle = (moduleId: string) => {
     setPermissions((prev) => {
-      const current = prev[moduleId] || [];
-      
+      const current = prev[moduleId] || []; // Get current state
+
+      // Debug logging
       console.log(`Toggle module access for ${moduleId}:`, {
         current,
         hasAccess: current.length > 0,
-        willRemove: current.length > 0
+        willRemove: current.length > 0,
       });
-      
+
       // If has access, remove it completely from the object
       if (current.length > 0) {
-        const { [moduleId]: removed, ...rest } = prev;
+        const { [moduleId]: removed, ...rest } = prev; // Destructure to remove
         console.log(`Removed ${moduleId}, remaining:`, rest);
         return rest;
       }
-      // If no access, grant it (set to empty array with empty string to indicate access only)
+      
+      // If no access, grant it (set to array with empty string to indicate access only)
       const newState = { ...prev, [moduleId]: [""] };
       console.log(`Added access to ${moduleId}:`, newState);
       return newState;
     });
-    setPermissionError("");
+    setPermissionError(""); // Clear any permission error
   };
 
+  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission (page reload)
 
-    // Validate form fields
+    // Validate all form fields using their validator functions
     const errors: Record<string, string> = {};
     fields.forEach((field) => {
       if (field.validator) {
-        const err = field.validator(formData[field.name]);
-        if (err) errors[field.name] = err;
+        const err = field.validator(formData[field.name]); // Run validator
+        if (err) errors[field.name] = err; // Store error if validation fails
       }
     });
 
+    // Debug logging
     console.log("=== SUBMIT DEBUG ===");
     console.log("Current permissions state:", permissions);
     console.log("Permissions entries:", Object.entries(permissions));
@@ -300,103 +387,130 @@ const Modal: React.FC<ModalProps> = ({
     // Check if at least one permission is selected
     const hasPermissions = Object.keys(permissions).length > 0;
     if (!hasPermissions) {
-      setPermissionError("Please select at least one permission");
+      setPermissionError("Please select at least one permission"); // Set error message
     }
 
+    // If there are validation errors or no permissions, stop submission
     if (Object.keys(errors).length > 0 || !hasPermissions) {
-      setFormError(errors);
-      return;
+      setFormError(errors); // Display errors
+      return; // Exit function
     }
 
-    // Transform permissions to backend format
+    // Transform permissions object to backend format (array of Permission objects)
     const formattedPermissions: Permission[] = [];
+    
+    // Loop through each module's permissions
     Object.entries(permissions).forEach(([moduleKey, actions]) => {
       console.log(`Processing module: ${moduleKey}, actions:`, actions);
-      
-      // Find module info from permissionTree
-      const allModules = permissionTree.flatMap((p) => 
-        p.children ? [p, ...p.children] : [p]
+
+      // Find module info from permissionTree (flatten tree to search both parents and children)
+      const allModules = permissionTree.flatMap((p) =>
+        p.children ? [p, ...p.children] : [p] // Include parent and all children
       );
-      const module = allModules.find((m) => m.id === moduleKey);
+      const module = allModules.find((m) => m.id === moduleKey); // Find matching module
 
       if (module) {
-        // Find parent if exists
-        const parent = permissionTree.find((p) => 
+        // Find parent if this module is a child
+        const parent = permissionTree.find((p) =>
           p.children?.some((c) => c.id === moduleKey)
         );
 
+        // Create permission object in backend format
         formattedPermissions.push({
-          parent_id: parent ? parent.id : moduleKey,
-          children_id: parent ? moduleKey : "",
-          module_name: module.name,
-          module_url: module.url || "",
-          actions: actions,
+          parent_id: parent ? parent.id : moduleKey, // Use parent ID if exists, otherwise module ID
+          children_id: parent ? moduleKey : "", // Use module ID as child if has parent, otherwise empty
+          module_name: module.name, // Module display name
+          module_url: module.url || "", // Module URL path
+          actions: actions, // Array of permitted actions
         });
       }
     });
 
     console.log("Formatted permissions to submit:", formattedPermissions);
 
+    // Call parent component's onSubmit with form data and formatted permissions
     onSubmit({
-      ...formData,
-      permissions: formattedPermissions,
+      ...formData, // Spread form field values
+      permissions: formattedPermissions, // Add formatted permissions
     });
 
-    onClose();
+    onClose(); // Close the modal
   };
 
+  // Render permission checkboxes for a single module
   const renderModuleCheckboxes = (
-    moduleId: string, 
-    moduleName: string, 
-    hasActions: boolean = true,
-    allowedActions: string[] = ["view", "add", "edit", "delete"],
-    isChild = false
+    moduleId: string, // Unique identifier for the module
+    moduleName: string, // Display name
+    hasActions: boolean = true, // Whether module has add/edit/delete actions
+    allowedActions: string[] = ["view", "add", "edit", "delete"], // Which actions are available
+    isChild = false // Whether this is a child module (affects styling)
   ) => {
-    const moduleActions = permissions[moduleId] || [];
-    const hasAnyAction = moduleActions.length > 0 || permissions[moduleId] !== undefined;
-    const hasGrantAccess = moduleActions.includes("view");
+    const moduleActions = permissions[moduleId] || []; // Get current actions for this module
+    const hasAnyAction = moduleActions.length > 0 || permissions[moduleId] !== undefined; // Check if module has any permissions
+    const hasGrantAccess = moduleActions.includes("view"); // Check if view permission exists
 
     // For modules without actions (like Dashboard), show only access toggle
     if (!hasActions) {
-      const hasAccess = permissions[moduleId] !== undefined;
-      
+      const hasAccess = permissions[moduleId] !== undefined; // Check if module has access
+
       return (
         <Box
-          key={moduleId}
+          key={moduleId} // Unique key for React list rendering
           sx={{
-            p: 2.5,
-            borderRadius: "14px",
-            border: "2px solid",
-            borderColor: hasAccess ? "#e0e7ff" : "#f3f4f6",
-            backgroundColor: hasAccess ? "#fafbff" : "#fff",
-            transition: "all 0.2s ease",
+            p: 2.5, // Padding
+            borderRadius: "14px", // Rounded corners
+            border: "2px solid", // Border width
+            borderColor: hasAccess ? "#e0e7ff" : "#f3f4f6", // Blue border if has access, gray otherwise
+            backgroundColor: hasAccess ? "#fafbff" : "#fff", // Light blue background if has access
+            transition: "all 0.2s ease", // Smooth transitions
             "&:hover": {
-              borderColor: hasAccess ? "#c7d2fe" : "#e5e7eb",
-              backgroundColor: hasAccess ? "#f5f7ff" : "#fafafa",
+              // Hover styles
+              borderColor: hasAccess ? "#c7d2fe" : "#e5e7eb", // Darker border on hover
+              backgroundColor: hasAccess ? "#f5f7ff" : "#fafafa", // Slightly darker background
             },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Box sx={{ fontSize: isChild ? "14px" : "15px", fontWeight: 700, color: "#111827" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* Module name */}
+            <Box
+              sx={{
+                fontSize: isChild ? "14px" : "15px", // Smaller font if child module
+                fontWeight: 700, // Bold
+                color: "#111827", // Dark gray
+              }}
+            >
               {moduleName}
             </Box>
-            
+
+            {/* Grant Access checkbox */}
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={hasAccess}
-                  onChange={() => handleModuleToggle(moduleId)}
-                  disabled={isPermissionLocked}
+                  checked={hasAccess} // Checked if module has access
+                  onChange={() => handleModuleToggle(moduleId)} // Toggle on click
+                  disabled={isPermissionLocked} // Disabled if locked
                   sx={{
-                    color: "#9ca3af",
-                    padding: "6px",
-                    "&.Mui-checked": { color: "#374151", },
+                    color: "#9ca3af", // Gray when unchecked
+                    padding: "6px", // Internal padding
+                    "&.Mui-checked": { color: "#374151" }, // Dark gray when checked
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: "#374151",
+                    }}
+                  >
                     Grant Access
                   </span>
                 </Box>
@@ -407,60 +521,62 @@ const Modal: React.FC<ModalProps> = ({
       );
     }
 
-    // For modules with actions
+    // For modules with actions (add/edit/delete)
     return (
       <Box
-        key={moduleId}
+        key={moduleId} // Unique key for React list rendering
         sx={{
-          p: 2.5,
-          borderRadius: "14px",
-          border: "2px solid",
-          borderColor: hasAnyAction ? "#e0e7ff" : "#f3f4f6",
-          backgroundColor: hasAnyAction ? "#fafbff" : "#fff",
-          transition: "all 0.2s ease",
+          p: 2.5, // Padding
+          borderRadius: "14px", // Rounded corners
+          border: "2px solid", // Border width
+          borderColor: hasAnyAction ? "#e0e7ff" : "#f3f4f6", // Blue border if has permissions
+          backgroundColor: hasAnyAction ? "#fafbff" : "#fff", // Light blue background if has permissions
+          transition: "all 0.2s ease", // Smooth transitions
           "&:hover": {
+            // Hover styles
             borderColor: hasAnyAction ? "#c7d2fe" : "#e5e7eb",
             backgroundColor: hasAnyAction ? "#f5f7ff" : "#fafafa",
           },
         }}
       >
-        <Box sx={{ 
-          fontSize: isChild ? "14px" : "15px", 
-          fontWeight: 700, 
-          color: "#111827", 
-          mb: 2 
-        }}>
+        {/* Module name header */}
+        <Box
+          sx={{
+            fontSize: isChild ? "14px" : "15px", // Smaller font if child
+            fontWeight: 700, // Bold
+            color: "#111827", // Dark gray
+            mb: 2, // Margin bottom
+          }}
+        >
           {moduleName}
         </Box>
 
+        {/* Action checkboxes container */}
         <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
           {/* Grant Access Checkbox (Master Toggle) - Always show if view is allowed */}
           {allowedActions.includes("view") && (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={hasGrantAccess}
-                  onChange={() => handleGrantAccessToggle(moduleId)}
-                  disabled={isPermissionLocked}
+                  checked={hasGrantAccess} // Checked if has view permission
+                  onChange={() => handleGrantAccessToggle(moduleId)} // Toggle on click
+                  disabled={isPermissionLocked} // Disabled if locked
                   sx={{
-                    color: "#9ca3af",
-                    padding: "6px",
-                    "&.Mui-checked": { color: "#374151" },
-                    "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" },
+                    color: "#9ca3af", // Gray when unchecked
+                    padding: "6px", // Internal padding
+                    "&.Mui-checked": { color: "#374151" }, // Dark gray when checked
+                    "&:hover": { backgroundColor: "rgba(99, 102, 241, 0.08)" }, // Light purple on hover
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  {/* <Eye 
-                    size={16} 
-                    color={hasGrantAccess ? "#6366f1" : "#9ca3af"} 
-                  /> */}
-                  <span style={{ 
-                    fontSize: "14px", 
-                    fontWeight: 600, 
-                    // color: hasGrantAccess ? "#6366f1" : "#374151" 
-                  }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600, // Semi-bold
+                    }}
+                  >
                     Grant Access
                   </span>
                 </Box>
@@ -468,39 +584,34 @@ const Modal: React.FC<ModalProps> = ({
             />
           )}
 
-          {/* Add Checkbox - Only show if allowed */}
+          {/* Add Checkbox - Only show if allowed in allowedActions array */}
           {allowedActions.includes("add") && (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={moduleActions.includes("add")}
-                  onChange={() => handleActionToggle(moduleId, "add")}
-                  disabled={isPermissionLocked || !hasGrantAccess}
+                  checked={moduleActions.includes("add")} // Checked if add permission exists
+                  onChange={() => handleActionToggle(moduleId, "add")} // Toggle on click
+                  disabled={isPermissionLocked || !hasGrantAccess} // Disabled if locked or no view permission
                   sx={{
-                    color: "#9ca3af",
+                    color: "#9ca3af", // Gray when unchecked
                     padding: "6px",
-                    "&.Mui-checked": { color: "#374151" },
-                    "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" },
+                    "&.Mui-checked": { color: "#374151" }, // Dark gray when checked
+                    "&:hover": { backgroundColor: "rgba(16, 185, 129, 0.08)" }, // Light green on hover
                     "&.Mui-disabled": {
-                      color: "#e5e7eb",
+                      color: "#e5e7eb", // Very light gray when disabled
                     },
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  {/* <Plus 
-                    size={16} 
-                    color={
-                      !hasGrantAccess ? "#e5e7eb" : 
-                      moduleActions.includes("add") ? "#10b981" : "#9ca3af"
-                    } 
-                  /> */}
-                  <span style={{ 
-                    fontSize: "14px", 
-                    fontWeight: 500, 
-                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                  }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: !hasGrantAccess ? "#d1d5db" : "#374151", // Gray out if disabled
+                    }}
+                  >
                     Add
                   </span>
                 </Box>
@@ -508,39 +619,34 @@ const Modal: React.FC<ModalProps> = ({
             />
           )}
 
-          {/* Edit Checkbox - Only show if allowed */}
+          {/* Edit Checkbox - Only show if allowed in allowedActions array */}
           {allowedActions.includes("edit") && (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={moduleActions.includes("edit")}
-                  onChange={() => handleActionToggle(moduleId, "edit")}
-                  disabled={isPermissionLocked || !hasGrantAccess}
+                  checked={moduleActions.includes("edit")} // Checked if edit permission exists
+                  onChange={() => handleActionToggle(moduleId, "edit")} // Toggle on click
+                  disabled={isPermissionLocked || !hasGrantAccess} // Disabled if locked or no view permission
                   sx={{
-                    color: "#9ca3af",
+                    color: "#9ca3af", // Gray when unchecked
                     padding: "6px",
-                    "&.Mui-checked": { color: "#374151" },
-                    "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" },
+                    "&.Mui-checked": { color: "#374151" }, // Dark gray when checked
+                    "&:hover": { backgroundColor: "rgba(245, 158, 11, 0.08)" }, // Light orange on hover
                     "&.Mui-disabled": {
-                      color: "#e5e7eb",
+                      color: "#e5e7eb", // Very light gray when disabled
                     },
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  {/* <Edit 
-                    size={16} 
-                    color={
-                      !hasGrantAccess ? "#e5e7eb" : 
-                      moduleActions.includes("edit") ? "#f59e0b" : "#9ca3af"
-                    } 
-                  /> */}
-                  <span style={{ 
-                    fontSize: "14px", 
-                    fontWeight: 500, 
-                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                  }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: !hasGrantAccess ? "#d1d5db" : "#374151", // Gray out if disabled
+                    }}
+                  >
                     Edit
                   </span>
                 </Box>
@@ -548,39 +654,34 @@ const Modal: React.FC<ModalProps> = ({
             />
           )}
 
-          {/* Delete Checkbox - Only show if allowed */}
+          {/* Delete Checkbox - Only show if allowed in allowedActions array */}
           {allowedActions.includes("delete") && (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={moduleActions.includes("delete")}
-                  onChange={() => handleActionToggle(moduleId, "delete")}
-                  disabled={isPermissionLocked || !hasGrantAccess}
+                  checked={moduleActions.includes("delete")} // Checked if delete permission exists
+                  onChange={() => handleActionToggle(moduleId, "delete")} // Toggle on click
+                  disabled={isPermissionLocked || !hasGrantAccess} // Disabled if locked or no view permission
                   sx={{
-                    color: "#9ca3af",
+                    color: "#9ca3af", // Gray when unchecked
                     padding: "6px",
-                    "&.Mui-checked": { color: "#374151" },
-                    "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" },
+                    "&.Mui-checked": { color: "#374151" }, // Dark gray when checked
+                    "&:hover": { backgroundColor: "rgba(239, 68, 68, 0.08)" }, // Light red on hover
                     "&.Mui-disabled": {
-                      color: "#e5e7eb",
+                      color: "#e5e7eb", // Very light gray when disabled
                     },
                   }}
                 />
               }
               label={
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  {/* <Trash2 
-                    size={16} 
-                    color={
-                      !hasGrantAccess ? "#e5e7eb" : 
-                      moduleActions.includes("delete") ? "#ef4444" : "#9ca3af"
-                    } 
-                  /> */}
-                  <span style={{ 
-                    fontSize: "14px", 
-                    fontWeight: 500, 
-                    color: !hasGrantAccess ? "#d1d5db" : "#374151" 
-                  }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: !hasGrantAccess ? "#d1d5db" : "#374151", // Gray out if disabled
+                    }}
+                  >
                     Delete
                   </span>
                 </Box>
@@ -592,51 +693,76 @@ const Modal: React.FC<ModalProps> = ({
     );
   };
 
+  // Main component render
   return (
     <BootstrapDialog open={open} onClose={onClose}>
-      <DialogTitle sx={{ m: 0, p: 2.5, fontSize: "20px", fontWeight: 700, color: "#111827" }}>
+      {/* Modal header with title */}
+      <DialogTitle
+        sx={{
+          m: 0, // No margin
+          p: 2.5, // Padding
+          fontSize: "20px", // Large text
+          fontWeight: 700, // Bold
+          color: "#111827", // Dark gray
+        }}
+      >
         {title}
       </DialogTitle>
 
+      {/* Close button (X icon in top right) */}
       <IconButton
-        onClick={onClose}
+        onClick={onClose} // Close modal on click
         sx={{
-          position: "absolute",
-          right: 12,
-          top: 12,
-          backgroundColor: "#f3f4f6",
-          "&:hover": { 
-            backgroundColor: "#e5e7eb",
-            transform: "rotate(90deg)" 
+          position: "absolute", // Position absolutely in dialog
+          right: 12, // 12px from right edge
+          top: 12, // 12px from top edge
+          backgroundColor: "#f3f4f6", // Light gray background
+          "&:hover": {
+            backgroundColor: "#e5e7eb", // Darker gray on hover
+            transform: "rotate(90deg)", // Rotate icon on hover
           },
-          transition: "all 0.2s ease",
+          transition: "all 0.2s ease", // Smooth transitions
         }}
       >
         <CloseIcon />
       </IconButton>
 
+      {/* Modal body content */}
       <DialogContent dividers sx={{ borderColor: "#f3f4f6" }}>
+        {/* Optional description text */}
         {description && (
           <Box sx={{ mb: 3, color: "#6b7280", fontSize: "15px" }}>
             {description}
           </Box>
         )}
 
+        {/* Form element */}
         <form onSubmit={handleSubmit} id="permission-form">
-          {/* Form Fields */}
+          {/* Render all form fields */}
           {fields.map((field) => (
             <Box key={field.name} sx={{ mb: 2.5 }}>
-              <Box sx={{ mb: 1, fontSize: "14px", fontWeight: 600, color: "#374151" }}>
+              {/* Field label */}
+              <Box
+                sx={{
+                  mb: 1, // Margin bottom
+                  fontSize: "14px",
+                  fontWeight: 600, // Semi-bold
+                  color: "#374151", // Dark gray
+                }}
+              >
                 {field.placeholder}
               </Box>
+
+              {/* Render select dropdown or text input based on field type */}
               {field.type === "select" ? (
                 <StyledSelect
                   name={field.name}
                   value={formData[field.name]}
                   onChange={handleInputChange}
-                  error={!!formError[field.name]}
+                  error={!!formError[field.name]} // Pass error state
                 >
                   <option value="">Select {field.placeholder}</option>
+                  {/* Render all dropdown options */}
                   {field.options?.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -649,11 +775,20 @@ const Modal: React.FC<ModalProps> = ({
                   placeholder={`Enter ${field.placeholder.toLowerCase()}`}
                   value={formData[field.name]}
                   onChange={handleInputChange}
-                  error={!!formError[field.name]}
+                  error={!!formError[field.name]} // Pass error state
                 />
               )}
+
+              {/* Show error message if validation fails */}
               {formError[field.name] && (
-                <Box sx={{ mt: 0.75, fontSize: "13px", color: "#ef4444", fontWeight: 500 }}>
+                <Box
+                  sx={{
+                    mt: 0.75, // Margin top
+                    fontSize: "13px",
+                    color: "#ef4444", // Red text
+                    fontWeight: 500,
+                  }}
+                >
                   {formError[field.name]}
                 </Box>
               )}
@@ -662,6 +797,7 @@ const Modal: React.FC<ModalProps> = ({
 
           {/* Permissions Section */}
           <Box sx={{ mt: 4 }}>
+            {/* Section header with icon */}
             <Box
               sx={{
                 mb: 2.5,
@@ -669,14 +805,16 @@ const Modal: React.FC<ModalProps> = ({
                 alignItems: "center",
                 gap: 1.5,
                 pb: 2,
-                borderBottom: "2px solid #f3f4f6",
+                borderBottom: "2px solid #f3f4f6", // Bottom border
               }}
             >
-              <Box 
+              {/* Shield icon with yellow gradient background */}
+              <Box
                 sx={{
                   width: 36,
                   height: 36,
-                  background: "linear-gradient(90deg, #FCD000 0%, rgba(252, 208, 0, 0.9) 100%)",
+                  background:
+                    "linear-gradient(90deg, #FCD000 0%, rgba(252, 208, 0, 0.9) 100%)",
                   borderRadius: "10px",
                   display: "flex",
                   alignItems: "center",
@@ -690,83 +828,154 @@ const Modal: React.FC<ModalProps> = ({
               </Box>
             </Box>
 
-            {/* Main Modules */}
+            {/* Main Modules - render all except Settings and Users */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {permissionTree
-                .filter((item) => item.id !== "settings")
-                .map((item) => renderModuleCheckboxes(
-                  item.id, 
-                  item.name, 
-                  item.hasActions,
-                  item.allowedActions || ["view", "add", "edit", "delete"]
-                ))}
+                .filter((item) => item.id !== "settings" && item.id !== "users") // Exclude Settings and Users (they're rendered separately below)
+                .map((item) =>
+                  renderModuleCheckboxes(
+                    item.id,
+                    item.name,
+                    item.hasActions,
+                    item.allowedActions || ["view", "add", "edit", "delete"] // Use default actions if not specified
+                  )
+                )}
             </Box>
 
-            {/* Settings Section */}
+            {/* Users Section - Collapsible */}
             <Box
               sx={{
-                mt: 3,
-                p: 2.5,
-                borderRadius: "16px",
-                border: "2px solid #e5e7eb",
-                backgroundColor: "#fafafa",
+                mt: 3, // Margin top
+                p: 2.5, // Padding
+                borderRadius: "16px", // Rounded corners
+                border: "2px solid #e5e7eb", // Light gray border
+                backgroundColor: "#fafafa", // Very light gray background
               }}
             >
+              {/* Users expand/collapse button */}
               <Button
                 fullWidth
-                type="button"
-                variant="text"
+                type="button" // Not a submit button
+                variant="text" // Text style (no background)
                 endIcon={
                   <ChevronDown
                     size={18}
                     style={{
-                      transition: "transform 0.3s ease",
-                      transform: expandedSettings ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.3s ease", // Smooth rotation
+                      transform: expandedUsers
+                        ? "rotate(180deg)" // Point up when expanded
+                        : "rotate(0deg)", // Point down when collapsed
                     }}
                   />
                 }
-                onClick={() => setExpandedSettings(!expandedSettings)}
+                onClick={() => setExpandedUsers(!expandedUsers)} // Toggle expanded state
                 sx={{
-                  justifyContent: "space-between",
-                  textTransform: "none",
+                  justifyContent: "space-between", // Space between text and icon
+                  textTransform: "none", // Don't uppercase text
                   padding: "14px 18px",
                   fontWeight: 700,
                   fontSize: "16px",
                   color: "#111827",
                   borderRadius: "12px",
-                  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
+                  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" }, // Slight gray on hover
                 }}
               >
-                Settings
+                Users
               </Button>
 
-              <Collapse in={expandedSettings}>
-                <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+              {/* Collapsible content for Users children */}
+              <Collapse in={expandedUsers}>
+                <Box
+                  sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                  {/* Render child modules under Users */}
                   {permissionTree
-                    .find((p) => p.id === "settings")
+                    .find((p) => p.id === "users") // Find Users parent
                     ?.children?.map((child) =>
                       renderModuleCheckboxes(
-                        child.id, 
-                        child.name, 
+                        child.id,
+                        child.name,
                         child.hasActions,
                         child.allowedActions || ["view", "add", "edit", "delete"],
-                        true
+                        true // isChild = true for different styling
                       )
                     )}
                 </Box>
               </Collapse>
             </Box>
 
-            {/* Error Message */}
+            {/* Settings Section - Collapsible */}
+            <Box
+              sx={{
+                mt: 3, // Margin top
+                p: 2.5, // Padding
+                borderRadius: "16px", // Rounded corners
+                border: "2px solid #e5e7eb", // Light gray border
+                backgroundColor: "#fafafa", // Very light gray background
+              }}
+            >
+              {/* Settings expand/collapse button */}
+              <Button
+                fullWidth
+                type="button" // Not a submit button
+                variant="text" // Text style (no background)
+                endIcon={
+                  <ChevronDown
+                    size={18}
+                    style={{
+                      transition: "transform 0.3s ease", // Smooth rotation
+                      transform: expandedSettings
+                        ? "rotate(180deg)" // Point up when expanded
+                        : "rotate(0deg)", // Point down when collapsed
+                    }}
+                  />
+                }
+                onClick={() => setExpandedSettings(!expandedSettings)} // Toggle expanded state
+                sx={{
+                  justifyContent: "space-between", // Space between text and icon
+                  textTransform: "none", // Don't uppercase text
+                  padding: "14px 18px",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  color: "#111827",
+                  borderRadius: "12px",
+                  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" }, // Slight gray on hover
+                }}
+              >
+                Settings
+              </Button>
+
+              {/* Collapsible content for Settings children */}
+              <Collapse in={expandedSettings}>
+                <Box
+                  sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                  {/* Render child modules under Settings */}
+                  {permissionTree
+                    .find((p) => p.id === "settings") // Find Settings parent
+                    ?.children?.map((child) =>
+                      renderModuleCheckboxes(
+                        child.id,
+                        child.name,
+                        child.hasActions,
+                        child.allowedActions || ["view", "add", "edit", "delete"],
+                        true // isChild = true for different styling
+                      )
+                    )}
+                </Box>
+              </Collapse>
+            </Box>
+
+            {/* Permission Error Message - shows when no permissions selected */}
             {permissionError && (
               <Box
                 sx={{
                   mt: 2.5,
                   p: 1.5,
-                  backgroundColor: "#fef2f2",
-                  border: "1px solid #fecaca",
+                  backgroundColor: "#fef2f2", // Light red background
+                  border: "1px solid #fecaca", // Red border
                   borderRadius: "10px",
-                  color: "#dc2626",
+                  color: "#dc2626", // Red text
                   fontSize: "14px",
                   fontWeight: 500,
                   display: "flex",
@@ -782,9 +991,32 @@ const Modal: React.FC<ModalProps> = ({
         </form>
       </DialogContent>
 
+      {/* Modal footer with action buttons */}
       <DialogActions sx={{ p: 2.5, gap: 1.5 }}>
+        {/* Cancel button */}
         <Button
-          onClick={onClose}
+          onClick={onClose} // Close modal without saving
+          sx={{
+            px: 3, // Horizontal padding
+            py: 1.25, // Vertical padding
+            borderRadius: "10px",
+            textTransform: "none", // Don't uppercase text
+            fontWeight: 600,
+            fontSize: "15px",
+            color: "#374151", // Dark gray text
+            backgroundColor: "#f3f4f6", // Light gray background
+            "&:hover": { backgroundColor: "#e5e7eb" }, // Darker gray on hover
+          }}
+        >
+          {cancelLabel}
+        </Button>
+
+        {/* Submit button */}
+        <Button
+          type="submit" // Submits the form
+          form="permission-form" // Associates with form by ID
+          variant="contained"
+          className="bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 text-black" // Tailwind classes for yellow gradient
           sx={{
             px: 3,
             py: 1.25,
@@ -792,32 +1024,13 @@ const Modal: React.FC<ModalProps> = ({
             textTransform: "none",
             fontWeight: 600,
             fontSize: "15px",
-            color: "#374151",
-            backgroundColor: "#f3f4f6",
-            "&:hover": { backgroundColor: "#e5e7eb" },
-          }}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          type="submit"
-          form="permission-form"
-          variant="contained"
-          className=" bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 text-black"
-          sx={{
-            px: 3,
-            py: 1.25,
-            borderRadius: "10px",
-            textTransform: "none",
-            fontWeight: 600,
-            fontSize: "15px", 
-            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
+            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)", // Purple shadow
             "&:hover": {
-              background: "",
-              boxShadow: "0 6px 16px rgba(99, 102, 241, 0.4)",
-              transform: "translateY(-1px)",
+              background: "", // Empty to allow Tailwind gradient
+              boxShadow: "0 6px 16px rgba(99, 102, 241, 0.4)", // Larger shadow on hover
+              transform: "translateY(-1px)", // Slight lift effect
             },
-            transition: "all 0.2s ease",
+            transition: "all 0.2s ease", // Smooth transitions
           }}
         >
           {submitLabel}
@@ -827,4 +1040,5 @@ const Modal: React.FC<ModalProps> = ({
   );
 };
 
+// Export component for use in other files
 export default Modal;

@@ -1,5 +1,5 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
-import TableDefault from "../../../components/DataDisplay/TableDefault";
+import TableCustomizableHeaders from "../../../components/DataDisplay/TableCustomizableHeaders";
 import { useState, useEffect, useMemo } from "react";
 import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -8,8 +8,7 @@ import {
   fetchIssues, 
   updateIssues,
   createIssue,
-  fetchProducts,
-  fetchCategory,
+  fetchProductAll, 
   Issues
 } from '../../../services/Technician/issuesServices'; 
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
@@ -30,6 +29,7 @@ const Issue = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
 
   const { 
     userInfo,
@@ -48,6 +48,14 @@ const Issue = () => {
     queryFn: fetchIssues
   }); 
 
+  const { data: productResponse } = useQuery({
+    queryKey: ["product"],
+    queryFn: fetchProductAll
+  });
+
+  const products = productResponse?.data ?? [];
+  const TabHeaders = ['ALL', ...products.map((c: any) => c.product_name)];
+
   const { mutateAsync: IssueCategory } = useMutation({ mutationFn: createIssue });
   const { mutateAsync: updateProduct } = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: Issues }) =>
@@ -59,7 +67,7 @@ const Issue = () => {
 
   const columns = [
     {id: 'name', label: 'Name', sortable: true, align: 'left'},
-    {id: 'category_name', label: 'Device Type', sortable: false, align: 'left'}, 
+    {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'}, 
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
@@ -130,11 +138,11 @@ const Issue = () => {
   };
 
   const handleAddIssue = async (formDataIssue: Record<string, string>) => {
-    try {
+    try { 
       const response = await IssueCategory({
         name: formDataIssue.name,
-        /* products_id: Number(formDataIssue.products_id), */
-        categories_id: Number(formDataIssue.categories_id)
+        product_id: Number(formDataIssue.product_id),
+        // categories_id: Number(formDataIssue.categories_id)
       });
       if (response?.success) {
         setSnackBarMessage("Issue created successfully");
@@ -206,12 +214,26 @@ const Issue = () => {
   }, [searchValue]);
 
   const filteredProduct = useMemo(() => {
-    if (!debouncedSearch?.trim()) return issues;
-    return issues.filter((c: any) => 
-      c.category_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
+    if (!debouncedSearch?.trim()){
+      // Apply category filter only
+      if (selectedFilter === "ALL") {
+        return issues;
+      }
+      return issues.filter((c: any) => c.product_name === selectedFilter);
+    };
+
+
+    let result = issues.filter((c: any) => 
+      c.product_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
       c.name.toLowerCase().includes(debouncedSearch?.toLowerCase())
     );
-  }, [issues, debouncedSearch]);
+    
+    if (selectedFilter !== "ALL") {
+      result = result.filter((c: any) => c.product_name === selectedFilter);
+    }
+
+    return result;
+  }, [issues, selectedFilter, debouncedSearch]);
 
   // Check if buttons should be enabled
   const isUpdateEnabled = !!selectedRowId;
@@ -313,13 +335,16 @@ const Issue = () => {
       </div>
 
       {/* Table Section */}
-      <TableDefault 
+      <TableCustomizableHeaders 
         rows={filteredProduct}
         columns={columns}
         isLoading={isLoading}
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        filterOptions={TabHeaders}
+        selectedFilter={selectedFilter}
+        onFilterChange={(filter) => setSelectedFilter(filter)}
       />
     </div>
   );

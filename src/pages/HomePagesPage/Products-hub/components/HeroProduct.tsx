@@ -59,7 +59,7 @@ export default function ProductShowcase() {
       {
         id: "product-1",
         name: "Product Model X",
-        imageUrl: "/featuredProduct/LaptopPro.png",
+        imageUrl: "/featuredProd/LaptopPro.png",
         position: 1,
         badges: [
           { id: "badge-1", text: "144Hz", position: 1 },
