@@ -73,6 +73,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
             return <span className='text-gray-500'>{placeholder}</span>
           } 
           const selectOption = options.find((opt) => opt.value === selected)
+
           return selectOption ? selectOption.label : selected
         },
       }}

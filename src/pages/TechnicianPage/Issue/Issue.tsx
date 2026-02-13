@@ -142,7 +142,9 @@ const Issue = () => {
       const response = await IssueCategory({
         name: formDataIssue.name,
         product_id: Number(formDataIssue.product_id),
-        // categories_id: Number(formDataIssue.categories_id)
+        categories_id: Number(formDataIssue.categories_id),
+        possible_solutions: formDataIssue.explanation,
+        is_publish: formDataIssue.publish
       });
       if (response?.success) {
         setSnackBarMessage("Issue created successfully");
@@ -165,8 +167,10 @@ const Issue = () => {
       const payload = {
         id: selectedProduct.id,
         name: formDataIssue.name,
-      /*  products_id: Number(formDataIssue.products_id), */
-        categories_id: Number(formDataIssue.categories_id)
+        product_id: Number(formDataIssue.product_id),
+        categories_id: Number(formDataIssue.categories_id),
+        possible_solutions: formDataIssue.explanation,
+        is_publish: formDataIssue.publish
       };
 
       const response = await updateProduct({ id: selectedProduct.id, payload });

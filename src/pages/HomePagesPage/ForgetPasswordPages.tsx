@@ -3,9 +3,15 @@ import CustomTextField from "../../components/Fields/CustomTextField"
 import {  motion } from 'framer-motion' 
 import { Email } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
-import Snackbar from '../../components/feedback/Snackbar'
-import { Lock } from "lucide-react";
-import { AlertColor } from "@mui/material/Alert";
+import Snackbar from '../../components/feedback/SnackbarTechnician'
+import { Lock } from "lucide-react"; ;
+import { 
+  changePassword,
+  forgetPassword
+} from '../../services/Technician/userServices'
+import { useMutation } from "@tanstack/react-query"
+import { userAuth } from '../../hooks/userAuth'
+import axiosClient from "../../axiosClient"
 
 interface FormErrorEmail {
   email?: string
@@ -23,29 +29,47 @@ interface FormErrorPassword {
 
 const ForgetPasswordPages = () => {
   const navigate = useNavigate();
+
+  const {
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType,
+    snackBarMessage,
+    snackBarOpen,
+    snackBarType
+  } = userAuth()
   
   const [formErrorEmail, setFormErrorEmail] = useState<FormErrorEmail>({})
   const [formErrorPassword, setFormErrorPassword] = useState<FormErrorPassword>({})
 
-
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""))
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-
-  const [showAlert, setShowAlert] = useState<boolean>(false);
+ 
   const [showVerifyOtp, setShowVerifyOtp] = useState<boolean>(false)
+  const [otpValue, setOtpValue] = useState<string>("")
   const [showSetupPassword, setShowSetupPassword] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [message, setMessage] = useState("");
-  const [snackBarType, setSnackBarType] = useState<AlertColor>("success")
 
-  const [formPasword, setFormPassword] = useState<password>({
+  const [formPassword, setFormPassword] = useState<password>({
     new_password: "",
     confirm_password: ''
   })
 
   const [formData, setFormData] = useState({
     email: ""
+  });
+
+  const {
+    mutateAsync: ForgetPassword, 
+  } = useMutation({
+    mutationFn: forgetPassword
+  });
+
+  const {
+    mutateAsync: ChangePassword,
+  } = useMutation({
+    mutationFn: changePassword
   })
 
   const handleInputPassword = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -90,26 +114,26 @@ const ForgetPasswordPages = () => {
 
   const validateFormPassword = (): FormErrorPassword => {
     const errors : FormErrorPassword = {}
-    if (!formPasword.new_password.trim()) {
+    if (!formPassword.new_password.trim()) {
       errors.new_password = "New password is required."
-    } else if (formPasword.new_password.length < 8) {
+    } else if (formPassword.new_password.length < 8) {
         errors.new_password = 'Password must be at least 8 characters long.';
-    } else if (!/[A-Z]/.test(formPasword.new_password)) {
+    } else if (!/[A-Z]/.test(formPassword.new_password)) {
         errors.new_password = 'Password must contain at least one uppercase letter.';
-    } else if (!/[a-z]/.test(formPasword.new_password)) {
+    } else if (!/[a-z]/.test(formPassword.new_password)) {
         errors.new_password = 'Password must contain at least one lowercase letter.';
-    } else if (!/[0-9]/.test(formPasword.new_password)) {
+    } else if (!/[0-9]/.test(formPassword.new_password)) {
         errors.new_password = 'Password must contain at least one number.';
-    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(formPasword.new_password)) {
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(formPassword.new_password)) {
         errors.new_password = 'Password must contain at least one special character.';
     }
 
-    if (formPasword.confirm_password !== formPasword.new_password)
+    if (formPassword.confirm_password !== formPassword.new_password)
       errors.confirm_password = 'Passwords do not match.';
     return errors;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const errors = validateForm();
@@ -117,26 +141,61 @@ const ForgetPasswordPages = () => {
       setLoading(true)
 
       if (Object.keys(errors).length === 0) {
-        setMessage("Your Authentication code has been sent successfully!")
-        setSnackBarType("success")
-        setShowVerifyOtp(true)
-        setShowAlert(true)
+        const generatedOtp = handleGeneratedOtp()
+
+        const form = new FormData();
+        form.append("email", formData.email);
+        form.append("otp", generatedOtp)
+
+        const response = await ForgetPassword(form);
+
+        if (response?.success) {
+          setSnackBarMessage("Your Authentication code has been sent successfully!")
+          setSnackBarType("success")
+          setShowVerifyOtp(true)
+          setSnackBarOpen(true)
+        }
       }
     } catch (err) {
-
+      setSnackBarMessage("An error occurred. Please try again.")
+      setSnackBarType("error") 
+      setSnackBarOpen(true)
     } finally{
       setLoading(false)
     }
   }
 
-  const handleSubmitPassword = (e: React.FormEvent) => {
+  const handleSubmitPassword = async(e: React.FormEvent) => {
     e.preventDefault();
     try {
       const errors = validateFormPassword();
-      setFormErrorPassword(errors)
+      setFormErrorPassword(errors)      
       setLoading(true)
-    } catch (error) {
 
+      if (Object.keys(errors).length === 0) {
+        const form = new FormData();
+        form.append("email", formData.email);
+        form.append("password",formPassword.new_password)
+
+        const response = await ChangePassword(form)
+
+        if (response?.success) {
+          setSnackBarMessage("Your password has been updated")
+          setSnackBarType("success")
+          setSnackBarOpen(true)
+
+          formData.email = ""
+          formPassword.confirm_password = ""
+          formPassword.new_password = ""
+
+          navigate("/tech/sign-in")
+
+        }
+      } 
+    } catch (error) {
+      setSnackBarMessage("An error occurred. Please try again.")
+      setSnackBarType("error") 
+      setSnackBarOpen(true)
     } finally {
       setLoading(false)
     }
@@ -176,6 +235,20 @@ const ForgetPasswordPages = () => {
 
     // move to the next input automatically
     if (value && index < 5) inputsRef.current[index + 1]?.focus();
+
+    if (index === 5) {
+      const enteredOtp = newOtp.join("") 
+      if (enteredOtp === otpValue) {
+        setShowVerifyOtp(false)
+        setShowSetupPassword(true)
+      } else {
+        setSnackBarMessage("Invalid OTP. Please try again.")
+        setSnackBarType("error")
+        setSnackBarOpen(true)
+      }
+    }
+    console.log("otp", otp)
+    console.log("value", value, index)
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
@@ -184,12 +257,18 @@ const ForgetPasswordPages = () => {
     }
   }
 
+  const handleGeneratedOtp = (): string => {
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
+    setOtpValue(generatedOtp)
+    return generatedOtp
+  }
+
   const handleVerify = () => {
     const otpCode = otp.join("");
     if (otpCode.length < 6) {
-      setMessage("Please enter the complete 6-digit verification code")
+      setSnackBarMessage("Please enter the complete 6-digit verification code")
       setSnackBarType("error")
-      setShowAlert(true)
+      setSnackBarOpen(true)
       return
     } else {
       // checking of logic verify code
@@ -199,12 +278,12 @@ const ForgetPasswordPages = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center min-h-screen bg-white">
       <Snackbar 
-        open={showAlert}
+        open={snackBarOpen}
         type={snackBarType}
-        message={message}
-        onClose={() => setShowAlert(false)}
+        message={snackBarMessage}
+        onClose={() => setSnackBarOpen(false)}
       />
 
       {showVerifyOtp ? (
@@ -239,7 +318,7 @@ const ForgetPasswordPages = () => {
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 className="w-12 h-12 text-center border border-gray-300 rounded-md 
                 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500 
-                outline-none transition"
+                outline-none transition text-black"
               />
             ))}
           </motion.div>
@@ -254,7 +333,7 @@ const ForgetPasswordPages = () => {
           <motion.button 
             variants={itemVariants}
             onClick={handleVerify} 
-            className="w-full text-white mt-5 mb-5 py-3 px-4 rounded-md font-semibold bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 hover:from-gray-800 hover:via-gray-700 hover:to-gray-800"
+            className="w-full text-white mt-5 mb-5 py-3 px-4 rounded-md font-semibold beesee-button  text-sm sm:text-base"
           >
             Verify
           </motion.button>
@@ -275,7 +354,10 @@ const ForgetPasswordPages = () => {
             <br />
             <div className="flex gap-1 text-sm md:text-[16px]">
               <p className="text-gray-600 ">Check your spam or</p>
-              <button className="text-blue-500 hover:underline">
+              <button
+                onClick={handleSubmit} 
+                className="text-blue-500 hover:underline"
+              >
                 resend OTP
               </button>
             </div>
@@ -312,7 +394,7 @@ const ForgetPasswordPages = () => {
               <CustomTextField 
                 name="new_password"
                 placeholder="New Password"
-                value={formPasword.new_password}
+                value={formPassword.new_password}
                 multiline={false}
                 rows={1}
                 type="password"
@@ -330,7 +412,7 @@ const ForgetPasswordPages = () => {
               <CustomTextField 
                 name="confirm_password"
                 placeholder="Confirm password"
-                value={formPasword.confirm_password}
+                value={formPassword.confirm_password}
                 multiline={false}
                 rows={1}
                 type="password"
@@ -351,7 +433,7 @@ const ForgetPasswordPages = () => {
                 className={`w-full py-3 px-4 rounded-md font-semibold text-white 
                   ${ loading 
                     ? "bg-yellow-300 cursor-not-allowed" 
-                    : "bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 hover:from-gray-800 hover:via-gray-700 hover:to-gray-800"}`}
+                    : "beesee-button w-full py-3 text-sm sm:text-base"}`}
               >
                 Save Password
               </button>
@@ -408,12 +490,13 @@ const ForgetPasswordPages = () => {
 
             <motion.button
               type='submit'
+              disabled={loading}
               onClick={handleSubmit}
               variants={itemVariants}
               className={`mt-10 w-full py-3 px-10 text-white font-semibold rounded-md transition
                 ${ loading 
                   ? "bg-yellow-300 cursor-not-allowed"
-                  : "bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 hover:from-gray-800 hover:via-gray-700 hover:to-gray-800"
+                  : "beesee-button w-full py-3 text-sm sm:text-base"
                 }`}
             >
               Verify
@@ -422,7 +505,7 @@ const ForgetPasswordPages = () => {
             <motion.button
               onClick={() => navigate("/sign-in")}
               variants={itemVariants}
-              className="mt-5 w-full py-3 px-5 border border-gray-300 rounded-md font-semibold bg-gray-100 hover:bg-gray-200"
+              className="mt-5 w-full py-4 px-5 border border-gray-300 rounded-xl font-semibold bg-gray-100 hover:bg-gray-200"
             >
               Cancel
             </motion.button>

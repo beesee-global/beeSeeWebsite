@@ -5,7 +5,7 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { AlertColor } from '@mui/material/Alert';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, Save, User2, User, Mail, Lock, MapPin, Image as ImageIcon, Upload, CheckCircle } from 'lucide-react';
+import { Edit3, Save, User2, User, Mail, Lock, Phone, MapPin, Image as ImageIcon, Upload, CheckCircle } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchUserById, updateAccountInfo } from '../../../services/Technician/myAccountServices';
 import { userAuth } from '../../../hooks/userAuth';
@@ -16,6 +16,7 @@ interface formData {
     email: string;
     password?: string;
     confirm_password?: string;
+    contact_number: string;
     image?: File | string | null;
 }
 
@@ -24,6 +25,7 @@ interface FormError {
     last_name?: string;
     email?: string;
     password?: string;
+    contact_number?: string;
     confirm_password?: string;
     image?: string;
 }
@@ -42,6 +44,7 @@ const MyAccount = () => {
 
     const [formData, setFormData] = useState<formData>({
         first_name: '',
+        contact_number: "",
         last_name: '',
         email: '',
         password: '',
@@ -76,6 +79,9 @@ const MyAccount = () => {
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             errors.email = 'Email is invalid';
         }
+
+        if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.';
+        else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
 
         // password validation
         if (formData.password || formData.confirm_password) {
@@ -162,6 +168,7 @@ const MyAccount = () => {
                 first_name: userInformation?.data.first_name,
                 last_name: userInformation?.data.last_name,
                 email: userInformation?.data.email,
+                contact_number: userInformation?.data.contact_number,
                 image: userInformation?.data.image_url,
             });
         }
@@ -239,6 +246,7 @@ const MyAccount = () => {
             setFormData({
                 first_name: userInformation.data.first_name || null,
                 last_name: userInformation.data.last_name || null,
+                contact_number: userInformation.data.contact_number || null,
                 email: userInformation.data.email || null,
             });
         }
@@ -406,6 +414,26 @@ const MyAccount = () => {
                                     helperText={formError.confirm_password}
                                 />
                             </div>
+
+                            {/* confirm password */}
+                            <div>
+                                <label htmlFor="" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Contact Number *
+                                </label>
+                                <CustomTextField
+                                    name="contact_number"
+                                    placeholder="Enter your contact number"
+                                    value={formData.contact_number}
+                                    onChange={handleChangeInput}
+                                    multiline={false}
+                                    maxLength={11}
+                                    type="text"
+                                    rows={1}
+                                    icon={<Phone className="w-4 h-4" />}
+                                    error={!!formError.contact_number}
+                                    helperText={formError.contact_number}
+                                />
+                            </div>
                         </div>
 
                         {/* Image upload */}
@@ -431,8 +459,12 @@ const MyAccount = () => {
                                             className={`relative border boder-dashed  dark:border-gray-600 rounded-xl overflow-hidden transition-colors group
                                         ${formError.image ? 'border-red-400' : 'border-gray-300'}`}
                                         >
-                                            <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                                                <img src={preview} alt="" className="object-cover w-full h-full" />
+                                            <div className="h-52 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                                                <img 
+                                                    src={preview} 
+                                                    alt="" 
+                                                    className="object-cover " 
+                                                    />
                                             </div>
 
                                             {/* Upload overlay for empty state */}
@@ -489,7 +521,7 @@ const MyAccount = () => {
                     </div>
 
                     {/* Account information */}
-                    <div className="bg-white p-6 mt-8 pt-6 border-t dark:border-gray-700">
+                    {/* <div className="bg-white p-6 mt-8 pt-6 border-t dark:border-gray-700">
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -514,7 +546,7 @@ const MyAccount = () => {
                                 <span className="ml-2 text-gray-900 dark:text-whte">{userInformation?.data?.details?.position}</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

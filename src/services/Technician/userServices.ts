@@ -103,3 +103,31 @@ export const deleteUsers = async (ids: number[] | string[]) => {
     throw error
   }
 }
+
+export const forgetPassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/forget-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const changePassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/change-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}

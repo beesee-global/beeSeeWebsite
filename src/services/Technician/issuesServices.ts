@@ -5,7 +5,10 @@ const API_URL = "issues"
 export interface Issues {
     id: number;
     name: string;
+    categories_id: number;
     product_id: number
+    possible_solutions: string;
+    is_publish: string
 }
 
 export const fetchIssues = async () => {
@@ -28,7 +31,7 @@ export const fetchProducts = async (id: number) => {
 
 export const fetchCategory = async () => {
     try {
-        const response = await axiosClient.get(`/categories`);
+        const response = await axiosClient.get(`/categories/no_is_active`);
         return response.data
     } catch (error) {
         throw error

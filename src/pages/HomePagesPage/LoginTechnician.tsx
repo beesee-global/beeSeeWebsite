@@ -20,6 +20,7 @@ interface FormError {
 }
 
 const LoginTechnician = () => { 
+  const navigate = useNavigate(); 
   const { login, token, userInfo } = userAuth()
   const [isChecking, setIsChecking] = useState(false); 
 
@@ -162,12 +163,12 @@ const LoginTechnician = () => {
             />
           </motion.div> 
 
-<motion.h2
-  variants={itemVariants}
-  className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
->
-  Login Your Account
-</motion.h2>
+        <motion.h2
+          variants={itemVariants}
+          className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
+        >
+          Login Your Account
+        </motion.h2>
           <motion.p 
             className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
             variants={itemVariants}
@@ -213,12 +214,12 @@ const LoginTechnician = () => {
               /> 
             </motion.div>
 
-           {/*  <motion.p 
+            <motion.p 
               variants={itemVariants}
               onClick={() => navigate("/forget-password")}
               className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base">
               Forget Password
-            </motion.p> */}
+            </motion.p>
 
             <motion.button
               variants={itemVariants}
