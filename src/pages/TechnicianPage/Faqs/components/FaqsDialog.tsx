@@ -20,7 +20,7 @@
     maxLength?: number;
     multiline?: boolean;
     rows?: number;
-    options?: { value: string; label: string; categories_id?: string }[];
+    options?: { value: string; label: string; categories_id?: string; is_active?: string | boolean }[];
     validator?: (value: string) => string | undefined;
   }
 
@@ -59,6 +59,7 @@
     const [formData, setFormData] = useState(initialForm);
     const [formError, setFormError] = useState<Record<string, string>>({});
     const [selectedCategory, setSelectedCategory] = useState<string>("");
+    const [isAllDevices, setIsAllDevices] = useState<boolean>(false);
 
     useEffect(() => {
       const newForm: Record<string, string> = {};
@@ -66,9 +67,9 @@
         newForm[field.name] = field.value || "";
       });
       if (!newForm['explanation']) newForm['explanation'] = '';
-      setFormData(newForm);
-      console.log("Resetting form data:", newForm);
+      setFormData(newForm); 
       setSelectedCategory(newForm["category"] || "");
+      setIsAllDevices(newForm["product"] === "others");
     }, [fields, open]);
 
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -85,12 +86,27 @@
       if (name === "category") {
         setSelectedCategory(value);
         setFormData(prev => ({ ...prev, product: "" }));
+        setIsAllDevices(false);
       }
+    };
+
+    const handleAllDevicesToggle = (checked: boolean) => {
+      setIsAllDevices(checked);
+      setFormData(prev => ({
+        ...prev, 
+        is_all_devices: checked ? "1" : "0"
+      }));
+      setFormError(prev => ({ ...prev, product: '' }));
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const errors: Record<string, string> = {};
+      const categoryField = fields.find(f => f.name === "category");
+      const selectedCategoryOption = categoryField?.options?.find(
+        option => String(option.value) === String(selectedCategory)
+      );
+      const isCategoryActive = selectedCategoryOption?.is_active === true || selectedCategoryOption?.is_active === 'true';
 
       // Validate RichTextEditor (explanation)
       if (!formData.explanation || formData.explanation === '<p></p>') {
@@ -99,6 +115,7 @@
 
       // Validate other fields
       fields.forEach(field => {
+        if (field.name === "product" && (isAllDevices || isCategoryActive)) return;
         if (field.validator) {
           const error = field.validator(formData[field.name]);
           if (error) errors[field.name] = error;
@@ -145,8 +162,16 @@
           {fields
             .filter(f => f.name !== 'explanation') // exclude explanation field
             .map(field => {
+              const categoryField = fields.find(f => f.name === "category");
+              const selectedCategoryOption = categoryField?.options?.find(
+                option => String(option.value) === String(selectedCategory)
+              );
+              const isCategoryActive = selectedCategoryOption?.is_active === true || selectedCategoryOption?.is_active === 'true';
+              const shouldHideProduct = !selectedCategory || isCategoryActive || isAllDevices;
+
               // Hide the product dropdown if no category is selected
-              if (field.name === "product" && !selectedCategory) {
+              // or the category is marked active, or "all devices" is checked.
+              if (field.name === "product" && shouldHideProduct) {
                 return null; // skip rendering
               }
 
@@ -163,16 +188,27 @@
                     : field.options || [];
 
                 return (
-                  <CustomSelectField
-                    key={field.name}
-                    name={field.name}
-                    placeholder={field.placeholder}
-                    value={formData[field.name]}
-                    onChange={(e: any) => handleSelectChange(field.name, e.target.value)}
-                    options={options}
-                    error={!!formError[field.name]}
-                    helperText={formError[field.name]}
-                  />
+                  <div key={field.name} className="space-y-2">
+                    <CustomSelectField
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      value={formData[field.name]}
+                      onChange={(e: any) => handleSelectChange(field.name, e.target.value)}
+                      options={options}
+                      error={!!formError[field.name]}
+                      helperText={formError[field.name]}
+                    />
+                    {field.name === "product" && selectedCategory && !isCategoryActive && (
+                      <label className="flex items-center gap-2 text-sm text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={isAllDevices}
+                          onChange={(e) => handleAllDevicesToggle(e.target.checked)}
+                        />
+                        Applicable to all devices
+                      </label>
+                    )}
+                  </div>
                 );
               }
 

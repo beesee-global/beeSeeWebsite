@@ -35,7 +35,7 @@ export const fetchFaqsAll = async() => {
 
 export const fetchAllDevices = async() => {
     try {
-        const response = await axiosClient.get(`/categories/cs/public`);
+        const response = await axiosClient.get(`/categories/no_is_active`);
         return response.data
     } catch (error) {
         throw error
