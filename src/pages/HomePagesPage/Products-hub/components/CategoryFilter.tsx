@@ -22,7 +22,7 @@ const CategoryFilter: React.FC<Props> = ({
       {/* DESKTOP */}
       <div className="hidden md:flex justify-center gap-4 flex-wrap">
         {categories.map((category) => {
-          const isActive = selectedCategory === category.name;
+          const isActive = selectedCategory === category.id;
 
           return (
             <button

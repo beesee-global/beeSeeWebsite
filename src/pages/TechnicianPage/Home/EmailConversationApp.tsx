@@ -62,7 +62,7 @@ export default function EmailConversationApp() {
     snackBarType
   } = userAuth()
 
-  const { data: ticketInfo, isLoading } = useQuery({
+  const { data: ticketInfo, isLoading, refetch: refetchTicketInfo } = useQuery({
     queryKey: ['ticketInformation', pid],
     queryFn: () => fetchTicketDetails(String(pid)),
     enabled: !!pid
@@ -222,6 +222,12 @@ export default function EmailConversationApp() {
 
   const handleSendReply = async () => {
     if ((!replyText.trim() && attachedFiles.length === 0)) return;
+    if (!userTicketInformation?.ticket_id) {
+      setSnackBarMessage("Ticket ID is missing.")
+      setSnackBarType("error")
+      setSnackBarOpen(true);
+      return;
+    }
  
     setLoading(true);
 
@@ -232,11 +238,11 @@ export default function EmailConversationApp() {
     setAttachedFiles([]);  
     
     const formData = new FormData();
-      formData.append('sender_email', userTicketInformation.email || 'admin@beesee.com');
-      formData.append('tickets_id', userTicketInformation?.ticket_id);
-      formData.append('sender_name', userInfo?.full_name || 'Support Team');
+      formData.append('sender_email', String(userTicketInformation.email || 'admin@beesee.com'));
+      formData.append('tickets_id', String(userTicketInformation?.ticket_id ?? ''));
+      formData.append('sender_name', String(userInfo?.full_name || 'Support Team'));
       formData.append('message_body', currentReplyText);
-      formData.append('user_role', userInfo?.role);
+      formData.append('user_role', String(userInfo?.role || ''));
       formData.append('is_inbound', "0");
 
       if (currentAttachedFiles.length > 0) {
@@ -249,6 +255,8 @@ export default function EmailConversationApp() {
       const response = await insertConversations(formData)
 
       if (response?.success) {
+        await refetchTicketInfo();
+
         if (userTicketInformation.status === 'open') {
           setSnackBarMessage("Mark as Completed")
           setSnackBarType('success')
@@ -321,11 +329,18 @@ export default function EmailConversationApp() {
 
   const markAsCompleted = async() => {
     try {
+      if (!userTicketInformation?.ticket_id) {
+        setSnackBarMessage("Ticket ID is missing.")
+        setSnackBarType("error")
+        setSnackBarOpen(true)
+        return
+      }
+
       const payload = new FormData();
       payload.append("status", "resolved");
 
       const response = await updateStats({
-        reference_number: userTicketInformation?.ticket_id,
+        reference_number: String(userTicketInformation?.ticket_id),
         payload
       });
 
@@ -430,7 +445,7 @@ export default function EmailConversationApp() {
           <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
             <div>
               <h2 className="bee-title-sm text-gray-900">
-                Issue: {userTicketInformation.issue_name || 'No Subject'}
+                Issue: {userTicketInformation.issue_name || userTicketInformation.item_name}
               </h2> 
             </div>
 
@@ -438,7 +453,7 @@ export default function EmailConversationApp() {
             <div className='flex gap-3 items-center'> 
               <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
               >
-                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "COMPLETED" : "Expired"}
+                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "Completed" : "Ongoing"}
               </span> 
 
               <button 

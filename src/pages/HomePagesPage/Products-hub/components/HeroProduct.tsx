@@ -47,7 +47,7 @@ export default function ProductShowcase() {
 
   const { data: featuresProduct } = useQuery({
     queryKey: ["features"],
-    queryFn: () => fetchSpecificDisplayPublic(),
+    // queryFn: () => fetchSpecificDisplayPublic(),
     refetchInterval: 10000,
   });
 
@@ -59,7 +59,7 @@ export default function ProductShowcase() {
       {
         id: "product-1",
         name: "Product Model X",
-        imageUrl: "/featuredProd/LaptopPro.png",
+        imageUrl: "/featuredProduct/LaptopPro.png",
         position: 1,
         badges: [
           { id: "badge-1", text: "144Hz", position: 1 },

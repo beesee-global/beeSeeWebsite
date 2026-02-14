@@ -168,28 +168,70 @@ const ProductsHub: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  
+   const categoriesDumpData: Category[] = [
+    { 
+      id: "all", 
+      name: "All Products",  
+      hoverSpecs: []
+    },
+    { 
+      id: "laptop", 
+      name: "Laptops",  
+      icon: "💻",
+      hoverSpecs: ["cpu", "ram", "storage", "display"]
+    },
+    { 
+      id: "smartwatch", 
+      name: "Wearables",  
+      icon: "⌚",
+      hoverSpecs: ["display", "battery", "sensors", "connectivity"]
+    },
+    { 
+      id: "smarttv", 
+      name: "Interactive Smart TVs",  
+      icon: "📺",
+      hoverSpecs: ["display", "resolution", "refresh_rate", "panel_type"]
+    },
+    { 
+      id: "tablet", 
+      name: "Tablets",  
+      icon: "📱",
+      hoverSpecs: ["cpu", "ram", "storage", "display"]
+    },
+/*     { 
+      id: "kiosk", 
+      name: "Kiosk Machines", 
+      count: demoProducts.filter((p) => p.category_id === "kiosk").length,
+      icon: "🏧",
+      hoverSpecs: ["display", "cpu", "storage", "touchscreen"]
+    } */
+  ];
 
   const { data: categories } = useQuery({
     queryKey: ["category"],
-    queryFn: async () => {
-      const categories = await fetchAllCategoryPublic();
-      // Normalize categories: ensure each item has `id`, `name`, `icon`.
-      const mapped = (categories || []).map((c: any, idx: number) => ({
-        id: c.id ?? String(c.name || `cat-${idx}`),
-        name: c.name,
-        icon: c.icon,
-      }));
-      // Add "All Products" at the beginning with id 'all'
-      return [{ id: 'all', name: "All Products", icon: "Server" }, ...mapped];
-    },
+    // queryFn: async () => {
+    //   const categories = await fetchAllCategoryPublic();
+    //   // Normalize categories: ensure each item has `id`, `name`, `icon`.
+    //   const mapped = (categories || []).map((c: any, idx: number) => ({
+    //     id: c.id ?? String(c.name || `cat-${idx}`),
+    //     name: c.name,
+    //     icon: c.icon,
+    //   }));
+    //   // Add "All Products" at the beginning with id 'all'
+    //   return [{ id: 'all', name: "All Products", icon: "Server" }, ...mapped];
+    // },
   });
+
+  const effectiveCategories = useMemo(
+    () => (categories && categories.length > 0 ? categories : categoriesDumpData),
+    [categories, categoriesDumpData]
+  );
 
   const {
     data: products
   } = useQuery({
     queryKey: ["products"],
-    queryFn: () => fetchAllProductPublic()
+    // queryFn: () => fetchAllProductPublic()
   })
 
   console.log("product", products)
@@ -226,7 +268,9 @@ const ProductsHub: React.FC = () => {
         });
 
         // attempt to find category id from fetched categories
-        const matchedCat = (categories || []).find((c: any) => c.name === product.category_name || c.name === product.category);
+        const matchedCat = effectiveCategories.find(
+          (c: any) => c.name === product.category_name || c.name === product.category
+        );
 
         return {
           id: index + 1,
@@ -255,7 +299,7 @@ const ProductsHub: React.FC = () => {
     }
 
     return processMockProducts(mockProducts);
-  }, [products, categories]);
+  }, [products, effectiveCategories]);
  
 
   /* ===========================
@@ -385,7 +429,7 @@ const ProductsHub: React.FC = () => {
 
               <div className="mb-8">
                 <CategoryFilter
-                  categories={categories || []}
+                  categories={effectiveCategories}
                   selectedCategory={selectedCategory}
                   onCategoryChange={(c) => {
                     setSelectedCategory(c);
@@ -398,7 +442,7 @@ const ProductsHub: React.FC = () => {
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
                 {searchQuery && ` for "${searchQuery}"`}
                 {selectedCategory !== "all" &&
-                  ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
+                  ` in ${effectiveCategories.find((c) => c.id === selectedCategory)?.name}`}
               </div>
 
               <div className="products-grid-container">
@@ -560,7 +604,7 @@ const ProductsHub: React.FC = () => {
               <FadeReveal isMobile={isMobile}>
                 <div className="mb-8">
                   <CategoryFilter
-                    categories={categories || []}
+                    categories={effectiveCategories}
                     selectedCategory={selectedCategory}
                     onCategoryChange={(c) => {
                       setSelectedCategory(c);
@@ -574,7 +618,7 @@ const ProductsHub: React.FC = () => {
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
                 {searchQuery && ` for "${searchQuery}"`}
                 {selectedCategory !== "all" &&
-                  ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
+                  ` in ${effectiveCategories.find((c) => c.id === selectedCategory)?.name}`}
               </div>
 
               <FadeReveal isMobile={isMobile}>

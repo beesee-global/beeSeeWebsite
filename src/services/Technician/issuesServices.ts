@@ -20,6 +20,15 @@ export const fetchIssues = async () => {
     }
 }
 
+export const fetchIssueById = async (id: number | string) => {
+    try {
+        const response = await axiosClient.get(`/${API_URL}/${id}/public`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const fetchProducts = async (id: number) => {
     try {
         const response = await axiosClient.get(`/products/${id}/public`)

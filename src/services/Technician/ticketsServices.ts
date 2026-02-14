@@ -20,6 +20,19 @@ export const updateStatusDelete = async (data: any) => {
   }
 }
 
+export const sentJobOder = async (id: string , data:any) => {
+    try {
+      const response = await axiosClient.put(`${API_URL}/${id}/sent-job-order`, data, {
+        headers:{
+            "Content-Type": "multipart/form-data"
+        }
+      });
+      return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 // permanently delete a ticket or multiple tickets
 export const deleteForever = async (idOrIds: number | number[]) => {
     try {

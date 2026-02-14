@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import ImageUploadModal from './ImageUploadModal';
+import CustomerSupportModal from './CustomerSupportModal';
 import { userAuth } from '../../../../hooks/userAuth';
 import { 
     fetchDevices, 
@@ -208,76 +209,59 @@ const HeroSection: React.FC = () => {
         return errors;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async () => {
         try {
-            e.preventDefault();
-            const errors = validateStep();
-            setFormError(errors);
-            if (Object.keys(errors).length === 0) {
-                if (!captchaValue) {
-                    setSnackBarMessage('Please verify the reCAPTCHA.');
-                    setSnackBarType('error');
-                    setSnackBarOpen(true);
-                    return;
-                }
+            const ticketsDetails: any = {
+                categories_id: formData?.category_id,
+                issues_id: formData?.issue_id,
+                products_id: formData?.device_id,
+                serial_number: formData?.serial_number,
+                item_name: formData?.item_name,
+                status: 'open',
+                questions: formData?.questions,
+            };
 
-                const ticketsDetails: any = {
-                    categories_id: formData?.category_id,
-                    issues_id: formData?.issue_id,
-                    products_id: formData?.device_id,
-                    serial_number: formData?.serial_number,
-                    item_name: formData?.item_name,
-                    status: 'open',
-                    questions: formData?.questions,
-                };
+            const payload: any = {
+                full_name: formData?.full_name,
+                company: formData?.company,
+                city: formData?.city,
+                email: formData?.email,
+                phone: formData?.contact_number,
+            };
 
-                const payload: any = {
-                    full_name: formData?.full_name,
-                    company: formData?.company,
-                    city: formData?.city,
-                    email: formData?.email,
-                    phone: formData?.contact_number,
-                };
+            payload.tickets_details = ticketsDetails;
 
-                payload.tickets_details = ticketsDetails;
+            const response = await createEmployeeMutate(payload);
 
-                const response = await createEmployeeMutate(payload);
-
-                if (uploadedImages.length > 0) {
-                    for (const image of uploadedImages) {
-                        if (image.file) {
-                            const formDataImage = new FormData();
-                            formDataImage.append('image', image.file);
-                            await insertImage({ id: response.data.ticket_id, image: formDataImage });
-                        }
+            if (uploadedImages.length > 0) {
+                for (const image of uploadedImages) {
+                    if (image.file) {
+                        const formDataImage = new FormData();
+                        formDataImage.append('image', image.file);
+                        await insertImage({ id: response.data.ticket_id, image: formDataImage });
                     }
                 }
-
-                setFormData({
-                    full_name: '',
-                    company: '',
-                    city: '',
-                    email: '',
-                    item_name: '',
-                    contact_number: '',
-                    category_id: '',
-                    is_active: '',
-                    device_id: '',
-                    issue_id: '',
-                    serial_number: '',
-                    questions: '',
-                });
-
-                setUploadedImages([]);
-                setCurrentImageIndex(0);
-                setCaptchaValue(null);
-                setIsSubmitted(true);
-                setOpenModal(true);
-            } else {
-                setSnackBarMessage('Please fill in all required fields.');
-                setSnackBarType('error');
-                setSnackBarOpen(true);
             }
+
+            setFormData({
+                full_name: '',
+                company: '',
+                city: '',
+                email: '',
+                item_name: '',
+                contact_number: '',
+                category_id: '',
+                is_active: '',
+                device_id: '',
+                issue_id: '',
+                serial_number: '',
+                questions: '',
+            });
+
+            setUploadedImages([]);
+            setCurrentImageIndex(0);
+            setCaptchaValue(null);
+            setIsSubmitted(true);
         } catch (error) {
             setSnackBarMessage('Failed to submit, Please try again.');
             setSnackBarType('error');
@@ -304,20 +288,12 @@ const HeroSection: React.FC = () => {
         }
     }, [formData?.device_id]);
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-    };
-
-    // Open disclaimer before actual submission
-    // Replace your existing handleBeforeSubmit function with this:
-
     const handleBeforeSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const errors = validateStep();
         setFormError(errors);
 
         if (Object.keys(errors).length === 0) {
-            // Validate captcha BEFORE showing disclaimer
             if (!captchaValue) {
                 setSnackBarMessage('Please verify the reCAPTCHA.');
                 setSnackBarType('error');
@@ -325,8 +301,7 @@ const HeroSection: React.FC = () => {
                 return;
             }
 
-            // Only show disclaimer if all validations pass including captcha
-            setShowDisclaimer(true);
+            setOpenModal(true);
         } else {
             setSnackBarMessage('Please fill in all required fields.');
             setSnackBarType('error');
@@ -334,23 +309,38 @@ const HeroSection: React.FC = () => {
         }
     };
 
-    // Called when user confirms disclaimer
-    const handleProceedDisclaimer = async () => {
-        setShowDisclaimer(false);
-        await handleSubmit(new Event('submit') as unknown as React.FormEvent); // call actual submit
+    const handleModalSubmit = () => {
+        setOpenModal(false);
+        setShowDisclaimer(true);
     };
 
-    // Called when user cancels
+    const handleProceedDisclaimer = async () => {
+        setShowDisclaimer(false);
+        await handleSubmit();
+    };
+
     const handleCancelDisclaimer = () => {
         setShowDisclaimer(false);
-        /*  setSnackBarMessage("Submission canceled.")
-  setSnackBarType('info')
-  setSnackBarOpen(true) */
     };
+
+    const selectedCategoryLabel = categoryResponse.find((item: any) => item.value === String(formData?.category_id))?.label || '';
+    const selectedDeviceLabel = productResponse.find((item: any) => String(item.value) === String(formData?.device_id))?.label || '';
+    const selectedIssueLabel = issueResponse.find((item: any) => String(item.value) === String(formData?.issue_id))?.label || '';
 
     return (
         <div className="min-h-screen relative overflow-hidden">
             {/* Modal Component */}
+            <CustomerSupportModal
+                open={openModal}
+                isSubmitting={isCreating || isCreatingImage}
+                formData={formData}
+                categoryLabel={selectedCategoryLabel}
+                deviceLabel={selectedDeviceLabel}
+                issueLabel={selectedIssueLabel}
+                uploadedImages={uploadedImages}
+                onCancel={() => setOpenModal(false)}
+                onSubmit={handleModalSubmit}
+            />
             <Disclaimer open={showDisclaimer} onCancel={handleCancelDisclaimer} onProceed={handleProceedDisclaimer} />
 
             {/* Fixed Background */}
@@ -776,7 +766,10 @@ const HeroSection: React.FC = () => {
                                         )}
 
                                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex justify-center scale-90 sm:scale-100">
-                                            <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string} onChange={setCaptchaValue} />
+                                            <ReCAPTCHA 
+                                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string} 
+                                                onChange={setCaptchaValue} 
+                                            />
                                         </motion.div>
 
                                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
