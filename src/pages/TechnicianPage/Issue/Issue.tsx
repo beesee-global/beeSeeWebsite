@@ -68,6 +68,7 @@ const Issue = () => {
   const columns = [
     {id: 'name', label: 'Name', sortable: true, align: 'left'},
     {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'}, 
+    {id: 'is_publish', label: 'Publish', sortable: false, align: 'left' },
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 

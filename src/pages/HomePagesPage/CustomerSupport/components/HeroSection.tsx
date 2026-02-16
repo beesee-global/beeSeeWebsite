@@ -13,12 +13,11 @@ import {
     fetchCategory, 
     fetchIssue, 
     createCustomerSupport, 
-    images, 
-    fetchSchools 
+    images,  
 } from '../../../../services/Technician/customerSupportServices';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import PersonIcon from '@mui/icons-material/Person';
-import { Building2, Mail, Phone, MessageCircleQuestion, Send, CheckCircle, Landmark, ChevronLeft, ChevronRight, X, Clock } from 'lucide-react';
+import { Building2, Mail, Phone, MessageCircleQuestion, Send, CheckCircle, Barcode, Landmark, ChevronLeft, ChevronRight, X, Clock } from 'lucide-react';
 import Snackbar from '../../../../components/feedback/Snackbar';
 import Disclaimer from '../../../../components/feedback/Disclaimer';
 
@@ -655,7 +654,7 @@ const HeroSection: React.FC = () => {
                                             multiline={false}
                                             rows={1}
                                             maxLength={100}
-                                            icon={<PersonIcon sx={{ fontSize: 18 }} />}
+                                            icon={<Barcode sx={{ fontSize: 18 }} />}
                                         />
 
                                         <CustomTextField

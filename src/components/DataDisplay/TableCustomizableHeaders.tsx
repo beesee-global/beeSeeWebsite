@@ -412,7 +412,18 @@ export default function TableCustomizableHeaders({
                                 position: 'relative'
                               }}
                             >
-                              {column.id === 'created_at' ? (
+                              {column.id === 'is_publish' ? (
+                                <span
+                                  className={`${
+                                    row.is_publish === 1
+                                      ? "bg-green-500 text-white"
+                                      : "bg-red-500 text-white"
+                                  } px-2 py-1 rounded-lg text-sm font-medium`}
+                                >
+                                  {row.is_publish === 1 ? "Published" : "Draft"}
+                                </span>
+
+                              ) : column.id === 'created_at' ? (
                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                   {formatDate(row.created_at)}
                                 </span>

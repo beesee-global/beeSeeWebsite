@@ -15,7 +15,6 @@ import {
   Ticket, 
   Phone,
   MessageSquare,
-  Eye,
   Send,
   AlertCircle,
   User,
@@ -23,6 +22,8 @@ import {
   Image as ImageIcon,
   Calendar,
   FileText,
+  FileCheck2,
+  FileSearch,
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
 
@@ -71,7 +72,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const [isPDFGenerated, setIsPDFGenerated] = useState<boolean>(false);
 
   const {
-    mutateAsync: insertJobOrder
+    mutateAsync: insertJobOrder, 
+    isPending
   } = useMutation({
     mutationFn: ({ id, data }: { id: string; data: FormData }) => sentJobOder(id, data)
   })
@@ -238,25 +240,38 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             <div className='flex gap-2 mt-3 md:mt-0'> 
               {userTicketInformation.job_order_url !== null ? (
                 <>
+                  {userTicketInformation?.job_order_url_finish && (
+                    <button
+                      title="View Finish Job Order"
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default navigation 
+                        downloadFile(userTicketInformation.job_order_url_finish, "view", "test")
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                    >
+                      <FileCheck2 size={14} />
+                    </button>
+                  )}
+
                   <button
-                  title="View Job Order"
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent default navigation 
-                    downloadFile(userTicketInformation.job_order_url, "view", "test")
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <Eye size={14} />
-                </button>
+                    title="View Job Order"
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation 
+                      downloadFile(userTicketInformation.job_order_url, "view", "test")
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                  >
+                    <FileSearch size={14} />
+                  </button>
                 
                   <button
-                    title='Sent Job Order'
+                    title='Sent Job Order' 
                     onClick={(e) => {
                       e.preventDefault(); // Prevent default navigation  
                       generateAndDownloadPDF();
                     }}
-                    disabled={isGeneratingPDF || isPDFGenerated}
-                    className="inline-flex items-center gap-2 px-3 py-3 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    disabled={isGeneratingPDF || isPDFGenerated || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Send size={14} /> 
                   </button>
@@ -268,8 +283,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       e.preventDefault(); // Prevent default navigation  
                       generateAndDownloadPDF();
                     }}
-                    disabled={isGeneratingPDF || isPDFGenerated}
-                    className="inline-flex items-center gap-2 px-3 py-3 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    disabled={isGeneratingPDF || isPDFGenerated || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Send size={14} /> 
                   </button>

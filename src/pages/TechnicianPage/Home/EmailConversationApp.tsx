@@ -13,7 +13,8 @@ import {
   Download,
   Paperclip,
   ArrowLeftToLine,
-  Image as ImageIcon  // Rename this!
+  Image as ImageIcon,  // Rename this!
+  Upload,
 } from 'lucide-react';
 import Box from '@mui/material/Box';
 import AlertDialog from '../../../components/feedback/AlertDialog';
@@ -25,7 +26,8 @@ import {
   insertConversation,
   insertImageConversation,
   updateStatus,
-  deleteTickets
+  deleteTickets,
+  uploadJobOrders
 } from '../../../services/Technician/ticketsServices';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConversationsDetails from '../../../components/ui/ConversationsDetails';
@@ -41,6 +43,7 @@ export default function EmailConversationApp() {
   const [loading, setLoading] = useState<boolean>(false);  
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const jobOrderFileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState<boolean>(false); 
   const navigate = useNavigate();
@@ -70,6 +73,10 @@ export default function EmailConversationApp() {
 
   const { mutateAsync: deleteTicket } = useMutation({
     mutationFn: deleteTickets
+  });
+
+  const { mutateAsync: uploadJobOrder } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) => uploadJobOrders(id, data),
   });
 
   const userTicketInformation = ticketInfo?.data || {}; 
@@ -255,36 +262,31 @@ export default function EmailConversationApp() {
       const response = await insertConversations(formData)
 
       if (response?.success) {
-        await refetchTicketInfo();
-
-        if (userTicketInformation.status === 'open') {
-          setSnackBarMessage("Mark as Completed")
-          setSnackBarType('success')
-          setSnackBarOpen(true)
-        }
+        await refetchTicketInfo(); 
 
         // Add locally for messages without attachments
-        const newMessage = {
-          id: response.data.ticket_ids,
-          sender_name: userInfo?.full_name || 'Support Team',
-          sender_email: userTicketInformation.email,
-          message_body: currentReplyText,
-          is_inbound: false,
-          attachments: [], // optional optimistic placeholder
-          created_at: new Date().toISOString(),
-        };
+        // const newMessage = {
+        //   id: response.data.ticket_ids,
+        //   sender_name: userInfo?.full_name || 'Support Team',
+        //   sender_email: userTicketInformation.email,
+        //   message_body: currentReplyText,
+        //   user_role: userInfo?.role,
+        //   is_inbound: false,
+        //   attachments: [], // optional optimistic placeholder
+        //   created_at: new Date().toISOString(),
+        // };
  
-        // Add message to screen immediately
-        setMessages(prev => [
-          ...prev,
-          newMessage
-        ]);
+        // // Add message to screen immediately
+        // setMessages(prev => [
+        //   ...prev,
+        //   newMessage
+        // ]);
 
         // emit to server for real-time
-        socket?.emit("send_ticket_message", {
-          ticket_id: userTicketInformation?.ticket_id,
-          message: newMessage
-        });
+        // socket?.emit("send_ticket_message", {
+        //   ticket_id: userTicketInformation?.ticket_id,
+        //   message: newMessage
+        // });
 
         queryClient.invalidateQueries({
           queryKey: ['conversations', userTicketInformation?.ticket_id]
@@ -358,6 +360,59 @@ export default function EmailConversationApp() {
     }
   }
 
+  // Upload A Job Order
+  const handleUploadJobOrder = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const selectedFile = e.target.files?.[0];
+      if (!selectedFile) return;
+
+      const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
+      if (!isPdf) {
+        setSnackBarMessage("Only PDF files are allowed.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+        return;
+      }
+
+      if (!userTicketInformation?.ticket_id) {
+        setSnackBarMessage("Ticket ID is missing.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+        return;
+      }
+
+      const formData = new FormData(); 
+      formData.append("job_order_pdf", selectedFile);
+      formData.append("ticket_id", userTicketInformation?.ticket_id);
+
+      const response = await uploadJobOrder({
+        id: String(userTicketInformation?.id),
+        data: formData,
+      });
+
+      if (response?.success) {
+        setSnackBarMessage("Job order PDF uploaded successfully.");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+        await refetchTicketInfo();
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation?.ticket_id]
+        });
+      } else {
+        setSnackBarMessage("Failed to upload. Please try again.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+      }
+
+    } catch (error) {
+      setSnackBarMessage("Failed to upload. Please try again.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    } finally {
+      if (e.target) e.target.value = "";
+    }
+  }
+
   const handleDelete = (ids: number[]) => {
     const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
     if (!jobOrderPermission || !jobOrderPermission.actions.includes('delete')) {
@@ -407,6 +462,15 @@ export default function EmailConversationApp() {
         type={snackBarType}
         message={snackBarMessage}
         onClose={() => setSnackBarOpen(false)}
+      />
+
+      {/* Upload PDF file */}
+      <input
+        ref={jobOrderFileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        className="hidden"
+        onChange={handleUploadJobOrder}
       />
 
       {/* Dialog */}
@@ -684,7 +748,18 @@ export default function EmailConversationApp() {
               </h2>
 
               <div className='flex items-center gap-2'>
+                {userTicketInformation?.job_order_url && (
+                  <button 
+                    title="Upload Job Order"
+                    onClick={() => jobOrderFileInputRef.current?.click()}
+                    className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
+                  >
+                    <Upload size={16} />
+                  </button>
+                )}
+
                 <button 
+                  title="Delete Job Order"
                   onClick={(e) => handleDelete([userTicketInformation.customers_id])}
                   className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
                 >
@@ -719,8 +794,19 @@ export default function EmailConversationApp() {
               Job Order Information
             </h2>
           </div>
-          <div>
+          <div className='space-x-2'>
+            {userTicketInformation?.job_order_url && (
+              <button 
+                title="Upload Job Order"
+                onClick={() => jobOrderFileInputRef.current?.click()}
+                className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
+              >
+                <Upload size={16} />
+              </button>
+            )}
+
             <button 
+              title="Delete Job Order"
               onClick={(e) => handleDelete([userTicketInformation.customers_id])}
               className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
             >
