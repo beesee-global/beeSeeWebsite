@@ -35,11 +35,11 @@ const Home = () => {
     setSnackBarMessage,  
     setSnackBarOpen,
     setSnackBarType,
+    setStatusFilter,
     snackBarMessage,
     snackBarOpen,
     snackBarType,
     statusFilter,
-    setStatusFilter,
   } = userAuth();
 
   const columns = [   

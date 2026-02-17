@@ -52,6 +52,8 @@ export default function EmailConversationApp() {
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>("");
+  const [dialogAction, setDialogAction] = useState<'delete' | 'upload' | null>(null);
+  const [pendingJobOrderFile, setPendingJobOrderFile] = useState<File | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [socket, setSocket] = useState<any>(null);
 
@@ -62,7 +64,7 @@ export default function EmailConversationApp() {
     setSnackBarType,
     snackBarMessage,
     snackBarOpen,
-    snackBarType
+    snackBarType,
   } = userAuth()
 
   const { data: ticketInfo, isLoading, refetch: refetchTicketInfo } = useQuery({
@@ -360,20 +362,16 @@ export default function EmailConversationApp() {
     }
   }
 
-  // Upload A Job Order
-  const handleUploadJobOrder = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setDialogMessage('');
+    setDialogTitle('');
+    setDialogAction(null);
+    setPendingJobOrderFile(null);
+  };
+
+  const processJobOrderUpload = async (selectedFile: File) => {
     try {
-      const selectedFile = e.target.files?.[0];
-      if (!selectedFile) return;
-
-      const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
-      if (!isPdf) {
-        setSnackBarMessage("Only PDF files are allowed.");
-        setSnackBarType("error");
-        setSnackBarOpen(true);
-        return;
-      }
-
       if (!userTicketInformation?.ticket_id) {
         setSnackBarMessage("Ticket ID is missing.");
         setSnackBarType("error");
@@ -408,9 +406,29 @@ export default function EmailConversationApp() {
       setSnackBarMessage("Failed to upload. Please try again.")
       setSnackBarType("error")
       setSnackBarOpen(true)
-    } finally {
-      if (e.target) e.target.value = "";
     }
+  }
+
+  // Upload A Job Order
+  const handleUploadJobOrder = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      setSnackBarMessage("Only PDF files are allowed.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+      e.target.value = "";
+      return;
+    }
+
+    setPendingJobOrderFile(selectedFile);
+    setDialogAction('upload');
+    setDialogTitle("Confirm Upload");
+    setDialogMessage("Are you sure you want to upload this job order PDF?");
+    setDialogOpen(true);
+    e.target.value = "";
   }
 
   const handleDelete = (ids: number[]) => {
@@ -423,6 +441,7 @@ export default function EmailConversationApp() {
     }
 
     setDeleteIds(ids)
+    setDialogAction('delete')
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
     setDialogMessage(`Are you sure you want to delete ${ids.length} tickets?`)
@@ -434,9 +453,7 @@ export default function EmailConversationApp() {
       const response = await deleteTicket(deleteIds); // call mutation
 
       if (response?.success) {
-        setDialogOpen(false)
-        setDialogMessage('')
-        setDialogTitle("")
+        closeDialog()
         setSnackBarMessage("Tickets deleted successfully");
         setSnackBarType("success");
         setSnackBarOpen(true); 
@@ -448,6 +465,21 @@ export default function EmailConversationApp() {
       setSnackBarType("error");
       setSnackBarOpen(true);
     }
+  }
+
+  const handleDialogSubmit = async () => {
+    if (dialogAction === 'delete') {
+      await handleConfirmDelete();
+      return;
+    }
+
+    if (dialogAction === 'upload' && pendingJobOrderFile) {
+      await processJobOrderUpload(pendingJobOrderFile);
+      closeDialog();
+      return;
+    }
+
+    closeDialog();
   }
 
   if (isLoading) {
@@ -478,8 +510,8 @@ export default function EmailConversationApp() {
         open={dialogOpen}
         title={dialogTitle}
         message={dialogMessage}
-        onClose={() => setDialogOpen(false)}
-        onSubmit={handleConfirmDelete} 
+        onClose={closeDialog}
+        onSubmit={handleDialogSubmit} 
       />
 
       {/* Image Modal */}
