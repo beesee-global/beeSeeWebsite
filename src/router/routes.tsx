@@ -144,7 +144,7 @@ const routes = [
                 element: <ProductDetail  />,
             },
             {
-                path: "tech/sign-in",
+                path: "sign-in",
                 element: <LoginTechnician />
             },
             { 
