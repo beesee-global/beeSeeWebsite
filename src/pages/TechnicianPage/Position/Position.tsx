@@ -47,10 +47,7 @@ const Position = () => {
       userInfo,
       setSnackBarMessage, 
       setSnackBarOpen, 
-      setSnackBarType,
-      snackBarMessage ,
-      snackBarOpen,
-      snackBarType
+      setSnackBarType, 
     } = userAuth()
 
     const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'position');
@@ -296,14 +293,7 @@ const Position = () => {
     const isDeleteEnabled = !!selectedRowId
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'> 
 
       {/* Dialog */}
       <AlertDialog 

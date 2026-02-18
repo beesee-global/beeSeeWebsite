@@ -48,9 +48,6 @@ const Product = () => {
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
-    snackBarMessage ,
-    snackBarOpen,
-    snackBarType
   } = userAuth()
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'model');
@@ -102,7 +99,7 @@ const Product = () => {
     }
 
     if (!Permission?.actions.includes('delete')) {
-      setSnackBarMessage("You do not have permission to delete model.");
+      setSnackBarMessage("You do not have permission to delete model. Once deleted, all connected Job Order will also be removed.");
       setSnackBarType("error");
       setSnackBarOpen(true);
       return;
@@ -273,15 +270,7 @@ const Product = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
-
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'>
 
       {/* Dialog */}
       <AlertDialog 

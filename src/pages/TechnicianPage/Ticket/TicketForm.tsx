@@ -63,9 +63,6 @@ const TicketForm = () => {
     setSnackBarMessage,
     setSnackBarOpen,
     setSnackBarType,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType
   } = userAuth();
 
   const [openUploadImageModal, setOpenUploadImageModal] = useState<boolean>(false);
@@ -320,13 +317,6 @@ const TicketForm = () => {
   
   return (
     <div className="p-6 space-y-10">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        type={snackBarType}
-        message={snackBarMessage}
-        onClose={() => setSnackBarOpen(false)}
-      />
 
       {/* image Modal */}
       <ImageUploadModal 
