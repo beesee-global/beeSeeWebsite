@@ -188,7 +188,7 @@ const ForgetPasswordPages = () => {
           formPassword.confirm_password = ""
           formPassword.new_password = ""
 
-          navigate("/tech/sign-in")
+          navigate("/sign-in")
 
         }
       } 
@@ -327,7 +327,7 @@ const ForgetPasswordPages = () => {
             variants={itemVariants}
             className="text-center text-gray-600 text-sm md:text-[16px] mb-4"
           >
-              A one-time password (OTP) has been sent. Please enter within 5 minutes.
+              A one-time password (OTP) has been sent.
           </motion.p>
 
           <motion.button 
