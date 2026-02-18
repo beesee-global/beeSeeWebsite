@@ -57,9 +57,6 @@ const UsersForm = () => {
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
-    snackBarMessage, 
-    snackBarOpen,
-    snackBarType
   } = userAuth();
 
   /* FormError */
@@ -362,13 +359,6 @@ const UsersForm = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Notification */}
-        <SnackbarTechnician 
-          open={snackBarOpen}
-          type={snackBarType}
-          message={snackBarMessage}
-          onClose={() => setSnackBarOpen(false)}
-        /> 
 
         <div className="mb-6">
           {/* Breadcrumbs */}
