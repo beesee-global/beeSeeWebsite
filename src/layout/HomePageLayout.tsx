@@ -4,14 +4,22 @@ import FooterHomePageProducts from "../components/ui/FooterHomePageProducts";
 import HeaderHomePage from "../components/ui/HeaderHomePage";
 import { Outlet } from "react-router-dom"; 
 import { useEffect, useRef, useState } from "react";
+import { userAuth } from "../hooks/userAuth"; 
+import Snackbar from "../components/feedback/Snackbar";
 
 const HomePageLayout = () => {
+  const {
+    snackBarMessage,
+    snackBarOpen,
+    snackBarType,
+    setSnackBarOpen
+  } = userAuth(); 
   const location = useLocation();
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
   const hideLayoutRoutes = []; 
-  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form"];
+  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form", "/sign-in"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
@@ -56,6 +64,13 @@ const HomePageLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      <Snackbar 
+        message={snackBarMessage}
+        open={snackBarOpen}
+        type={snackBarType}
+        onClose={() => setSnackBarOpen(false)}
+      />
+      
       {/* Header */}
       {!hideHeader && (
         <div

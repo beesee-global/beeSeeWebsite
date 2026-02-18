@@ -4,6 +4,7 @@ import SidebarTechnician from "../components/ui/SidebarTechnician"
 import { userAuth } from '../hooks/userAuth'
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import SnackbarTechnician from "../components/feedback/SnackbarTechnician"
 
 const TechnicianLayout = () => {
   const { 
@@ -11,6 +12,10 @@ const TechnicianLayout = () => {
     userInfo, 
     userNav, 
     setUserNav,  
+    snackBarMessage,
+    snackBarOpen,
+    snackBarType,
+    setSnackBarOpen
   } = userAuth() 
   const navigate = useNavigate(); 
   const [isChecking, setIsChecking] = useState(true); 
@@ -80,6 +85,14 @@ const TechnicianLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
+      {/* Snackbar */}
+      <SnackbarTechnician 
+        open={snackBarOpen} 
+        type={snackBarType} 
+        message={snackBarMessage} 
+        onClose={() => setSnackBarOpen(false)} 
+      />
+
       {/* Mobile view sidebar overlay and drawer */}
       {userNav && (
         <div className="fixed inset-0 z-40 md:hidden">
