@@ -31,14 +31,17 @@ interface FormError {
 }
 
 const MyAccount = () => {
-    const { logout, userInfo } = userAuth();
+    const { 
+        logout, 
+        userInfo,
+        setSnackBarMessage,
+        setSnackBarOpen,
+        setSnackBarType
+    } = userAuth();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const id = userInfo?.id; 
-
-    const [message, setMessage] = useState<string>('');
-    const [snackBarType, setSnackBarType] = useState<AlertColor>('success');
-    const [showAlert, setShowAlert] = useState<boolean>(false);
+ 
     const [title, setTitle] = useState<string>('');
     const [openModal, setOpenModal] = useState<boolean>(false);
 
@@ -130,14 +133,14 @@ const MyAccount = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setTitle('');
-        setMessage('');
+        setSnackBarMessage('');
     };
 
     // --- open modal ---
     const handleOpenModal = () => {
         setOpenModal(true);
         setTitle('Update Information');
-        setMessage('Are you sure you want to update your information? You will be logged out and need to log in again.');
+        setSnackBarMessage('Are you sure you want to update your information? You will be logged out and need to log in again.');
     };
 
     // --- fetching data from backend
@@ -194,8 +197,8 @@ const MyAccount = () => {
 
             if (Object.keys(errors).length > 0) {
                 setSnackBarType('error');
-                setMessage('Please fill in all required fields.');
-                setShowAlert(true);
+                setSnackBarMessage('Please fill in all required fields.');
+                setSnackBarOpen(true);
                 setOpenModal(false);
                 return;
             }
@@ -225,7 +228,7 @@ const MyAccount = () => {
             }
 
             setSnackBarType('success');
-            setMessage('Account information updated successfully!');
+            setSnackBarMessage('Account information updated successfully!');
 
             logout();
             navigate('/sign-in', { replace: true });
@@ -233,9 +236,9 @@ const MyAccount = () => {
             console.error('❌ Error updating account:', err);
             setSnackBarType('error');
             setOpenModal(false);
-            setMessage('Failed to update information, please try again.');
+            setSnackBarMessage('Failed to update information, please try again.');
         } finally {
-            setShowAlert(true);
+            setSnackBarOpen(true);
         }
     };
 
@@ -254,12 +257,15 @@ const MyAccount = () => {
 
     return (
         <div className="bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Notification */}
-                <SnackbarTechnician open={showAlert} type={snackBarType} message={message} onClose={() => setShowAlert(false)} />
-
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
                 {/* Modal Component */}
-                <AlertDialog open={openModal} title={title} message={message} onClose={handleCloseModal} onSubmit={handleSubmit} />
+                <AlertDialog 
+                    open={openModal} 
+                    title={title} 
+                    message={setSnackBarMessage} 
+                    onClose={handleCloseModal} 
+                    onSubmit={handleSubmit} 
+                />
 
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-gray-200 dark:border-gray-700 p-6 mb-6">
