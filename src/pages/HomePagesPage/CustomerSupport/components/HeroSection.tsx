@@ -60,10 +60,7 @@ const HeroSection: React.FC = () => {
     const { 
       setSnackBarOpen, 
       setSnackBarMessage, 
-      setSnackBarType, 
-      snackBarOpen, 
-      snackBarMessage, 
-      snackBarType 
+      setSnackBarType,  
     } = userAuth();
 
     const [captchaValue, setCaptchaValue] = useState<string | null>(null);
@@ -394,9 +391,12 @@ const HeroSection: React.FC = () => {
 
             {/* Content */}
             <div className="relative z-10">
-                <Snackbar open={snackBarOpen} type={snackBarType} message={snackBarMessage} onClose={() => setSnackBarOpen(false)} />
-
-                <ImageUploadModal open={openUploadImageModal} onClose={() => setOpenUploadImageModal(false)} onSubmit={handleImageSubmit} />
+                 
+                <ImageUploadModal 
+                    open={openUploadImageModal} 
+                    onClose={() => setOpenUploadImageModal(false)} 
+                    onSubmit={handleImageSubmit} 
+                />
 
                 {/* HERO SECTION - Reduced top padding for mobile */}
                 <section className="pt-19 sm:pt-28 md:pt-36 pb-10 sm:pb-16 md:pb-20">

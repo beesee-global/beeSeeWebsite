@@ -48,10 +48,7 @@ const ApplicantsEmail = () => {
   const {
     setSnackBarMessage, 
     setSnackBarOpen, 
-    setSnackBarType,
-    snackBarMessage, 
-    snackBarOpen,
-    snackBarType
+    setSnackBarType, 
   } = userAuth();
 
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -294,14 +291,7 @@ const ApplicantsEmail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Notification */}
-        <SnackbarTechnician 
-          open={snackBarOpen}
-          type={snackBarType}
-          message={snackBarMessage}
-          onClose={() => setSnackBarOpen(false)}
-        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
 
         {/* Alert Dialog */}
         <AlertDialog 

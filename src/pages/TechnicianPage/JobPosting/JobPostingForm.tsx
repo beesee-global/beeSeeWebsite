@@ -48,10 +48,7 @@ const JobPostingForm: React.FC = () => {
   const { id } = useParams();
 
   // Use userAuth hook for snackbar
-  const {  
-    snackBarMessage, 
-    snackBarType, 
-    snackBarOpen, 
+  const {   
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -276,14 +273,7 @@ const JobPostingForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white-50 dark:bg-white py-8">
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Notification */} 
-        <Snackbar 
-          open={snackBarOpen}
-          type={snackBarType}
-          message={snackBarMessage}
-          onClose={() => setSnackBarOpen(false)}
-        />
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
 
         {/* Breadcrumb */}
         <div className="mb-6">

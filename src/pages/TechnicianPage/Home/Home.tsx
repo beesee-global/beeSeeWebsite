@@ -35,10 +35,7 @@ const Home = () => {
     setSnackBarMessage,  
     setSnackBarOpen,
     setSnackBarType,
-    setStatusFilter,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType,
+    setStatusFilter, 
     statusFilter,
   } = userAuth();
 
@@ -206,14 +203,7 @@ const Home = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        message={snackBarMessage}
-        type={snackBarType}
-        onClose={() => setSnackBarOpen(false)}
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white"> 
 
       {/* Dialog */}
       <AlertDialog 

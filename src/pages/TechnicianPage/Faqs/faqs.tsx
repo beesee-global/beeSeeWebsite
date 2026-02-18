@@ -35,10 +35,7 @@ const Faqs = () => {
     userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
-    setSnackBarType, 
-    snackBarMessage, 
-    snackBarOpen, 
-    snackBarType 
+    setSnackBarType,  
   } = userAuth();
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'faqs' && p.children_id === '');
@@ -243,13 +240,7 @@ const Faqs = () => {
   if (isLoading) return <SpinningRingLoader />;
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen"> 
       <AlertDialog 
         open={dialogOpen} 
         title={dialogTitle}

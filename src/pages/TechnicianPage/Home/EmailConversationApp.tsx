@@ -61,10 +61,7 @@ export default function EmailConversationApp() {
     userInfo,
     setSnackBarMessage,
     setSnackBarOpen,
-    setSnackBarType,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType,
+    setSnackBarType, 
   } = userAuth()
 
   const { data: ticketInfo, isLoading, refetch: refetchTicketInfo } = useQuery({
@@ -487,14 +484,7 @@ export default function EmailConversationApp() {
   }
 
   return (
-    <div className="flex h-full bg-gray-50">
-      {/* snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        type={snackBarType}
-        message={snackBarMessage}
-        onClose={() => setSnackBarOpen(false)}
-      />
+    <div className="flex h-full bg-gray-50"> 
 
       {/* Upload PDF file */}
       <input

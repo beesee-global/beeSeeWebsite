@@ -40,10 +40,7 @@ const Applicants = () => {
     { id: "status", label: "Status", sortable: true }
   ] 
 
-  const {  
-      snackBarMessage, 
-      snackBarType, 
-      snackBarOpen, 
+  const { 
       setSnackBarMessage, 
       setSnackBarOpen, 
       setSnackBarType,
@@ -361,15 +358,7 @@ const Applicants = () => {
         message={dialogMessage}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleConfirm} 
-      />
-
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+      /> 
 
       {/* Header */}
       <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>

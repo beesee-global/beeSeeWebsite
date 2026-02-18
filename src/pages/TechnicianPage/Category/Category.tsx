@@ -24,7 +24,7 @@ const Category = () => {
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
     const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const { userInfo, setSnackBarMessage, setSnackBarOpen, setSnackBarType, snackBarMessage, snackBarOpen, snackBarType } = userAuth();
+    const { userInfo, setSnackBarMessage, setSnackBarOpen, setSnackBarType, } = userAuth();
 
     const Permission = userInfo?.permissions?.find((p) => p.parent_id === 'settings' && p.children_id === 'issue');
 
@@ -76,7 +76,7 @@ const Category = () => {
         setDeleteIds([selectedRowId]);
         setDialogTitle('Confirm Delete');
         setDialogOpen(true);
-        setDialogMessage('Are you sure you want to delete this device? Once deleted, all connected data will also be removed.');
+        setDialogMessage('Are you sure you want to delete this device? Once deleted, all connected Job Order will also be removed.');
     };
 
     // Delete Device
@@ -219,10 +219,8 @@ const Category = () => {
     if (isLoading) return <SpinningRingLoader />;
 
     return (
-        <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-            {/* Snackbar */}
-            <SnackbarTechnician open={snackBarOpen} type={snackBarType} message={snackBarMessage} onClose={() => setSnackBarOpen(false)} />
-
+        <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white">
+            
             {/* Dialog */}
             <AlertDialog open={dialogOpen} title={dialogTitle} message={dialogMessage} onClose={() => setDialogOpen(false)} onSubmit={handleConfirmDelete} />
 
