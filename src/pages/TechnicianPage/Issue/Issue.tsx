@@ -35,10 +35,7 @@ const Issue = () => {
     userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
-    setSnackBarType,
-    snackBarMessage ,
-    snackBarOpen,
-    snackBarType
+    setSnackBarType, 
   } = userAuth();
 
    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'issue');
@@ -92,7 +89,7 @@ const Issue = () => {
     setDeleteIds([selectedRowId]);
     setDialogTitle("Confirm Delete");
     setDialogOpen(true);
-    setDialogMessage("Are you sure you want to delete this issue?");
+    setDialogMessage("Are you sure you want to delete this issue? Once deleted, all connected Job Order will also be removed.");
   };
 
     // Handle Update Button Click
@@ -245,7 +242,7 @@ const Issue = () => {
   const isDeleteEnabled = !!selectedRowId;
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'>
       {/* Modal */}
       {modalOpen && (
         <IssuesModal 
@@ -255,14 +252,7 @@ const Issue = () => {
           onSave={isEditMode ? handleUpdateIssue : handleAddIssue}
           isEditMode={isEditMode}
         />
-      )}
-
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+      )} 
 
       <AlertDialog 
         open={dialogOpen}
