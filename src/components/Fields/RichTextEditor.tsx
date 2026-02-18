@@ -31,12 +31,120 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
 
   const editorRef = useRef<HTMLDivElement>(null)
 
+  const escapeHtml = (text: string) =>
+    text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+
+  const toHtmlWithLists = (rawText: string) => {
+    const lines = rawText.replace(/\r\n/g, '\n').split('\n')
+    const out: string[] = []
+    let inOl = false
+    let inUl = false
+    let orderedCount = 0
+
+    const closeLists = () => {
+      if (inUl) {
+        out.push('</ul>')
+        inUl = false
+      }
+      if (inOl) {
+        out.push('</ol>')
+        inOl = false
+      }
+    }
+
+    for (const line of lines) {
+      const orderedMatch = line.match(/^\s*\d+\.\s+(.*)$/)
+      const bulletMatch = line.match(/^\s*[*-]\s+(.*)$/)
+
+      if (orderedMatch) {
+        if (inUl) {
+          out.push('</ul>')
+          inUl = false
+        }
+        if (!inOl) {
+          out.push(orderedCount > 0 ? `<ol start="${orderedCount + 1}">` : '<ol>')
+          inOl = true
+        }
+        orderedCount += 1
+        out.push(`<li>${escapeHtml(orderedMatch[1])}</li>`)
+        continue
+      }
+
+      if (bulletMatch) {
+        if (inOl) {
+          out.push('</ol>')
+          inOl = false
+        }
+        if (!inUl) {
+          out.push('<ul>')
+          inUl = true
+        }
+        out.push(`<li>${escapeHtml(bulletMatch[1])}</li>`)
+        continue
+      }
+
+      closeLists()
+      if (line.trim()) {
+        out.push(`<p>${escapeHtml(line)}</p>`)
+      } else {
+        out.push('<p><br></p>')
+      }
+    }
+
+    closeLists()
+    return out.join('')
+  }
+
+  const normalizeEditorValue = (input: string) => {
+    if (!input) return ''
+    const hasHtml = /<[^>]+>/.test(input)
+    if (hasHtml) return input
+    const looksLikeList = /^\s*(\d+\.\s+|[*-]\s+)/m.test(input)
+    if (!looksLikeList) return input
+    return toHtmlWithLists(input)
+  }
+
+  const normalizeOrderedListStarts = (container: HTMLElement) => {
+    let orderedCount = 0
+    const children = Array.from(container.children)
+
+    for (const child of children) {
+      if (child.tagName === 'OL') {
+        const liCount = Array.from(child.children).filter((node) => node.tagName === 'LI').length
+        if (orderedCount > 0) {
+          child.setAttribute('start', String(orderedCount + 1))
+        } else {
+          child.removeAttribute('start')
+        }
+        orderedCount += liCount
+        continue
+      }
+
+      if (child.tagName === 'UL') {
+        continue
+      }
+
+      if ((child.textContent || '').trim() === '') {
+        continue
+      }
+
+      // Reset numbering when a non-list content block appears.
+      orderedCount = 0
+    }
+  }
+
   useEffect(() => {
     if (!editorRef.current) return
 
     // Only update if value is different to avoid cursor jumps
-    if (editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value || ''
+    const normalizedValue = normalizeEditorValue(value)
+    if (editorRef.current.innerHTML !== normalizedValue) {
+      editorRef.current.innerHTML = normalizedValue
     }
   }, [value])
 
@@ -59,6 +167,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
 
   const updateContent = () => {
     if (editorRef.current) {
+      normalizeOrderedListStarts(editorRef.current)
       onChange(editorRef.current.innerHTML)
     }
   }
@@ -105,9 +214,10 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
     
     // Get plain text from clipboard
     const text = e.clipboardData.getData('text/plain')
-    
-    // Insert plain text at cursor position
-    document.execCommand('insertText', false, text)
+    const normalized = normalizeEditorValue(text)
+
+    // Insert processed content at cursor position
+    document.execCommand('insertHTML', false, normalized)
     
     // Update content
     updateContent()
