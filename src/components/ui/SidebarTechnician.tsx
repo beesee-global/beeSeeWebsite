@@ -88,7 +88,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
 
         const filteredMenu = sidebarLayout
             .filter((item) => {
-                if (item.id === 'dashboard') return true;
+                // if (item.id === 'dashboard') return true;
                 if (!userInfo.permissions) return false;
                 if (item.children) {
                     return item.children.some((child) => userInfo.permissions.some((p) => p.parent_id === item.id && p.children_id === child.id));

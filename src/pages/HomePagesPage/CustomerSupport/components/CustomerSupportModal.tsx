@@ -93,10 +93,7 @@ const CustomerSupportModal: React.FC<CustomerSupportModalProps> = ({
                     <div>
                         <h3 className="bee-title-sm mb-2" style={{ color: 'var(--text-light)' }}>
                             Review Your Information
-                        </h3>
-                        <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                            Please confirm your details before submitting.
-                        </p>
+                        </h3> 
                     </div>
                     <button
                         onClick={onCancel}
@@ -107,11 +104,17 @@ const CustomerSupportModal: React.FC<CustomerSupportModalProps> = ({
                     </button>
                 </div>
 
-                <div className="space-y-3">
+                <div 
+                    className="space-y-3 rounded-xl px-4 py-3"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(253, 204, 0, 0.2)' }}
+                >
                     {reviewItems.map((item) => (
-                        <div key={item.label} className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(253, 204, 0, 0.2)' }}>
+                        <div 
+                            key={item.label} 
+                            className={`flex ${item.label === 'Issue Details' ? "flex-col" : ""} gap-2`}
+                        >
                             <p className="bee-body-sm font-semibold" style={{ color: 'var(--muted)' }}>
-                                {item.label}
+                                {item.label}:
                             </p>
                             <p className="bee-body-sm break-words" style={{ color: 'var(--text-light)' }}>
                                 {item.value || '-'}
@@ -119,7 +122,7 @@ const CustomerSupportModal: React.FC<CustomerSupportModalProps> = ({
                         </div>
                     ))}
 
-                    <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(253, 204, 0, 0.2)' }}>
+                    <div className="">
                         <p className="bee-body-sm font-semibold" style={{ color: 'var(--muted)' }}>
                             Uploaded Files
                         </p>

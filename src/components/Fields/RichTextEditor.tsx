@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import { 
   Bold, 
   Italic, 
@@ -7,14 +8,15 @@ import {
   ListOrdered, 
   Undo, 
   Redo,
+  Link2,
+  X,
+  Minus,
+  Image,
+  Video,
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignJustify,
-  Link2,
-  Quote,
-  X,
-  Minus
+  AlignJustify
 } from 'lucide-react'
 
 interface RichTextEditorProps {
@@ -23,13 +25,23 @@ interface RichTextEditorProps {
   placeholder?: string
 }
 
+interface MediaToolbar {
+  element: HTMLElement
+  top: number
+  left: number
+}
+
 export default function RichTextEditor({ value, onChange, placeholder = 'Start typing...' }: RichTextEditorProps) {
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
-  const [selectedFormat, setSelectedFormat] = useState<Set<string>>(new Set()) 
+  const [selectedFormat, setSelectedFormat] = useState<Set<string>>(new Set())
+  const [mediaToolbar, setMediaToolbar] = useState<MediaToolbar | null>(null)
   const savedSelection = useRef<Range | null>(null)
 
   const editorRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+  const mediaToolbarRef = useRef<HTMLDivElement>(null)
 
   const escapeHtml = (text: string) =>
     text
@@ -39,6 +51,22 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;')
 
+  const sanitizeHTML = (html: string): string => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        'p', 'br', 'strong', 'em', 'u', 'i', 'b',
+        'ul', 'ol', 'li',
+        'a',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'blockquote', 'hr',
+        // Media & layout — required for image/video alignment support
+        'div', 'img', 'video', 'source',
+      ],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'src', 'alt', 'controls', 'type'],
+      ALLOW_DATA_ATTR: false,
+    })
+  }
+
   const toHtmlWithLists = (rawText: string) => {
     const lines = rawText.replace(/\r\n/g, '\n').split('\n')
     const out: string[] = []
@@ -47,14 +75,8 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
     let orderedCount = 0
 
     const closeLists = () => {
-      if (inUl) {
-        out.push('</ul>')
-        inUl = false
-      }
-      if (inOl) {
-        out.push('</ol>')
-        inOl = false
-      }
+      if (inUl) { out.push('</ul>'); inUl = false }
+      if (inOl) { out.push('</ol>'); inOl = false }
     }
 
     for (const line of lines) {
@@ -62,28 +84,16 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
       const bulletMatch = line.match(/^\s*[*-]\s+(.*)$/)
 
       if (orderedMatch) {
-        if (inUl) {
-          out.push('</ul>')
-          inUl = false
-        }
-        if (!inOl) {
-          out.push(orderedCount > 0 ? `<ol start="${orderedCount + 1}">` : '<ol>')
-          inOl = true
-        }
+        if (inUl) { out.push('</ul>'); inUl = false }
+        if (!inOl) { out.push(orderedCount > 0 ? `<ol start="${orderedCount + 1}">` : '<ol>'); inOl = true }
         orderedCount += 1
         out.push(`<li>${escapeHtml(orderedMatch[1])}</li>`)
         continue
       }
 
       if (bulletMatch) {
-        if (inOl) {
-          out.push('</ol>')
-          inOl = false
-        }
-        if (!inUl) {
-          out.push('<ul>')
-          inUl = true
-        }
+        if (inOl) { out.push('</ol>'); inOl = false }
+        if (!inUl) { out.push('<ul>'); inUl = true }
         out.push(`<li>${escapeHtml(bulletMatch[1])}</li>`)
         continue
       }
@@ -112,69 +122,61 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
   const normalizeOrderedListStarts = (container: HTMLElement) => {
     let orderedCount = 0
     const children = Array.from(container.children)
-
     for (const child of children) {
       if (child.tagName === 'OL') {
         const liCount = Array.from(child.children).filter((node) => node.tagName === 'LI').length
-        if (orderedCount > 0) {
-          child.setAttribute('start', String(orderedCount + 1))
-        } else {
-          child.removeAttribute('start')
-        }
+        if (orderedCount > 0) child.setAttribute('start', String(orderedCount + 1))
+        else child.removeAttribute('start')
         orderedCount += liCount
         continue
       }
-
-      if (child.tagName === 'UL') {
-        continue
-      }
-
-      if ((child.textContent || '').trim() === '') {
-        continue
-      }
-
-      // Reset numbering when a non-list content block appears.
+      if (child.tagName === 'UL') continue
+      if ((child.textContent || '').trim() === '') continue
       orderedCount = 0
     }
   }
 
   useEffect(() => {
     if (!editorRef.current) return
-
-    // Only update if value is different to avoid cursor jumps
-    const normalizedValue = normalizeEditorValue(value)
+    const normalizedValue = sanitizeHTML(normalizeEditorValue(value))
     if (editorRef.current.innerHTML !== normalizedValue) {
       editorRef.current.innerHTML = normalizedValue
     }
   }, [value])
 
+  // Close media toolbar when clicking outside
+  useEffect(() => {
+    const handleDocClick = (e: MouseEvent) => {
+      if (
+        mediaToolbar &&
+        mediaToolbarRef.current &&
+        !mediaToolbarRef.current.contains(e.target as Node) &&
+        (e.target as HTMLElement).tagName !== 'IMG' &&
+        (e.target as HTMLElement).tagName !== 'VIDEO'
+      ) {
+        setMediaToolbar(null)
+        editorRef.current?.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected'))
+      }
+    }
+    document.addEventListener('mousedown', handleDocClick)
+    return () => document.removeEventListener('mousedown', handleDocClick)
+  }, [mediaToolbar])
 
   const execCommand = (command: string, val?: string) => {
-    // Focus the editor first
-    if (editorRef.current) {
-      editorRef.current.focus()
-    }
-    
-    // Execute command
+    if (editorRef.current) editorRef.current.focus()
     document.execCommand(command, false, val)
-    
-    // Small delay to ensure DOM updates before reading state
-    setTimeout(() => {
-      updateContent()
-      updateActiveFormats()
-    }, 10)
+    setTimeout(() => { updateContent(); updateActiveFormats() }, 10)
   }
 
   const updateContent = () => {
     if (editorRef.current) {
       normalizeOrderedListStarts(editorRef.current)
-      onChange(editorRef.current.innerHTML)
+      onChange(sanitizeHTML(editorRef.current.innerHTML))
     }
   }
 
   const updateActiveFormats = () => {
     const formats = new Set<string>()
-    
     try {
       if (document.queryCommandState('bold')) formats.add('bold')
       if (document.queryCommandState('italic')) formats.add('italic')
@@ -185,47 +187,48 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
       if (document.queryCommandState('justifyCenter')) formats.add('center')
       if (document.queryCommandState('justifyRight')) formats.add('right')
       if (document.queryCommandState('justifyFull')) formats.add('justify')
-    } catch (e) {
-      // Some commands might not be available in all browsers
-    }
-    
+    } catch (e) {}
     setSelectedFormat(formats)
   }
 
-  const handleInput = () => {
-    updateContent()
-  }
+  const handleInput = () => updateContent()
+  const handleKeyUp = () => updateActiveFormats()
+  const handleMouseUp = () => updateActiveFormats()
 
-  const handleKeyUp = () => {
+  const handleClick = (e: React.MouseEvent) => {
     updateActiveFormats()
-  }
+    const target = e.target as HTMLElement
+    const isMedia = target.tagName === 'IMG' || target.tagName === 'VIDEO'
 
-  const handleMouseUp = () => {
-    updateActiveFormats()
-  }
+    if (isMedia) {
+      e.preventDefault()
+      editorRef.current?.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected'))
+      target.classList.add('media-selected')
 
-  const handleClick = () => {
-    updateActiveFormats()
+      const editorRect = editorRef.current!.getBoundingClientRect()
+      const mediaRect = target.getBoundingClientRect()
+
+      setMediaToolbar({
+        element: target,
+        top: mediaRect.top - editorRect.top - 48,
+        left: mediaRect.left - editorRect.left,
+      })
+    } else {
+      setMediaToolbar(null)
+      editorRef.current?.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected'))
+    }
   }
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    // Prevent default paste behavior
     e.preventDefault()
-    
-    // Get plain text from clipboard
     const text = e.clipboardData.getData('text/plain')
     const normalized = normalizeEditorValue(text)
-
-    // Insert processed content at cursor position
     document.execCommand('insertHTML', false, normalized)
-    
-    // Update content
     updateContent()
   }
 
   const insertLink = () => {
     if (linkUrl) {
-      // Restore the saved selection
       if (savedSelection.current) {
         const selection = window.getSelection()
         if (selection) {
@@ -233,7 +236,6 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
           selection.addRange(savedSelection.current)
         }
       }
-      
       execCommand('createLink', linkUrl)
       setShowLinkDialog(false)
       setLinkUrl('')
@@ -242,7 +244,6 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
   }
 
   const openLinkDialog = () => {
-    // Save the current selection
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) {
       savedSelection.current = selection.getRangeAt(0).cloneRange()
@@ -250,48 +251,106 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
     setShowLinkDialog(true)
   }
 
-  const formatBlock = (tag: string) => {
-    if (editorRef.current) {
-      editorRef.current.focus()
-    }
-    document.execCommand('formatBlock', false, tag)
-    setTimeout(() => {
-      updateContent()
-      updateActiveFormats()
-    }, 10)
-  }
-
   const toggleList = (type: 'ul' | 'ol') => {
-    if (editorRef.current) {
-      editorRef.current.focus()
-    }
-    
+    if (editorRef.current) editorRef.current.focus()
     const command = type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList'
-    
-    // Execute the command
     document.execCommand(command, false)
-    
-    // Force update after a brief delay
     setTimeout(() => {
       updateContent()
       updateActiveFormats()
-      
-      // Ensure list elements are properly formatted
       if (editorRef.current) {
-        const lists = editorRef.current.querySelectorAll('ul, ol')
-        lists.forEach(list => {
-          // Ensure list has proper styling
+        editorRef.current.querySelectorAll('ul, ol').forEach(list => {
           if (!list.hasAttribute('style')) {
-            if (list.tagName === 'UL') {
-              list.setAttribute('style', 'list-style-type: disc; padding-left: 40px;')
-            } else {
-              list.setAttribute('style', 'list-style-type: decimal; padding-left: 40px;')
-            }
+            list.setAttribute('style', list.tagName === 'UL'
+              ? 'list-style-type: disc; padding-left: 40px;'
+              : 'list-style-type: decimal; padding-left: 40px;')
           }
         })
         updateContent()
       }
     }, 10)
+  }
+
+  // Align a media element by adjusting its margin
+  const alignMedia = (align: 'left' | 'center' | 'right') => {
+    if (!mediaToolbar?.element) return
+    const el = mediaToolbar.element
+
+    // Find the closest wrapper div inside the editor
+    let wrapper = el.parentElement
+    while (wrapper && wrapper !== editorRef.current && wrapper.tagName !== 'DIV') {
+      wrapper = wrapper.parentElement
+    }
+
+    // Use the wrapper div if it's a direct media wrapper, otherwise fall back to styling the element itself
+    const target: HTMLElement = (wrapper && wrapper !== editorRef.current) ? wrapper : el
+
+    // Apply text-align to the wrapper — this is the only reliable way to align
+    // block-level replaced elements (img/video) that stretch to full width
+    target.style.textAlign = align
+
+    // Also reset any leftover margin-based alignment
+    el.style.marginLeft = ''
+    el.style.marginRight = ''
+
+    updateContent()
+
+    // Reposition toolbar after layout settles
+    setTimeout(() => {
+      if (!editorRef.current || !mediaToolbar) return
+      const editorRect = editorRef.current.getBoundingClientRect()
+      const mediaRect = el.getBoundingClientRect()
+      setMediaToolbar(prev => prev ? {
+        ...prev,
+        top: mediaRect.top - editorRect.top - 48,
+        left: mediaRect.left - editorRect.left,
+      } : null)
+    }, 30)
+  }
+
+  const alignText = (command: 'justifyLeft' | 'justifyCenter' | 'justifyRight' | 'justifyFull') => {
+    execCommand(command)
+  }
+
+  const handleImageButtonClick = () => imageInputRef.current?.click()
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string
+      if (editorRef.current) {
+        editorRef.current.focus()
+        document.execCommand('insertHTML', false,
+          `<div style="text-align:left; margin:0.5em 0;"><img src="${dataUrl}" alt="${escapeHtml(file.name)}" style="max-width:100%; height:auto; display:inline-block;" /></div>`)
+        updateContent()
+      }
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const handleVideoButtonClick = () => videoInputRef.current?.click()
+
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string
+      if (editorRef.current) {
+        editorRef.current.focus()
+        document.execCommand('insertHTML', false,
+          `<div style="text-align:left; margin:0.5em 0;"><video controls style="max-width:100%; height:auto; display:inline-block;">
+            <source src="${dataUrl}" type="${file.type}" />
+            Your browser does not support the video tag.
+          </video></div>`)
+        updateContent()
+      }
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const isActive = (format: string) => selectedFormat.has(format)
@@ -311,98 +370,97 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
 
   return (
     <div className="w-full max-w-8xl mx-auto border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+      {/* Hidden file inputs */}
+      <input ref={imageInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageFileChange} />
+      <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoFileChange} />
+
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b border-gray-200">
-        {/* Basic Formatting */}
-        <ToolbarButton 
-          onClick={() => execCommand('bold')} 
-          icon={Bold} 
-          title="Bold (Ctrl+B)"
-          active={isActive('bold')}
-        />
-        <ToolbarButton 
-          onClick={() => execCommand('italic')} 
-          icon={Italic} 
-          title="Italic (Ctrl+I)"
-          active={isActive('italic')}
-        />
-        <ToolbarButton 
-          onClick={() => execCommand('underline')} 
-          icon={Underline} 
-          title="Underline (Ctrl+U)"
-          active={isActive('underline')}
-        />
-        
-        <div className="w-px bg-gray-300 mx-1" />
-
-        {/* Lists */}
-        <ToolbarButton 
-          onClick={() => toggleList('ul')} 
-          icon={List} 
-          title="Bullet List"
-          active={isActive('bulletList')}
-        />
-        <ToolbarButton 
-          onClick={() => toggleList('ol')} 
-          icon={ListOrdered} 
-          title="Numbered List"
-          active={isActive('orderedList')}
-        /> 
-        <div className="w-px bg-gray-300 mx-1" />
-
-        {/* Insert */}
-        <ToolbarButton 
-          onClick={openLinkDialog} 
-          icon={Link2} 
-          title="Insert Link"
-        />
-        <ToolbarButton 
-          onClick={() => execCommand('insertHorizontalRule')} 
-          icon={Minus} 
-          title="Insert Horizontal Line"
-        />
+        <ToolbarButton onClick={() => execCommand('bold')} icon={Bold} title="Bold (Ctrl+B)" active={isActive('bold')} />
+        <ToolbarButton onClick={() => execCommand('italic')} icon={Italic} title="Italic (Ctrl+I)" active={isActive('italic')} />
+        <ToolbarButton onClick={() => execCommand('underline')} icon={Underline} title="Underline (Ctrl+U)" active={isActive('underline')} />
 
         <div className="w-px bg-gray-300 mx-1" />
 
-        {/* Clear Formatting */}
-        <ToolbarButton 
-          onClick={() => execCommand('removeFormat')} 
-          icon={X} 
-          title="Clear Formatting"
-        />
+        {/* Text Alignment */}
+        <ToolbarButton onClick={() => alignText('justifyLeft')} icon={AlignLeft} title="Align Left" active={isActive('left')} />
+        <ToolbarButton onClick={() => alignText('justifyCenter')} icon={AlignCenter} title="Align Center" active={isActive('center')} />
+        <ToolbarButton onClick={() => alignText('justifyRight')} icon={AlignRight} title="Align Right" active={isActive('right')} />
+        <ToolbarButton onClick={() => alignText('justifyFull')} icon={AlignJustify} title="Justify" active={isActive('justify')} />
 
         <div className="w-px bg-gray-300 mx-1" />
 
-        {/* History */}
-        <ToolbarButton 
-          onClick={() => execCommand('undo')} 
-          icon={Undo} 
-          title="Undo (Ctrl+Z)"
-        />
-        <ToolbarButton 
-          onClick={() => execCommand('redo')} 
-          icon={Redo} 
-          title="Redo (Ctrl+Y)"
-        />
+        <ToolbarButton onClick={() => toggleList('ul')} icon={List} title="Bullet List" active={isActive('bulletList')} />
+        <ToolbarButton onClick={() => toggleList('ol')} icon={ListOrdered} title="Numbered List" active={isActive('orderedList')} />
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        <ToolbarButton onClick={openLinkDialog} icon={Link2} title="Insert Link" />
+        <ToolbarButton onClick={() => execCommand('insertHorizontalRule')} icon={Minus} title="Insert Horizontal Line" />
+        <ToolbarButton onClick={handleImageButtonClick} icon={Image} title="Insert Image" />
+        <ToolbarButton onClick={handleVideoButtonClick} icon={Video} title="Insert Video" />
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        <ToolbarButton onClick={() => execCommand('removeFormat')} icon={X} title="Clear Formatting" />
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        <ToolbarButton onClick={() => execCommand('undo')} icon={Undo} title="Undo (Ctrl+Z)" />
+        <ToolbarButton onClick={() => execCommand('redo')} icon={Redo} title="Redo (Ctrl+Y)" />
       </div>
 
       {/* Editor Area */}
-      <div
-        ref={editorRef}
-        contentEditable
-        className="p-4 min-h-[300px] focus:outline-none"
-        onInput={handleInput}
-        onKeyUp={handleKeyUp}
-        onMouseUp={handleMouseUp}
-        onClick={handleClick}
-        onPaste={handlePaste}
-        suppressContentEditableWarning
-        style={{ 
-          wordWrap: 'break-word',
-          overflowWrap: 'break-word',
-          lineHeight: '1.6'
-        }}
-      />
+      <div className="relative">
+        {/* Floating Media Alignment Toolbar */}
+        {mediaToolbar && (
+          <div
+            ref={mediaToolbarRef}
+            className="absolute z-20 flex items-center gap-0.5 px-2 py-1.5 bg-gray-800 rounded-lg shadow-xl"
+            style={{ top: Math.max(6, mediaToolbar.top), left: mediaToolbar.left }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <span className="text-gray-400 text-xs pr-1.5 select-none border-r border-gray-600 mr-1">Align media</span>
+            <button
+              type="button"
+              title="Align Left"
+              onClick={() => alignMedia('left')}
+              className="p-1.5 rounded text-white hover:bg-gray-600 transition-colors"
+            >
+              <AlignLeft size={14} />
+            </button>
+            <button
+              type="button"
+              title="Align Center"
+              onClick={() => alignMedia('center')}
+              className="p-1.5 rounded text-white hover:bg-gray-600 transition-colors"
+            >
+              <AlignCenter size={14} />
+            </button>
+            <button
+              type="button"
+              title="Align Right"
+              onClick={() => alignMedia('right')}
+              className="p-1.5 rounded text-white hover:bg-gray-600 transition-colors"
+            >
+              <AlignRight size={14} />
+            </button>
+          </div>
+        )}
+
+        <div
+          ref={editorRef}
+          contentEditable
+          className="p-4 min-h-[300px] focus:outline-none"
+          onInput={handleInput}
+          onKeyUp={handleKeyUp}
+          onMouseUp={handleMouseUp}
+          onClick={handleClick}
+          onPaste={handlePaste}
+          suppressContentEditableWarning
+          style={{ wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: '1.6' }}
+        />
+      </div>
 
       {/* Link Dialog */}
       {showLinkDialog && (
@@ -422,19 +480,10 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
               autoFocus
             />
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowLinkDialog(false)
-                  setLinkUrl('')
-                }}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
-              >
+              <button onClick={() => { setShowLinkDialog(false); setLinkUrl('') }} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors">
                 Cancel
               </button>
-              <button
-                onClick={insertLink}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
+              <button onClick={insertLink} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                 Insert
               </button>
             </div>
@@ -442,41 +491,30 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
         </div>
       )}
 
-      {/* CSS for proper list styling */}
       <style>{`
-        [contenteditable] ul {
-          list-style-type: disc;
-          padding-left: 40px;
-          margin: 1em 0;
-        }
-        
-        [contenteditable] ol {
-          list-style-type: decimal;
-          padding-left: 40px;
-          margin: 1em 0;
-        }
-        
-        [contenteditable] li {
-          margin: 0.5em 0;
-        }
-        
+        [contenteditable] ul { list-style-type: disc; padding-left: 40px; margin: 1em 0; }
+        [contenteditable] ol { list-style-type: decimal; padding-left: 40px; margin: 1em 0; }
+        [contenteditable] li { margin: 0.5em 0; }
         [contenteditable] h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
         [contenteditable] h2 { font-size: 1.5em; font-weight: bold; margin: 0.75em 0; }
         [contenteditable] h3 { font-size: 1.17em; font-weight: bold; margin: 0.83em 0; }
         [contenteditable] h4 { font-size: 1em; font-weight: bold; margin: 1em 0; }
         [contenteditable] h5 { font-size: 0.83em; font-weight: bold; margin: 1.17em 0; }
         [contenteditable] h6 { font-size: 0.67em; font-weight: bold; margin: 1.33em 0; }
-        
-        [contenteditable] a {
-          color: #2563eb;
-          text-decoration: underline;
+        [contenteditable] a { color: #2563eb; text-decoration: underline; }
+        [contenteditable] hr { border: none; border-top: 2px solid #ccc; margin: 1em 0; }
+        [contenteditable] img {
+          max-width: 100%; height: auto; display: inline-block;
+          border-radius: 4px; cursor: pointer;
+          transition: outline 0.12s;
         }
-        
-        [contenteditable] hr {
-          border: none;
-          border-top: 2px solid #ccc;
-          margin: 1em 0;
+        [contenteditable] video {
+          max-width: 100%; height: auto; display: inline-block;
+          border-radius: 4px; cursor: pointer;
+          transition: outline 0.12s;
         }
+        [contenteditable] img.media-selected { outline: 2px solid #2563eb; outline-offset: 2px; }
+        [contenteditable] video.media-selected { outline: 2px solid #2563eb; outline-offset: 2px; }
       `}</style>
     </div>
   )

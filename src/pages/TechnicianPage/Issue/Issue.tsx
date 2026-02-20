@@ -1,5 +1,5 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
-import TableCustomizableHeaders from "../../../components/DataDisplay/TableCustomizableHeaders";
+import TableCustomizableHeaders from "./components/TableCustomizableHeadersIssue";
 import { useState, useEffect, useMemo } from "react";
 import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -10,12 +10,12 @@ import {
   createIssue,
   fetchProductAll, 
   Issues
-} from '../../../services/Technician/issuesServices'; 
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
+} from '../../../services/Technician/issuesServices';  
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import IssuesModal from './components/IssuesModal';
+import { fetchCategoriesNoIsActive } from '../../../services/Technician/categoryServices'
 
 const Issue = () => {
   const queryClient = useQueryClient();
@@ -29,7 +29,8 @@ const Issue = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
+  const [selectedDevice, setSelectedDevice] = useState<string>("ALL");
+  const [selectedModel, setSelectedModel] = useState<string>("");
 
   const { 
     userInfo,
@@ -50,8 +51,32 @@ const Issue = () => {
     queryFn: fetchProductAll
   });
 
+  const { data: categoryResponse = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategoriesNoIsActive,
+    select: (res) => res.data.map((item: any) => ({
+      value: item.id,
+      label: item.name
+    }))
+  })
+
   const products = productResponse?.data ?? [];
-  const TabHeaders = ['ALL', ...products.map((c: any) => c.product_name)];
+  const deviceTabs = ["ALL", ...categoryResponse.map((c: any) => c.label)];
+
+  const modelTabs = useMemo(() => {
+    const selectedCategoryId = categoryResponse.find((c: any) => c.label === selectedDevice)?.value;
+
+    const filteredModels = products.filter((p: any) => {
+      if (selectedDevice === "ALL") return true;
+
+      return (
+        p.category_name === selectedDevice ||
+        Number(p.categories_id) === Number(selectedCategoryId)
+      );
+    });
+
+    return Array.from(new Set(filteredModels.map((p: any) => p.product_name)));
+  }, [products, selectedDevice, categoryResponse]);
 
   const { mutateAsync: IssueCategory } = useMutation({ mutationFn: createIssue });
   const { mutateAsync: updateProduct } = useMutation({
@@ -64,6 +89,7 @@ const Issue = () => {
 
   const columns = [
     {id: 'name', label: 'Name', sortable: true, align: 'left'},
+    {id: "categories_name", label: "Device Type", sortable: true, align: 'left'},
     {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'}, 
     {id: 'is_publish', label: 'Publish', sortable: false, align: 'left' },
     {id: 'created_at', label: '', sortable: false, align: 'right'}
@@ -216,26 +242,27 @@ const Issue = () => {
   }, [searchValue]);
 
   const filteredProduct = useMemo(() => {
-    if (!debouncedSearch?.trim()){
-      // Apply category filter only
-      if (selectedFilter === "ALL") {
-        return issues;
-      }
-      return issues.filter((c: any) => c.product_name === selectedFilter);
-    };
+    let result = issues;
 
+    if (debouncedSearch?.trim()) {
+      const search = debouncedSearch.toLowerCase();
+      result = result.filter((c: any) =>
+        c.product_name.toLowerCase().includes(search) ||
+        c.categories_name.toLowerCase().includes(search) ||
+        c.name.toLowerCase().includes(search)
+      );
+    }
 
-    let result = issues.filter((c: any) => 
-      c.product_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      c.name.toLowerCase().includes(debouncedSearch?.toLowerCase())
-    );
-    
-    if (selectedFilter !== "ALL") {
-      result = result.filter((c: any) => c.product_name === selectedFilter);
+    if (selectedDevice !== "ALL") {
+      result = result.filter((c: any) => c.categories_name === selectedDevice);
+    }
+
+    if (selectedModel) {
+      result = result.filter((c: any) => c.product_name === selectedModel);
     }
 
     return result;
-  }, [issues, selectedFilter, debouncedSearch]);
+  }, [issues, selectedDevice, selectedModel, debouncedSearch]);
 
   // Check if buttons should be enabled
   const isUpdateEnabled = !!selectedRowId;
@@ -337,9 +364,15 @@ const Issue = () => {
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
-        filterOptions={TabHeaders}
-        selectedFilter={selectedFilter}
-        onFilterChange={(filter) => setSelectedFilter(filter)}
+        filterOptionsDevices={deviceTabs}
+        filterOptionsModels={modelTabs}
+        selectedDeviceFilter={selectedDevice}
+        selectedModelFilter={selectedModel}
+        onDeviceFilterChange={(device) => {
+          setSelectedDevice(device);
+          setSelectedModel("");
+        }}
+        onModelFilterChange={(model) => setSelectedModel(model)}
       />
     </div>
   );

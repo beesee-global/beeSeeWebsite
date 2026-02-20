@@ -13,8 +13,7 @@ import {
 } from "lucide-react"
 import TableJobPosting from "./components/TableJobPosting"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query" 
-import { userAuth } from "../../../hooks/userAuth"
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
+import { userAuth } from "../../../hooks/userAuth" 
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import { useState, useMemo, useEffect } from "react"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'

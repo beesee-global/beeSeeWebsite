@@ -11,8 +11,7 @@ import {
   image,
   fetchPositions
 } from '../../../services/Technician/userServices'
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
-import { 
+ import { 
   Mail,
   User2,
   Save,
@@ -23,8 +22,7 @@ import {
   Phone,
   CheckCircle, 
 } from "lucide-react"
-import { Email } from "@mui/icons-material"
-import AddImageIcon from '../../../../public/add-image-icon.jpg';
+import { Email } from "@mui/icons-material" 
 import { userAuth } from "../../../hooks/userAuth"
 interface EmployeeFormProps {
   first_name: string,
@@ -320,8 +318,7 @@ const UsersForm = () => {
       return URL.createObjectURL(formData.image);
     } else if (typeof formData.image === "string" && formData.image.trim() !== "") {
       return formData.image;
-    } else {
-      return AddImageIcon;
+    } else { 
     }
   }, [formData.image]);
 
@@ -491,8 +488,7 @@ const UsersForm = () => {
                         Email *
                       </label>
                       <CustomTextField 
-                        name="email"
-                        disabled={userInfo?.position_id !== 25}
+                        name="email" 
                         placeholder="Enter email"
                         value={formData.email}
                         onChange={handleChangeInput}

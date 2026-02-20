@@ -15,11 +15,10 @@ import {
   ArrowLeftToLine,
   Image as ImageIcon,  // Rename this!
   Upload,
-} from 'lucide-react';
-import Box from '@mui/material/Box';
-import AlertDialog from '../../../components/feedback/AlertDialog';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
+} from 'lucide-react'; 
+import AlertDialog from '../../../components/feedback/AlertDialog'; 
 import { useParams } from 'react-router-dom'; 
+import { handleDownloadAttachment } from '../../../utils/downloadFile'
 import { 
   fetchTicketDetails, 
   fetchConversation,
@@ -542,13 +541,16 @@ export default function EmailConversationApp() {
                 {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "Completed" : "Ongoing"}
               </span> 
 
-              <button 
-                onClick={() => markAsCompleted()}
-                title="Mark as completed"
-                className='px-3 py-1 rounded-full text-md border bg-green-50'
-              >
-                <Check className='text-green-700'/>
-              </button>
+              {userTicketInformation?.job_order_url_finish && (
+                <button 
+                  onClick={() => markAsCompleted()}
+                  title="Mark as completed"
+                  className='px-3 py-1 rounded-full text-md border bg-green-50'
+                >
+                  <Check className='text-green-700'/>
+                </button>
+              )}
+
                 <div className='md:hidden'>
                   <button 
                     onClick={() => setShowSidebar(true)}
@@ -569,93 +571,106 @@ export default function EmailConversationApp() {
                   <div className="text-gray-400">Loading messages...</div>
                 </div>
               ) : (
-                messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    ref={messageEndRef}
-                    className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div
-                      className={`max-w-2xl rounded-lg p-4 ${
-                        msg.is_inbound
-                          ? 'bg-white border border-gray-200'
-                          : 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
-                      }`} 
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <User className="w-4 h-4" />
-                        <span className="font-semibold text-sm">
-                          {msg.sender_name}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded ${
-                            msg.message_type === 'email'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-green-100 text-green-700'
-                          } ${!msg.is_inbound && 'bg-opacity-30 text-white'}`}
-                        >
-                          {msg.is_inbound ? userTicketInformation?.company : msg.message_type}  
-                        </span>
-                      </div>
-                      <p className="text-sm whitespace-pre-wrap break-words">{msg.message_body}</p>
-                      
-                      {/* Attachments Display */}
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {msg.attachments.map((attachment, idx) => (
-                            attachment.type?.startsWith('image/') ? (
-                              // Display images automatically
-                              <div key={idx} className="mt-2">
-                                <img
-                                  src={attachment.attachment_url}
-                                  alt={attachment.name}
-                                  className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
-                                  onClick={() => setSelectedImage(attachment.attachment_url)}
-                                />
-                                <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
-                              </div>
-                            ) : (
-                              // Display other file types as downloadable items
-                              <div
-                                key={idx}
-                                className={`flex items-center gap-2 p-2 rounded ${
-                                  msg.is_inbound
-                                    ? 'bg-gray-50 border border-gray-200'
-                                    : 'bg-gray-700 bg-opacity-50'
-                                }`}
-                              >
-                                {getFileIcon(attachment.type)}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{attachment.name}</p>
-                                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
-                                </div>
-                                <a
-                                  href={attachment.attachment_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  download={attachment.name}
-                                  className="p-1 hover:bg-gray-200 rounded transition"
-                                  title="Download"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </a>
-                              </div>
-                            )
+                messages.map((msg) => {
+                  if (msg.is_updated === 1) {
+                    return (
+                      <div key={msg.id} ref={messageEndRef} className="w-full">
+                        <div className="text-center text-xs text-gray-500 space-y-1">
+                          {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
+                            <p key={`${msg.id}-${idx}`}>{line}</p>
                           ))}
                         </div>
-                      )}
+                      </div>
+                    );
+                  }
 
+                  return (
+                    <div
+                      key={msg.id}
+                      ref={messageEndRef}
+                      className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
+                    >
                       <div
-                        className={`flex items-center gap-1 mt-2 text-xs ${
-                          msg.is_inbound ? 'text-gray-500' : 'text-gray-300'
-                        }`}
+                        className={`max-w-2xl rounded-lg p-4 ${
+                          msg.is_inbound
+                            ? 'bg-white border border-gray-200'
+                            : 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
+                        }`} 
                       >
-                        <Clock className="w-3 h-3" />
-                        {formatDate(msg.created_at)}
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4" />
+                          <span className="font-semibold text-sm">
+                            {msg.sender_name}
+                          </span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded ${
+                              msg.message_type === 'email'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-green-100 text-green-700'
+                            } ${!msg.is_inbound && 'bg-opacity-30 text-white'}`}
+                          >
+                            {msg.is_inbound ? userTicketInformation?.company : msg.message_type}  
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.message_body}</p>
+                        
+                        {/* Attachments Display */}
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {msg.attachments.map((attachment, idx) => (
+                              attachment.type?.startsWith('image/') ? (
+                                // Display images automatically
+                                <div key={idx} className="mt-2">
+                                  <img
+                                    src={attachment.attachment_url}
+                                    alt={attachment.name}
+                                    className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                                    onClick={() => setSelectedImage(attachment.attachment_url)}
+                                  />
+                                  <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
+                                </div>
+                              ) : (
+                                // Display other file types as downloadable items
+                                <div
+                                  key={idx}
+                                  className={`flex items-center gap-2 p-2 rounded ${
+                                    msg.is_inbound
+                                      ? 'bg-gray-50 border border-gray-200'
+                                      : 'bg-gray-700 bg-opacity-50'
+                                  }`}
+                                >
+                                  {getFileIcon(attachment.type)}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{attachment.name}</p>
+                                    <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadAttachment(attachment)}
+                                    className="p-1 hover:bg-gray-200 rounded transition"
+                                    title="Download"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+
+                        <div
+                          className={`flex items-center gap-1 mt-2 text-xs ${
+                            msg.is_inbound ? 'text-gray-500' : 'text-gray-300'
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          {formatDate(msg.created_at)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </>
@@ -782,7 +797,7 @@ export default function EmailConversationApp() {
 
                 <button 
                   title="Delete Job Order"
-                  onClick={(e) => handleDelete([userTicketInformation.customers_id])}
+                  onClick={(e) => handleDelete([userTicketInformation.id])}
                   className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
                 >
                   <Trash2 size={16} />
@@ -829,7 +844,7 @@ export default function EmailConversationApp() {
 
             <button 
               title="Delete Job Order"
-              onClick={(e) => handleDelete([userTicketInformation.customers_id])}
+              onClick={(e) => handleDelete([userTicketInformation.id])}
               className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
             >
               <Trash2 size={16} />

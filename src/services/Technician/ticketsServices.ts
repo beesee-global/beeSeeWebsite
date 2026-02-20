@@ -33,6 +33,20 @@ export const sentJobOder = async (id: string , data:any) => {
     }
 }
 
+export const updateSerialNumber = async (id: string, data: any) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${id}/update-serial-number`, data, {
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        });
+
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const uploadJobOrders = async (id: string , data:any) => {
     try {
       const response = await axiosClient.put(`${API_URL}/${id}/upload-job-order`, data, {
@@ -134,6 +148,15 @@ export const deleteTickets = async (ids: number[] | string[]) => {
 export const fetchConversation = async(id: string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}/conversations`);
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchConversationPublic = async(id: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${id}/conversations/public`);
         return response.data
     } catch (error) {
         throw error;

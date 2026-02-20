@@ -41,6 +41,7 @@ const Home = () => {
 
   const columns = [   
     { id: 'full_name', label: 'Full Name', sortable: true},
+    { id: 'reference_number', label: 'Job No.', sortable: true },
     { id: 'company', label: 'Company', sortable: true }, 
     { id: 'device_type', label: "Device Type", sortable: true },
     { id: "issue_type", label: "Model Type", sortable: true },

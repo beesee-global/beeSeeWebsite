@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { Link } from 'react-router-dom';
-import { FiZap } from 'react-icons/fi';
+import { Link } from 'react-router-dom'; 
 import { motion } from 'framer-motion';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
+import CustomTextFieldAutoCamelCase from '../../../../components/Fields/CustomTextFieldAutoCamelCase';
 import ImageUploadModal from './ImageUploadModal';
 import CustomerSupportModal from './CustomerSupportModal';
 import { userAuth } from '../../../../hooks/userAuth';
@@ -507,7 +507,7 @@ const HeroSection: React.FC = () => {
                             <div className="beesee-card-content p-4 sm:p-6 md:p-8">
                                 <div className="space-y-4 sm:space-y-5">
                                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                                        <CustomTextField
+                                        <CustomTextFieldAutoCamelCase
                                             placeholder="Name"
                                             name="full_name"
                                             value={formData?.full_name}
@@ -523,7 +523,7 @@ const HeroSection: React.FC = () => {
                                     </motion.div>
 
                                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                                        <CustomTextField
+                                        <CustomTextFieldAutoCamelCase
                                             placeholder="Company / Institution Name"
                                             name="company"
                                             value={formData?.company}
@@ -539,7 +539,7 @@ const HeroSection: React.FC = () => {
                                     </motion.div>
 
                                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                                        <CustomTextField
+                                        <CustomTextFieldAutoCamelCase
                                             placeholder="City"
                                             name="city"
                                             value={formData?.city}
@@ -657,7 +657,7 @@ const HeroSection: React.FC = () => {
                                             icon={<Barcode sx={{ fontSize: 18 }} />}
                                         />
 
-                                        <CustomTextField
+                                        <CustomTextFieldAutoCamelCase
                                             name="questions"
                                             value={formData?.questions}
                                             onChange={handleChangeInput}

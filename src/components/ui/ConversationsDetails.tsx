@@ -7,9 +7,8 @@ import { fetchProducts, fetchIssueById } from '../../services/Technician/issuesS
 import CustomTextField from '../Fields/CustomTextField';
 import CustomSelectField from '../Fields/CustomSelectField';
 import { useQuery, useQueryClient } from '@tanstack/react-query'; 
-import { sentJobOder } from '../../services/Technician/ticketsServices'
-import { useMutation } from '@tanstack/react-query';
-import SnackbarTechnician from '../feedback/SnackbarTechnician';
+import { sentJobOder, updateSerialNumber } from '../../services/Technician/ticketsServices'
+import { useMutation } from '@tanstack/react-query'; 
 import {
   Mail,
   Ticket, 
@@ -24,6 +23,7 @@ import {
   FileText,
   FileCheck2,
   FileSearch,
+  Barcode
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
 
@@ -69,13 +69,19 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     item_name: userTicketInformation.item_name
   })
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
-  const [isPDFGenerated, setIsPDFGenerated] = useState<boolean>(false);
-
+ 
   const {
     mutateAsync: insertJobOrder, 
     isPending
   } = useMutation({
     mutationFn: ({ id, data }: { id: string; data: FormData }) => sentJobOder(id, data)
+  });
+
+  const {
+    mutateAsync: updateSerial,
+    isPending: isCreating
+  } = useMutation({
+    mutationFn: ({id, data}: {id: string; data: FormData}) => updateSerialNumber(id, data)
   })
 
   const { data: categories } = useQuery({
@@ -149,7 +155,14 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const isCategoryActive = String(selectedCategory?.is_active) === 'true';
 
   const generateAndDownloadPDF = async () => {
-    if (isGeneratingPDF || isPDFGenerated) return;
+    if (isGeneratingPDF || isPending) return;
+
+    if (!isCategoryActive && (!formData.product_id || !formData.issue_id)) {
+      setSnackBarMessage("Model Type and Issue Type are required.");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
 
     setIsGeneratingPDF(true);
 
@@ -179,53 +192,78 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       const doc = pdf(<JobOrderPDF data={PDFContent} />);
       const blob = await doc.toBlob();
 
-      // ✅ Create file from blob
+      // Create file from blob
       const file = new File(
         [blob],
         `JobOrder-${userTicketInformation?.ticket_id ?? Date.now()}.pdf`,
         { type: "application/pdf" }
       );
 
-      // ✅ Download locally (optional)
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      // ✅ Append everything to FormData
+      // Append everything to FormData
       const JobOrder = new FormData();
       JobOrder.append("products_id", String(formData.product_id ?? ''));
       JobOrder.append("categories_id", String(formData.categories_id ?? ''));
       JobOrder.append("item_name", String(formData.item_name ?? ''));
       JobOrder.append("issues_id", String(formData.issue_id ?? ''));
       JobOrder.append("serial_number", String(formData.serial_number ?? ''));
+      JobOrder.append("sender_name", String(userInfo?.full_name || 'Support Team'))
+      JobOrder.append("sender_email", String(userTicketInformation.email || 'admin@beesee.com'))
+      JobOrder.append("user_role", String(userInfo?.role || ''))
 
-      // ✅ Append PDF file
+      // Append PDF file
       JobOrder.append("job_order_pdf", file);
 
-      // ✅ Send to API
+      // Send to API
       const response = await insertJobOrder({ id: String(userTicketInformation.ticket_id), data: JobOrder })
 
       if (response?.success) {
-        setIsPDFGenerated(true);
         await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
         await queryClient.invalidateQueries({ queryKey: ['conversations'] });
         setSnackBarMessage("Your Job Order has been successfully sent.");
         setSnackBarOpen(true)
-        setSnackBarType("success")
+        setSnackBarType("success") 
+
+        // Download locally (optional)
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
       }
 
     } catch (err) {
+      setSnackBarMessage("Something went wrong while sending Job Order.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
       console.error("Failed to generate/download PDF:", err);
     } finally {
       setIsGeneratingPDF(false);
     }
   };
 
+  const handleUpdateSerialNumber = async () => {
+    try {
+      const form = new FormData()
+      form.append("serial_number", formData.serial_number);
+
+      const response = await updateSerial({id: String(userTicketInformation.ticket_id), data: form})
+
+      if (response.success) {
+        await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        setSnackBarMessage("Your serial number has been successfully updated.");
+        setSnackBarOpen(true)
+        setSnackBarType("success") 
+      }
+    } catch(err) {
+      setSnackBarMessage("Something went wrong while updating serial number")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    }
+  }
 
   return (
     <div>  
@@ -263,31 +301,57 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   >
                     <FileSearch size={14} />
                   </button>
-                
+
+                  <button
+                    title='Update Serial Number' 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      handleUpdateSerialNumber();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Barcode size={14} /> 
+                  </button>
+
                   <button
                     title='Sent Job Order' 
                     onClick={(e) => {
                       e.preventDefault(); // Prevent default navigation  
                       generateAndDownloadPDF();
                     }}
-                    disabled={isGeneratingPDF || isPDFGenerated || isPending}
+                    disabled={isGeneratingPDF || isPending}
                     className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Send size={14} /> 
                   </button>
                 </>
               ) : (
+                 <>
+                  <button
+                    title='Update Serial Number' 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      handleUpdateSerialNumber();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Barcode size={14} /> 
+                  </button>
+                  
                   <button
                     title='Sent Job Order'
                     onClick={(e) => {
                       e.preventDefault(); // Prevent default navigation  
                       generateAndDownloadPDF();
                     }}
-                    disabled={isGeneratingPDF || isPDFGenerated || isPending}
+                    disabled={isGeneratingPDF || isPending}
                     className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Send size={14} /> 
-                  </button>
+                  </button>                 
+                 </>
               )} 
             </div>
           )} 

@@ -327,7 +327,7 @@ const ForgetPasswordPages = () => {
             variants={itemVariants}
             className="text-center text-gray-600 text-sm md:text-[16px] mb-4"
           >
-              A one-time password (OTP) has been sent.
+              A one-time password (OTP) has been sent to your email.
           </motion.p>
 
           <motion.button 

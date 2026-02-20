@@ -73,11 +73,12 @@ const LoginTechnician = () => {
           full_name: response.userInfo.full_name,
           role: response.userInfo.role,
           permissions: response.userInfo.permissions,
-          url_permission: response.userInfo.url_permission
+          url_permission: response.userInfo.url_permission, 
+          url: `${response.url}`
         };  
         // token is at response.data.token (root level of API response)
         login({ token: response.token, userInfo });  
-        window.location.href = "/beesee/dashboard" 
+        window.location.href = `${response.url}` 
       }
     } catch (err) {
       setSnackbarOpen(true);
@@ -101,7 +102,7 @@ const LoginTechnician = () => {
     // if we don't have a token, go back to home
     if (token) { 
       if (userInfo?.url_permission === 'technician_url')
-      window.location.href = "/beesee/dashboard" 
+      window.location.href = `${userInfo.url}` 
       return;
     }  
 

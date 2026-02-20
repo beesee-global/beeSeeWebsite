@@ -37,7 +37,8 @@ const Applicants = () => {
     { id: 'full_name', label: 'Name', sortable: true },
     { id: 'phone', label: 'Phone', sortable: true },
     { id: "email", label: 'Email', sortable: true },
-    { id: "status", label: "Status", sortable: true }
+    { id: "status", label: "Status", sortable: true },
+    { id: 'created_at', label: "Date Applied", sortable: false}
   ] 
 
   const { 

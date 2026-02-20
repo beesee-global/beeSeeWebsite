@@ -282,7 +282,7 @@ const Faqs = () => {
             placeholder: 'Select product', 
             type: 'select',
             value: isEditMode 
-              ? (selectedFaqs?.products_id ? selectedFaqs.products_id.toString() : 'others')
+              ? (selectedFaqs?.products_id ? selectedFaqs.products_id.toString() : '')
               : "", 
             options: productOptions,
             validator: v => !v ? 'Product is required' : undefined 

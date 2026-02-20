@@ -69,7 +69,7 @@
       if (!newForm['explanation']) newForm['explanation'] = '';
       setFormData(newForm); 
       setSelectedCategory(newForm["category"] || "");
-      setIsAllDevices(newForm["product"] === "others");
+      setIsAllDevices(newForm["product"] === "");
     }, [fields, open]);
 
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -183,7 +183,7 @@
                         ...field.options.filter(
                           p => p.categories_id?.toString() === selectedCategory
                         ),
-                        ...field.options.filter(p => p.value === 'others'), // always include Others
+                        ...field.options.filter(p => p.value === ''), // always include Others
                       ]
                     : field.options || [];
 

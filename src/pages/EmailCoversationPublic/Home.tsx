@@ -21,13 +21,14 @@ import { SpinningRingLoader } from '../../components/ui/LoadingScreens'
 
 import {
   fetchTicketDetailsPublic,
-  fetchConversation,
+  fetchConversationPublic,
   insertConversationPublic,
   insertImageConversation
 } from '../../services/Technician/ticketsServices';
 import Snackbar from '../../components/feedback/Snackbar';
 import ConversationsDetails from '../../components/ui/ConversationsDetails';
 import { userAuth } from '../../hooks/userAuth';
+import { handleDownloadAttachment } from '../../utils/downloadFile'
 
 export default function EmailConversationApp() {
   const { pid } = useParams();
@@ -65,7 +66,7 @@ export default function EmailConversationApp() {
 
   const { data: conversationData } = useQuery({
     queryKey: ['conversations', userTicketInformation?.ticket_id],
-    queryFn: () => fetchConversation(userTicketInformation?.ticket_id),
+    queryFn: () => fetchConversationPublic(userTicketInformation?.ticket_id),
     enabled: !!userTicketInformation?.ticket_id,
   });
 
@@ -252,7 +253,7 @@ export default function EmailConversationApp() {
       hour: "2-digit",
       minute: "2-digit"
     });
-  };
+  }; 
 
     /* automatic close on wider screens */
   useEffect(() => {
@@ -404,8 +405,24 @@ export default function EmailConversationApp() {
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-gray-500">No messages yet</div>
           ) : (
-            messages.map(msg => (
-              <div key={msg.id} ref={messageEndRef} className={`flex ${msg.is_inbound ? 'justify-end' : 'justify-start'}`}>
+            messages.map(msg => {
+              if (msg.is_updated === 1) {
+                return (
+                  <div key={msg.id} ref={messageEndRef} className="w-full">
+                    <div className="text-center text-xs text-gray-500 space-y-1">
+                      {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
+                        <p key={`${msg.id}-${idx}`}>{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div 
+                key={msg.id} 
+                ref={messageEndRef} 
+                className={`flex ${msg.is_inbound ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-2xl rounded-lg p-4 ${msg.is_inbound ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200'}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4" />
@@ -438,16 +455,14 @@ export default function EmailConversationApp() {
                               <p className="text-xs font-medium truncate">{file.name}</p>
                               <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
                             </div>
-                            <a
-                              href={file.attachment_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download={file.name}
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadAttachment(file)}
                               className="p-1 hover:bg-gray-200 rounded transition"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />
-                            </a>
+                            </button>
                           </div>
                         )
                       ))}
@@ -458,7 +473,8 @@ export default function EmailConversationApp() {
                   </div>
                 </div>
               </div>
-            ))
+              )
+            })
           )}
         </div>
 
