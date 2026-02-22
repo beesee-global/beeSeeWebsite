@@ -12,6 +12,7 @@ import { styled } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import RichTextEditor from '../../../../components/Fields/RichTextEditor';
+import { userAuth } from '../../../../hooks/userAuth';
 interface FormError {
   id?: string; 
   product_id?: string;
@@ -69,6 +70,11 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
   const [formData, setFormData] = useState<FormData>(initialState);
   const [formError, setFormError] = useState<FormError>({}); 
   const queryClient = useQueryClient()
+  const {
+    setSnackBarMessage,
+    setSnackBarType,
+    setSnackBarOpen
+  } = userAuth()
 
   // Load model
   const { data: deviceType } = useQuery({
@@ -151,6 +157,9 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
     if (!formData?.name) errors.name = 'Issue is required.';
 
     setFormError(errors);
+    setSnackBarMessage("Please fill the required fields.")
+    setSnackBarType("error")
+    setSnackBarOpen(true)
 
     if (Object.keys(errors).length === 0) {
       onSave(formData);
