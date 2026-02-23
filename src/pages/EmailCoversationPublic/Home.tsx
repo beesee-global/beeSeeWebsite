@@ -50,6 +50,8 @@ export default function EmailConversationApp() {
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const MAX_FILE_SIZE_MB = 2;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const [socket, setSocket] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
@@ -188,6 +190,7 @@ export default function EmailConversationApp() {
       setSnackBarOpen(true)
       setSnackBarType("error")
       setSnackBarMessage("Something went wrong. Please try again")
+      alert(error?.response?.data?.message)
       console.error(error);
     } finally {
       setLoading(false)
@@ -210,8 +213,17 @@ export default function EmailConversationApp() {
   }; 
 
   const handleFileSelect = (e: any) => {
-    const files = Array.from(e.target.files);
-    const fileObjects = files.map(file => ({
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter((file: any) => file.size <= MAX_FILE_SIZE_BYTES);
+    const invalidCount = files.length - validFiles.length;
+
+    if (invalidCount > 0) {
+      setSnackBarMessage(`Only files up to ${MAX_FILE_SIZE_MB} MB are allowed.`);
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
+
+    const fileObjects = validFiles.map((file: any) => ({
       file,
       name: file.name,
       size: file.size,
@@ -219,6 +231,7 @@ export default function EmailConversationApp() {
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
     }));
     setAttachedFiles(prev => [...prev, ...fileObjects]);
+    e.target.value = "";
   };
 
   const handleRemoveFile = (index: number) => {
@@ -523,7 +536,7 @@ export default function EmailConversationApp() {
               multiple
               onChange={handleFileSelect}
               className="hidden"
-              accept="image/*"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic"
               /*  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" */
             />
 

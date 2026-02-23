@@ -55,6 +55,8 @@ export default function EmailConversationApp() {
   const [pendingJobOrderFile, setPendingJobOrderFile] = useState<File | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [socket, setSocket] = useState<any>(null);
+  const MAX_FILE_SIZE_MB = 2;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const { 
     userInfo,
@@ -189,8 +191,17 @@ export default function EmailConversationApp() {
   }, []);
 
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    const fileObjects = files.map(file => ({
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter((file) => file.size <= MAX_FILE_SIZE_BYTES);
+    const invalidCount = files.length - validFiles.length;
+
+    if (invalidCount > 0) {
+      setSnackBarMessage(`Only files up to ${MAX_FILE_SIZE_MB} MB are allowed.`);
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
+
+    const fileObjects = validFiles.map(file => ({
       file,
       name: file.name,
       size: file.size,
@@ -198,6 +209,7 @@ export default function EmailConversationApp() {
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
     }));
     setAttachedFiles(prev => [...prev, ...fileObjects]);
+    e.target.value = "";
   };
 
   const handleRemoveFile = (index) => {
@@ -291,8 +303,10 @@ export default function EmailConversationApp() {
         }) 
       }
 
-    } catch (error) {
-      setSnackBarMessage("Something went wrong, Please try again.")
+    } catch (error) { 
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
       setSnackBarType("error")
       setSnackBarOpen(true);
       console.error(error)
@@ -726,7 +740,7 @@ export default function EmailConversationApp() {
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic"
                 /*  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" */
               />
 
