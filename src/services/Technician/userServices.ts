@@ -39,6 +39,20 @@ export const loggedInUser = async (data: any) => {
   }
 }
 
+export const verifyPassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/verify-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
 export const fetchUsers = async (id: any) => {
   try { 
     const response = await axiosClient.get(`${API_URL}?id=${id}`);

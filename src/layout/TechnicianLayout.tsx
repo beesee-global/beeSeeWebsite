@@ -4,8 +4,7 @@ import SidebarTechnician from "../components/ui/SidebarTechnician"
 import { userAuth } from '../hooks/userAuth'
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import SnackbarTechnician from "../components/feedback/SnackbarTechnician"
-
+import SnackbarTechnician from "../components/feedback/SnackbarTechnician" 
 const TechnicianLayout = () => {
   const { 
     token, 

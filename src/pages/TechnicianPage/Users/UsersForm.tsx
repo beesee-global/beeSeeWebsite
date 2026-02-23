@@ -4,6 +4,7 @@ import CustomTextField from "../../../components/Fields/CustomTextField"
 import CustomSelectField from "../../../components/Fields/CustomSelectField"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"   
 import { useMutation, useQuery } from "@tanstack/react-query" 
+import { verifyPassword } from '../../../services/Technician/userServices'
 import { 
   createUsers, 
   fetchUsersByPid, 
@@ -24,6 +25,8 @@ import {
 } from "lucide-react"
 import { Email } from "@mui/icons-material" 
 import { userAuth } from "../../../hooks/userAuth"
+import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
+
 interface EmployeeFormProps {
   first_name: string,
   last_name: string,
@@ -50,6 +53,7 @@ interface FormError {
 const UsersForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const {
     userInfo,
     setSnackBarMessage, 
@@ -172,8 +176,36 @@ const UsersForm = () => {
       updateUsers(id, payload),
   });
  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Verify password
+  const {
+    mutateAsync: verifyPasswords
+  } = useMutation({
+    mutationFn: verifyPassword
+  });
+
+  const handleVerifyPassword = async (formData: Record<string, string>) => {
+    try {
+      const formDataPassword = new FormData();
+      formDataPassword.append('email', userInfo?.email);
+      formDataPassword.append('password', formData.password)
+
+      const response = await verifyPasswords(formDataPassword)
+
+      if (response.success) { 
+        setModalOpen(false);
+        await handleSubmit();
+      }
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
+      setSnackBarType("error")
+      setSnackBarOpen(true) 
+    }
+  }
+
+  const handleSubmit = async (e?: React.SyntheticEvent) => {
+    e?.preventDefault();
 
     try {
       const errors = validateForm();
@@ -214,7 +246,7 @@ const UsersForm = () => {
         payload.password = formData.password;
       }
 
-      if (id) {
+      if (id) { 
         // UPDATE USER
         await updateUserMutate({
           id: Number(userInformation?.data.id),
@@ -357,6 +389,26 @@ const UsersForm = () => {
     <div className="min-h-screen bg-white dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
 
+        {/* Asking password */}
+        <ReusableTextFieldModal 
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={"Enter your password"}
+          fields={[
+            {
+              name: 'password',
+              placeholder: 'Password',
+              maxLength: 100,
+              type: 'text',
+              multiline: false,
+              rows: 1,
+              value: '',
+              validator: (value) => (!value.trim() ? 'password is required' : undefined),
+            }
+          ]}
+          onSubmit={handleVerifyPassword}
+        />
+
         <div className="mb-6">
           {/* Breadcrumbs */}
           <Breadcrumb 
@@ -387,7 +439,7 @@ const UsersForm = () => {
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={id ? () => setModalOpen(true) : handleSubmit}
                 disabled={isCreating || isUpdating || isCreatingImage}
                 className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
               >

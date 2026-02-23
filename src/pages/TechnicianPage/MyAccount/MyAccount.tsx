@@ -9,6 +9,8 @@ import { Edit3, Save, User2, User, Mail, Lock, Phone, MapPin, Image as ImageIcon
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchUserById, updateAccountInfo } from '../../../services/Technician/myAccountServices';
 import { userAuth } from '../../../hooks/userAuth';
+import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
+import { verifyPassword } from '../../../services/Technician/userServices'
 
 interface formData {
     first_name: string;
@@ -36,7 +38,8 @@ const MyAccount = () => {
         userInfo,
         setSnackBarMessage,
         setSnackBarOpen,
-        setSnackBarType
+        setSnackBarType,
+        snackBarMessage
     } = userAuth();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -44,6 +47,7 @@ const MyAccount = () => {
  
     const [title, setTitle] = useState<string>('');
     const [openModal, setOpenModal] = useState<boolean>(false);
+    const [openModalPassword, setOpenModalPassword] = useState<boolean>(false)
 
     const [formData, setFormData] = useState<formData>({
         first_name: '',
@@ -52,6 +56,13 @@ const MyAccount = () => {
         email: '',
         password: '',
         confirm_password: '',
+    });
+
+    // Verify password
+    const {
+    mutateAsync: verifyPasswords
+    } = useMutation({
+    mutationFn: verifyPassword
     });
 
     const [formError, setFormError] = useState<FormError>({});
@@ -255,6 +266,33 @@ const MyAccount = () => {
         }
     };
 
+    const handleVerifyPassword = async (formData: Record<string, string>) => {
+        try {
+            const formDataPassword = new FormData();
+            formDataPassword.append('email', userInfo?.email);
+            formDataPassword.append('password', formData.password)
+
+            const response = await verifyPasswords(formDataPassword)
+
+            if (response.success) { 
+                setOpenModalPassword(false);
+                await handleSubmit();
+            }
+        } catch (error: any) {
+            const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+            const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+            setSnackBarMessage(cleanMessage);
+            setSnackBarType("error")
+            setSnackBarOpen(true) 
+            setOpenModalPassword(false)
+        }
+    }
+
+    const handleShowPassword = async () => {
+        setOpenModalPassword(true)
+        setOpenModal(false)
+    }
+
     return (
         <div className="bg-gray-50 dark:bg-gray-900 py-8">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
@@ -262,9 +300,29 @@ const MyAccount = () => {
                 <AlertDialog 
                     open={openModal} 
                     title={title} 
-                    message={setSnackBarMessage} 
+                    message={snackBarMessage} 
                     onClose={handleCloseModal} 
-                    onSubmit={handleSubmit} 
+                    onSubmit={(handleShowPassword)} 
+                />
+
+                {/* Asking password */}
+                <ReusableTextFieldModal 
+                    open={openModalPassword}
+                    onClose={() => setOpenModalPassword(false)}
+                    title={"Enter your password"}
+                    fields={[
+                    {
+                        name: 'password',
+                        placeholder: 'Password',
+                        maxLength: 100,
+                        type: 'text',
+                        multiline: false,
+                        rows: 1,
+                        value: '',
+                        validator: (value) => (!value.trim() ? 'password is required' : undefined),
+                    }
+                    ]}
+                    onSubmit={handleVerifyPassword}
                 />
 
                 {/* Header */}
