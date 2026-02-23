@@ -379,13 +379,13 @@ const Modal: React.FC<ModalProps> = ({
       }
     });
 
-    // Debug logging
-    console.log("=== SUBMIT DEBUG ===");
-    console.log("Current permissions state:", permissions);
-    console.log("Permissions entries:", Object.entries(permissions));
-
-    // Check if at least one permission is selected
-    const hasPermissions = Object.keys(permissions).length > 0;
+    // Check if at least one selectable permission is selected
+    const hasPermissions = permissionTree.some((parent) => {
+      if (parent.children?.length) {
+        return parent.children.some((child) => (permissions[child.id] || []).length > 0);
+      }
+      return (permissions[parent.id] || []).length > 0;
+    });
     if (!hasPermissions) {
       setPermissionError("Please select at least one permission"); // Set error message
     }
@@ -396,34 +396,37 @@ const Modal: React.FC<ModalProps> = ({
       return; // Exit function
     }
 
-    // Transform permissions object to backend format (array of Permission objects)
+    // Transform permissions object to backend format in permissionTree order.
+    // This prevents parent-only modules (e.g. users/settings) from being sent.
     const formattedPermissions: Permission[] = [];
-    
-    // Loop through each module's permissions
-    Object.entries(permissions).forEach(([moduleKey, actions]) => {
-      console.log(`Processing module: ${moduleKey}, actions:`, actions);
 
-      // Find module info from permissionTree (flatten tree to search both parents and children)
-      const allModules = permissionTree.flatMap((p) =>
-        p.children ? [p, ...p.children] : [p] // Include parent and all children
-      );
-      const module = allModules.find((m) => m.id === moduleKey); // Find matching module
+    permissionTree.forEach((parent) => {
+      if (parent.children?.length) {
+        parent.children.forEach((child) => {
+          const actions = permissions[child.id];
+          if (!actions || actions.length === 0) return;
 
-      if (module) {
-        // Find parent if this module is a child
-        const parent = permissionTree.find((p) =>
-          p.children?.some((c) => c.id === moduleKey)
-        );
-
-        // Create permission object in backend format
-        formattedPermissions.push({
-          parent_id: parent ? parent.id : moduleKey, // Use parent ID if exists, otherwise module ID
-          children_id: parent ? moduleKey : "", // Use module ID as child if has parent, otherwise empty
-          module_name: module.name, // Module display name
-          module_url: module.url || "", // Module URL path
-          actions: actions, // Array of permitted actions
+          formattedPermissions.push({
+            parent_id: parent.id,
+            children_id: child.id,
+            module_name: child.name,
+            module_url: child.url || "",
+            actions,
+          });
         });
+        return;
       }
+
+      const actions = permissions[parent.id];
+      if (!actions || actions.length === 0) return;
+
+      formattedPermissions.push({
+        parent_id: parent.id,
+        children_id: "",
+        module_name: parent.name,
+        module_url: parent.url || "",
+        actions,
+      });
     });
 
     console.log("Formatted permissions to submit:", formattedPermissions);
