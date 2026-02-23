@@ -343,10 +343,10 @@ export default function TableCustomizableHeaders({
                       style={{ WebkitOverflowScrolling: 'touch' }}
                     >
                       <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">Device</span>
-                          <div className="h-px flex-1 bg-amber-100" />
-                        </div>
+                          {/* <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">Device</span>
+                            <div className="h-px flex-1 bg-amber-100" />
+                          </div> */}
                         <div className="flex items-center gap-3 whitespace-nowrap overflow-x-auto pb-1">
                           {filterOptionsDevices?.map((filter) => (
                             <button
@@ -366,10 +366,10 @@ export default function TableCustomizableHeaders({
 
                         {filterOptionsModels && filterOptionsModels.length > 0 && (
                           <>
-                            <div className="flex items-center gap-2 pt-1">
+                            {/* <div className="flex items-center gap-2 pt-1">
                               <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Model</span>
                               <div className="h-px flex-1 bg-emerald-100" />
-                            </div>
+                            </div> */}
                             <div className="flex items-center gap-3 whitespace-nowrap overflow-x-auto pb-1">
                               {filterOptionsModels.map((filter) => (
                                 <button
