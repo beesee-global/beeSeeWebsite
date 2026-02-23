@@ -248,10 +248,6 @@ const Position = () => {
           is_protected: selectedPosition.is_protected || 0,
           permissions: formDataPosition.permissions
         };
-
-        // Log the payload for debugging
-        console.log("=== UPDATE POSITION PAYLOAD ===");
-        console.log(JSON.stringify(payload, null, 2));
   
         const response = await updatePosition({
           id: selectedPosition.id,
