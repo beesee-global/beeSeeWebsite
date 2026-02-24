@@ -61,6 +61,9 @@ const UsersForm = () => {
     setSnackBarType,
   } = userAuth();
 
+  
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'list_user');
+  
   /* FormError */
   const [formError, setFormError] = useState<FormError>({})
 
@@ -286,29 +289,32 @@ const UsersForm = () => {
       navigate("/beesee/users");
 
     } catch (error: any) {
-      if (error.response?.status === 400) {
-        const message = error.response.data?.message;
+      if (error.response?.status === 400) { 
+        const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+        const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
 
-        console.log("Server validation error:", message);
+        console.log("Server validation error:", cleanMessage);
 
         // Properly map backend error messages to form fields
-        if (message === "Email already exists.") {
+        if (cleanMessage == "Email already exists") {
           setFormError((prev) => ({
             ...prev,
             email: "Email already exists",
           }));
         }
 
-        if (message === "Name already exists.") {
+        if (cleanMessage == "Name already exists") {
           setFormError((prev) => ({
             ...prev,
             name: "Name already exists",
           }));
         }
+
+        
+        setSnackBarType("error");
+        setSnackBarMessage(`${cleanMessage}`);
       }
 
-      setSnackBarType("error");
-      setSnackBarMessage("Failed to save users. Please try again.");
 
     } finally {
       setSnackBarOpen(true);
@@ -543,6 +549,7 @@ const UsersForm = () => {
                         name="email" 
                         placeholder="Enter email"
                         value={formData.email}
+                        disabled={!Permission?.actions.includes('edit')}
                         onChange={handleChangeInput}
                         maxLength={100}
                         rows={1}
