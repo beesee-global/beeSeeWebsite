@@ -110,6 +110,7 @@ interface TableDefaultProps {
   onRowClick?: (row: RowData) => void;
   onRowDoubleClick?: (row: RowData) => void;
   isLoading: boolean;
+  sortable?: string;
 }
 
 // ============================================
@@ -123,35 +124,47 @@ export default function TableDefault({
   onRowClick,
   onRowDoubleClick,
   isLoading = false,
+  sortable,
 }: TableDefaultProps) { 
 
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('desc');
-  const [orderBy, setOrderBy] = useState<string>('created_at');
+  const [orderBy, setOrderBy] = useState<string>(sortable || 'created_at');
+  const [isManualSort, setIsManualSort] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const rowsPerPage = 20;
 
   const safeRows = Array.isArray(rows) ? rows : [];
+  const safeColumns = Array.isArray(columns) ? columns : [];
 
   const handleRequestSort = (property: string) => {
-    if (orderBy === property) {
-      // same column, toggle order
-      setOrder(order === 'asc' ? 'desc' : 'asc');
+    const column = safeColumns.find(col => col.id === property);
+    if (column?.sortable === false) {
+      return;
+    }
+
+    if (orderBy === property && isManualSort) {
+      // Second click RESETS to backend default
+      setOrder('desc'); // Backend default is DESC
+      setOrderBy(sortable || 'created_at'); // Reset to backend's sort column
+      setIsManualSort(false); // ✅ Turn OFF manual sort = use backend order AS-IS
     } else {
-      // New column selected
-      // If switching to created_at, use desc; otherwise use asc
-      setOrder(property === 'created_at' ? 'desc' : 'asc');
+      setOrder('asc');
       setOrderBy(property);
+      setIsManualSort(true);
     }
   };
 
   const sortedRows = useMemo(
     () => {
       if (!Array.isArray(safeRows) || safeRows.length === 0) return [];
+      if (!isManualSort) {
+        return safeRows;
+      }
       return [...safeRows].sort(getComparator(order, orderBy));
     },
-    [safeRows, order, orderBy]
+    [safeRows, order, orderBy, isManualSort]
   );
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
@@ -180,7 +193,11 @@ export default function TableDefault({
   };
 
   const renderSortIcon = (columnId: string) => {
-    if (orderBy !== columnId) {
+    const column = safeColumns.find(col => col.id === columnId);
+    if (column?.sortable === false) {
+      return null;
+    }
+    if (orderBy !== columnId || !isManualSort) {
       return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
     }
     return order === 'asc' 
@@ -221,7 +238,7 @@ export default function TableDefault({
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 {/* Column Headers */}
                 <div className="flex items-center py-2">
-                  {columns.map((column) => (
+                  {safeColumns.map((column) => (
                     <div 
                       key={column.id}
                       className={`${column.width || 'flex-1'} px-4`}
@@ -279,7 +296,7 @@ export default function TableDefault({
                         }}
                       > 
                         {/* Dynamic Columns */}
-                        {columns.map((column) => {
+                        {safeColumns.map((column) => {
                           return (
                             <div 
                               key={column.id}

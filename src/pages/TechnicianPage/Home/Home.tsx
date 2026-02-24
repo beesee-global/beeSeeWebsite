@@ -12,7 +12,8 @@ import {
   fetchDeviceType,
   fetchOpen,
   fetchResolve,
-  deleteTickets
+  deleteTickets,
+  fetchOngoing
 } from '../../../services/Technician/ticketsServices'
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import WorkIcon from '@mui/icons-material/Work';
@@ -34,15 +35,13 @@ const Home = () => {
     setSnackBarMessage,  
     setSnackBarOpen,
     setSnackBarType,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType,
+    setStatusFilter, 
     statusFilter,
-    setStatusFilter,
   } = userAuth();
 
   const columns = [   
     { id: 'full_name', label: 'Full Name', sortable: true},
+    { id: 'reference_number', label: 'Job No.', sortable: true },
     { id: 'company', label: 'Company', sortable: true }, 
     { id: 'device_type', label: "Device Type", sortable: true },
     { id: "issue_type", label: "Model Type", sortable: true },
@@ -62,6 +61,11 @@ const Home = () => {
     queryKey: ['resolve-ticket'],
     queryFn: fetchResolve
   });
+
+  const { data: ongoingTicketResponse} = useQuery ({
+    queryKey: ['ongoing-ticket'],
+    queryFn: fetchOngoing
+  })
 
   const { data: allDeviceResponse = [], isLoading: companyLoading } = useQuery ({
     queryKey: ['client-open'],
@@ -83,6 +87,7 @@ const Home = () => {
   const rows = useMemo(() => {
     let baseRows = [];
     if (statusFilter === "Pending") baseRows = openTicketResponse?.data || [];
+    if (statusFilter === "Ongoing") baseRows = ongoingTicketResponse?.data || [];
     if (statusFilter === "Completed") baseRows = resolvedTicketResponse?.data || [];
     
     // Filter by organization/company if selected (not "all")
@@ -132,7 +137,7 @@ const Home = () => {
  
         // 🔄 Refetch relevant ticket queries
         await queryClient.invalidateQueries({ queryKey: ['open-ticket'] });
-        await queryClient.invalidateQueries({ queryKey: ['resolve-ticket'] });
+        await queryClient.invalidateQueries({ queryKey: ['ongoing-ticket']})
         await queryClient.invalidateQueries({ queryKey: ['client-open'] }); 
       }
     } catch (error) {
@@ -166,6 +171,7 @@ const Home = () => {
 
     socket.on("ticket-updated", (data) => {
       queryClient.invalidateQueries({ queryKey: ["open-ticket"] });
+      queryClient.invalidateQueries({ queryKey: ['ongoing-ticket'] })
       queryClient.invalidateQueries({ queryKey: ["resolve-ticket"]});
     });
 
@@ -198,14 +204,7 @@ const Home = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        message={snackBarMessage}
-        type={snackBarType}
-        onClose={() => setSnackBarOpen(false)}
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white"> 
 
       {/* Dialog */}
       <AlertDialog 

@@ -37,13 +37,11 @@ const Applicants = () => {
     { id: 'full_name', label: 'Name', sortable: true },
     { id: 'phone', label: 'Phone', sortable: true },
     { id: "email", label: 'Email', sortable: true },
-    { id: "status", label: "Status", sortable: true }
+    { id: "status", label: "Status", sortable: true },
+    { id: 'created_at', label: "Date Applied", sortable: false}
   ] 
 
-  const {  
-      snackBarMessage, 
-      snackBarType, 
-      snackBarOpen, 
+  const { 
       setSnackBarMessage, 
       setSnackBarOpen, 
       setSnackBarType,
@@ -335,7 +333,8 @@ const Applicants = () => {
       i.job_number?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       i.full_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       i.phone?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      i.email?.toLowerCase().includes(debouncedSearch.toLowerCase())
+      i.email?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      i.status?.toLowerCase().includes(debouncedSearch.toLowerCase())
     )
   }, [rows, debouncedSearch])
  
@@ -360,15 +359,7 @@ const Applicants = () => {
         message={dialogMessage}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleConfirm} 
-      />
-
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+      /> 
 
       {/* Header */}
       <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>

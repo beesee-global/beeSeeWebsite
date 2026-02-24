@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cpu, Monitor, Heart, Wifi, Settings, Zap, Cloud, Microchip, Battery } from "lucide-react";
+import { LucideIcon } from "../../../../utils/lucideIconLoader";
 
-type Product = {
+export type Product = {
   pid: string;
   name: string;
   tagline: string;
@@ -10,6 +10,8 @@ type Product = {
   image: string;
   price: number;
   specs: { [key: string]: string };
+  specIcons?: { [key: string]: string };
+  hoverSpecs?: string[];
   category_id?: string; // Add this for category detection
 };
 
@@ -28,54 +30,12 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-// Category-specific hover specs mapping
-const categoryHoverSpecs: Record<string, string[]> = {
-  laptop: ["cpu", "ram", "storage", "display"],
-  smartwatch: ["display", "battery", "sensors", "connectivity"],
-  smarttv: ["display", "resolution", "panel_type", "refresh_rate"],
-  tablet: ["cpu", "ram", "storage", "display"],
-  kiosk: ["display", "cpu", "storage", "touchscreen"],
-  // Default fallback
-  default: ["cpu", "ram", "storage", "display"]
-};
-
-// Get 4 specs for hover based on category
-const getHoverSpecs = (product: Product, categoryId?: string): Array<[string, string]> => {
-  const specs = product.specs || {};
-  
-  // Get category-specific spec keys
-  const categoryKeys = categoryId ? categoryHoverSpecs[categoryId] || categoryHoverSpecs.default : categoryHoverSpecs.default;
-  
-  // Collect specs based on category keys
-  const hoverSpecs: Array<[string, string]> = [];
-  
-  // First, try to get category-specific specs
-  for (const key of categoryKeys) {
-    if (specs[key] && hoverSpecs.length < 4) {
-      hoverSpecs.push([key, specs[key]]);
-    }
-  }
-  
-  // If we still need more specs, fill with any available specs
-  if (hoverSpecs.length < 4) {
-    const remainingKeys = Object.keys(specs).filter(key => 
-      !hoverSpecs.some(([hoverKey]) => hoverKey === key)
-    );
-    
-    for (const key of remainingKeys) {
-      if (hoverSpecs.length < 4 && specs[key]) {
-        hoverSpecs.push([key, specs[key]]);
-      }
-    }
-  }
-  
-  // If still less than 4, fill with placeholder
-  while (hoverSpecs.length < 4) {
-    const placeholderKey = `spec_${hoverSpecs.length + 1}`;
-    hoverSpecs.push([placeholderKey, "N/A"]);
-  }
-  
-  return hoverSpecs;
+// Helper: prettify a key into a readable label
+const prettify = (k: string) => {
+  if (!k) return '';
+  // If it's already in title case or contains spaces (API-provided), return as-is
+  if (/[A-Z]/.test(k) || k.includes(' ')) return k;
+  return k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 const ProductCard: React.FC<{
@@ -87,41 +47,11 @@ const ProductCard: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
 
-  // Icon mapping for all spec types
-  const specIcons: Record<string, any> = {
-    cpu: Cpu,
-    ram: Microchip,
-    storage: Cloud,
-    display: Monitor,
-    battery: Battery,
-    gpu: Cpu,
-    connectivity: Wifi,
-    resolution: Monitor,
-    refresh_rate: Zap,
-    sensors: Heart,
-    smart_features: Settings,
-    touchscreen: Settings,
-  };
-
-  // Label mapping for all spec types
-  const specLabels: Record<string, string> = {
-    cpu: "Processor",
-    ram: "RAM",
-    storage: "Storage",
-    display: "Display",
-    battery: "Battery",
-    gpu: "Graphics",
-    connectivity: "Connectivity",
-    resolution: "Resolution",
-    refresh_rate: "Refresh Rate",
-    sensors: "Sensors",
-    panel_type: "Panel Type",
-    smart_features: "Smart Features",
-    touchscreen: "Touchscreen",
-  };
-
-  // Get exactly 4 hover specs based on category
-  const hoverSpecs = getHoverSpecs(product, product.category_id || product.category.toLowerCase());
+  // Build hover specs from API-provided `product.specs` (preserve insertion order)
+  const hoverSpecs = React.useMemo(() => {
+    const entries = Object.entries(product.specs || {});
+    return entries.slice(0, 4);
+  }, [product.specs]);
 
   // Format price
   const formatPrice = (price: number) => {
@@ -204,8 +134,8 @@ const ProductCard: React.FC<{
               >
                 <div className="specs-grid-four">
                   {hoverSpecs.map(([key, value], i) => {
-                    const Icon = specIcons[key] || Settings;
-                    const label = specLabels[key] || key;
+                    const iconName = product.specIcons?.[key];
+                    const label = (product.hoverSpecs && product.hoverSpecs[i]) || prettify(key);
 
                     return (
                       <motion.div
@@ -216,7 +146,7 @@ const ProductCard: React.FC<{
                         className="spec-item-enhanced"
                       >
                         <div className="spec-icon-enhanced">
-                          <Icon className="w-5 h-5 text-black" />
+                          <LucideIcon name={iconName} size={18} className="text-black" />
                         </div>
                         <div className="spec-content">
                           <div className="spec-label-enhanced">{label}</div>

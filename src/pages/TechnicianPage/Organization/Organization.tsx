@@ -39,10 +39,7 @@ const Organization = () => {
   const { 
    setSnackBarOpen,
    setSnackBarMessage,
-   setSnackBarType,
-   snackBarMessage,
-   snackBarType, 
-   snackBarOpen
+   setSnackBarType, 
   } = userAuth();
 
   const columns = [
@@ -183,14 +180,7 @@ const Organization = () => {
     }
   }
   return (
-    <div className='p-6 space-y-10 bg-white'>
-      {/* SNack bar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        type={snackBarType}
-        message={snackBarMessage}
-        onClose={() => setSnackBarOpen(false)}
-      />
+    <div className='p-6 space-y-10 bg-white'> 
 
       {/* Dialog */}
       <AlertDialog 

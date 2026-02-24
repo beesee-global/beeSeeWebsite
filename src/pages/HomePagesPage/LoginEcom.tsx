@@ -21,7 +21,7 @@ interface FormError {
 
 const Login = () => {
   const navigate = useNavigate(); 
-  const { login, token } = userAuth()
+  const { login, token, userInfo } = userAuth()
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
@@ -65,15 +65,21 @@ const Login = () => {
       setFormError(errors)  
       if (Object.keys(errors).length > 0) return
 
-      const response = await loggedMutate(formData);
+      const response = await loggedMutate(formData); 
+      if (response?.success) {
+        const userInfo = {
+          id: response.userInfo.id,
+          full_name: response.userInfo.full_name,
+          email: response.userInfo.email,
+          role: response.userInfo.role,
+          url_permission: response.userInfo.url_permission
+        };
 
-      login(response)
-      if (response.userInfo.role == 'Admin') { 
-        navigate("/beesee/dashboard")
-      } else {
-        navigate("/tech/home")
+        // token is at response.data.token (root level of API response)
+        login({ token: response.token, userInfo });  
       }
     } catch (err) {
+      console.error("Login Error:", err);
       setSnackbarOpen(true)
       setSnackbarSeverity("error")
       setSnackbarMessage("Invalid email or password, please try again.")
@@ -118,7 +124,10 @@ const Login = () => {
   // ✅ Redirect immediately if token exists
   useEffect(() => {
     if (token) {
-      navigate("/beesee/dashboard", { replace: true });
+      if (userInfo?.url_permission === 'ecommerce')
+      window.location.href = "/beesee/ecommerce"  
+      setChecked(true);
+      return;  
     }
   }, [token, navigate]);
 
@@ -178,7 +187,7 @@ const Login = () => {
         >
           <motion.h2
             variants={itemVariants}
-            className="bee-title-lg text-[var(--beesee-gold)] mb-4 sm:mb-6"
+            className="bee-title-lg text-[var(--beesee-gold)] text-center  mb-4 sm:mb-6"
           >
             Login Your Account
           </motion.h2>

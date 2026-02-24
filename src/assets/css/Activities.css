@@ -1,0 +1,115 @@
+:root {
+  --beesee-gold: #FDCC00;
+  --text-light: #ffffff;
+  --muted: #C7B897;
+}
+
+.bee-title-md {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: 0.05em;
+}
+
+.bee-title-sm {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+}
+
+.bee-body {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.gold-glow {
+  text-shadow: 0 0 20px rgba(253, 204, 0, 0.3),
+               0 0 40px rgba(253, 204, 0, 0.2);
+}
+
+/* Card Styles */
+.beesee-card-activities {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 22px;
+  padding: 1.5rem;
+  border: 1px solid rgba(253, 204, 0, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: transform 0.45s ease,
+              box-shadow 0.45s ease,
+              border-color 0.45s ease,
+              background 0.35s ease;
+}
+
+.beesee-card-activities:hover {
+  transform: translateY(-10px);
+  border-color: rgba(253, 204, 0, 0.55);
+  box-shadow: 0 25px 80px rgba(253, 204, 0, 0.20),
+              0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.beesee-card-activities img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 18px;
+  transition: transform 0.6s ease;
+}
+
+.beesee-card-activities:hover img {
+  transform: scale(1.05);
+}
+
+.beesee-card-activities-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--text-light);
+  margin: 0.5rem 0 0.75rem;
+  text-transform: uppercase;
+  line-height: 1.2;
+  transition: color 0.35s ease;
+}
+
+.beesee-card-activities:hover .beesee-card-activities-title {
+  color: var(--beesee-gold);
+}
+
+.beesee-card-activities-desc {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+  flex-grow: 1;
+  overflow-wrap: break-word;
+  white-space: normal; /* allow multiline */
+}
+
+.beesee-card-activities-date-location {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .beesee-card-activities img {
+    height: 140px;
+  }
+  .beesee-card-activities-title {
+    font-size: 1.2rem;
+  }
+  .beesee-card-activities-desc {
+    font-size: 0.85rem;
+  }
+}

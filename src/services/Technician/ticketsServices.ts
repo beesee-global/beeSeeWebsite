@@ -20,6 +20,46 @@ export const updateStatusDelete = async (data: any) => {
   }
 }
 
+export const sentJobOder = async (id: string , data:any) => {
+    try {
+      const response = await axiosClient.put(`${API_URL}/${id}/sent-job-order`, data, {
+        headers:{
+            "Content-Type": "multipart/form-data"
+        }
+      });
+      return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const updateSerialNumber = async (id: string, data: any) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${id}/update-serial-number`, data, {
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        });
+
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const uploadJobOrders = async (id: string , data:any) => {
+    try {
+      const response = await axiosClient.put(`${API_URL}/${id}/upload-job-order`, data, {
+        headers:{
+            "Content-Type": "multipart/form-data"
+        }
+      });
+      return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 // permanently delete a ticket or multiple tickets
 export const deleteForever = async (idOrIds: number | number[]) => {
     try {
@@ -47,9 +87,19 @@ export const fetchOpen = async () => {
     }
 }
 
+// ongoing
+export const fetchOngoing = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}?status=ongoing`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const fetchResolve = async () => {
     try {
-        const response = await axiosClient.get(`${API_URL}?status=resolved,expired`)
+        const response = await axiosClient.get(`${API_URL}?status=resolved`)
         return response.data
     } catch (error) {
         throw error
@@ -58,7 +108,7 @@ export const fetchResolve = async () => {
 
 export const fetchDeviceType = async () => {
     try {
-        const response = await axiosClient.get(`/categories`)
+        const response = await axiosClient.get(`/categories/select-field`)
         return response.data
     } catch (error) {
         throw error;
@@ -98,6 +148,15 @@ export const deleteTickets = async (ids: number[] | string[]) => {
 export const fetchConversation = async(id: string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}/conversations`);
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const fetchConversationPublic = async(id: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/${id}/conversations/public`);
         return response.data
     } catch (error) {
         throw error;

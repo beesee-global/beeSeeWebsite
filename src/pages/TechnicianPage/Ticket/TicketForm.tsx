@@ -30,6 +30,8 @@ interface CustomerIssue {
   email: string; 
   contact_number: string; 
   category_id: string;
+  is_active: string;
+  item_name?: string;
   device_id: string; 
   issue_id: string;
   questions: string;  
@@ -41,6 +43,7 @@ interface FormError {
   company?: string;
   city?: string;
   email?: string;
+  item_name?: string;
   issue_id?: string;
   contact_number?: string; 
   category_id?: string;
@@ -60,9 +63,6 @@ const TicketForm = () => {
     setSnackBarMessage,
     setSnackBarOpen,
     setSnackBarType,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType
   } = userAuth();
 
   const [openUploadImageModal, setOpenUploadImageModal] = useState<boolean>(false);
@@ -77,6 +77,8 @@ const TicketForm = () => {
     email: '',
     contact_number: '',
     category_id: '',
+    is_active: '',
+    item_name: '',
     device_id: '',
     issue_id: '',
     questions: '',
@@ -87,8 +89,9 @@ const TicketForm = () => {
     queryKey: ["categories"],
     queryFn: fetchCategory,
     select: (res) => res.data.map((item: any) => ({
-      value: item.id,
-      label: item.name
+      value: String(item.id),
+      label: item.name,
+      is_active: item.is_active
     }))
   })
   
@@ -98,26 +101,21 @@ const TicketForm = () => {
     enabled: !!formData?.category_id,
     select: (res) => {
       const mapped = res.data.map((item: any) => ({
-        value: item.id,
+        value: String(item.id),
         label: item.product_name
-      }));
-
-     /*  mapped.push({
-        value: "others",
-        label: "Others"
-      }); */
+      })); 
 
       return mapped;
     }
   })
 
   const { data: issueResponse = [] } = useQuery({
-    queryKey: ["issues", formData?.category_id],
-    queryFn: () => fetchIssue(Number (formData?.category_id)),
-    enabled: !!formData?.category_id,
+    queryKey: ["issues", formData?.device_id],
+    queryFn: () => fetchIssue(Number (formData?.device_id)),
+    enabled: !!formData?.device_id,
     select: (res) => {
       const mapped = res.data.map((item: any) => ({
-        value: item.id,
+        value: String(item.id),
         label: item.name
       }));
 
@@ -141,10 +139,19 @@ const TicketForm = () => {
 
   const handleChangeInput = (e: React.ChangeEvent <HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'category_id') {
+      const selectedCategory = categoryResponse.find((item: any) => String(item.value) === String(value));
+      setFormData((prev) => ({
+        ...prev,
+        category_id: String(value),
+        is_active: selectedCategory?.is_active ?? ''
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     setFormError((prev) => ({
       ...prev,
@@ -164,9 +171,14 @@ const TicketForm = () => {
       if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.'; 
       else if (!/^09\d{9}$/.test(formData?.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
       if (!formData?.category_id) errors.category_id = "Device is required.";
- 
-      if (!formData?.device_id) errors.device_id = "Model is required";
-      if (!formData?.issue_id) errors.issue_id = "Issue Type is required"
+
+      if (formData?.is_active === 'false') {
+        if (!formData?.device_id) errors.device_id = "Model is required";
+        if (!formData?.issue_id) errors.issue_id = "Issue Type is required";
+      } else {
+        if (!formData?.item_name?.trim()) errors.item_name = 'Item name is required';
+      }
+
       if (!formData?.questions.trim()) errors.questions = "Please provide details about your issue."; 
    
     return errors;
@@ -220,6 +232,7 @@ const TicketForm = () => {
           categories_id: formData?.category_id,
           products_id: formData?.device_id,
           issues_id: formData?.issue_id,
+          item_name: formData?.item_name,
           serial_number: formData?.serial_number,
           status: "open",
           questions: formData?.questions, 
@@ -257,6 +270,8 @@ const TicketForm = () => {
             city: "",
             email: '',
             contact_number: '',
+            item_name: '',
+            is_active: '',
             issue_id: "",  
             category_id: '',
             device_id: '',
@@ -282,23 +297,26 @@ const TicketForm = () => {
   }
 
   useEffect(() => {
-    // --- reset issue when changes device ---
-    setFormData((prev) => ({
-      ...prev,
-      device_id: "",
-      issue_id: ''
-    }))
+    if (formData?.category_id) {
+      setFormData((prev) => ({
+        ...prev,
+        device_id: "",
+        issue_id: ''
+      }))
+    }
   }, [formData.category_id])
+
+  useEffect(() => {
+    if (formData?.device_id) {
+      setFormData((prev) => ({
+        ...prev,
+        issue_id: ''
+      }))
+    }
+  }, [formData?.device_id])
   
   return (
     <div className="p-6 space-y-10">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen}
-        type={snackBarType}
-        message={snackBarMessage}
-        onClose={() => setSnackBarOpen(false)}
-      />
 
       {/* image Modal */}
       <ImageUploadModal 
@@ -479,43 +497,67 @@ const TicketForm = () => {
 
             {formData?.category_id !== '' && (
               <div className="space-3">
-                <div className="flex items-center">
-                  <div className="w-48">
-                      <span>
-                        Model
-                      </span>
-                  </div>
-                  <div className="w-full max-w-lg">
-                    <CustomSelectField 
-                      name="device_id" 
-                      value={formData?.device_id} 
-                      options={productResponse} 
-                      onChange={handleChangeInput} 
-                      placeholder="Select a Model Type" 
-                      error={!!formError?.device_id} 
-                      helperText={formError?.device_id} 
-                    />
-                  </div>
-                </div>
+                {formData?.is_active === 'false' ? (
+                  <>
+                    <div className="flex items-center">
+                      <div className="w-48">
+                          <span>
+                            Model
+                          </span>
+                      </div>
+                      <div className="w-full max-w-lg">
+                        <CustomSelectField 
+                          name="device_id" 
+                          value={formData?.device_id} 
+                          options={productResponse} 
+                          onChange={handleChangeInput} 
+                          placeholder="Select a Model Type" 
+                          error={!!formError?.device_id} 
+                          helperText={formError?.device_id} 
+                        />
+                      </div>
+                    </div>
 
-                <div className="flex items-center mt-3">
-                  <div className="w-48">
-                      <span>
-                        Issue
-                      </span>
+                    <div className="flex items-center mt-3">
+                      <div className="w-48">
+                          <span>
+                            Issue
+                          </span>
+                      </div>
+                      <div className="w-full max-w-lg">
+                        <CustomSelectField 
+                          name="issue_id" 
+                          value={formData?.issue_id} 
+                          options={issueResponse} 
+                          onChange={handleChangeInput} 
+                          placeholder="Select a Issue type" 
+                          error={!!formError?.issue_id} 
+                          helperText={formError?.issue_id} 
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center">
+                    <div className="w-48">
+                      <span>Item name</span>
+                    </div>
+                    <div className="w-full max-w-lg">
+                      <CustomTextField
+                        placeholder="Item name"
+                        name="item_name"
+                        value={formData?.item_name}
+                        onChange={handleChangeInput}
+                        type="text"
+                        multiline={false}
+                        rows={1}
+                        maxLength={100}
+                        error={!!formError?.item_name}
+                        helperText={formError?.item_name}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full max-w-lg">
-                    <CustomSelectField 
-                      name="issue_id" 
-                      value={formData?.issue_id} 
-                      options={issueResponse} 
-                      onChange={handleChangeInput} 
-                      placeholder="Select a Issue type" 
-                      error={!!formError?.issue_id} 
-                      helperText={formError?.issue_id} 
-                    />
-                  </div>
-                </div>
+                )}
 
                 <div className="flex items-center mt-3">
                   <div className="w-48">

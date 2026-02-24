@@ -48,18 +48,15 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
 
   const validating = () => {
     setMenuItems([
-      /* { name: "Dashboard", path: "/beesee/dashboard", icon: <Home size={20} /> }, */
-      { name: "Category", path: "/beesee/category", icon: <Tag size={20} /> },
-      { name: "Product", path: "/beesee/product", icon: <Box size={20} /> },
+      { name: "Dashboard", path: "/beesee/ecommerce/dashboard", icon: <Home size={20} /> },
+      { name: "Category", path: "/beesee/ecommerce/category", icon: <Tag size={20} /> },
+      { name: "Product", path: "/beesee/ecommerce/product", icon: <Box size={20} /> },
      /*  { name: "Employee", path: "/beesee/employee", icon: <User2 size={20} /> },  */
       {
         name: "Home display",
         icon: <Home size={20} />,
         children: [
-          { name: "School Process", path: "/beesee/school-process", icon: <BookHeart size={16} /> },
-          /* { name: "Our Journey", path: "/beesee/our-journey", icon: <BookHeart size={16} /> }, 
-          { name: "Solutions Portfolio", path: "/beesee/solutions-overview", icon: <Lightbulb size={16} /> }, 
-          { name: "Manage banner", path: "/beesee/manage-banner", icon: <ViewCarouselIcon sx={{ fontSize: 20 }}/> },  */
+          { name: "Featured Products", path: "/beesee/ecommerce/feature-product", }, 
         ],
       }, 
     ]);
@@ -96,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
   }, []);
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 overflow-y-auto">
+    <div className="p-4 min-h-screen bg-[#000000] border-r border-gray-700 overflow-y-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-yellow-400">Menu</h2>

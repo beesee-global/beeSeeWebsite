@@ -13,16 +13,19 @@ const PrivacyPolicy = lazy(() => import ('../pages/HomePagesPage/PrivacyPolicy/P
 const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndConditions/TermsAndConditions'))
 const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
 const ProductDetail = lazy(() => import('../pages/HomePagesPage/ProductDetails/ProductDetail'));
-const Loggedin = lazy(() => import('../pages/HomePagesPage/Login'));
+const Loggedin = lazy(() => import('../pages/HomePagesPage/LoginEcom'));
 const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnician'));
 const Register = lazy(() => import("../pages/HomePagesPage/Register"));
 const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
 const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
 const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
-const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution"));
-const projects = lazy(() => import("../pages/HomePagesPage/Projects/Projects"));
+const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution")); 
+
+/* Activity Details */
+const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
 const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
+const UserForm = lazy(() => import('../pages/HomePagesPage/UserForm/UserForm'));
 
 /* MainLayout */
 const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
@@ -31,13 +34,15 @@ const MainProduct = lazy(() => import('../pages/EcommerceLayout/Product/Products
 const MainProductForm = lazy (() => import ('../pages/EcommerceLayout/Product/ProductForm'));
 const MainCategory = lazy(() => import('../pages/EcommerceLayout/Category/Category'));
 const MainCategoryForm = lazy (() => import ('../pages/EcommerceLayout/Category/CategoryForm'));
-const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount")) 
-const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
-const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
-const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
-const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
-const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
-const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
+const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount"));
+const FeaturedProduct = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts'))
+const FeaturedProductForm = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm'))
+// const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
+// const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
+// const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
+// const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
+// const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
+// const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
  
 /* Technician */
 const TechnicianLayout = lazy(() => import ("../layout/TechnicianLayout")); 
@@ -55,7 +60,8 @@ const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organi
 const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
 const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
 import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
-import Projects from '../pages/HomePagesPage/Projects/Projects';
+import Projects from '../pages/HomePagesPage/Projects/Projects'; 
+import Activities from '../pages/HomePagesPage/Activities/Activities';
 const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
@@ -65,6 +71,7 @@ const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Appl
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
 const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
 
+// user
 
 const routes = [
     {
@@ -113,6 +120,14 @@ const routes = [
                 element: <Projects />
             },
             {
+                path: 'activities',
+                element: <Activities />   
+            },
+            {
+                path: 'activity/:id',  // ACTIVITY DETAILS ROUTE - ADDED
+                element: <ActivitiesDetails />,
+            },
+            {
                 path: 'privacy-policy',
                 element: <PrivacyPolicy />
             },
@@ -133,7 +148,7 @@ const routes = [
                 element: <LoginTechnician />
             },
             { 
-                path: "sign-in/tech",
+                path: "ecom/sign-in",
                 element: <Loggedin />
             },
             {
@@ -143,13 +158,13 @@ const routes = [
             {
                 path:  "forget-password",
                 element: <ForgetPassword />
-            }, 
+            }
         ]
     },
 
     /* Main Admin */
-/*     {
-        path: '/beesee',
+    {
+        path: '/beesee/ecommerce',
         element: <MainLayout />,
         layout: 'blank',
         children: [
@@ -182,39 +197,39 @@ const routes = [
                 element: <MainMyAccount />
             },
             {
-                path: 'employee',
-                element: <Employee />
+                path: 'feature-product',
+                element: <FeaturedProduct/>
             },
             {
-                path: 'employee/form/:id?',
-                element: <EmployeeForm />
-            },
-            {
-                path: 'our-journey',
-                element: <OurJourney />
-            },
-            {
-                path: 'our-journey/form/:id?',
-                element: <OurJourneyForm />
-            },
-            {
-                path: 'solutions-overview',
-                element: <MainSolutionsOverview />
-            },
-            {
-                path: 'solutions-overview/form/:id?',
-                element: <MainSolutionsOverviewForm />
-            },
-            {
-                path: 'manage-banner',
-                element: <MainSalesBanner />
-            },
-            {
-                path: 'manage-banner/form/:id?',
-                element: <MainSalesBannerForm />
-            },  
+                path: 'feature-product/form/:id?',
+                element: <FeaturedProductForm />
+            }
+            // {
+            //     path: 'employee',
+            //     element: <Employee />
+            // },
+            // {
+            //     path: 'employee/form/:id?',
+            //     element: <EmployeeForm />
+            // },
+            // {
+            //     path: 'solutions-overview',
+            //     element: <MainSolutionsOverview />
+            // },
+            // {
+            //     path: 'solutions-overview/form/:id?',
+            //     element: <MainSolutionsOverviewForm />
+            // },
+            // {
+            //     path: 'manage-banner',
+            //     element: <MainSalesBanner />
+            // },
+            // {
+            //     path: 'manage-banner/form/:id?',
+            //     element: <MainSalesBannerForm />
+            // },  
         ]
-    },  */
+    },
 
     /* technician */
     {
@@ -293,7 +308,7 @@ const routes = [
             {
                 path:  "job-posting/applicants/:id",
                 element: <TechnicianApplicant />
-            },, 
+            },
             {
                 path:  "job-posting/form/:id?",
                 element: <TechnicianJobPostingForm />
@@ -304,7 +319,7 @@ const routes = [
             }
         ]
     },
-       /* conversation */
+    /* conversation */
     {
         path: '/c',
         element: <ConversationLayout />,
@@ -318,10 +333,14 @@ const routes = [
                 path: 'conversation/:pid',
                 element: <ConversationDetails />
             }, 
+            {
+                path: "bsg/user-form",
+                element: <UserForm />
+            }
         ]
     },
     /* Not found routes */ 
-{
+    {
         path: '*', // Catch-all route
         element: <Navigate to="/home" replace />, // CHANGED: Redirect to home instead of 404
         layout: 'blank', 

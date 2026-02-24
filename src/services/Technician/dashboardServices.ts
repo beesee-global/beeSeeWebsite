@@ -20,6 +20,15 @@ export const fetchGetOverview = async () => {
     }
 }
 
+export const fetchApplicants = async() => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/applicants`);
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
 export const fetchGetStatsDevice = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/stats-device`);
@@ -31,7 +40,25 @@ export const fetchGetStatsDevice = async () => {
 
 export const fetchCountDashboard = async () => {
     try {
-        const response = await axiosClient.get(`${API_URL}/count`);
+        const response = await axiosClient.get(`${API_URL}/count-status`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchCountMostlyIssue = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/count-mostly-issue`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchCountByMonth = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/count-status-by-month`);
         return response.data
     } catch (error) {
         throw error

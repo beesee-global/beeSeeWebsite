@@ -31,9 +31,9 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
 
   const user: UserData = useMemo(
     () => ({
-      first_name: userInformation?.first_name || "Loading...",
-      last_name: userInformation?.last_name || "",
-      image: userInformation?.image || null,
+      first_name: userInformation?.data?.first_name || "Loading...",
+      last_name: userInformation?.data?.last_name || "",
+      image: userInformation?.data?.image_url || null,
     }),
     [userInformation]
   );
@@ -75,7 +75,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
   }, [preview, user.image]);
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 w-full border-b border-gray-300">
+    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-[#000000] w-full border-b border-gray-300">
       <div className="flex gap-2 items-center">
         <button
           onClick={() => setShowSidebar(true)}
@@ -126,7 +126,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             <button
               className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-100 rounded-t-lg transition-colors"
               onClick={() => {
-                navigate("/beesee/my-account");
+                navigate("/beesee/ecommerce/my-account");
                 setUserNav(false);
               }}
             >

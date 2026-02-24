@@ -244,6 +244,17 @@ export default function TableInbox({
               </button>
 
               <button
+                onClick={() => setStatusFilter("Ongoing")}
+                className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                  ${statusFilter === "Ongoing" 
+                    ? "bg-yellow-500 text-white border-yellow-500" 
+                    : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                Ongoing
+              </button>
+
+              <button
                 onClick={() => setStatusFilter("Completed")}
                 className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
                   ${statusFilter === "Completed" 

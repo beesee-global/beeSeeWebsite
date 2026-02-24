@@ -27,9 +27,7 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 interface AccountData {
   first_name : string;
   last_name : string;
-  email: string;
-  phone: string;
-  address: string; 
+  email: string;  
   password?: string;
   confirm_password?: string;
   image?: File | string | null;
@@ -38,9 +36,7 @@ interface AccountData {
 interface FormError {
   first_name ?: string;
   last_name ?: string;
-  email?: string;
-  phone?: string;
-  address?: string; 
+  email?: string;  
   password?: string;
   confirm_password?: string;
   image?: string;
@@ -62,9 +58,7 @@ const MyAccount = () => {
   const [accountData, setAccountData] = useState<AccountData>({
     first_name : "",
     last_name : "",
-    email: "",
-    phone: "",
-    address: "", 
+    email: "",  
     password: "",
     confirm_password: "", 
   });
@@ -72,8 +66,7 @@ const MyAccount = () => {
   const [formError, setFormError] = useState<FormError>({});
 
   // Breadcrumb configuration
-  const breadcrumbItems = [
-    { label: 'Home', href: '/', icon: <Home className="w-4 h-4" /> },
+  const breadcrumbItems = [ 
     { label: 'My Account', isActive: true }
   ];
 
@@ -113,15 +106,7 @@ const MyAccount = () => {
 
     if (!accountData.first_name.trim()) errors.first_name = "First name is required"; 
     if (!accountData.last_name.trim()) errors.last_name = "Last name is required"; 
-
-    if (!accountData.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!/^09\d{9}$/.test(accountData.phone)) {
-      errors.phone = "Please enter a valid 11-digit phone number starting with 09";
-    }
-
-    if (!accountData.address.trim()) errors.address = "Address is required";  
-
+ 
     // password validation
     if (accountData.password || accountData.confirm_password) {
       if (!accountData.password) {
@@ -185,7 +170,7 @@ const MyAccount = () => {
         formDataToSend.delete("image")
       }
 
-      await updateAccountMutate({id: userInformation.id, userData: formDataToSend })
+      await updateAccountMutate({id: String(id), userData: formDataToSend })
 
       if (accountData.password) {
       // Clear password fields after successful update
@@ -200,7 +185,7 @@ const MyAccount = () => {
       setMessage("Account information updated successfully!");
  
       logout()
-      navigate("/sign-in", {replace: true}) 
+      navigate("/ecom/sign-in", {replace: true}) 
     } catch (error) {
       console.error("❌ Error updating account:", error);
       setSnackBarType("error");
@@ -216,6 +201,8 @@ const MyAccount = () => {
     queryKey: ['users', id],
     queryFn: () => fetchUserById(String(id)), 
   });
+
+  console.log(userInformation)
 
   // --- close modal ---
   const handleCloseModal = () => {
@@ -235,11 +222,9 @@ const MyAccount = () => {
   const handleCancel = () => {
     if (userInformation) {
       setAccountData({
-        first_name: userInformation.first_name || "",
-        last_name: userInformation.last_name || "",
-        email: userInformation.email || "",
-        phone: userInformation.phone || "",
-        address: userInformation.address || "",
+        first_name: userInformation?.data?.first_name || "",
+        last_name: userInformation?.data?.last_name || "",
+        email: userInformation?.data?.email || "",  
       });
     }
     setFormError({});
@@ -261,12 +246,10 @@ const MyAccount = () => {
   useEffect(() => {  
     if (userInformation) {
       setAccountData({
-        first_name: userInformation.first_name ,
-        last_name: userInformation.last_name ,
-        email: userInformation.email,
-        phone: userInformation.phone,
-        address: userInformation.address,
-        image: userInformation.image
+        first_name: userInformation?.data?.first_name ,
+        last_name: userInformation?.data?.last_name ,
+        email: userInformation?.data?.email,  
+        image: userInformation?.data?.image_url
       });
     }
   }, [userInformation]);
@@ -363,228 +346,170 @@ const MyAccount = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* First Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                First Name *
-              </label>
-              <CustomTextField
-                name="first_name"
-                placeholder="Enter your first name"
-                value={accountData.first_name}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={50}
-                type="text"
-                rows={1}
-                icon={<User className="w-4 h-4" />}
-                error={!!formError.first_name}
-                helperText={formError.first_name}
-              />
-            </div>
-
-            {/* Last Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Last Name *
-              </label>
-              <CustomTextField
-                name="last_name"
-                placeholder="Enter your last name"
-                value={accountData.last_name}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={50}
-                type="text"
-                rows={1}
-                icon={<User className="w-4 h-4" />}
-                error={!!formError.last_name}
-                helperText={formError.last_name}
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address *
-              </label>
-              <CustomTextField
-                name="email"
-                placeholder="Enter your email address"
-                value={accountData.email}
-                onChange={handleInputChange}
-                multiline={false}
-                disabled={true}
-                maxLength={100}
-                type="email"
-                rows={1}
-                icon={<Mail className="w-4 h-4" />}
-                error={!!formError.email}
-                helperText={formError.email}
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Phone Number *
-              </label>
-              <CustomTextField
-                name="phone"
-                placeholder="09XXXXXXXXX"
-                value={accountData.phone}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={11}
-                type="tel"
-                rows={1}
-                icon={<Phone className="w-4 h-4" />}
-                error={!!formError.phone}
-                helperText={formError.phone}
-              />
-            </div> 
-
-             {/* password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Password
-              </label>
-              <CustomTextField
-                name="password"
-                placeholder="Enter password"
-                value={accountData.password || ""}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={50}
-                type="password"
-                rows={1}
-                icon={<Lock className="w-4 h-4" />}
-                error={!!formError.password}
-                helperText={formError.password}
-              />
-            </div> 
-
-             {/* confirm password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Confirm Password
-              </label>
-              <CustomTextField
-                name="confirm_password"
-                placeholder="Enter confirm password"
-                value={accountData.confirm_password || ""}
-                onChange={handleInputChange}
-                multiline={false}
-                maxLength={50}
-                type="password"
-                rows={1}
-                icon={<Lock className="w-4 h-4" />}
-                error={!!formError.confirm_password}
-                helperText={formError.confirm_password}
-              />
-            </div> 
-
-            {/* Address - Full Width */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Address *
-              </label>
-              <CustomTextField
-                name="address"
-                placeholder="Enter your complete address"
-                value={accountData.address}
-                onChange={handleInputChange}
-                multiline={true}
-                maxLength={200}
-                type="text"
-                rows={2}
-                icon={<MapPin className="w-4 h-4" />}
-                error={!!formError.address}
-                helperText={formError.address}
-              />
-            </div>
-
-            {/* Image upload */} 
-            <div className="md:col-span-2">
-              <div className="flex items-center mb-6">
-                <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg mr-4">
-                  <ImageIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Image upload */} 
+              <div className="md:col-span-1">
+                <div className="flex items-center mb-6">  
+                  <div> 
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload a representative image</label>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Image</h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Upload a representative image</p>
-                </div>
-              </div>
 
-              <div className="space-y-4">
-                <div className="relative group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id="image-upload"
-                    className="hidden"
-                    onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
-                  />
+                <div className="space-y-4">
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="image-upload"
+                      className="hidden"
+                      onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
+                    />
 
-                  <label
-                    htmlFor="image-upload"
-                    className="cursor-pointer block w-full"
-                  >
-                    <div className={`relative border-2 border-dashed ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"} dark:border-gray-600 rounded-xl overflow-hidden transition-colors group`}>
-                      <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                        <img
-                          src={preview}
-                          alt="Preview"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-
-                      {/* Upload overlay for empty state */}
-                      {!accountData.image && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
-                          <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
-                          <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                    <label
+                      htmlFor="image-upload"
+                      className="cursor-pointer block w-full"
+                    >
+                      <div className={`relative border-2 border-dashed ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"} dark:border-gray-600 rounded-xl overflow-hidden transition-colors group`}>
+                        <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                          <img
+                            src={preview}
+                            alt="Preview"
+                            className="object-cover w-full h-full"
+                          />
                         </div>
-                      )}
 
-                      {/* Change image overlay */}
-                      {accountData.image && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="text-white text-center">
-                            <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                            <p className="font-medium">Change Image</p>
+                        {/* Upload overlay for empty state */}
+                        {!accountData.image && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
+                            <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
+                            <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Change image overlay */}
+                        {accountData.image && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="text-white text-center">
+                              <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                              <p className="font-medium">Change Image</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </label> 
+                  </div> 
+
+                  {/* Error message */}
+                  {formError.image && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="text-red-600 dark:text-red-400 text-sm">{formError.image}</p>
                     </div>
-                  </label> 
+                  )}
+                </div>
+              </div>
+            
+              <div className='md:col-span-3 space-y-2'>
+                {/* First Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    First Name *
+                  </label>
+                  <CustomTextField
+                    name="first_name"
+                    placeholder="Enter your first name"
+                    value={accountData.first_name}
+                    onChange={handleInputChange}
+                    multiline={false}
+                    maxLength={50}
+                    type="text"
+                    rows={1}
+                    icon={<User className="w-4 h-4" />}
+                    error={!!formError.first_name}
+                    helperText={formError.first_name}
+                  />
                 </div>
 
-                {/* File info */}
-                {accountData.image && (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <div className="flex items-center">
-                      <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {accountData.image instanceof File ? accountData.image.name : typeof accountData.image === 'string' ? accountData.image : 'Image'}
-                      </span>
-                    </div>
-                    {/* <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {(formData.image.size / 1024 / 1024).toFixed(2)} MB
-                    </span> */}
-                  </div>
-                )}
+                {/* Last Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Last Name *
+                  </label>
+                  <CustomTextField
+                    name="last_name"
+                    placeholder="Enter your last name"
+                    value={accountData.last_name}
+                    onChange={handleInputChange}
+                    multiline={false}
+                    maxLength={50}
+                    type="text"
+                    rows={1}
+                    icon={<User className="w-4 h-4" />}
+                    error={!!formError.last_name}
+                    helperText={formError.last_name}
+                  />
+                </div>
 
-                {/* Error message */}
-                {formError.image && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-red-600 dark:text-red-400 text-sm">{formError.image}</p>
-                  </div>
-                )}
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address *
+                  </label>
+                  <CustomTextField
+                    name="email"
+                    placeholder="Enter your email address"
+                    value={accountData.email}
+                    onChange={handleInputChange}
+                    multiline={false} 
+                    maxLength={100}
+                    type="email"
+                    rows={1}
+                    icon={<Mail className="w-4 h-4" />}
+                    error={!!formError.email}
+                    helperText={formError.email}
+                  />
+                </div>
+      
+                {/* password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Password
+                  </label>
+                  <CustomTextField
+                    name="password"
+                    placeholder="Enter password"
+                    value={accountData.password || ""}
+                    onChange={handleInputChange}
+                    multiline={false}
+                    maxLength={50}
+                    type="password"
+                    rows={1}
+                    icon={<Lock className="w-4 h-4" />}
+                    error={!!formError.password}
+                    helperText={formError.password}
+                  />
+                </div> 
+
+                {/* confirm password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Confirm Password
+                  </label>
+                  <CustomTextField
+                    name="confirm_password"
+                    placeholder="Enter confirm password"
+                    value={accountData.confirm_password || ""}
+                    onChange={handleInputChange}
+                    multiline={false}
+                    maxLength={50}
+                    type="password"
+                    rows={1}
+                    icon={<Lock className="w-4 h-4" />}
+                    error={!!formError.confirm_password}
+                    helperText={formError.confirm_password}
+                  />
+                </div> 
               </div>
-            </div>
           </div>
 
           {/* Additional Info */}
@@ -596,13 +521,13 @@ const MyAccount = () => {
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Account Created:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">
-                  { new Date(userInformation?.created_at).toLocaleDateString() }
+                  { new Date(userInformation?.data?.created_at).toLocaleDateString() }
                 </span>
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Last Updated:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">
-                  {new Date(userInformation?.updated_at).toLocaleDateString() }
+                  {new Date(userInformation?.data?.updated_at).toLocaleDateString() }
                 </span>
               </div>
               <div>

@@ -16,15 +16,18 @@ import {
   deleteProducts, 
   fetchProducts, 
   updateProducts,
-  createProduct,
-  fetchCategories
+  createProduct, 
 } from '../../../services/Technician/productServices' 
+import {
+  fetchCategoriesNoIsActive
+} from '../../../services/Technician/categoryServices'
 import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
 import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
 import AlertDialog from "../../../components/feedback/AlertDialog"
 import { userAuth } from "../../../hooks/userAuth"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
+import TableCustomizableHeaders from '../../../components/DataDisplay/TableCustomizableHeaders'
 
 const Product = () => {
   const queryClient = useQueryClient();
@@ -34,7 +37,7 @@ const Product = () => {
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>("");
   const [deleteIds, setDeleteIds] = useState<number[]>([])
-
+  const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null); 
@@ -45,9 +48,6 @@ const Product = () => {
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
-    snackBarMessage ,
-    snackBarOpen,
-    snackBarType
   } = userAuth()
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'model');
@@ -59,12 +59,14 @@ const Product = () => {
 
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories,
+    queryFn: fetchCategoriesNoIsActive,
     select: (res) => res.data.map((item: any) => ({
       value: item.id,
       label: item.name
     }))
   })
+ 
+  const TabHeaders = ["ALL", ...categoryResponse.map((c: any) => c.label)] 
 
   const { mutateAsync: Products } = useMutation({
       mutationFn: createProduct
@@ -83,7 +85,7 @@ const Product = () => {
 
   const columns = [
     {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'},
-    {id: 'category_name', label: 'Device Type', sortable: false, align: 'left'},
+    {id: 'category_name', label: 'Device Type', sortable: true, align: 'left'},
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
@@ -97,7 +99,7 @@ const Product = () => {
     }
 
     if (!Permission?.actions.includes('delete')) {
-      setSnackBarMessage("You do not have permission to delete model.");
+      setSnackBarMessage("You do not have permission to delete model. Once deleted, all connected Job Order will also be removed.");
       setSnackBarType("error");
       setSnackBarOpen(true);
       return;
@@ -219,12 +221,26 @@ const Product = () => {
 
   // --- Memoized filtered product
   const filteredProduct = useMemo(() => {
-    if (!debouncedSearch?.trim()) return products
-    return products.filter((c: any) => 
+    if (!debouncedSearch?.trim()) {
+      // Apply category filter only
+      if (selectedFilter === "ALL") {
+        return products;
+      }
+      return products.filter((c: any) => c.category_name === selectedFilter);
+    }
+    
+    // Apply both search and category filter
+    let result = products.filter((c: any) => 
       c.product_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
       c.category_name.toLowerCase().includes(debouncedSearch?.toLowerCase())
-    )
-  }, [products, debouncedSearch]);
+    );
+    
+    if (selectedFilter !== "ALL") {
+      result = result.filter((c: any) => c.category_name === selectedFilter);
+    }
+    
+    return result;
+  }, [products, debouncedSearch, selectedFilter]);
 
   const isUpdateEnabled = !!selectedRowId;
   const isDeleteEnabled = !!selectedRowId
@@ -254,15 +270,7 @@ const Product = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
-
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'>
 
       {/* Dialog */}
       <AlertDialog 
@@ -289,7 +297,7 @@ const Product = () => {
           },
           {
             name: "category",
-            placeholder: "Select category",
+            placeholder: "Select device",
             type: "select",
             value: isEditMode ? selectedProduct?.categories_id  : "",
             options: categoryResponse,
@@ -371,13 +379,16 @@ const Product = () => {
       </div>
 
       {/* Table Section */}
-      <TableDefault 
+      <TableCustomizableHeaders 
         rows={filteredProduct}
         columns={columns}
         isLoading={isLoading}
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        filterOptions={TabHeaders}
+        selectedFilter={selectedFilter}
+        onFilterChange={(filter) => setSelectedFilter(filter)}
       />
     </div>
   )

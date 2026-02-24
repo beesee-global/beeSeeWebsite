@@ -1,22 +1,39 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { pdf } from "@react-pdf/renderer";
 import JobOrderPDF from "../../utils/JobOrderPDF"; 
 import { downloadFile } from '../../utils/downloadFile'
- 
+import { fetchCategories } from '../../services/Technician/categoryServices'
+import { fetchProducts, fetchIssueById } from '../../services/Technician/issuesServices'
+import CustomTextField from '../Fields/CustomTextField';
+import CustomSelectField from '../Fields/CustomSelectField';
+import { useQuery, useQueryClient } from '@tanstack/react-query'; 
+import { sentJobOder, updateSerialNumber } from '../../services/Technician/ticketsServices'
+import { useMutation } from '@tanstack/react-query'; 
 import {
   Mail,
   Ticket, 
   Phone,
   MessageSquare,
-  Eye,
+  Send,
   AlertCircle,
-  Laptop,
   User,
   Download,
   Image as ImageIcon,
   Calendar,
   FileText,
-} from "lucide-react"
+  FileCheck2,
+  FileSearch,
+  Barcode
+} from "lucide-react" 
+import { userAuth } from '../../hooks/userAuth';
+
+interface formData {
+  categories_id: number | string;
+  product_id: number | string | null;
+  issue_id: string | number | null;
+  serial_number: string
+  item_name?: string
+}
 
 interface ConversationsDetailsProps {
   userTicketInformation: any;
@@ -35,25 +52,218 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   setShowSidebar, 
   publicConversation = false, 
 }) => {
+  const queryClient = useQueryClient();
 
-const generateAndDownloadPDF = async () => {
+  const {
+    userInfo,
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType
+  } = userAuth()
+  
+  const [formData, setFormData] = useState<formData>({
+    categories_id: userTicketInformation.device_type,
+    product_id: userTicketInformation.issue_type,
+    issue_id: userTicketInformation.issue_id,
+    serial_number: userTicketInformation.serial_number,
+    item_name: userTicketInformation.item_name
+  })
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
+ 
+  const {
+    mutateAsync: insertJobOrder, 
+    isPending
+  } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) => sentJobOder(id, data)
+  });
+
+  const {
+    mutateAsync: updateSerial,
+    isPending: isCreating
+  } = useMutation({
+    mutationFn: ({id, data}: {id: string; data: FormData}) => updateSerialNumber(id, data)
+  })
+
+  const { data: categories } = useQuery({
+    queryKey: [
+      "categories"
+    ],
+    queryFn: fetchCategories,
+    select: (res) =>
+      res.data.map((item: any) => ({
+        value: item.id,
+        label: item.name,
+        is_active: item.is_active,
+      })),
+  });
+
+  const { data: modelType } = useQuery({
+    queryKey:["products", formData?.categories_id],
+    queryFn: () => fetchProducts(Number(formData.categories_id)),
+    enabled: !!formData?.categories_id,
+    select: (res) => 
+      res.data.map((item: any) => ({
+        value: item.id,
+        label: item.product_name
+      }))
+  })
+
+  const { data: issueType } = useQuery({
+    queryKey:["issue", formData?.product_id],
+    queryFn: () => fetchIssueById(Number(formData.product_id)),
+    enabled: !!formData?.product_id,
+    select: (res) => 
+      res.data.map((item: any) => ({
+        value: item.id,
+        label: item.name
+      }))
+  })
+
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'categories_id') {
+      const selectedCategory = (categories || []).find(
+        (item: any) => String(item.value) === String(value)
+      );
+      const isActiveCategory = String(selectedCategory?.is_active) === 'true';
+
+      setFormData((prev) => ({
+        ...prev!,
+        categories_id: value,
+        product_id: isActiveCategory ? null : '',
+        issue_id: isActiveCategory ? null : '',
+        item_name: ''
+      }));
+      return;
+    }
+
+    if (name === 'product_id' || name === 'products_id') {
+      setFormData((prev) => ({
+        ...prev!,
+        product_id: isCategoryActive ? null : value,
+        issue_id: null,
+      }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev!, [name]: value }));
+  }
+
+  const selectedCategory = (categories || []).find(
+    (item: any) => String(item.value) === String(formData.categories_id)
+  );
+  const isCategoryActive = String(selectedCategory?.is_active) === 'true';
+
+  const generateAndDownloadPDF = async () => {
+    if (isGeneratingPDF || isPending) return;
+
+    if (!isCategoryActive && (!formData.product_id || !formData.issue_id)) {
+      setSnackBarMessage("Model Type and Issue Type are required.");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+
     try {
-      const doc = pdf(<JobOrderPDF data={userTicketInformation} />);
+      const selectedDeviceType = (categories || []).find(
+        (item: any) => String(item.value) === String(formData.categories_id)
+      )?.label || userTicketInformation.device_type || 'N/A';
+
+      const selectedModelType = (modelType || []).find(
+        (item: any) => String(item.value) === String(formData.product_id)
+      )?.label || userTicketInformation.issue_type || 'N/A';
+
+      const PDFContent = {
+        ticket_id: userTicketInformation.ticket_id,
+        company: userTicketInformation.company,
+        full_name: userTicketInformation.full_name,
+        city: userTicketInformation.city,
+        phone: userTicketInformation.phone,
+        email: userTicketInformation.email,
+        device_type: selectedDeviceType,
+        issue_type: formData.item_name || selectedModelType,
+        serial_number: formData.serial_number,
+        questions: userTicketInformation.questions,
+        technician_name: String(userInfo?.full_name),
+      };
+
+      const doc = pdf(<JobOrderPDF data={PDFContent} />);
       const blob = await doc.toBlob();
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `JobOrder-${userTicketInformation?.ticket_id ?? Date.now()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Create file from blob
+      const file = new File(
+        [blob],
+        `JobOrder-${userTicketInformation?.ticket_id ?? Date.now()}.pdf`,
+        { type: "application/pdf" }
+      );
+
+      // Append everything to FormData
+      const JobOrder = new FormData();
+      JobOrder.append("products_id", String(formData.product_id ?? ''));
+      JobOrder.append("categories_id", String(formData.categories_id ?? ''));
+      JobOrder.append("item_name", String(formData.item_name ?? ''));
+      JobOrder.append("issues_id", String(formData.issue_id ?? ''));
+      JobOrder.append("serial_number", String(formData.serial_number ?? ''));
+      JobOrder.append("sender_name", String(userInfo?.full_name || 'Support Team'))
+      JobOrder.append("sender_email", String(userTicketInformation.email || 'admin@beesee.com'))
+      JobOrder.append("user_role", String(userInfo?.role || ''))
+
+      // Append PDF file
+      JobOrder.append("job_order_pdf", file);
+
+      // Send to API
+      const response = await insertJobOrder({ id: String(userTicketInformation.ticket_id), data: JobOrder })
+
+      if (response?.success) {
+        await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        setSnackBarMessage("Your Job Order has been successfully sent.");
+        setSnackBarOpen(true)
+        setSnackBarType("success") 
+
+        // Download locally (optional)
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
     } catch (err) {
-      // eslint-disable-next-line no-console
+      setSnackBarMessage("Something went wrong while sending Job Order.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
       console.error("Failed to generate/download PDF:", err);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
+
+  const handleUpdateSerialNumber = async () => {
+    try {
+      const form = new FormData()
+      form.append("serial_number", formData.serial_number);
+
+      const response = await updateSerial({id: String(userTicketInformation.ticket_id), data: form})
+
+      if (response.success) {
+        await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        setSnackBarMessage("Your serial number has been successfully updated.");
+        setSnackBarOpen(true)
+        setSnackBarType("success") 
+      }
+    } catch(err) {
+      setSnackBarMessage("Something went wrong while updating serial number")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    }
+  }
 
   return (
     <div>  
@@ -66,17 +276,83 @@ const generateAndDownloadPDF = async () => {
           </span>
           {!publicConversation && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
-              <button
-                onClick={(e) => {
-                  e.preventDefault(); // Prevent default navigation 
-                  downloadFile(userTicketInformation.job_order_url, "view", "test")
-                }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                <Eye size={14} />
-                View Job Order
-              </button>
+              {userTicketInformation.job_order_url !== null ? (
+                <>
+                  {userTicketInformation?.job_order_url_finish && (
+                    <button
+                      title="View Finish Job Order"
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default navigation 
+                        downloadFile(userTicketInformation.job_order_url_finish, "view", "test")
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                    >
+                      <FileCheck2 size={14} />
+                    </button>
+                  )}
 
+                  <button
+                    title="View Job Order"
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation 
+                      downloadFile(userTicketInformation.job_order_url, "view", "test")
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                  >
+                    <FileSearch size={14} />
+                  </button>
+
+                  <button
+                    title='Update Serial Number' 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      handleUpdateSerialNumber();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Barcode size={14} /> 
+                  </button>
+
+                  <button
+                    title='Sent Job Order' 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      generateAndDownloadPDF();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Send size={14} /> 
+                  </button>
+                </>
+              ) : (
+                 <>
+                  <button
+                    title='Update Serial Number' 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      handleUpdateSerialNumber();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Barcode size={14} /> 
+                  </button>
+                  
+                  <button
+                    title='Sent Job Order'
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default navigation  
+                      generateAndDownloadPDF();
+                    }}
+                    disabled={isGeneratingPDF || isPending}
+                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                  >
+                    <Send size={14} /> 
+                  </button>                 
+                 </>
+              )} 
             </div>
           )} 
         </div>
@@ -99,7 +375,82 @@ const generateAndDownloadPDF = async () => {
             Issue Details
           </div>
           
-          <div className="space-y-2">
+          {!publicConversation ? (
+            <div className="space-y-2">
+            <div>
+              <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
+              <div className="text-md text-gray-900 font-medium">
+                <CustomSelectField 
+                  options={categories || []}
+                  name='categories_id'
+                  onChange={handleChangeInput}
+                  value={formData.categories_id}
+                  placeholder='Select Device Type'
+                />
+              </div>
+            </div>
+            
+            <div>
+              {isCategoryActive ? (
+                <>
+                  <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
+                    <div className="text-md text-gray-900 flex items-center gap-2"> 
+                      <CustomTextField 
+                        onChange={handleChangeInput}
+                        name='item_name'
+                        rows={1}
+                        multiline={false}
+                        value={formData?.item_name} 
+                      />
+                    </div>
+                </>
+              ) : (
+                <div className='space-y-2'>
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
+                    <div className="text-md text-gray-900 flex items-center gap-2"> 
+                      <CustomSelectField 
+                        options={modelType || []}
+                        name='product_id'
+                        onChange={handleChangeInput}
+                        value={formData.product_id ?? ''}
+                        placeholder='Select Model Type'
+                      />
+                    </div> 
+                  </div>
+
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                    <div className="text-md text-gray-900 flex items-center gap-2"> 
+                      <CustomSelectField 
+                        options={issueType || []}
+                        name='issue_id'
+                        onChange={handleChangeInput}
+                        value={formData.issue_id ?? ''}
+                        placeholder='Select Issue Type'
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+            </div>
+
+            <div>
+              <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+              <div className="text-md text-gray-900 flex items-center gap-2"> 
+                <CustomTextField 
+                  onChange={handleChangeInput}
+                  name='serial_number'
+                  rows={1}
+                  multiline={false}
+                  value={formData.serial_number}
+                />
+              </div>
+            </div> 
+          </div>
+          ) : (
+            <div className="space-y-2">
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
               <div className="text-md text-gray-900 font-medium">
@@ -109,20 +460,29 @@ const generateAndDownloadPDF = async () => {
             
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
-              <div className="text-md text-gray-900 flex items-center gap-2">
-                <Laptop size={14} className="text-orange-500" />
+              <div className="text-md text-gray-900 flex items-center gap-2"> 
                 {userTicketInformation.issue_type || 'N/A'}
               </div>
             </div>
 
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
-              <div className="text-md text-gray-900 flex items-center gap-2">
-                <Laptop size={14} className="text-orange-500" />
-                {userTicketInformation.issue_name || 'N/A'}
+            {userTicketInformation.issue_name && (
+              <div>
+                <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                <div className="text-md text-gray-900 flex items-center gap-2"> 
+                  {userTicketInformation.issue_name || 'N/A'}
+                </div>
               </div>
-            </div>
+            )}
+            
+
+            <div>
+              <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+              <div className="text-md text-gray-900 flex items-center gap-2"> 
+                {userTicketInformation.serial_number || 'N/A'}
+              </div>
+            </div> 
           </div>
+          )}
         </div>
 
         {/* Question */}

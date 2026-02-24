@@ -1,8 +1,11 @@
 import React from "react";
 import ProductCard, { Product } from "./ProductCard";
+export type { Product } from "./ProductCard";
+import { useNavigate, useNavigation } from "react-router-dom";
 
 // Mobile detection hook for ProductGrid
 const useIsMobile = () => {
+  const navigate = useNavigate ();
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -41,7 +44,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           key={product.id}
           product={product}
           index={index}
-          /* onClick={() => onProductClick?.(product)} */
+         /*  onClick={() => onProductClick?.(product)} */
         />
       ))}
     </div>

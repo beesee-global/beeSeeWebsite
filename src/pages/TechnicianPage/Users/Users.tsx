@@ -32,9 +32,6 @@ const Users = () => {
 
   const { 
     userInfo, 
-    snackBarMessage, 
-    snackBarType, 
-    snackBarOpen, 
     setSnackBarOpen,
     setSnackBarMessage,
     setSnackBarType
@@ -42,12 +39,12 @@ const Users = () => {
 
   const columns = [
     { id: 'full_name', label: 'Full name', sortable: true, align: 'left' },
-    { id: 'email', label: 'Email', sortable: false, align: 'left' }, 
+    { id: 'email', label: 'Email', sortable: true, align: 'left' }, 
     { id: 'employment_status', label: 'Status', sortable: false, align: 'left' },
     { id: 'created_at', label: 'Date', sortable: false, align: 'right' }
   ]
 
-  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === '');
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'list_user');
 
   const { data: userResponse, isLoading } = useQuery({
      queryKey: ['users', userInfo?.id],
@@ -157,7 +154,8 @@ const Users = () => {
     return users.filter((u: any) => 
       u.full_name?.toLowerCase().includes(debouncedSearch?.toLowerCase()) || 
       u.email?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      u.status?.toLowerCase().includes(debouncedSearch?.toLowerCase())
+      u.status?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
+      u.details?.position?.toLowerCase().includes(debouncedSearch?.toLowerCase())
     )
   }, [users, debouncedSearch]);
 
@@ -168,14 +166,7 @@ const Users = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white">
 
       {/* Dialog */}
       <AlertDialog 

@@ -35,10 +35,7 @@ const Faqs = () => {
     userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
-    setSnackBarType, 
-    snackBarMessage, 
-    snackBarOpen, 
-    snackBarType 
+    setSnackBarType,  
   } = userAuth();
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'faqs' && p.children_id === '');
@@ -70,13 +67,7 @@ const Faqs = () => {
       value: item.id.toString(),
       label: item.product_name,
       categories_id: item.categories_id,
-    }));
-
-    // Always ensure "Others" is included
-    if (!mapped.find(p => p.value === 'others')) {
-      mapped.push({ value: 'others', label: 'Others', categories_id: null });
-    }
-
+    })); 
     return mapped;
   }, [productResponse]);
 
@@ -189,6 +180,7 @@ const Faqs = () => {
       formDataFaqs.append('explanation', formData.explanation);
       formDataFaqs.append('products_id', formData.product);
       formDataFaqs.append('categories_id', formData.category);
+      formDataFaqs.append('is_all_devices', formData.is_all_devices ?? false);
 
       const response = await createFaqs(formDataFaqs);
 
@@ -213,6 +205,7 @@ const Faqs = () => {
       payload.append('explanation', formData.explanation);
       payload.append('products_id', formData.product);
       payload.append('categories_id', formData.category);
+      payload.append('is_all_devices', formData.is_all_devices ?? '0');
 
       const response = await updateFaqs(selectedFaqs.id, payload);
       if (response?.success) {
@@ -247,13 +240,7 @@ const Faqs = () => {
   if (isLoading) return <SpinningRingLoader />;
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen"> 
       <AlertDialog 
         open={dialogOpen} 
         title={dialogTitle}
@@ -295,7 +282,7 @@ const Faqs = () => {
             placeholder: 'Select product', 
             type: 'select',
             value: isEditMode 
-              ? (selectedFaqs?.products_id ? selectedFaqs.products_id.toString() : 'others')
+              ? (selectedFaqs?.products_id ? selectedFaqs.products_id.toString() : '')
               : "", 
             options: productOptions,
             validator: v => !v ? 'Product is required' : undefined 

@@ -47,13 +47,10 @@ const Position = () => {
       userInfo,
       setSnackBarMessage, 
       setSnackBarOpen, 
-      setSnackBarType,
-      snackBarMessage ,
-      snackBarOpen,
-      snackBarType
+      setSnackBarType, 
     } = userAuth()
 
-    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'position');
+    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'position');
   
     const { data: positionResponse, isLoading } = useQuery({
       queryKey: ['positions'],
@@ -251,10 +248,6 @@ const Position = () => {
           is_protected: selectedPosition.is_protected || 0,
           permissions: formDataPosition.permissions
         };
-
-        // Log the payload for debugging
-        console.log("=== UPDATE POSITION PAYLOAD ===");
-        console.log(JSON.stringify(payload, null, 2));
   
         const response = await updatePosition({
           id: selectedPosition.id,
@@ -296,14 +289,7 @@ const Position = () => {
     const isDeleteEnabled = !!selectedRowId
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'> 
 
       {/* Dialog */}
       <AlertDialog 

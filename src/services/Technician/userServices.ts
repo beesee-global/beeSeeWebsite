@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { UserProfileFormData, UserProfileFormErrors } from "../../models/user";
 
 const API_URL = "/users"
 export const image = async (id:number | string, data: any) => {
@@ -15,10 +16,38 @@ export const image = async (id:number | string, data: any) => {
   }
 }
 
+export const userInformation = async(formData : UserProfileFormData) => {
+  try {
+    const response = await axiosClient.post(`users_userinfo`, formData, {
+      headers: {
+        "Content-Type" : "application/json"
+      }
+    })
+
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
 export const loggedInUser = async (data: any) => {
   try {
     const response = await axiosClient.post(`/auth/login`, data);
     return response.data;
+  } catch (error) {
+    throw error
+  }
+}
+
+export const verifyPassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/verify-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    
+    return response.data
   } catch (error) {
     throw error
   }
@@ -81,6 +110,34 @@ export const deleteUsers = async (ids: number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
       data: { ids }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const forgetPassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/forget-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const changePassword = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`/auth/change-password`, data, {
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
 
     return response.data
