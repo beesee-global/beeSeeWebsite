@@ -12,6 +12,7 @@ import {
   FileText,
   Download,
   Paperclip,
+  Reply,
   ArrowLeftToLine,
   Image as ImageIcon,  // Rename this!
   Upload,
@@ -55,7 +56,10 @@ export default function EmailConversationApp() {
   const [pendingJobOrderFile, setPendingJobOrderFile] = useState<File | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [socket, setSocket] = useState<any>(null);
-  const MAX_FILE_SIZE_MB = 2;
+  // Stores the message user selected to reply to (Messenger-style reply target).
+  const [repliedMessage, setRepliedMessage] = useState<any | null>(null);
+  // Client-side upload size limit.
+  const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const { 
@@ -237,6 +241,54 @@ export default function EmailConversationApp() {
     return <File className="w-4 h-4" />;
   };
 
+  // Removes embedded reply metadata from text so previews/snippets stay clean.
+  const stripReplyMeta = (value: unknown) =>
+    String(value || "").replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/g, "").trim();
+
+  // Embeds reply metadata directly into message_body so UI can render a quoted reply
+  // even when backend does not have a dedicated reply_to field yet.
+  const buildReplyBody = (target: any | null, text: string) => {
+    if (!target) return text;
+
+    const fallbackSnippet =
+      target?.attachments?.[0]?.name
+        ? `Attachment: ${target.attachments[0].name}`
+        : "Message";
+    const snippet = stripReplyMeta(target?.message_body || fallbackSnippet).slice(0, 100);
+    const meta = JSON.stringify({
+      id: target?.id,
+      sender: target?.sender_name || "Unknown",
+      snippet,
+    });
+
+    return `[reply_meta]${meta}[/reply_meta]\n${text}`;
+  };
+
+  // Reads reply metadata from message_body and returns:
+  // 1) replyMeta for UI quote block
+  // 2) cleanBody for actual message content
+  const parseReplyBody = (body: string) => {
+    const raw = String(body || "");
+    // Flexible matcher: works even if backend adds spaces/newlines around metadata.
+    const match = raw.match(/\[reply_meta\]([\s\S]*?)\[\/reply_meta\]/);
+    if (!match) {
+      return { replyMeta: null, cleanBody: raw };
+    }
+
+    try {
+      const cleanBody = raw
+        .replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/, "")
+        .replace(/^\s+/, "");
+
+      return {
+        replyMeta: JSON.parse(match[1]),
+        cleanBody,
+      };
+    } catch {
+      return { replyMeta: null, cleanBody: raw };
+    }
+  };
+
   const handleSendReply = async () => {
     if ((!replyText.trim() && attachedFiles.length === 0)) return;
     if (!userTicketInformation?.ticket_id) {
@@ -250,15 +302,21 @@ export default function EmailConversationApp() {
 
     const currentReplyText = replyText;
     const currentAttachedFiles = [...attachedFiles];
+    // Preserve selected reply target before clearing input state.
+    const currentRepliedMessage = repliedMessage;
 
     setReplyText('');
-    setAttachedFiles([]);  
+    setAttachedFiles([]);
+    // Clear reply target immediately after pressing send.
+    setRepliedMessage(null);
     
+    // If replying to a specific message, prepend reply metadata into payload.
+    const composedMessageBody = buildReplyBody(currentRepliedMessage, currentReplyText);
     const formData = new FormData();
       formData.append('sender_email', String(userTicketInformation.email || 'admin@beesee.com'));
       formData.append('tickets_id', String(userTicketInformation?.ticket_id ?? ''));
       formData.append('sender_name', String(userInfo?.full_name || 'Support Team'));
-      formData.append('message_body', currentReplyText);
+      formData.append('message_body', composedMessageBody);
       formData.append('user_role', String(userInfo?.role || ''));
       formData.append('is_inbound', "0");
 
@@ -598,89 +656,141 @@ export default function EmailConversationApp() {
                     );
                   }
 
-                  return (
-                    <div
-                      key={msg.id}
-                      ref={messageEndRef}
-                      className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
+                  // Extract quoted-reply info (if present) and clean message text for display.
+                  const { replyMeta, cleanBody } = parseReplyBody(msg.message_body || "");
+
+                  const isStartAligned = msg.is_inbound;
+
+                  const replyButton = (
+                    <button
+                      type="button"
+                      onClick={() => setRepliedMessage(msg)}
+                      className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border items-center ${
+                        msg.is_inbound
+                          ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                          : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                      }`}
+                      title="Reply to this message"
                     >
-                      <div
-                        className={`max-w-2xl rounded-lg p-4 ${
+                      <Reply className="w-3 h-3" />
+                    </button>
+                  );
+
+                  const messageBubble = (
+                    <div
+                      className={`max-w-2xl rounded-lg p-4 ${
+                        msg.is_inbound
+                          ? 'bg-white border border-gray-200'
+                          : 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
+                      // Highlight the message currently selected as the reply target.
+                      } ${repliedMessage?.id === msg.id ? 'ring-2 ring-[#FCD000] ring-offset-2 shadow-md' : ''}`} 
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <User className="w-4 h-4" />
+                        <span className="font-semibold text-sm">
+                          {msg.sender_name}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${
+                            msg.message_type === 'email'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          } ${!msg.is_inbound && 'bg-opacity-30 text-white'}`}
+                        >
+                          {msg.is_inbound ? userTicketInformation?.company : msg.message_type}  
+                        </span>
+                      </div>
+                      {/* Render quoted-reply preview on top of current message bubble. */}
+                      {replyMeta && (
+                        <div className={`mb-2 rounded-md border-l-4 p-2 text-xs ${
                           msg.is_inbound
-                            ? 'bg-white border border-gray-200'
-                            : 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
-                        }`} 
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-semibold text-sm">
-                            {msg.sender_name}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded ${
-                              msg.message_type === 'email'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-green-100 text-green-700'
-                            } ${!msg.is_inbound && 'bg-opacity-30 text-white'}`}
-                          >
-                            {msg.is_inbound ? userTicketInformation?.company : msg.message_type}  
-                          </span>
+                            ? "border-blue-400 bg-blue-50 text-blue-800"
+                            : "border-yellow-300 bg-white/10 text-gray-100"
+                        }`}>
+                          <p className="font-semibold">
+                            Replying to {replyMeta?.sender || "message"}
+                          </p>
+                          <p className="truncate">{replyMeta?.snippet || ""}</p>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap break-words">{msg.message_body}</p>
-                        
-                        {/* Attachments Display */}
-                        {msg.attachments && msg.attachments.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {msg.attachments.map((attachment, idx) => (
-                              attachment.type?.startsWith('image/') ? (
-                                // Display images automatically
-                                <div key={idx} className="mt-2">
-                                  <img
-                                    src={attachment.attachment_url}
-                                    alt={attachment.name}
-                                    className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
-                                    onClick={() => setSelectedImage(attachment.attachment_url)}
-                                  />
-                                  <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
+                      )}
+                      <p className="text-sm whitespace-pre-wrap break-words">{cleanBody}</p>
+                      
+                      {/* Attachments Display */}
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {msg.attachments.map((attachment, idx) => (
+                            attachment.type?.startsWith('image/') ? (
+                              // Display images automatically
+                              <div key={idx} className="mt-2">
+                                <img
+                                  src={attachment.attachment_url}
+                                  alt={attachment.name}
+                                  className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
+                                  onClick={() => setSelectedImage(attachment.attachment_url)}
+                                />
+                                <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
+                              </div>
+                            ) : (
+                              // Display other file types as downloadable items
+                              <div
+                                key={idx}
+                                className={`flex items-center gap-2 p-2 rounded ${
+                                  msg.is_inbound
+                                    ? 'bg-gray-50 border border-gray-200'
+                                    : 'bg-gray-700 bg-opacity-50'
+                                }`}
+                              >
+                                {getFileIcon(attachment.type)}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">{attachment.name}</p>
+                                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
                                 </div>
-                              ) : (
-                                // Display other file types as downloadable items
-                                <div
-                                  key={idx}
-                                  className={`flex items-center gap-2 p-2 rounded ${
-                                    msg.is_inbound
-                                      ? 'bg-gray-50 border border-gray-200'
-                                      : 'bg-gray-700 bg-opacity-50'
-                                  }`}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadAttachment(attachment)}
+                                  className="p-1 hover:bg-gray-200 rounded transition"
+                                  title="Download"
                                 >
-                                  {getFileIcon(attachment.type)}
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium truncate">{attachment.name}</p>
-                                    <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
-                                  </div>
+                                  <Download className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      )}
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDownloadAttachment(attachment)}
-                                    className="p-1 hover:bg-gray-200 rounded transition"
-                                    title="Download"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              )
-                            ))}
-                          </div>
-                        )}
-
+                      <div className="flex items-center mt-2">
                         <div
-                          className={`flex items-center gap-1 mt-2 text-xs ${
+                          className={`flex items-center gap-1 text-xs ${
                             msg.is_inbound ? 'text-gray-500' : 'text-gray-300'
                           }`}
                         >
                           <Clock className="w-3 h-3" />
                           {formatDate(msg.created_at)}
                         </div>
+                      </div>
+                    </div>
+                  );
+
+                  return (
+                    <div
+                      key={msg.id}
+                      ref={messageEndRef}
+                      className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isStartAligned ? (
+                          <>
+                            {messageBubble}
+                            {replyButton}
+                          </>
+                        ) : (
+                          <>
+                            {replyButton}
+                            {messageBubble}
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -697,6 +807,30 @@ export default function EmailConversationApp() {
           
           {/* Reply Box */}
           <div className="p-4 bg-white border-t border-gray-200">
+            {/* Composer-level preview of the currently selected reply target. */}
+            {repliedMessage && (
+              <div className="mb-3 p-3 rounded-lg border border-[#FCD000] bg-yellow-50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-yellow-800">
+                      Replying to {repliedMessage.sender_name}
+                    </p>
+                    <p className="text-xs text-yellow-700 truncate">
+                      {stripReplyMeta(repliedMessage.message_body || repliedMessage?.attachments?.[0]?.name || "Message")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRepliedMessage(null)}
+                    className="text-yellow-700 hover:text-yellow-900"
+                    title="Cancel reply"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Attached Files Preview */}
             {attachedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">

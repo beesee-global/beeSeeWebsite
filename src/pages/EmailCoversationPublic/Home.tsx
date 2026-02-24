@@ -14,7 +14,8 @@ import {
   Image as ImageIcon,
   FileQuestion,
   Download,
-  Paperclip 
+  Paperclip,
+  Reply, 
 } from 'lucide-react';
 
 import { SpinningRingLoader } from '../../components/ui/LoadingScreens'
@@ -50,11 +51,14 @@ export default function EmailConversationApp() {
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
-  const MAX_FILE_SIZE_MB = 2;
+  const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const [socket, setSocket] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
+  
+  // Stores the message user selected to reply to (Messenger-style reply target).
+  const [repliedMessage, setRepliedMessage] = useState<any | null>(null);
 
   const { data: ticketInfo, isLoading, isError, error } = useQuery({
     queryKey: ['ticketInformation', pid],
@@ -63,8 +67,7 @@ export default function EmailConversationApp() {
     retry: false
   });
 
-  const userTicketInformation = ticketInfo?.data || {};
-  console.log(userTicketInformation)
+  const userTicketInformation = ticketInfo?.data || {}; 
 
   const { data: conversationData } = useQuery({
     queryKey: ['conversations', userTicketInformation?.ticket_id],
@@ -139,14 +142,23 @@ export default function EmailConversationApp() {
     const currentReplyText = replyText;
     const currentAttachedFiles = [...attachedFiles];
 
+    // Preserve selected reply target before clearing input state.
+    const currentRepliedMessage = repliedMessage;
+
     setReplyText('');
     setAttachedFiles([]);
+
+    // Clear reply target immediately after pressing send.
+    setRepliedMessage(null);
+
+    // If replying to a specific message, prepend reply metadata into payload.
+    const composedMessageBody = buildReplyBody(currentRepliedMessage, currentReplyText);
 
     const formData = new FormData();
     formData.append('sender_email', userTicketInformation.email);
     formData.append('tickets_id', userTicketInformation?.ticket_id);
     formData.append('sender_name', userTicketInformation.full_name);
-    formData.append('message_body', currentReplyText);
+    formData.append('message_body', composedMessageBody);
     formData.append('user_role', "Customer");
     formData.append('is_inbound', "1");
 
@@ -161,36 +173,37 @@ export default function EmailConversationApp() {
 
       if (response?.success) { 
         // Add locally for messages without attachments
-        const newMessage = {
-          id: response.data.ticket_ids,
-          sender_name: userTicketInformation?.full_name || 'Support Team',
-          sender_email: userTicketInformation.email,
-          message_body: currentReplyText,
-          is_inbound: false,
-          attachments: [], // optional optimistic placeholder
-          created_at: new Date().toISOString(),
-        };
+        // const newMessage = {
+        //   id: response.data.ticket_ids,
+        //   sender_name: userTicketInformation?.full_name || 'Support Team',
+        //   sender_email: userTicketInformation.email,
+        //   message_body: composedMessageBody,
+        //   is_inbound: false,
+        //   attachments: [], // optional optimistic placeholder
+        //   created_at: new Date().toISOString(),
+        // };
   
-        setMessages(prev => [
-          ...prev,
-          newMessage
-        ]);
+        // setMessages(prev => [
+        //   ...prev,
+        //   newMessage
+        // ]);
 
-        // Emit to server for real-time
-        socket?.emit("send_ticket_message", {
-          ticket_id: userTicketInformation.ticket_id,
-          message: newMessage
-        });
+        // // Emit to server for real-time
+        // socket?.emit("send_ticket_message", {
+        //   ticket_id: userTicketInformation.ticket_id,
+        //   message: newMessage
+        // });
 
         queryClient.invalidateQueries({
           queryKey: ['conversations', userTicketInformation.ticket_id]
         }); 
       }
     } catch (error) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
       setSnackBarOpen(true)
-      setSnackBarType("error")
-      setSnackBarMessage("Something went wrong. Please try again")
-      alert(error?.response?.data?.message)
+      setSnackBarType("error") 
       console.error(error);
     } finally {
       setLoading(false)
@@ -256,6 +269,54 @@ export default function EmailConversationApp() {
     if (type?.includes('pdf')) return <FileText className="w-4 h-4" />;
     return <File className="w-4 h-4" />;
   };
+
+  // removes embedded reply metadata from text so preview
+  const stripReplyMeta =  (value: unknown) =>
+    String(value || "").replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/g, "").trim();
+
+  // embed reply metadata directly into message body so ui can render a quoted reply
+  // even when backend does not have a dedicated reply to yield yet.
+  const buildReplyBody = (target: any | null, text: string) => {
+    if (!target) return text 
+
+    const fallbackSnippet = 
+      target?.attachments?.[0]?.name
+      ? `Attachment: ${target.attachments[0].name}`
+      : "Message"
+    
+      const snippet = stripReplyMeta(target?.message_body || fallbackSnippet).slice(0, 100)
+      const meta = JSON.stringify({
+        id: target?.id,
+        sender: target?.sender_name || "Unknown",
+        snippet
+      });
+
+      return `[reply_meta]${meta}[/reply_meta]\n${text}`;
+  }
+
+
+  // reads reply metadata from message body
+  const parseReplyBody = (body: string) => {
+    const raw = String(body || "");
+    // flexible matcher 
+    const match = raw.match(/\[reply_meta\]([\s\S]*?)\[\/reply_meta\]/);
+      if (!match){
+        return { replyMeta: null, cleanBody: raw };
+      }
+
+      try {
+        const cleanBody = raw
+          .replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/, "")
+          .replace(/^\s+/, "");
+
+        return {
+          replyMeta: JSON.parse(match[1]),
+          cleanBody,
+        };
+      } catch {
+        return { replyMeta: null, cleanBody: raw };
+      }
+    } 
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -431,17 +492,59 @@ export default function EmailConversationApp() {
                 );
               }
 
+              // Parse optional embedded reply metadata and remove it from visible message text.
+              const { replyMeta, cleanBody } = parseReplyBody(msg.message_body || "");
+
+              const isStartAligned = msg.is_inbound;
+              
+              const replyButton = (
+                <button
+                  type="button"
+                  onClick={() => setRepliedMessage(msg)}
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${
+                    msg.is_inbound
+                      ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                      : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                  }`}
+                  title="Reply to this message"
+                >
+                  <Reply className="w-3 h-3" />
+                </button>
+              );
+              
               return (
                 <div 
                 key={msg.id} 
                 ref={messageEndRef} 
                 className={`flex ${msg.is_inbound ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-2xl rounded-lg p-4 ${msg.is_inbound ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200'}`}>
+                <div className="flex items-center gap-2">
+                  {/* Start aligned: message then reply. End aligned: reply then message. */}
+                  {isStartAligned ? replyButton : null}
+                  <div
+                    className={`max-w-2xl rounded-lg p-4 ${
+                      msg.is_inbound ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200'
+                    } ${repliedMessage?.id === msg.id ? 'ring-2 ring-[#FCD000] ring-offset-2 shadow-md' : ''}`}
+                  >
                   <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4" />
                     <span className="font-semibold text-sm">{msg.is_inbound ? msg.sender_name : "Support Team"}</span>
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{msg.message_body}</p>
+                  {/* Show quoted reply context (Messenger-like) when metadata exists. */}
+                  {replyMeta && (
+                    <div className={`mb-2 rounded-md border-l-4 p-2 text-xs ${
+                      msg.is_inbound
+                        ? "border-yellow-300 bg-white/10 text-gray-100"
+                        : "border-blue-400 bg-blue-50 text-blue-800"
+                    }`}>
+                      <p className="font-semibold">
+                        Replying to Support Team
+                         {/* {replyMeta?.sender || "message"} */}
+                      </p>
+                      <p className="truncate">{replyMeta?.snippet || ""}</p>
+                    </div>
+                  )}
+                  {/* Render only clean message body so [reply_meta] is never shown to users. */}
+                  <p className="text-sm whitespace-pre-wrap">{cleanBody}</p>
                   {msg.attachments?.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {msg.attachments.map((file, idx) => (
@@ -484,6 +587,8 @@ export default function EmailConversationApp() {
                   <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
                     <Clock className="w-3 h-3" /> {formatDate(msg.created_at)}
                   </div>
+                  </div>
+                  {isStartAligned ? null  : replyButton}
                 </div>
               </div>
               )
@@ -493,6 +598,30 @@ export default function EmailConversationApp() {
 
         {/* Reply Box */}
         <div className="p-4 bg-white border-t border-gray-200">
+          {/* Show selected reply target before sending (same behavior as technician page). */}
+          {repliedMessage && (
+            <div className="mb-3 p-3 rounded-lg border border-[#FCD000] bg-yellow-50">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-yellow-800">
+                    Replying to Support Team
+                  </p>
+                  <p className="text-xs text-yellow-700 truncate">
+                    {stripReplyMeta(repliedMessage.message_body || repliedMessage?.attachments?.[0]?.name || "Message")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRepliedMessage(null)}
+                  className="text-yellow-700 hover:text-yellow-900"
+                  title="Cancel reply"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Attached Files Preview */}
           {attachedFiles.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
