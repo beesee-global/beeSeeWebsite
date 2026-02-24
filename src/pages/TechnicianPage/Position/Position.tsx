@@ -142,7 +142,9 @@ const Position = () => {
         setDialogTitle("")
 
         if (error.response?.status === 400) {
-          setSnackBarMessage(error.response?.data?.message)
+          const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+          const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+          setSnackBarMessage(cleanMessage)
           setSnackBarType('info')
           setSnackBarOpen(true);
           return
