@@ -482,10 +482,10 @@ export default function EmailConversationApp() {
             messages.map(msg => {
               if (msg.is_updated === 1) {
                 return (
-                  <div key={msg.id} ref={messageEndRef} className="w-full">
-                    <div className="text-center text-xs text-gray-500 space-y-1">
+                  <div key={msg.id} ref={messageEndRef} className="w-full px-2 sm:px-4">
+                    <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
                       {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
-                        <p key={`${msg.id}-${idx}`}>{line}</p>
+                        <p key={`${msg.id}-${idx}`} className="leading-relaxed">{line}</p>
                       ))}
                     </div>
                   </div>
@@ -501,7 +501,7 @@ export default function EmailConversationApp() {
                 <button
                   type="button"
                   onClick={() => setRepliedMessage(msg)}
-                  className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${
+                  className={`inline-flex justify-center items-center gap-1 text-xs px-2 py-1 rounded-2xl border ${
                     msg.is_inbound
                       ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
                       : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
