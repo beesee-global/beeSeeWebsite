@@ -24,6 +24,15 @@ export const fetchCategories = async() => {
     }
 }
 
+export const fetchCategoriesSortedByName = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/select-field`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const fetchCategoriesNoIsActive = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/no_is_active`);

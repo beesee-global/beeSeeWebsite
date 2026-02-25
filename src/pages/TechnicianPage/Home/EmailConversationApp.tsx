@@ -32,8 +32,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConversationsDetails from '../../../components/ui/ConversationsDetails';
 import { userAuth } from '../../../hooks/userAuth';
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
-import { useNavigate } from 'react-router-dom';
+ import { useNavigate } from 'react-router-dom';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 
 export default function EmailConversationApp() {
@@ -647,9 +646,9 @@ export default function EmailConversationApp() {
                   if (msg.is_updated === 1) {
                     return (
                       <div key={msg.id} ref={messageEndRef} className="w-full">
-                        <div className="text-center text-xs text-gray-500 space-y-1">
+                        <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
                           {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
-                            <p key={`${msg.id}-${idx}`}>{line}</p>
+                            <p key={`${msg.id}-${idx}`} className='leading-relaxed'>{line}</p>
                           ))}
                         </div>
                       </div>
@@ -665,7 +664,7 @@ export default function EmailConversationApp() {
                     <button
                       type="button"
                       onClick={() => setRepliedMessage(msg)}
-                      className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border items-center ${
+                      className={`inline-flex justify-center gap-1 text-xs px-2 py-1 rounded-2xl border items-center ${
                         msg.is_inbound
                           ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
                           : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
@@ -937,7 +936,7 @@ export default function EmailConversationApp() {
                   <button 
                     title="Upload Job Order"
                     onClick={() => jobOrderFileInputRef.current?.click()}
-                    className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
+                    className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors flex justify-center items-center"
                   >
                     <Upload size={16} />
                   </button>
@@ -946,7 +945,7 @@ export default function EmailConversationApp() {
                 <button 
                   title="Delete Job Order"
                   onClick={(e) => handleDelete([userTicketInformation.id])}
-                  className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
+                  className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors flex justify-center items-center"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -984,7 +983,7 @@ export default function EmailConversationApp() {
               <button 
                 title="Upload Job Order"
                 onClick={() => jobOrderFileInputRef.current?.click()}
-                className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors"
+                className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors "
               >
                 <Upload size={16} />
               </button>
@@ -993,7 +992,7 @@ export default function EmailConversationApp() {
             <button 
               title="Delete Job Order"
               onClick={(e) => handleDelete([userTicketInformation.id])}
-              className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
+              className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors "
             >
               <Trash2 size={16} />
             </button>

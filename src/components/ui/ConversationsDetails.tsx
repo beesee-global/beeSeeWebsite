@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { pdf } from "@react-pdf/renderer";
 import JobOrderPDF from "../../utils/JobOrderPDF"; 
 import { downloadFile } from '../../utils/downloadFile'
-import { fetchCategories } from '../../services/Technician/categoryServices'
+import { fetchCategoriesSortedByName } from '../../services/Technician/categoryServices'
 import { fetchProducts, fetchIssueById } from '../../services/Technician/issuesServices'
 import CustomTextField from '../Fields/CustomTextField';
 import CustomSelectField from '../Fields/CustomSelectField';
@@ -88,7 +88,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     queryKey: [
       "categories"
     ],
-    queryFn: fetchCategories,
+    queryFn: fetchCategoriesSortedByName,
     select: (res) =>
       res.data.map((item: any) => ({
         value: item.id,
@@ -285,7 +285,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                         e.preventDefault(); // Prevent default navigation 
                         downloadFile(userTicketInformation.job_order_url_finish, "view", "test")
                       }}
-                      className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
                     >
                       <FileCheck2 size={14} />
                     </button>
@@ -297,7 +297,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       e.preventDefault(); // Prevent default navigation 
                       downloadFile(userTicketInformation.job_order_url, "view", "test")
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                    className="inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-300"
                   >
                     <FileSearch size={14} />
                   </button>
@@ -309,7 +309,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       handleUpdateSerialNumber();
                     }}
                     disabled={isGeneratingPDF || isPending}
-                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                    className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Barcode size={14} /> 
                   </button>
@@ -321,7 +321,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       generateAndDownloadPDF();
                     }}
                     disabled={isGeneratingPDF || isPending}
-                    className={`inline-flex items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                    className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
                   >
                     <Send size={14} /> 
                   </button>
