@@ -27,7 +27,8 @@ import {
   insertImageConversation,
   updateStatus,
   deleteTickets,
-  uploadJobOrders
+  uploadJobOrders,
+  deleteSpecificConversation
 } from '../../../services/Technician/ticketsServices';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConversationsDetails from '../../../components/ui/ConversationsDetails';
@@ -51,8 +52,9 @@ export default function EmailConversationApp() {
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>("");
-  const [dialogAction, setDialogAction] = useState<'delete' | 'upload' | null>(null);
+  const [dialogAction, setDialogAction] = useState<'delete' | 'upload' | 'messageDelete' | null>(null);
   const [pendingJobOrderFile, setPendingJobOrderFile] = useState<File | null>(null);
+  const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [socket, setSocket] = useState<any>(null);
   // Stores the message user selected to reply to (Messenger-style reply target).
@@ -72,15 +74,26 @@ export default function EmailConversationApp() {
     queryKey: ['ticketInformation', pid],
     queryFn: () => fetchTicketDetails(String(pid)),
     enabled: !!pid
-  })
+  });
 
-  const { mutateAsync: deleteTicket } = useMutation({
+  const { 
+    mutateAsync: deleteTicket, 
+    isPending: isDeletingTicket } = useMutation({
     mutationFn: deleteTickets
   });
 
-  const { mutateAsync: uploadJobOrder } = useMutation({
+  const { 
+    mutateAsync: uploadJobOrder,
+    isPending
+  } = useMutation({
     mutationFn: ({ id, data }: { id: string; data: FormData }) => uploadJobOrders(id, data),
   });
+
+  const {
+    mutateAsync: deleteSpecificConversations
+  } = useMutation({
+    mutationFn: (id: string) => deleteSpecificConversation(id),
+  })
 
   const userTicketInformation = ticketInfo?.data || {}; 
 
@@ -407,6 +420,13 @@ export default function EmailConversationApp() {
         return
       }
 
+      if (userTicketInformation.after_image.length  === 0 ) {
+        setSnackBarMessage("Please upload after report images ")
+        setSnackBarType("error")
+        setSnackBarOpen(true)
+        return
+      } 
+
       const payload = new FormData();
       payload.append("status", "resolved");
 
@@ -435,6 +455,7 @@ export default function EmailConversationApp() {
     setDialogTitle('');
     setDialogAction(null);
     setPendingJobOrderFile(null);
+    setPendingMessageDeleteId(null);
   };
 
   const processJobOrderUpload = async (selectedFile: File) => {
@@ -481,14 +502,14 @@ export default function EmailConversationApp() {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
-    if (!isPdf) {
-      setSnackBarMessage("Only PDF files are allowed.");
-      setSnackBarType("error");
-      setSnackBarOpen(true);
-      e.target.value = "";
-      return;
-    }
+    // const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
+    // if (!isPdf) {
+    //   setSnackBarMessage("Only PDF files are allowed.");
+    //   setSnackBarType("error");
+    //   setSnackBarOpen(true);
+    //   e.target.value = "";
+    //   return;
+    // }
 
     setPendingJobOrderFile(selectedFile);
     setDialogAction('upload');
@@ -511,12 +532,13 @@ export default function EmailConversationApp() {
     setDialogAction('delete')
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete ${ids.length} tickets?`)
+    setDialogMessage(`Are you sure you want to delete tickets?`)
 
   };
 
   const handleConfirmDelete = async () => {
     try {
+      if (isDeletingTicket) return
       const response = await deleteTicket(deleteIds); // call mutation
 
       if (response?.success) {
@@ -534,6 +556,36 @@ export default function EmailConversationApp() {
     }
   }
 
+  const handleDeleteMessage = async (id: string) => {
+    try {
+      const response = await deleteSpecificConversations(id);
+
+      if (response?.success) {
+        setSnackBarMessage("Message deleted successfully");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation?.ticket_id]
+        });
+      }
+    } catch (error) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+
+      setSnackBarMessage(cleanMessage)
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
+  }
+
+  const handleDeleteMessageDialog = (id: string | number) => {
+    setPendingMessageDeleteId(String(id));
+    setDialogAction('messageDelete');
+    setDialogTitle("Confirm Delete");
+    setDialogMessage("Are you sure you want to delete this message?");
+    setDialogOpen(true);
+  }
+
   const handleDialogSubmit = async () => {
     if (dialogAction === 'delete') {
       await handleConfirmDelete();
@@ -542,6 +594,12 @@ export default function EmailConversationApp() {
 
     if (dialogAction === 'upload' && pendingJobOrderFile) {
       await processJobOrderUpload(pendingJobOrderFile);
+      closeDialog();
+      return;
+    }
+
+    if (dialogAction === 'messageDelete' && pendingMessageDeleteId) {
+      await handleDeleteMessage(pendingMessageDeleteId);
       closeDialog();
       return;
     }
@@ -560,7 +618,7 @@ export default function EmailConversationApp() {
       <input
         ref={jobOrderFileInputRef}
         type="file"
-        accept=".pdf,application/pdf"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic,.pdf,application/pdf"
         className="hidden"
         onChange={handleUploadJobOrder}
       />
@@ -607,10 +665,6 @@ export default function EmailConversationApp() {
 
             {/* ticket */}
             <div className='flex gap-3 items-center'> 
-              <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
-              >
-                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "Completed" : "Ongoing"}
-              </span> 
 
               {userTicketInformation?.job_order_url_finish && (
                 <button 
@@ -643,7 +697,11 @@ export default function EmailConversationApp() {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  if (msg.is_updated === 1) {
+                  const hasAttachments = Array.isArray(msg.attachments) && msg.attachments.length > 0;
+
+                  // Keep activity-log-only rows, but allow updated messages with attachments
+                  // (e.g. PDF job orders) to render as normal message bubbles.
+                  if (msg.is_updated === 1 && !hasAttachments) {
                     return (
                       <div key={msg.id} ref={messageEndRef} className="w-full">
                         <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
@@ -661,18 +719,35 @@ export default function EmailConversationApp() {
                   const isStartAligned = msg.is_inbound;
 
                   const replyButton = (
-                    <button
-                      type="button"
-                      onClick={() => setRepliedMessage(msg)}
-                      className={`inline-flex justify-center gap-1 text-xs px-2 py-1 rounded-2xl border items-center ${
-                        msg.is_inbound
-                          ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
-                          : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
-                      }`}
-                      title="Reply to this message"
-                    >
-                      <Reply className="w-3 h-3" />
-                    </button>
+                    <div className='flex gap-2'>
+                      {msg.is_inbound === 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessageDialog(msg.id)}
+                          className={`inline-flex justify-center gap-1 text-xs px-2 py-1 rounded-2xl border items-center ${
+                            msg.is_inbound
+                              ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                              : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                          }`}
+                          title="Delete this message"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setRepliedMessage(msg)}
+                        className={`inline-flex justify-center gap-1 text-xs px-2 py-1 rounded-2xl border items-center ${
+                          msg.is_inbound
+                            ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                            : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                        }`}
+                        title="Reply to this message"
+                      >
+                        <Reply className="w-3 h-3" />
+                      </button>
+                    </div>
                   );
 
                   const messageBubble = (
@@ -805,7 +880,8 @@ export default function EmailConversationApp() {
           )}
           
           {/* Reply Box */}
-          <div className="p-4 bg-white border-t border-gray-200">
+          {userTicketInformation.is_closed === 0 && (
+            <div className="p-4 bg-white border-t border-gray-200">
             {/* Composer-level preview of the currently selected reply target. */}
             {repliedMessage && (
               <div className="mb-3 p-3 rounded-lg border border-[#FCD000] bg-yellow-50">
@@ -910,6 +986,7 @@ export default function EmailConversationApp() {
               {attachedFiles.length > 0 && ` • ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''} attached`}
             </p>
           </div>
+          )}
         </>  
       </div>
 
@@ -934,6 +1011,7 @@ export default function EmailConversationApp() {
               <div className='flex items-center gap-2'>
                 {userTicketInformation?.job_order_url && (
                   <button 
+                    disabled={isPending}
                     title="Upload Job Order"
                     onClick={() => jobOrderFileInputRef.current?.click()}
                     className="text-blue-700 bg-blue-100 p-2 rounded-md hover:bg-blue-200 transition-colors flex justify-center items-center"

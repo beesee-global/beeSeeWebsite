@@ -14,6 +14,7 @@ interface JobOrderData {
   city: string;
   phone: string;
   email: string;
+  location: string;
   device_type: string;
   issue_type: string;
   serial_number: string;
@@ -24,8 +25,8 @@ interface JobOrderData {
 const BORDER_COLOR = "#000000";
 
 const styles = StyleSheet.create({
-page: {
-        fontSize: 10,
+    page: {
+        fontSize: 9,
         paddingTop: 55,
         paddingBottom: 50,
         paddingHorizontal: 50,
@@ -51,11 +52,11 @@ page: {
         marginBottom: 5,
     },
     title: {
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: "Helvetica-Bold",
     },
     subtitle: {
-        fontSize: 10,
+        fontSize: 9,
         fontFamily: "Helvetica-Bold",
     },
     section: {
@@ -74,7 +75,7 @@ page: {
         marginTop: 10,
     },
     sectionText: {
-        fontSize: 12,
+        fontSize: 11,
         fontFamily: "Helvetica-Bold",
     },
     row: {
@@ -121,7 +122,7 @@ page: {
         padding: 5,
     },
     statusOption: {
-        fontSize: 10,
+        fontSize: 9,
         marginBottom: 2,
     },
     statusLine: {
@@ -151,7 +152,7 @@ page: {
         justifyContent: "space-between",
     },
     signatureText: {
-        fontSize: 10,
+        fontSize: 9,
         marginBottom: 10,
     },
     signatureLine: {
@@ -161,7 +162,7 @@ page: {
         marginBottom: 5,
     },
     dateText: {
-        fontSize: 10,
+        fontSize: 9,
         paddingLeft: 40
     },
     acknowledgeLayout: {
@@ -201,7 +202,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         <View style={styles.row}>
             <Text style={styles.label}>CITY:</Text>
             <Text style={styles.value}>{data.city}</Text>
-        </View>
+        </View> 
         <View style={styles.row}>
             <Text style={styles.label}>CONTACT:</Text>
             <Text style={styles.value}>{data.phone}</Text>
@@ -226,6 +227,11 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         <View style={styles.row}>
             <Text style={styles.label}>SERIAL NUMBER:</Text>
             <Text style={styles.value}>{data.serial_number}</Text>
+        </View>
+        
+        <View style={styles.row}>
+            <Text style={styles.label}>Location:</Text>
+            <Text style={styles.value}>{data.location}</Text>
         </View>
 
         {/* ISSUE REPORT */}
