@@ -380,11 +380,11 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     const ticketId = firstImage?.ticket_id;
 
     if (status === 'before') {
-      setDialogMessage('Are you sure you want to delete all before report images?')
-      setDialogTitle("Delete Before Report Images")
+      setDialogMessage('Are you sure you want to delete all before-service report images?')
+      setDialogTitle("Delete Before-Service Report Images")
     } else {
-      setDialogMessage('Are you sure you want to delete all after report images?')
-      setDialogTitle("Delete After Report Images")
+      setDialogMessage('Are you sure you want to delete all after-service report images?')
+      setDialogTitle("Delete After-Service Report Images")
     }
 
     setDialogAction("delete")
@@ -425,7 +425,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     }
 
     if (!uploadStatus) {
-      setSnackBarMessage("Please select image type (before/after) first.")
+      setSnackBarMessage("Please select report timing (before service / after service) first.")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       e.target.value = ""
@@ -434,8 +434,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
     setSelectedUploadFiles(files)
     setDialogAction("upload")
-    setDialogTitle(uploadStatus === "before" ? "Upload Before Report Images" : "Upload After Report Images")
-    setDialogMessage(`Upload ${files.length} image(s) to ${uploadStatus} report?`)
+    setDialogTitle(uploadStatus === "before" ? "Upload Before-Service Report Images" : "Upload After-Service Report Images")
+    setDialogMessage(`Upload ${files.length} image(s) to the ${uploadStatus === "before" ? "before-service" : "after-service"} report?`)
     setDialogOpen(true)
   }
 
@@ -920,127 +920,263 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           </div>
         )}
 
-        {/* before image */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <div className="flex justify-between">
-            <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
-              <ImageIcon size={16} />
-              Before Report Images ({userTicketInformation?.before_image?.length || 0})
-            </div>
-            {!publicConversation && (
-              <div className='flex items-center gap-2'>
-                <button
-                  type="button"
-                  className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
-                  title="Upload image"
-                  onClick={() => handleOpenUploadImage("before")}
-                >
-                  <Upload size={16} />
-                </button>
+        {publicConversation && userTicketInformation?.before_image.length > 0 && (
+          <>
+            
+         {/* Before image  */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex justify-between">
+              <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
+                <ImageIcon size={16} />
+                Before-Service Report Images ({userTicketInformation?.before_image?.length || 0})
+              </div>
+              {!publicConversation && (
+                <div className='flex items-center gap-2'>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                    title="Upload image"
+                    onClick={() => handleOpenUploadImage("before")}
+                  >
+                    <Upload size={16} />
+                  </button>
 
-                <button
-                  type="button"
-                  className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
-                  title="Delete image"
-                  onClick={() => handleDeleteReportImage(userTicketInformation.before_image)}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {(userTicketInformation?.before_image?.length || 0) > 0 ? (
-              userTicketInformation.before_image.map((img: any, index: number) => (
-                <div 
-                  key={img.id || index}
-                  className="relative group cursor-pointer"
-                  onClick={() => {
-                    setSelectedImage(img.image_url);
-                    setShowSidebar(false)
-                  }}
-                >
-                  <img 
-                    src={img.image_url} 
-                    alt={`Attachment ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
-                    <Download 
-                      size={20} 
-                      className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
+                    title="Delete image"
+                    onClick={() => handleDeleteReportImage(userTicketInformation.before_image)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
-                <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
-              </div>
-            )} 
-          </div>
-        </div>
-   
-        {/* After image */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <div className="flex justify-between">
-            <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
-              <ImageIcon size={16} />
-              After Report Images ({userTicketInformation?.after_image?.length || 0})
+              )}
             </div>
-            {!publicConversation && (
-              <div className='flex items-center gap-2'>
-                <button
-                  type="button"
-                  className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
-                  title="Upload image"
-                  onClick={() => handleOpenUploadImage("after")}
-                >
-                  <Upload size={16} />
-                </button>
-
-                <button
-                  type="button"
-                  className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
-                  title="Delete image"
-                  onClick={() => handleDeleteReportImage(userTicketInformation.after_image)}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {(userTicketInformation?.after_image?.length || 0) > 0 ? (
-              userTicketInformation.after_image.map((img: any, index: number) => (
-                <div 
-                  key={img.id || index}
-                  className="relative group cursor-pointer"
-                  onClick={() => {
-                    setSelectedImage(img.image_url);
-                    setShowSidebar(false)
-                  }}
-                >
-                  <img 
-                    src={img.image_url} 
-                    alt={`Attachment ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
-                    <Download 
-                      size={20} 
-                      className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {(userTicketInformation?.before_image?.length || 0) > 0 ? (
+                userTicketInformation.before_image.map((img: any, index: number) => (
+                  <div 
+                    key={img.id || index}
+                    className="relative group cursor-pointer"
+                    onClick={() => {
+                      setSelectedImage(img.image_url);
+                      setShowSidebar(false)
+                    }}
+                  >
+                    <img 
+                      src={img.image_url} 
+                      alt={`Attachment ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                     />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                      <Download 
+                        size={20} 
+                        className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                  <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
-                <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
-              </div>
-            )} 
+              )} 
+            </div>
           </div>
-        </div> 
+          </>
+        )}
+  
+        {publicConversation && userTicketInformation?.after_image.length > 0 && (
+         <>
+            {/* After image */}
+
+           <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex justify-between">
+              <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
+                <ImageIcon size={16} />
+                After-Service Report Images ({userTicketInformation?.after_image?.length || 0})
+              </div>
+              {!publicConversation && (
+                <div className='flex items-center gap-2'>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                    title="Upload image"
+                    onClick={() => handleOpenUploadImage("after")}
+                  >
+                    <Upload size={16} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
+                    title="Delete image"
+                    onClick={() => handleDeleteReportImage(userTicketInformation.after_image)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {(userTicketInformation?.after_image?.length || 0) > 0 ? (
+                userTicketInformation.after_image.map((img: any, index: number) => (
+                  <div 
+                    key={img.id || index}
+                    className="relative group cursor-pointer"
+                    onClick={() => {
+                      setSelectedImage(img.image_url);
+                      setShowSidebar(false)
+                    }}
+                  >
+                    <img 
+                      src={img.image_url} 
+                      alt={`Attachment ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                      <Download 
+                        size={20} 
+                        className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                  <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
+                </div>
+              )} 
+            </div>
+          </div>
+         </>
+        )}
+
+        {!publicConversation && (
+          <>
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="flex justify-between">
+                <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
+                  <ImageIcon size={16} />
+                  Before-Service Report Images ({userTicketInformation?.before_image?.length || 0})
+                </div>
+                {!publicConversation && (
+                  <div className='flex items-center gap-2'>
+                    <button
+                      type="button"
+                      className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                      title="Upload image"
+                      onClick={() => handleOpenUploadImage("before")}
+                    >
+                      <Upload size={16} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
+                      title="Delete image"
+                      onClick={() => handleDeleteReportImage(userTicketInformation.before_image)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {(userTicketInformation?.before_image?.length || 0) > 0 ? (
+                  userTicketInformation.before_image.map((img: any, index: number) => (
+                    <div 
+                      key={img.id || index}
+                      className="relative group cursor-pointer"
+                      onClick={() => {
+                        setSelectedImage(img.image_url);
+                        setShowSidebar(false)
+                      }}
+                    >
+                      <img 
+                        src={img.image_url} 
+                        alt={`Attachment ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                        <Download 
+                          size={20} 
+                          className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                    <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
+                  </div>
+                )} 
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="flex justify-between">
+                <div className='flex items-center gap-2 text-gray-700 font-semibold mb-3'>
+                  <ImageIcon size={16} />
+                  After-Service Report Images ({userTicketInformation?.after_image?.length || 0})
+                </div>
+                {!publicConversation && (
+                  <div className='flex items-center gap-2'>
+                    <button
+                      type="button"
+                      className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                      title="Upload image"
+                      onClick={() => handleOpenUploadImage("after")}
+                    >
+                      <Upload size={16} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-red-100 text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
+                      title="Delete image"
+                      onClick={() => handleDeleteReportImage(userTicketInformation.after_image)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {(userTicketInformation?.after_image?.length || 0) > 0 ? (
+                  userTicketInformation.after_image.map((img: any, index: number) => (
+                    <div 
+                      key={img.id || index}
+                      className="relative group cursor-pointer"
+                      onClick={() => {
+                        setSelectedImage(img.image_url);
+                        setShowSidebar(false)
+                      }}
+                    >
+                      <img 
+                        src={img.image_url} 
+                        alt={`Attachment ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                        <Download 
+                          size={20} 
+                          className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                    <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
+                  </div>
+                )} 
+              </div>
+            </div> 
+          </>
+        )}
+
+        
       </div> 
     </div>
   )

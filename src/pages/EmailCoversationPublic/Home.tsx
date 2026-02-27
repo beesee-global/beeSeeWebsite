@@ -658,10 +658,11 @@ export default function EmailConversationApp() {
                               <p className="text-xs font-medium truncate">{file.name}</p>
                               <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
                             </div>
+
                             <button
                               type="button"
                               onClick={() => handleDownloadAttachment(file)}
-                              className="p-1 hover:bg-gray-200 rounded transition"
+                              className="p-1 hover:bg-gray-200 rounded transition flex items-center justify-center"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />

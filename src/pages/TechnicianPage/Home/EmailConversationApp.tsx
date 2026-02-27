@@ -90,7 +90,8 @@ export default function EmailConversationApp() {
   });
 
   const {
-    mutateAsync: deleteSpecificConversations
+    mutateAsync: deleteSpecificConversations,
+    isPending: isDeleteSpecificConversation
   } = useMutation({
     mutationFn: (id: string) => deleteSpecificConversation(id),
   })
@@ -160,7 +161,8 @@ export default function EmailConversationApp() {
 
   // --- inserting conversation ---
   const {
-    mutateAsync: insertConversations
+    mutateAsync: insertConversations,
+    isPending: isInsertConversations
   } = useMutation({
     mutationFn: insertConversation,
     onSuccess: () => {
@@ -176,7 +178,8 @@ export default function EmailConversationApp() {
 
   // --- update status mark as completed ---
   const {
-    mutateAsync: updateStats
+    mutateAsync: updateStats,
+    isPending: isUpdateStats
   } = useMutation({
     mutationFn: ({reference_number, payload} : { reference_number: string, payload: any}) => 
       updateStatus(reference_number, payload)
@@ -629,7 +632,16 @@ export default function EmailConversationApp() {
         title={dialogTitle}
         message={dialogMessage}
         onClose={closeDialog}
-        onSubmit={handleDialogSubmit} 
+        onSubmit={handleDialogSubmit}
+        isLoading={
+          dialogAction === 'delete'
+            ? isDeletingTicket
+            : dialogAction === 'upload'
+            ? isPending
+            : dialogAction === 'messageDelete'
+            ? isDeleteSpecificConversation
+            : false
+        }
       />
 
       {/* Image Modal */}
