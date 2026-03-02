@@ -678,7 +678,9 @@ export default function EmailConversationApp() {
             {/* ticket */}
             <div className='flex gap-3 items-center'> 
 
-              {userTicketInformation?.job_order_url_finish && (
+              {userTicketInformation?.is_closed != 1 && 
+                userTicketInformation?.status != 'resolved' && 
+                userTicketInformation?.job_order_url_finish && (
                 <button 
                   onClick={() => markAsCompleted()}
                   title="Mark as completed"
