@@ -40,6 +40,7 @@ interface formData {
   product_id: number | string | null;
   issue_id: string | number | null;
   serial_number: string
+  location?: string
   item_name?: string
 }
 
@@ -84,7 +85,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     product_id: userTicketInformation.issue_type,
     issue_id: userTicketInformation.issue_id,
     serial_number: userTicketInformation.serial_number,
-    item_name: userTicketInformation.item_name
+    item_name: userTicketInformation.item_name,
+    location: userTicketInformation.location
   })
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
  
@@ -214,7 +216,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         city: userTicketInformation.city,
         phone: userTicketInformation.phone,
         email: userTicketInformation.email,
-        location: userTicketInformation.location || null,
+        location: formData.location || null,
         device_type: selectedDeviceType,
         issue_type: formData.item_name || selectedModelType,
         serial_number: formData.serial_number,
@@ -239,6 +241,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       JobOrder.append("item_name", String(formData.item_name ?? ''));
       JobOrder.append("issues_id", String(formData.issue_id ?? ''));
       JobOrder.append("serial_number", String(formData.serial_number ?? ''));
+      JobOrder.append("location", String(formData.location ?? ''));
       JobOrder.append("sender_name", String(userInfo?.full_name || 'Support Team'))
       JobOrder.append("sender_email", String(userTicketInformation.email || 'admin@beesee.com'))
       JobOrder.append("user_role", String(userInfo?.role || ''))
@@ -298,7 +301,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         city: userTicketInformation.city,
         phone: userTicketInformation.phone,
         email: userTicketInformation.email,
-        location: userTicketInformation.location || null,
+        location: formData.location || null,
         device_type: selectedDeviceType,
         issue_type: formData.item_name || selectedModelType,
         serial_number: formData.serial_number,
@@ -318,6 +321,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
       const form = new FormData()
       form.append("serial_number", formData.serial_number);
+      form.append("location", String(formData.location ?? ''));
       // Append PDF file
       form.append("job_order_pdf", file);
 
@@ -770,6 +774,19 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                 />
               </div>
             </div> 
+
+            <div>
+              <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+              <div className="text-md text-gray-900 flex items-center gap-2"> 
+                <CustomTextField 
+                  onChange={handleChangeInput}
+                  name='location'
+                  rows={1}
+                  multiline={false}
+                  value={formData.location}
+                />
+              </div>
+            </div> 
           </div>
           ) : (
             <div className="space-y-2">
@@ -804,16 +821,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               </div>
             </div> 
           </div>
-          )} 
-
-          {userTicketInformation?.location && (
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Location</div>
-              <div className="text-md text-gray-900 font-medium">
-                {userTicketInformation.location || 'N/A'}
-              </div>
-            </div>
-          )}
+          )}  
         </div>
 
         {/* Question */}
@@ -893,7 +901,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               <ImageIcon size={16} />
               Attached Images Report ({userTicketInformation.images.length})
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-2">
               {userTicketInformation.images.map((img: any, index: number) => (
                 <div 
                   key={img.id || index}
@@ -906,7 +914,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <img 
                     src={img.image} 
                     alt={`Attachment ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                    className="w-full aspect-square object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
                     <Download 
@@ -952,7 +960,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
               {(userTicketInformation?.before_image?.length || 0) > 0 ? (
                 userTicketInformation.before_image.map((img: any, index: number) => (
                   <div 
@@ -966,7 +974,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     <img 
                       src={img.image_url} 
                       alt={`Attachment ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                      className="w-full aspect-square object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
                       <Download 
@@ -1018,7 +1026,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
               {(userTicketInformation?.after_image?.length || 0) > 0 ? (
                 userTicketInformation.after_image.map((img: any, index: number) => (
                   <div 
@@ -1032,7 +1040,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     <img 
                       src={img.image_url} 
                       alt={`Attachment ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                      className="w-full aspect-square object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
                       <Download 
@@ -1043,7 +1051,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                <div className="col-span-3 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
                   <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
                 </div>
               )} 
@@ -1082,7 +1090,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
                 {(userTicketInformation?.before_image?.length || 0) > 0 ? (
                   userTicketInformation.before_image.map((img: any, index: number) => (
                     <div 
@@ -1096,7 +1104,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       <img 
                         src={img.image_url} 
                         alt={`Attachment ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                        className="w-full aspect-square object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
                         <Download 
@@ -1107,7 +1115,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                  <div className="col-span-3 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
                     <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
                   </div>
                 )} 
@@ -1142,7 +1150,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
                 {(userTicketInformation?.after_image?.length || 0) > 0 ? (
                   userTicketInformation.after_image.map((img: any, index: number) => (
                     <div 
@@ -1156,7 +1164,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       <img 
                         src={img.image_url} 
                         alt={`Attachment ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                        className="w-full aspect-square object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
                         <Download 
@@ -1167,7 +1175,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-2 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
+                  <div className="col-span-3 flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 px-4 text-center">
                     <p className="text-sm sm:text-base text-gray-500">No uploaded image</p>
                   </div>
                 )} 
@@ -1183,3 +1191,4 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 }
 
 export default ConversationsDetails
+

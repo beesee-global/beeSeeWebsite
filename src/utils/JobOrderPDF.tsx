@@ -230,7 +230,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         </View>
         
         <View style={styles.row}>
-            <Text style={styles.label}>Location:</Text>
+            <Text style={styles.label}>LOCATION:</Text>
             <Text style={styles.value}>{data.location}</Text>
         </View>
 
