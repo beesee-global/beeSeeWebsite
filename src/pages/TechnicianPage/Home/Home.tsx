@@ -13,7 +13,8 @@ import {
   fetchOpen,
   fetchResolve,
   deleteTickets,
-  fetchOngoing
+  fetchOngoing,
+  searchJobOrder
 } from '../../../services/Technician/ticketsServices'
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import WorkIcon from '@mui/icons-material/Work';
@@ -62,6 +63,13 @@ const Home = () => {
     queryFn: fetchResolve
   });
 
+  const { data: listOfTicket } = useQuery({
+    queryKey: ['listOfTicket'],
+    queryFn: searchJobOrder
+  });
+
+ 
+
   const { data: ongoingTicketResponse} = useQuery ({
     queryKey: ['ongoing-ticket'],
     queryFn: fetchOngoing
@@ -83,6 +91,30 @@ const Home = () => {
     mutationFn: deleteTickets
   });
 
+  // list of search (reference numbers only)
+  const listTicketNumber = useMemo(() => {
+    return Array.from(
+      new Set(
+        (listOfTicket?.data || [])
+          .map((item: any) => String(item?.reference_number || ""))
+          .filter(Boolean)
+      )
+    );
+  }, [listOfTicket]);
+
+  const handleSearchSuggestionSelect = (referenceNumber: string) => {
+    setSearchValue(referenceNumber);
+    setDebouncedSearch(referenceNumber);
+
+    const selectedTicket = (listOfTicket?.data || []).find(
+      (item: any) => String(item?.reference_number) === referenceNumber
+    );
+
+    const status = String(selectedTicket?.status || "").toLowerCase();
+    if (status === "open") setStatusFilter("Pending");
+    if (status === "ongoing") setStatusFilter("Ongoing");
+    if (status === "resolved") setStatusFilter("Completed");
+  };
   // ⭐ SELECT WHICH ROWS TO USE - Filter by status
   const rows = useMemo(() => {
     let baseRows = [];
@@ -100,6 +132,7 @@ const Home = () => {
     organization,
     statusFilter,
     openTicketResponse,
+    ongoingTicketResponse,
     resolvedTicketResponse, 
   ]);
 
@@ -234,6 +267,9 @@ const Home = () => {
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Search..."
               className="h-10 sm:h-11 w-full"
+              suggestions={listTicketNumber}
+              onSuggestionSelect={handleSearchSuggestionSelect}
+              maxSuggestions={5}
             />
           </div>
           

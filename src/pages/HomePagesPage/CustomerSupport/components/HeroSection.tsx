@@ -17,8 +17,7 @@ import {
 } from '../../../../services/Technician/customerSupportServices';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import PersonIcon from '@mui/icons-material/Person';
-import { Building2, Mail, Phone, MessageCircleQuestion, Send, CheckCircle, Barcode, Landmark, ChevronLeft, ChevronRight, X, Clock } from 'lucide-react';
-import Snackbar from '../../../../components/feedback/Snackbar';
+import { Building2, Mail, Phone, MessageCircleQuestion, Send, CheckCircle, Barcode, Landmark, ChevronLeft, ChevronRight, X, Clock } from 'lucide-react'; 
 import Disclaimer from '../../../../components/feedback/Disclaimer';
 
 interface CustomerIssue {
@@ -28,6 +27,7 @@ interface CustomerIssue {
     email: string;
     item_name?: string;
     contact_number: string;
+    location: string;
     category_id: string;
     is_active: string;
     device_id: string;
@@ -48,12 +48,14 @@ interface FormError {
     company?: string;
     city?: string;
     email?: string;
+    location?: string;
     item_name?: string;
     contact_number?: string;
     category_id?: string;
     device_id?: string;
     issue_id?: string;
     questions?: string;
+    file_upload?: string;
 }
 
 const HeroSection: React.FC = () => {
@@ -73,6 +75,7 @@ const HeroSection: React.FC = () => {
         email: '',
         contact_number: '',
         category_id: '',
+        location: '',
         item_name: '',
         is_active: '',
         device_id: '',
@@ -165,13 +168,18 @@ const HeroSection: React.FC = () => {
           previewUrl: URL.createObjectURL(file),
         };
         setUploadedImages((prev) => [...prev, newImage]);
+        setFormError((prev) => ({ ...prev, file_upload: undefined }));
       }
   };
 
     const handleRemoveImage = (id: string) => {
-      setUploadedImages((prev) => prev?.filter((img) => img.id !== id));
-      if (currentImageIndex >= uploadedImages.length - 1) {
-        setCurrentImageIndex(Math.max(0, uploadedImages.length - 2));
+      const remainingImages = uploadedImages.filter((img) => img.id !== id);
+      setUploadedImages(remainingImages);
+      if (currentImageIndex >= remainingImages.length) {
+        setCurrentImageIndex(Math.max(0, remainingImages.length - 1));
+      }
+      if (remainingImages.length === 0) {
+        setFormError((prev) => ({ ...prev, file_upload: 'Please upload at least one image.' }));
       }
     };
 
@@ -189,6 +197,7 @@ const HeroSection: React.FC = () => {
         if (!formData?.company.trim()) errors.company = 'Company / Institution Name is required.';
         if (!formData?.city.trim()) errors.city = 'City is required.';
         if (!formData?.email.trim()) errors.email = 'Email is required.';
+        if(!formData?.location.trim()) errors.location = "Location / room is required."
         else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid format.';
 
         if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.';
@@ -202,6 +211,7 @@ const HeroSection: React.FC = () => {
             if (!formData?.item_name?.trim()) errors.item_name = 'Item name is required';
         }
         if (!formData?.questions.trim()) errors.questions = 'Please provide details about your issue.';
+        if (uploadedImages.length === 0) errors.file_upload = 'Please upload at least one image.';
         return errors;
     };
 
@@ -223,6 +233,7 @@ const HeroSection: React.FC = () => {
                 city: formData?.city,
                 email: formData?.email,
                 phone: formData?.contact_number,
+                location: formData?.location
             };
 
             payload.tickets_details = ticketsDetails;
@@ -250,6 +261,7 @@ const HeroSection: React.FC = () => {
                 is_active: '',
                 device_id: '',
                 issue_id: '',
+                location: '',
                 serial_number: '',
                 questions: '',
             });
@@ -657,6 +669,22 @@ const HeroSection: React.FC = () => {
                                             icon={<Barcode sx={{ fontSize: 18 }} />}
                                         />
 
+                                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                                            <CustomTextFieldAutoCamelCase
+                                                placeholder="Location / Room"
+                                                name="location"
+                                                value={formData?.location}
+                                                onChange={handleChangeInput}
+                                                type="text"
+                                                multiline={false}
+                                                rows={1}
+                                                maxLength={100}
+                                                icon={<Landmark className="w-4 h-4" />}
+                                                error={!!formError?.location}
+                                                helperText={formError?.location}
+                                            />
+                                        </motion.div>
+
                                         <CustomTextFieldAutoCamelCase
                                             name="questions"
                                             value={formData?.questions}
@@ -671,6 +699,9 @@ const HeroSection: React.FC = () => {
                                             helperText={formError?.questions}
                                         />
 
+                                        <div className='text-left'>
+                                            <p className='text-white'>Note Kindly attach a picture to help us provide a better solution.</p>
+                                        </div>
                                         <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                                             <button
                                                 type="button"
@@ -683,10 +714,13 @@ const HeroSection: React.FC = () => {
                                                 }}
                                             >
                                                 <span className="bee-body-sm font-semibold">
-                                                    {uploadedImages.length > 0 ? `${uploadedImages.length} File(s) Uploaded ✓` : 'File Upload (Optional)'}
+                                                    {uploadedImages.length > 0 ? `${uploadedImages.length} File(s) Uploaded ✓` : 'File Upload'}
                                                 </span>
                                             </button>
                                         </motion.div>
+                                        {formError?.file_upload && (
+                                            <p className="text-red-400 text-sm mt-1">{formError.file_upload}</p>
+                                        )}
 
                                         {uploadedImages.length > 0 && (
                                             <motion.div

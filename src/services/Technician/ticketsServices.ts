@@ -11,6 +11,52 @@ export const getTicket = async (status: string) => {
     }
 }
 
+export const deleteSpecificConversation = async (id: string) => {
+    try {
+        const response = await axiosClient.delete(`${API_URL}/${id}/delete/message`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const beforeAfterInsert = async (data: FormData) => {
+    try {
+        const response = await axiosClient.post(`${API_URL}/before-after`, data, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
+export const deleteBeforeAfterAttachment = async (data: any) => {
+    try {
+        const response = await axiosClient.delete(`${API_URL}/deleteBeforeAfterAttachment`, {
+            data,
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
+export const searchJobOrder = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/search-bar`);
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 export const updateStatusDelete = async (data: any) => {
   try {
       const response = await axiosClient.put(`${API_URL}/update-status-delete`, data);
@@ -37,7 +83,7 @@ export const updateSerialNumber = async (id: string, data: any) => {
     try {
         const response = await axiosClient.put(`${API_URL}/${id}/update-serial-number`, data, {
             headers:{
-                'Content-Type': 'application/json'
+                'Content-Type': 'multipart/form-data'
             }
         });
 

@@ -16,15 +16,18 @@ import {
   Download,
   Paperclip,
   Reply, 
+  Trash2
 } from 'lucide-react';
 
 import { SpinningRingLoader } from '../../components/ui/LoadingScreens'
+import AlertDialog from '../../components/feedback/AlertDialog';
 
 import {
   fetchTicketDetailsPublic,
   fetchConversationPublic,
   insertConversationPublic,
-  insertImageConversation
+  insertImageConversation,
+  deleteSpecificConversation
 } from '../../services/Technician/ticketsServices';
 import Snackbar from '../../components/feedback/Snackbar';
 import ConversationsDetails from '../../components/ui/ConversationsDetails';
@@ -38,6 +41,13 @@ export default function EmailConversationApp() {
   const queryClient = useQueryClient();
   const messageEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef(null);
+  const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | number>(null);
+  const [dialogOpen , setDialogOpen] = useState<boolean>(false);
+  const [dialogMessage, setDialogMessage] = useState<string>("");
+  const [dialogTitle, setDialogTitle] = useState<string>(""); 
+
+  const message = "This ticket is closed due to inactivity. If you need to follow up or require further assistance, please submit a new job order using the following link"
+  const url = `${import.meta.env.VITE_API_URL_FRONTEND}/customer-support`
 
   const {  
     setSnackBarMessage,
@@ -78,6 +88,12 @@ export default function EmailConversationApp() {
   const insertConversationMutation = useMutation({
     mutationFn: insertConversationPublic,
   });
+
+  const {
+     mutateAsync: deleteSpecificConversations
+  } = useMutation({
+    mutationFn: (id: string) => deleteSpecificConversation(id)
+  })
 
   // --- inserting image ---
   const {
@@ -225,6 +241,20 @@ export default function EmailConversationApp() {
     }
   }; 
 
+  const handleDeleteMessageDialog = (id: string | number) => {
+    setPendingMessageDeleteId(String(id));
+    setDialogTitle("Confirm Delete");
+    setDialogMessage("Are you sure you want to delete this message?");
+    setDialogOpen(true);
+  }
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setDialogMessage('');
+    setDialogTitle(''); 
+    setPendingMessageDeleteId(null);
+  };
+
   const handleFileSelect = (e: any) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter((file: any) => file.size <= MAX_FILE_SIZE_BYTES);
@@ -300,23 +330,49 @@ export default function EmailConversationApp() {
     const raw = String(body || "");
     // flexible matcher 
     const match = raw.match(/\[reply_meta\]([\s\S]*?)\[\/reply_meta\]/);
-      if (!match){
-        return { replyMeta: null, cleanBody: raw };
-      }
 
-      try {
-        const cleanBody = raw
-          .replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/, "")
-          .replace(/^\s+/, "");
+    if (!match){
+      return { replyMeta: null, cleanBody: raw };
+    }
 
-        return {
-          replyMeta: JSON.parse(match[1]),
-          cleanBody,
-        };
-      } catch {
-        return { replyMeta: null, cleanBody: raw };
+    try {
+      const cleanBody = raw
+        .replace(/\[reply_meta\][\s\S]*?\[\/reply_meta\]/, "")
+        .replace(/^\s+/, "");
+
+      return {
+        replyMeta: JSON.parse(match[1]),
+        cleanBody,
+      };
+    } catch {
+      return { replyMeta: null, cleanBody: raw };
+    }
+  } 
+
+  const handleDeleteMessage = async () => {
+    try {
+      const response = await deleteSpecificConversations(String(pendingMessageDeleteId)); // call mutation
+
+      if (response?.success) {
+        // Don't add msg directly to state as it doesn't contain attachment data
+        queryClient.invalidateQueries({
+          queryKey: ['conversations', userTicketInformation?.ticket_id]
+        });
+        
+        closeDialog() 
       }
-    } 
+    } catch (error) {
+      setSnackBarMessage("Failed to delete ticket. Please try again.");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
+  }
+
+
+  const handleDialogSubmit = async () => { 
+    await handleDeleteMessage();
+    closeDialog();
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -432,6 +488,16 @@ export default function EmailConversationApp() {
         onClose={() => setSnackBarOpen(false)}
       />
 
+      {/* Dialog */}
+      <AlertDialog 
+        open={dialogOpen}
+        title={dialogTitle}
+        message={dialogMessage}
+        onClose={closeDialog}
+        onSubmit={handleDialogSubmit} 
+      />
+
+
       {/* Image Modal */}
       {selectedImage && (
         <div 
@@ -480,7 +546,12 @@ export default function EmailConversationApp() {
             <div className="flex items-center justify-center h-full text-gray-500">No messages yet</div>
           ) : (
             messages.map(msg => {
-              if (msg.is_updated === 1) {
+              const hasAttachments = Array.isArray(msg.attachments) && msg.attachments.length > 0; 
+              
+              // Keep activity-log-only rows, but allow updated messages with attachments
+              // (e.g. PDF job orders) to render as normal message bubbles.
+                 
+              if (msg.is_updated === 1 && !hasAttachments) {
                 return (
                   <div key={msg.id} ref={messageEndRef} className="w-full px-2 sm:px-4">
                     <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
@@ -498,18 +569,34 @@ export default function EmailConversationApp() {
               const isStartAligned = msg.is_inbound;
               
               const replyButton = (
-                <button
-                  type="button"
-                  onClick={() => setRepliedMessage(msg)}
-                  className={`inline-flex justify-center items-center gap-1 text-xs px-2 py-1 rounded-2xl border ${
-                    msg.is_inbound
-                      ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
-                      : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
-                  }`}
-                  title="Reply to this message"
-                >
-                  <Reply className="w-3 h-3" />
-                </button>
+                <div className='flex gap-2'>
+                  {msg.is_inbound === 1 && userTicketInformation?.is_closed === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMessageDialog(msg.id)}
+                      className={`inline-flex justify-center gap-1 text-xs px-2 py-1 rounded-2xl border items-center ${
+                        msg.is_inbound
+                          ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                          : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                      }`}
+                      title="Delete this message"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setRepliedMessage(msg)}
+                    className={`inline-flex justify-center items-center gap-1 text-xs px-2 py-1 rounded-2xl border ${
+                      msg.is_inbound
+                        ? "text-gray-600 border-gray-300 bg-white hover:bg-gray-50"
+                        : "text-gray-700 border-gray-300 bg-white hover:bg-gray-50"
+                    }`}
+                    title="Reply to this message"
+                  >
+                    <Reply className="w-3 h-3" />
+                  </button>
+                </div>
               );
               
               return (
@@ -571,10 +658,11 @@ export default function EmailConversationApp() {
                               <p className="text-xs font-medium truncate">{file.name}</p>
                               <p className="text-xs opacity-70">{formatFileSize(file.size)}</p>
                             </div>
+
                             <button
                               type="button"
                               onClick={() => handleDownloadAttachment(file)}
-                              className="p-1 hover:bg-gray-200 rounded transition"
+                              className="p-1 hover:bg-gray-200 rounded transition flex items-center justify-center"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />
@@ -594,114 +682,134 @@ export default function EmailConversationApp() {
               )
             })
           )}
-        </div>
 
-        {/* Reply Box */}
-        <div className="p-4 bg-white border-t border-gray-200">
-          {/* Show selected reply target before sending (same behavior as technician page). */}
-          {repliedMessage && (
-            <div className="mb-3 p-3 rounded-lg border border-[#FCD000] bg-yellow-50">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-yellow-800">
-                    Replying to Support Team
-                  </p>
-                  <p className="text-xs text-yellow-700 truncate">
-                    {stripReplyMeta(repliedMessage.message_body || repliedMessage?.attachments?.[0]?.name || "Message")}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setRepliedMessage(null)}
-                  className="text-yellow-700 hover:text-yellow-900"
-                  title="Cancel reply"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+          {Number(userTicketInformation?.is_closed) === 1 && (
+            <div className="flex justify-center">
+              <div className="max-w-2xl w-full rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-900">
+                  {message}{" "}
+                  <a
+                    href={url}
+                    className="font-semibold text-amber-950 hover:text-amber-700"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    BEESEE Customer Support
+                  </a>
+                </p>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Attached Files Preview */}
-          {attachedFiles.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {attachedFiles.map((fileObj, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-lg p-2 pr-1"
-                >
-                  {fileObj.preview ? (
-                    <img 
-                      src={fileObj.preview} 
-                      alt={fileObj.name}
-                      className="w-10 h-10 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                      {getFileIcon(fileObj.type)}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0 max-w-xs">
-                    <p className="text-xs font-medium truncate">{fileObj.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(fileObj.size)}</p>
+        {/* Reply Box */}
+        {userTicketInformation?.is_closed === 0 && (
+          <div className="p-4 bg-white border-t border-gray-200">
+            {/* Show selected reply target before sending (same behavior as technician page). */}
+            {repliedMessage && (
+              <div className="mb-3 p-3 rounded-lg border border-[#FCD000] bg-yellow-50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-yellow-800">
+                      Replying to Support Team
+                    </p>
+                    <p className="text-xs text-yellow-700 truncate">
+                      {stripReplyMeta(repliedMessage.message_body || repliedMessage?.attachments?.[0]?.name || "Message")}
+                    </p>
                   </div>
                   <button
-                    onClick={() => handleRemoveFile(index)}
-                    className="p-1 hover:bg-red-100 rounded-full transition"
-                    title="Remove file"
+                    type="button"
+                    onClick={() => setRepliedMessage(null)}
+                    className="text-yellow-700 hover:text-yellow-900"
+                    title="Cancel reply"
                   >
-                    <X className="w-4 h-4 text-red-500" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* Attached Files Preview */}
+            {attachedFiles.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {attachedFiles.map((fileObj, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-lg p-2 pr-1"
+                  >
+                    {fileObj.preview ? (
+                      <img 
+                        src={fileObj.preview} 
+                        alt={fileObj.name}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                        {getFileIcon(fileObj.type)}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 max-w-xs">
+                      <p className="text-xs font-medium truncate">{fileObj.name}</p>
+                      <p className="text-xs text-gray-500">{formatFileSize(fileObj.size)}</p>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="p-1 hover:bg-red-100 rounded-full transition"
+                      title="Remove file"
+                    >
+                      <X className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {/* File Input (Hidden) */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic"
+                /*  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" */
+              />
+
+              {/* Attach File Button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                title="Attach files"
+              >
+                <Paperclip className="w-5 h-5 text-gray-600" />
+              </button>
+
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Type your reply..."
+                className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+                rows="3"
+                style={{color: '#000000', caretColor: '#000000'}}
+                disabled={loading}
+              />
+              <button
+                onClick={handleSendReply}
+                disabled={loading || (!replyText.trim() && attachedFiles.length === 0)}
+                className="px-6 py-3 bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Send
+              </button>
             </div>
-          )}
-
-          <div className="flex gap-2">
-            {/* File Input (Hidden) */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic"
-              /*  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" */
-            />
-
-            {/* Attach File Button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading}
-              className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              title="Attach files"
-            >
-              <Paperclip className="w-5 h-5 text-gray-600" />
-            </button>
-
-            <textarea
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Type your reply..."
-              className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
-              rows="3"
-              style={{color: '#000000', caretColor: '#000000'}}
-              disabled={loading}
-            />
-            <button
-              onClick={handleSendReply}
-              disabled={loading || (!replyText.trim() && attachedFiles.length === 0)}
-              className="px-6 py-3 bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Send
-            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Reply will be sent via email and saved in the conversation
+              {attachedFiles.length > 0 && ` • ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''} attached`}
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Reply will be sent via email and saved in the conversation
-            {attachedFiles.length > 0 && ` • ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''} attached`}
-          </p>
-        </div>
+        )}
       </div>
 
        {/* Mobile view */}
