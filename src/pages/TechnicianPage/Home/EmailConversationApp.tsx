@@ -712,23 +712,12 @@ export default function EmailConversationApp() {
               ) : (
                 messages.map((msg) => {
                   const hasAttachments = Array.isArray(msg.attachments) && msg.attachments.length > 0;
-
-                  // Keep activity-log-only rows, but allow updated messages with attachments
-                  // (e.g. PDF job orders) to render as normal message bubbles.
-                  if (msg.is_updated === 1 && !hasAttachments) {
-                    return (
-                      <div key={msg.id} ref={messageEndRef} className="w-full">
-                        <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
-                          {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
-                            <p key={`${msg.id}-${idx}`} className='leading-relaxed'>{line}</p>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
                   // Extract quoted-reply info (if present) and clean message text for display.
                   const { replyMeta, cleanBody } = parseReplyBody(msg.message_body || "");
+                  const activityLines = Array.isArray(msg.activity_logs)
+                    ? msg.activity_logs.flatMap((log) => log?.lines || [])
+                    : [];
+                  const shouldRenderBubble = Boolean(cleanBody?.trim()) || hasAttachments;
 
                   const isStartAligned = msg.is_inbound;
 
@@ -801,7 +790,9 @@ export default function EmailConversationApp() {
                           <p className="truncate">{replyMeta?.snippet || ""}</p>
                         </div>
                       )}
-                      <p className="text-sm whitespace-pre-wrap break-words">{cleanBody}</p>
+                      {cleanBody?.trim() && (
+                        <p className="text-sm whitespace-pre-wrap break-words">{cleanBody}</p>
+                      )}
                       
                       {/* Attachments Display */}
                       {msg.attachments && msg.attachments.length > 0 && (
@@ -862,24 +853,34 @@ export default function EmailConversationApp() {
                   );
 
                   return (
-                    <div
-                      key={msg.id}
-                      ref={messageEndRef}
-                      className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {isStartAligned ? (
-                          <>
-                            {messageBubble}
-                            {replyButton}
-                          </>
-                        ) : (
-                          <>
-                            {replyButton}
-                            {messageBubble}
-                          </>
-                        )}
-                      </div>
+                    <div key={msg.id} ref={messageEndRef} className="w-full space-y-2">
+                      {activityLines.length > 0 && (
+                        <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
+                          {activityLines.map((line, idx) => (
+                            <p key={`${msg.id}-${idx}`} className="leading-relaxed">{line}</p>
+                          ))}
+                        </div>
+                      )}
+
+                      {shouldRenderBubble && (
+                        <div
+                          className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isStartAligned ? (
+                              <>
+                                {messageBubble}
+                                {replyButton}
+                              </>
+                            ) : (
+                              <>
+                                {replyButton}
+                                {messageBubble}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })
