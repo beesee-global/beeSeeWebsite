@@ -158,7 +158,9 @@ const Home = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteTicket(deleteIds); // call mutation
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds));
+      const response = await deleteTicket(formData); // call mutation
 
       if (response?.success) {
         setDialogOpen(false)

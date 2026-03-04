@@ -84,7 +84,11 @@ const JobPosting = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteCareer(deleteIds);
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds)); 
+      formData.append("user_id", String(userInfo?.id));  
+
+      const response = await deleteCareer(formData);
 
       if (response?.success) {
         setDialogOpen(false)

@@ -106,17 +106,19 @@ export const fetchPositions = async () => {
     }
 }
 
-export const deleteUsers = async (ids: number[] | string[]) => {
+export const deleteUsers = async (payload: FormData | number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: { ids }
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
     });
-
-    return response.data
+    return response.data;
   } catch (error) {
-    throw error
+    throw error;
   }
-}
+} 
 
 export const forgetPassword = async (data: any) => {
   try {
@@ -142,6 +144,15 @@ export const changePassword = async (data: any) => {
 
     return response.data
   } catch (error) {
+    throw error
+  }
+}
+
+export const logoutUser = async (id: number) => {
+  try {
+    const response = await axiosClient.post(`/auth/${id}/logout`);
+    return response.data
+  } catch (error) { 
     throw error
   }
 }

@@ -82,7 +82,10 @@ const Category = () => {
     // Delete Device
     const handleConfirmDelete = async () => {
         try {
-            const response = await deleteCategory(deleteIds); // call mutation
+            const formData = new FormData();
+            formData.append("ids", JSON.stringify(deleteIds)); 
+            formData.append("user_id", String(userInfo?.id)); 
+            const response = await deleteCategory(formData); // call mutation
 
             if (response?.success) {
                 setDialogOpen(false);
@@ -130,7 +133,8 @@ const Category = () => {
         try {
             const formData = new FormData();
             formData.append('name', formDataCategory.name);
-            formData.append('is_active', formDataCategory.is_active)
+            formData.append('is_active', formDataCategory.is_active);
+            formData.append('user_id', String(userInfo?.id)); // Include user_id in the payload
             const response = await Category(formData);
 
             if (response?.success) {
@@ -152,7 +156,8 @@ const Category = () => {
         try {
             const payload = {
                 name: formDataCategory.name,
-                is_active: formDataCategory.is_active
+                is_active: formDataCategory.is_active, 
+                user_id: userInfo?.id // Include user_id in the payload
             };
 
             const response = await updateCategory({

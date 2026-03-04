@@ -152,7 +152,11 @@ const Faqs = () => {
   // Delete FAQ
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteFaqs(deleteIds);
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds)); 
+      formData.append("user_id", String(userInfo?.id));   
+
+      const response = await deleteFaqs(formData);
       if (response?.success) {
         setDialogOpen(false);
         setDialogMessage('');
@@ -181,6 +185,7 @@ const Faqs = () => {
       formDataFaqs.append('products_id', formData.product);
       formDataFaqs.append('categories_id', formData.category);
       formDataFaqs.append('is_all_devices', formData.is_all_devices ?? false);
+      formDataFaqs.append('user_id', userInfo?.id.toString() || '');
 
       const response = await createFaqs(formDataFaqs);
 
@@ -206,6 +211,7 @@ const Faqs = () => {
       payload.append('products_id', formData.product);
       payload.append('categories_id', formData.category);
       payload.append('is_all_devices', formData.is_all_devices ?? '0');
+      payload.append('user_id', userInfo?.id.toString() || '');
 
       const response = await updateFaqs(selectedFaqs.id, payload);
       if (response?.success) {

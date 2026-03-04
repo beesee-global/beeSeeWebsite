@@ -46,9 +46,10 @@ const ApplicantsEmail = () => {
   const queryClient = useQueryClient();
   
   const {
-    setSnackBarMessage, 
-    setSnackBarOpen, 
-    setSnackBarType, 
+    userInfo: authUserInfo,
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType,
   } = userAuth();
 
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -70,7 +71,7 @@ const ApplicantsEmail = () => {
   }); 
 
   // Fetch data only when id exists
-  const { data: userInfo, isLoading } = useQuery({
+  const { data: applicantInfoResponse, isLoading } = useQuery({
     queryKey: ["applicant-detail", id],
     queryFn: () => getInformationApplicant(String(id)),
     enabled: !!id,
@@ -92,7 +93,7 @@ const ApplicantsEmail = () => {
     mutationFn: sendInterviewInvitation
   })
 
-  const applicantDetails = userInfo?.data;
+  const applicantDetails = applicantInfoResponse?.data;
   
   // Load data when fetched
   useEffect(() => {
@@ -177,7 +178,8 @@ const ApplicantsEmail = () => {
       date: emailData.date,
       schedule_details: emailData.schedule,
       format: emailData.format,
-      duration: emailData.duration
+      duration: emailData.duration,
+      user_id: authUserInfo?.id
     };
 
     const response = await sendInterviewInvitations(payload)
@@ -219,11 +221,11 @@ const ApplicantsEmail = () => {
       let response;
       
       if (actionType === 'shortlist') {
-        response = await shortListed(String(formData.id));
+        response = await shortListed({ id: String(formData.id), user_id: authUserInfo?.id });
       } else if (actionType === 'reject') {
-        response = await rejectApplicant(String(formData.id));
+        response = await rejectApplicant({ id: String(formData.id), user_id: authUserInfo?.id });
       } else if (actionType === 'delete') {
-        response = await deleteApplicant([formData.id]);
+        response = await deleteApplicant({ ids: [formData.id], user_id: authUserInfo?.id });
       }
 
       if (response?.success) {
@@ -570,3 +572,5 @@ const ApplicantsEmail = () => {
 };
 
 export default ApplicantsEmail;
+
+

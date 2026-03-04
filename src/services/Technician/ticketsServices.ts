@@ -57,14 +57,14 @@ export const searchJobOrder = async () => {
     }
 }
 
-export const updateStatusDelete = async (data: any) => {
-  try {
-      const response = await axiosClient.put(`${API_URL}/update-status-delete`, data);
-      return response.data
-  } catch (error) {
-      throw error
-  }
-}
+// export const updateStatusDelete = async (data: any) => {
+//   try {
+//       const response = await axiosClient.put(`${API_URL}/update-status-delete`, data);
+//       return response.data
+//   } catch (error) {
+//       throw error
+//   }
+// }
 
 export const sentJobOder = async (id: string , data:any) => {
     try {
@@ -107,21 +107,21 @@ export const uploadJobOrders = async (id: string , data:any) => {
 }
 
 // permanently delete a ticket or multiple tickets
-export const deleteForever = async (idOrIds: number | number[]) => {
-    try {
-        let response;
-        if (Array.isArray(idOrIds)) {
-            // bulk delete - send ids in request body
-            response = await axiosClient.delete(`${API_URL}/delete-forever`, { data: { ids: idOrIds } });
-        } else {
-            // single delete - id in path
-            response = await axiosClient.delete(`${API_URL}/delete-forever/${idOrIds}`);
-        }
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-}
+// export const deleteForever = async (idOrIds: number | number[]) => {
+//     try {
+//         let response;
+//         if (Array.isArray(idOrIds)) {
+//             // bulk delete - send ids in request body
+//             response = await axiosClient.delete(`${API_URL}/delete-forever`, { data: { ids: idOrIds } });
+//         } else {
+//             // single delete - id in path
+//             response = await axiosClient.delete(`${API_URL}/delete-forever/${idOrIds}`);
+//         }
+//         return response.data;
+//     } catch (error) {
+//         throw error;
+//     }
+// }
 
 // --- Main ---
 export const fetchOpen = async () => {
@@ -180,10 +180,13 @@ export const fetchTicketDetailsPublic = async (pid: string) => {
 }
 
 
-export const deleteTickets = async (ids: number[] | string[]) => {
+export const deleteTickets = async (payload: FormData | number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: { ids }  // send payload in `data` for DELETE
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
     });
     return response.data;
   } catch (error) {
@@ -263,3 +266,4 @@ export const updateStatus = async(reference_number: string, payload: any) => {
         throw error
     }
 }
+

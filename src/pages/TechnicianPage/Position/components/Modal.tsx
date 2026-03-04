@@ -119,7 +119,7 @@ const permissionTree = [
     url: "/beesee/job-order",
     parent: null,
     hasActions: true, // This module has action permissions
-    allowedActions: ["view", "add", "delete"], // Only these actions are available (no edit)
+    allowedActions: ["view", "add", "delete", "close_job_order"], // Job order supports close action
   },
   {
     id: "faqs",
@@ -144,6 +144,14 @@ const permissionTree = [
     parent: null,
     hasActions: true,
     allowedActions: ["view", "add", "edit", "delete"], // All actions
+  },
+  {
+    id: "audit-logs",
+    name: "Audit Logs",
+    url: "/beesee/audit-logs",
+    parent: null,
+    hasActions: true,
+    allowedActions: ["view"], // All actions
   },
   {
     id: "users",
@@ -691,7 +699,41 @@ const Modal: React.FC<ModalProps> = ({
               }
             />
           )}
-        </Box>
+
+          {/* Close Job Order Checkbox - Only show if allowed in allowedActions array */}
+          {allowedActions.includes("close_job_order") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={moduleActions.includes("close_job_order")}
+                  onChange={() => handleActionToggle(moduleId, "close_job_order")}
+                  disabled={isPermissionLocked || !hasGrantAccess}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#374151" },
+                    "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.08)" },
+                    "&.Mui-disabled": {
+                      color: "#e5e7eb",
+                    },
+                  }}
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: !hasGrantAccess ? "#d1d5db" : "#374151",
+                    }}
+                  >
+                    Close Job Order
+                  </span>
+                </Box>
+              }
+            />
+          )}        </Box>
       </Box>
     );
   };
@@ -1045,3 +1087,4 @@ const Modal: React.FC<ModalProps> = ({
 
 // Export component for use in other files
 export default Modal;
+

@@ -244,7 +244,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       JobOrder.append("location", String(formData.location ?? ''));
       JobOrder.append("sender_name", String(userInfo?.full_name || 'Support Team'))
       JobOrder.append("sender_email", String(userTicketInformation.email || 'admin@beesee.com'))
-      JobOrder.append("user_role", String(userInfo?.role || ''))
+      JobOrder.append("user_role", String(userInfo?.role || ''));
+      JobOrder.append("user_id", String(userInfo?.id ?? ''));
 
       // Append PDF file
       JobOrder.append("job_order_pdf", file);
@@ -322,6 +323,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       const form = new FormData()
       form.append("serial_number", formData.serial_number);
       form.append("location", String(formData.location ?? ''));
+      form.append("user_id", String(userInfo?.id ?? ''));
       // Append PDF file
       form.append("job_order_pdf", file);
 
@@ -351,6 +353,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
       formData.append("ticket_id", ticket_id);
       formData.append("status", status)
+      formData.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await deleteBeforeAfterAttachments(formData) 
 
@@ -452,7 +455,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
       const formData = new FormData()
       formData.append("ticket_id", String(userTicketInformation.ticket_id))
-      formData.append("status", uploadStatus)
+      formData.append("status", uploadStatus);
+      formData.append("user_id", String(userInfo?.id ?? ''))
       selectedUploadFiles.forEach((file) => {
         formData.append("images[]", file)
       })

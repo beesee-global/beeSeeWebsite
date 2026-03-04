@@ -201,7 +201,11 @@ export default function InquriesReplyMessage() {
   // Confirm Delete
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteInquiries(deleteIds);
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds)); 
+      formData.append("user_id", String(userInfo?.id));  
+
+      const response = await deleteInquiries(formData);
 
       if (response?.success) {
         setDialogOpen(false);

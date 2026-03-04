@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, type ReactNode } from 'react';
-import { ChevronDown, ChevronRight, ChevronLeft, Menu, User2, LayoutDashboard, MessageCircleQuestionMark, Settings, Wrench, Briefcase, MailQuestionMarkIcon, X } from 'lucide-react';
+import { ChevronDown, Logs, ChevronLeft, Menu, User2, LayoutDashboard, MessageCircleQuestionMark, Settings, Wrench, Briefcase, MailQuestionMarkIcon, X } from 'lucide-react';
 import { userAuth } from '../../hooks/userAuth';
 
 interface ChildItem {
@@ -54,6 +54,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
         { id: 'faqs', name: 'Faqs', path: '/beesee/faqs', isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> },
         { id: 'inquiries', name: 'Inquiries', path: '/beesee/inquiries', icon: <MailQuestionMarkIcon size={20} /> },
         { id: 'careers', name: 'Careers', path: '/beesee/job-posting', icon: <Briefcase size={20} /> },
+        { id: 'audit-logs', name: 'Audit Logs', path: '/beesee/audit-logs', icon: <Logs size={20} /> },
     ];
 
     const toggleMenu = (id: string) => {

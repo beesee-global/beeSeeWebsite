@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomTextField from '../../../components/Fields/CustomTextField';
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
-import AlertDialog from '../../../components/feedback/AlertDialog';
-import AddImageIcon from '../../../../public/add-image-icon.jpg';
-import { AlertColor } from '@mui/material/Alert';
+ import AlertDialog from '../../../components/feedback/AlertDialog';
+import AddImageIcon from '../../../../public/add-image-icon.jpg'; 
 import { useNavigate } from 'react-router-dom';
 import { Edit3, Save, User2, User, Mail, Lock, Phone, MapPin, Image as ImageIcon, Upload, CheckCircle } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -216,6 +214,7 @@ const MyAccount = () => {
 
             // prepare form data for sending
             const formDataToSend = new FormData();
+            formDataToSend.append("user_id", String(userInfo?.id ?? ''));
             Object.entries(formData).forEach(([key, value]) => {
                 if (value !== undefined && value !== null) {
                     formDataToSend.append(key, value);

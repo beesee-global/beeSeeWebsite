@@ -432,6 +432,7 @@ export default function EmailConversationApp() {
 
       const payload = new FormData();
       payload.append("status", "resolved");
+      payload.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await updateStats({
         reference_number: String(userTicketInformation?.ticket_id),
@@ -473,6 +474,7 @@ export default function EmailConversationApp() {
       const formData = new FormData(); 
       formData.append("job_order_pdf", selectedFile);
       formData.append("ticket_id", userTicketInformation?.ticket_id);
+      formData.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await uploadJobOrder({
         id: String(userTicketInformation?.id),
@@ -542,7 +544,11 @@ export default function EmailConversationApp() {
   const handleConfirmDelete = async () => {
     try {
       if (isDeletingTicket) return
-      const response = await deleteTicket(deleteIds); // call mutation
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds));
+      formData.append("user_id", String(userInfo?.id ?? ''));
+
+      const response = await deleteTicket(formData); // call mutation
 
       if (response?.success) {
         closeDialog()
@@ -707,7 +713,7 @@ export default function EmailConversationApp() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading && messages.length === 0 ? (
                 <div className="flex justify-center items-center h-full">
-                  <div className="text-gray-400">Loading messages...</div>
+                  <div className="text-gray-400">Loadfing messages...</div>
                 </div>
               ) : (
                 messages.map((msg) => {

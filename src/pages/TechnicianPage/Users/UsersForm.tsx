@@ -222,6 +222,7 @@ const UsersForm = () => {
       }
 
       const payload: {
+        user_id: string | number;
         first_name: string;
         last_name: string;
         email: string;
@@ -233,6 +234,7 @@ const UsersForm = () => {
         };
         password?: string;
       } = {
+        user_id: userInfo?.id ?? "",
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
