@@ -14,7 +14,8 @@ import {
   fetchResolve,
   deleteTickets,
   fetchOngoing,
-  searchJobOrder
+  searchJobOrder,
+  fetchClosed
 } from '../../../services/Technician/ticketsServices'
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import WorkIcon from '@mui/icons-material/Work';
@@ -47,7 +48,7 @@ const Home = () => {
     { id: 'device_type', label: "Device Type", sortable: true },
     { id: "issue_type", label: "Model Type", sortable: true },
     { id: "issue_name", label: "Issue Type", sortable: true }, 
-    { id: 'updated_at', label: 'Date Submitted', sortable: true },
+    { id: 'status_date', label: 'Date', sortable: false },
    /*  { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' }, */
   ];
 
@@ -63,17 +64,20 @@ const Home = () => {
     queryFn: fetchResolve
   });
 
-  const { data: listOfTicket } = useQuery({
-    queryKey: ['listOfTicket'],
-    queryFn: searchJobOrder
-  });
-
- 
-
   const { data: ongoingTicketResponse} = useQuery ({
     queryKey: ['ongoing-ticket'],
     queryFn: fetchOngoing
+  });
+
+  const { data: closedTicketResponse } = useQuery ({
+    queryKey: ['closed-ticket'],
+    queryFn: fetchClosed
   })
+
+  const { data: listOfTicket } = useQuery({
+    queryKey: ['listOfTicket'],
+    queryFn: searchJobOrder
+  }); 
 
   const { data: allDeviceResponse = [], isLoading: companyLoading } = useQuery ({
     queryKey: ['client-open'],
@@ -121,6 +125,7 @@ const Home = () => {
     if (statusFilter === "Pending") baseRows = openTicketResponse?.data || [];
     if (statusFilter === "Ongoing") baseRows = ongoingTicketResponse?.data || [];
     if (statusFilter === "Completed") baseRows = resolvedTicketResponse?.data || [];
+    if (statusFilter === "Closed") baseRows = closedTicketResponse?.data || [];
     
     // Filter by organization/company if selected (not "all")
     if (organization && organization !== "all") {
@@ -133,6 +138,7 @@ const Home = () => {
     statusFilter,
     openTicketResponse,
     ongoingTicketResponse,
+    closedTicketResponse,
     resolvedTicketResponse, 
   ]);
 

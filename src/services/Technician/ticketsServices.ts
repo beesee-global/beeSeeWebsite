@@ -1,3 +1,4 @@
+import { Form } from "react-router-dom";
 import axiosClient from "../../axiosClient";
 
 const API_URL = '/tickets'
@@ -143,6 +144,15 @@ export const fetchOngoing = async () => {
     }
 }
 
+export const fetchClosed = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}?status=closed`);
+        return response.data
+    } catch (error) {
+        throw error;
+    }
+} 
+
 export const fetchResolve = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}?status=resolved`)
@@ -267,3 +277,16 @@ export const updateStatus = async(reference_number: string, payload: any) => {
     }
 }
 
+
+export const markAsClosed = async (data: FormData) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/mark-as-closed`, data, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
+import { userAuth } from '../../../../hooks/userAuth';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -62,7 +63,13 @@ const COLUMN_WIDTHS = {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const datePart = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const hours24 = date.getHours();
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 || 12;
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${datePart}, ${hours12}:${minutes} ${period}`;
 };
 
 function ascendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -162,6 +169,10 @@ export default function TableInbox({
   // Track the currently selected row so we can highlight it in the UI.
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const rowsPerPage = 20;
+
+  const { userInfo } = userAuth();
+
+  const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
   // Reset page when status filter or organization changes
   useEffect(() => {
@@ -276,6 +287,20 @@ export default function TableInbox({
               >
                 Completed
               </button>
+
+              {jobOrderPermission?.actions.includes('close_job_order') && (
+                <button
+                  onClick={() => setStatusFilter("Closed")}
+                  title='Closed mean all job order that already closed'
+                  className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                    ${statusFilter === "Closed" 
+                      ? "bg-yellow-500 text-white border-yellow-500" 
+                      : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                    }`}
+                >
+                  Closed
+                </button>
+              )}
             </div>
 
             <div className="w-full md:w-auto">
@@ -449,7 +474,7 @@ export default function TableInbox({
                               </button>
                             )}
                           </div>
-                        ) : col.id === 'updated_at' || col.id === 'created_at' ? (
+                        ) : col.id === 'status_date' || col.id === 'status_date' ? (
                           <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
                         ) : (
                           <div className="text-sm text-gray-900 truncate" style={{ maxWidth: 320 }}>{row[col.id]}</div>

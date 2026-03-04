@@ -570,7 +570,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             <Calendar size={14} />
             {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
           </span>
-          {!publicConversation && (
+          {!publicConversation && userTicketInformation.status != 'resolved' && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
               {userTicketInformation.job_order_url !== null ? (
                 <>
@@ -707,90 +707,135 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           
           {!publicConversation ? (
             <div className="space-y-2">
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
-              <div className="text-md text-gray-900 font-medium">
-                <CustomSelectField 
-                  options={categories || []}
-                  name='categories_id'
-                  onChange={handleChangeInput}
-                  value={formData.categories_id}
-                  placeholder='Select Device Type'
-                />
-              </div>
-            </div>
-            
-            <div>
-              {isCategoryActive ? (
-                <>
-                  <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomTextField 
-                        onChange={handleChangeInput}
-                        name='item_name'
-                        rows={1}
-                        multiline={false}
-                        value={formData?.item_name} 
-                      />
-                    </div>
-                </>
-              ) : (
-                <div className='space-y-2'>
-                  <div>
-                    <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomSelectField 
-                        options={modelType || []}
-                        name='product_id'
-                        onChange={handleChangeInput}
-                        value={formData.product_id ?? ''}
-                        placeholder='Select Model Type'
-                      />
-                    </div> 
-                  </div>
-
-                  <div>
-                    <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomSelectField 
-                        options={issueType || []}
-                        name='issue_id'
-                        onChange={handleChangeInput}
-                        value={formData.issue_id ?? ''}
-                        placeholder='Select Issue Type'
-                      />
-                    </div>
+            {userTicketInformation?.is_closed !== 1 ? (
+              <>
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
+                  <div className="text-md text-gray-900 font-medium">
+                    <CustomSelectField 
+                      options={categories || []}
+                      name='categories_id'
+                      onChange={handleChangeInput}
+                      value={formData.categories_id}
+                      placeholder='Select Device Type'
+                    />
                   </div>
                 </div>
-              )}
-              
-            </div>
+                
+                <div>
+                  {isCategoryActive ? (
+                    <>
+                      <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomTextField 
+                            onChange={handleChangeInput}
+                            name='item_name'
+                            rows={1}
+                            multiline={false}
+                            value={formData?.item_name} 
+                          />
+                        </div>
+                    </>
+                  ) : (
+                    <div className='space-y-2'>
+                      <div>
+                        <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomSelectField 
+                            options={modelType || []}
+                            name='product_id'
+                            onChange={handleChangeInput}
+                            value={formData.product_id ?? ''}
+                            placeholder='Select Model Type'
+                          />
+                        </div> 
+                      </div>
 
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
-                <CustomTextField 
-                  onChange={handleChangeInput}
-                  name='serial_number'
-                  rows={1}
-                  multiline={false}
-                  value={formData.serial_number}
-                />
-              </div>
-            </div> 
+                      <div>
+                        <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomSelectField 
+                            options={issueType || []}
+                            name='issue_id'
+                            onChange={handleChangeInput}
+                            value={formData.issue_id ?? ''}
+                            placeholder='Select Issue Type'
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                </div>
 
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Location</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
-                <CustomTextField 
-                  onChange={handleChangeInput}
-                  name='location'
-                  rows={1}
-                  multiline={false}
-                  value={formData.location}
-                />
-              </div>
-            </div> 
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2"> 
+                    <CustomTextField 
+                      onChange={handleChangeInput}
+                      name='serial_number'
+                      rows={1}
+                      multiline={false}
+                      value={formData.serial_number}
+                    />
+                  </div>
+                </div> 
+
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2"> 
+                    <CustomTextField 
+                      onChange={handleChangeInput}
+                      name='location'
+                      rows={1}
+                      multiline={false}
+                      value={formData.location}
+                    />
+                  </div>
+                </div> 
+              </>
+            ) : (
+              <>
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
+                  <div className="text-md text-gray-900 font-medium">
+                    {userTicketInformation.device_type || 'N/A'}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                    {userTicketInformation.issue_type || 'N/A'}
+                  </div>
+                </div>
+
+                {userTicketInformation.issue_name && (
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                    <div className="text-md text-gray-900 font-medium flex items-center gap-2"> 
+                      {userTicketInformation.issue_name || 'N/A'}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+                  <div className="text-md text-gray-900 flex items-center font-medium gap-2"> 
+                    {userTicketInformation.serial_number || 'N/A'} 
+                  </div>
+                </div> 
+
+                {userTicketInformation.location && (
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                    <div className="text-md text-gray-900 font-medium flex items-center gap-2"> 
+                      {userTicketInformation.location || 'N/A'}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           ) : (
             <div className="space-y-2">
@@ -811,19 +856,36 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             {userTicketInformation.issue_name && (
               <div>
                 <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
-                <div className="text-md text-gray-900 flex items-center gap-2"> 
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
                   {userTicketInformation.issue_name || 'N/A'}
                 </div>
               </div>
-            )}
-            
+            )} 
+
+            {userTicketInformation.item_name && (
+              <div>
+                <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                  {userTicketInformation.item_name || 'N/A'}
+                </div>
+              </div>
+            )} 
 
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
+              <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
                 {userTicketInformation.serial_number || 'N/A'}
               </div>
             </div> 
+
+            {userTicketInformation.location && (
+              <div>
+                <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                  {userTicketInformation.location || 'N/A'}
+                </div>
+              </div>
+            )}
           </div>
           )}  
         </div>
