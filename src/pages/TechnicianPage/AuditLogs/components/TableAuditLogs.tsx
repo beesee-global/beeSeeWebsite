@@ -63,8 +63,7 @@ const formatDate = (dateString: string) => {
   const period = hours24 >= 12 ? 'PM' : 'AM';
   const hours12 = hours24 % 12 || 12;
   const hours = String(hours12).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0'); 
 
   return `${year}-${month}-${day} ${hours}:${minutes} ${period}`;
 };
