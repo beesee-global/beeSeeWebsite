@@ -244,6 +244,17 @@ export default function TableInquiries({
                   >
                     Settled
                   </button>
+
+                  <button
+                    onClick={() => setStatusFilter("Closed")}
+                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                      ${statusFilter === "Closed" 
+                        ? "bg-yellow-500 text-white border-yellow-500" 
+                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                      }`}
+                  >
+                    Closed
+                  </button>
                 </div> 
     
               </div>
