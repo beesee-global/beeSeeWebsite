@@ -347,6 +347,7 @@ export default function EmailConversationApp() {
       formData.append('message_body', composedMessageBody);
       formData.append('user_role', String(userInfo?.role || ''));
       formData.append('is_inbound', "0");
+      formData.append("user_id", String(userInfo?.id));
 
       if (currentAttachedFiles.length > 0) {
         currentAttachedFiles.forEach((fileObj) => {

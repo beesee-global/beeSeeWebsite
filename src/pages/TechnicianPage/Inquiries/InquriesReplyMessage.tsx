@@ -125,6 +125,7 @@ export default function InquriesReplyMessage() {
         // Here you would upload files and send message
         const formData = new FormData();
         formData.append('message_body', replyText);
+        formData.append("user_id", String(userInfo?.id));
         formData.append("subject",inquiriesMessage?.data[0]?.subject)
         formData.append('sender_email', userInquiriesInfo?.email); 
         formData.append("inquiries_id", userInquiriesInfo?.id);

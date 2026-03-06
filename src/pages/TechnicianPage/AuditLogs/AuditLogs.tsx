@@ -14,15 +14,17 @@ const AuditLogs = () => {
   const { data: auditLogsResponse, isLoading, error } = useQuery({
     queryKey: ["audit-logs", userInfo?.id],
     queryFn: async () => {
-      const response = await axiosClient(`/audit_logs?user_id=${userInfo?.id}`);
+      const response = await axiosClient(`/audit_logs`);
       return response.data;
     }
   });
 
   const columns = [ 
+    { id: 'user_name', label: 'User Name', sortable: false },
     { id: 'action', label: 'Action', sortable: false },
     { id: 'entity', label: 'Entity', sortable: false },
     { id: 'details', label: 'Details', sortable: false },
+    { id: 'status_message', label: 'Status Message', sortable: false },
     { id: 'created_at', label: 'Timestamp', sortable: false }, 
   ];
 
