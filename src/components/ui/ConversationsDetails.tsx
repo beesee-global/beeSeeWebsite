@@ -13,6 +13,7 @@ import {
   beforeAfterInsert ,
   deleteBeforeAfterAttachment
 } from '../../services/Technician/ticketsServices'
+import JobOrderFlowDialog from '../../pages/TechnicianPage/Home/components/JobOrderFlowDialog';
 import { useMutation } from '@tanstack/react-query'; 
 import {
   Mail,
@@ -31,6 +32,7 @@ import {
   Barcode,
   Trash2,
   Upload, 
+  BadgeQuestionMark
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
 import AlertDialog from '../feedback/AlertDialog';
@@ -72,6 +74,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const [uploadStatus, setUploadStatus] = useState<"before" | "after" | "">("");
   const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
   const beforeAfterFileInputRef = useRef<HTMLInputElement>(null);
+  const [jobOrderFlowDialogOpen, setJobOrderFlowDialogOpen] = useState<boolean>(false);
+
 
   const {
     userInfo,
@@ -535,6 +539,10 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   return (
     <div>  
       <div className="p-4 space-y-4">
+        <JobOrderFlowDialog
+          open={jobOrderFlowDialogOpen}
+          onClose={() => setJobOrderFlowDialogOpen(false)}
+        />
 
         <AlertDialog
           open={dialogOpen}
@@ -565,12 +573,13 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         />
 
         {/* Status Badge */}
-        <div className="md:flex items-center justify-between ">  
+        <div className="md:flex items-center  justify-between gap-4">  
           <span className="text-md text-gray-500 flex items-center gap-1">
             <Calendar size={14} />
             {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
           </span>
-          {!publicConversation && userTicketInformation.status != 'resolved' && (
+          <div className='flex gap-2'>
+            {!publicConversation && userTicketInformation.status != 'resolved' && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
               {userTicketInformation.job_order_url !== null ? (
                 <>
@@ -655,6 +664,19 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               )} 
             </div>
           )} 
+
+          {!publicConversation && (
+            <div>
+              <button 
+                className='bg-gray-200 text-gray-700 px-3 py-3 rounded-md flex items-center'
+                title='Need help?'
+                onClick={() => setJobOrderFlowDialogOpen(true)}
+              >
+                <BadgeQuestionMark size={15}/>
+              </button>
+            </div>
+          )}
+          </div>
         </div>
 
         {/* Ticket ID */}
@@ -1134,7 +1156,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   Before-Service Report Images ({userTicketInformation?.before_image?.length || 0})
                 </div>
-                {!publicConversation && (
+                {!publicConversation && !userTicketInformation.is_closed && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"
@@ -1194,7 +1216,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   After-Service Report Images ({userTicketInformation?.after_image?.length || 0})
                 </div>
-                {!publicConversation && (
+                {!publicConversation && !userTicketInformation.is_closed && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"
