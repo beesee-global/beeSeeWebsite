@@ -18,10 +18,17 @@ import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFie
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client' 
+import { userAuth } from '../../../hooks/userAuth';
 
 const Inquiries = () => { 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const {
+    userInfo
+  } = userAuth()
+
+
+
 
   const columns = [
     { id: 'name', label: 'Name', sortable: true },

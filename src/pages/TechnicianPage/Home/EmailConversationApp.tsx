@@ -390,7 +390,7 @@ export default function EmailConversationApp() {
         }) 
       }
 
-    } catch (error) { 
+    } catch (error: any) { 
       const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       setSnackBarMessage(cleanMessage);

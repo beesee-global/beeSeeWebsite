@@ -135,7 +135,7 @@ const permissionTree = [
     url: "/beesee/inquiries",
     parent: null,
     hasActions: true,
-    allowedActions: ["view", "delete"], // Only view and delete (no add/edit)
+    allowedActions: ["view", "delete", "closed_inquiries"], // Only view and delete (no add/edit)
   },
   {
     id: "careers",
@@ -733,7 +733,43 @@ const Modal: React.FC<ModalProps> = ({
                 </Box>
               }
             />
-          )}        </Box>
+          )}
+
+          {/* Closed Inquiries Checkbox - Only show if allowed in allowedActions array */}
+          {allowedActions.includes("closed_inquiries") && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={moduleActions.includes("closed inquiries")}
+                  onChange={() => handleActionToggle(moduleId, "closed inquiries")}
+                  disabled={isPermissionLocked || !hasGrantAccess}
+                  sx={{
+                    color: "#9ca3af",
+                    padding: "6px",
+                    "&.Mui-checked": { color: "#374151" },
+                    "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.08)" },
+                    "&.Mui-disabled": {
+                      color: "#e5e7eb",
+                    },
+                  }}
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: !hasGrantAccess ? "#d1d5db" : "#374151",
+                    }}
+                  >
+                    Closed Inquiries
+                  </span>
+                </Box>
+              }
+            />
+          )}
+        </Box>
       </Box>
     );
   };

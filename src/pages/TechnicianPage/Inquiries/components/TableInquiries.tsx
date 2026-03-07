@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
+import { userAuth } from '../../../../hooks/userAuth';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -148,6 +149,10 @@ export default function TableInquiries({
   statusFilter,
   setStatusFilter,
 }: TableMailProps) { 
+
+  const { userInfo } = userAuth()
+
+  const InquiriesPermissionJob = userInfo?.permissions?.find(p=> p.parent_id === "inquiries" && p.children_id === '')
  
   const [page, setPage] = useState(0); 
   const [orderBy, setOrderBy] = useState<string>(''); // Empty means no sorting
@@ -245,7 +250,8 @@ export default function TableInquiries({
                     Settled
                   </button>
 
-                  <button
+                  {InquiriesPermissionJob?.actions.includes("closed_inquiries") && (
+                    <button
                     onClick={() => setStatusFilter("Closed")}
                     className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
                       ${statusFilter === "Closed" 
@@ -255,6 +261,7 @@ export default function TableInquiries({
                   >
                     Closed
                   </button>
+                  )} 
                 </div> 
     
               </div>

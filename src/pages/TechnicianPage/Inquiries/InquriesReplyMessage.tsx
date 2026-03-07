@@ -9,18 +9,19 @@ import {
   Image as ImageIcon,
   Trash2,
   FileText,
-  Download
+  Download,
+  MailX
 } from 'lucide-react'; 
 import { 
     inquiriesReply, 
     fetchInquiriesById,
     fetchInquiriesByPid,
+    closeInquiries,
     deleteInquiries
 } from '../../../services/Technician/inquiriesServices'
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { userAuth } from '../../../hooks/userAuth';
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
+import { userAuth } from '../../../hooks/userAuth'; 
 import { downloadFile } from '../../../utils/downloadFile'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +48,8 @@ export default function InquriesReplyMessage() {
   const [dialogMessage, setDialogMessage] = useState('');
   const [deleteIds, setDeleteIds] = useState<number[]>([]);  
 
+  const InquiriesPermissionJob = userInfo?.permissions?.find(p=> p.parent_id === "inquiries" && p.children_id === '')
+
   const { data: inquiriesInfo, isLoading, isError } = useQuery ({
     queryKey: ['inquiries-info', pid],
     queryFn: () => fetchInquiriesByPid(String(pid)),
@@ -65,6 +68,12 @@ export default function InquriesReplyMessage() {
     mutateAsync: sentInquiries, isPending
   } = useMutation({
     mutationFn: inquiriesReply
+  })
+
+  const {
+    mutateAsync: closeInquire
+  } = useMutation ({
+    mutationFn: closeInquiries
   })
 
   useEffect(() => {
@@ -184,6 +193,32 @@ export default function InquriesReplyMessage() {
     });
   };
 
+  // close inquiries
+  const handleCloseInquiries = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("id", userInquiriesInfo?.id);
+      formData.append("user_id", String(userInfo?.id));
+
+      const response = await closeInquire(formData);
+
+      if (response.success) {
+        setSnackBarMessage('Inquiry closed successfully');
+        setSnackBarType('success');
+        setSnackBarOpen(true);
+
+        navigate("/beesee/inquiries") 
+      }
+    }
+    catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
+      setSnackBarType("error")
+      setSnackBarOpen(true);
+    }
+  }
+
   // Handle Delete Inquiry
   const handleDelete = () => {
     const Permission = userInfo?.permissions?.find(p => p.parent_id === 'inquiries' && p.children_id === '');
@@ -258,13 +293,31 @@ export default function InquriesReplyMessage() {
                 </h2> 
               </div>
 
-              <div>
-                <button 
-                  onClick={() => handleDelete()}
-                  title="Delete"
-                  className='p-2 rounded-full bg-gray-100 text-red-500'>
-                  <Trash2 className='w-5 h-5'/>
-                </button>
+              <div className='flex gap-2'>
+                {InquiriesPermissionJob?.actions.includes("closed_inquiries") && (
+                  <div>
+                    <button
+                      onClick={handleCloseInquiries}
+                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60'
+                    >
+                      
+                    <MailX className='w-4 h-4' />
+                    <span className='hidden sm:inline'>Close</span>
+                    </button>
+                  </div>
+                )}
+                
+                {InquiriesPermissionJob?.actions.includes("delete") && (
+                  <div>
+                    <button 
+                      onClick={() => handleDelete()}
+                      title="Delete"
+                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60'>
+                      <Trash2 className='w-4 h-4'/>
+                      <span className='hidden sm:inline'>Delete</span>
+                    </button>
+                </div>
+                )}
               </div>
  
             </div>

@@ -29,6 +29,15 @@ export const fetchInquiriesUnsettled = async () => {
   }
 }
 
+export const closeInquiries = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`${API_URL}/closed`, data)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
 export const fetchInquiriesClosed = async () => {
   try {
     const response = await axiosClient.get(`${API_URL}?status=Closed`);
