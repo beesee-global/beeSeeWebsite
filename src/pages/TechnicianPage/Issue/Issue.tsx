@@ -9,13 +9,37 @@ import {
   updateIssues,
   createIssue,
   fetchProductAll, 
-  Issues
+  Issues,
+  fetchIssueByName
 } from '../../../services/Technician/issuesServices';  
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import IssuesModal from './components/IssuesModal';
 import { fetchCategoriesNoIsActive } from '../../../services/Technician/categoryServices'
+
+interface IssueFormValues {
+  id?: string;
+  product_id: string[];
+  categories_id: string;
+  name: string;
+  explanation?: string;
+  publish?: boolean;
+}
+
+interface IssueEditDetails {
+  id: number;
+  detail_ids?: number[];
+  product_id: string[];
+  product_detail_pairs?: Array<{
+    product_id: string;
+    detail_id: number;
+  }>;
+  categories_id: string;
+  name: string;
+  possible_solutions?: string;
+  is_publish?: boolean | number;
+}
 
 const Issue = () => {
   const queryClient = useQueryClient();
@@ -26,7 +50,7 @@ const Issue = () => {
   const [dialogTitle, setDialogTitle] = useState<string>("");
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null); 
+  const [selectedProduct, setSelectedProduct] = useState<IssueEditDetails | null>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<string>("ALL");
@@ -95,6 +119,45 @@ const Issue = () => {
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
+  const openEditModal = async(issueName: string, issueId: number) => {
+    try {
+      const response = await fetchIssueByName(String(issueName));
+      const issue = response?.data?.result ?? response?.result ?? response;
+
+      if (!issue) {
+        setSnackBarMessage("Failed to load issue details.");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+        return;
+      }
+
+      setSelectedProduct({
+        id: issueId,
+        detail_ids: Array.isArray(issue?.id) ? issue.id : [],
+        name: issue.name ?? issueName,
+        product_id: Array.isArray(issue?.product_id)
+          ? issue.product_id.map((id: number | string) => String(id))
+          : [],
+        product_detail_pairs: Array.isArray(issue?.product_id) && Array.isArray(issue?.id)
+          ? issue.product_id.map((productId: number | string, index: number) => ({
+              product_id: String(productId),
+              detail_id: Number(issue.id[index]),
+            }))
+          : [],
+        categories_id: String(issue?.categories_id ?? ''),
+        possible_solutions: issue?.possible_solutions ?? '',
+        is_publish: issue?.is_publish ?? false,
+      });
+      setIsEditMode(true);
+      setModalOpen(true);
+    } catch (error) {
+      const message = error?.response?.data?.message?.replace(/^Error:\s*/, '');
+      setSnackBarMessage(message || "Failed to load issue details");
+      setSnackBarType("error");
+      setSnackBarOpen(true);
+    }
+  };
+
   
   // Handle Delete Button Click
   const handleDeleteClick = () => {
@@ -136,10 +199,8 @@ const Issue = () => {
 
     const issue = issues.find((f: any) => f.id === selectedRowId);
     if (!issue) return;
-    
-    setSelectedProduct(issue);
-    setIsEditMode(true);
-    setModalOpen(true);
+
+    void openEditModal(issue.name, issue.id);
   };
      
   const handleConfirmDelete = async () => {
@@ -165,11 +226,11 @@ const Issue = () => {
     }
   };
 
-  const handleAddIssue = async (formDataIssue: Record<string, string>) => {
+  const handleAddIssue = async (formDataIssue: IssueFormValues) => {
     try { 
       const response = await IssueCategory({
         name: formDataIssue.name,
-        product_id: Number(formDataIssue.product_id),
+        product_id: formDataIssue.product_id.map((id) => Number(id)),
         categories_id: Number(formDataIssue.categories_id),
         possible_solutions: formDataIssue.explanation,
         user_id: String(userInfo?.id),
@@ -191,17 +252,30 @@ const Issue = () => {
     }
   };
 
-  const handleUpdateIssue = async (formDataIssue: Record<string, string>) => {
+  const handleUpdateIssue = async (formDataIssue: IssueFormValues) => {
     try {
+      const unselectedDetailIds =
+        selectedProduct?.product_detail_pairs
+          ?.filter(({ product_id }) => !formDataIssue.product_id.includes(product_id))
+          .map(({ detail_id }) => detail_id) ?? [];
+
       const payload = {
-        id: selectedProduct.id,
+        id: selectedProduct?.id,
         name: formDataIssue.name,
-        product_id: Number(formDataIssue.product_id),
+        product_id: formDataIssue.product_id.map((id) => Number(id)),
         categories_id: Number(formDataIssue.categories_id),
         possible_solutions: formDataIssue.explanation,
         is_publish: formDataIssue.publish,
-        user_id: String(userInfo?.id)
+        user_id: String(userInfo?.id),
+        detail_ids: unselectedDetailIds,
       };
+
+      if (!selectedProduct?.id) {
+        setSnackBarMessage("Failed to update issue");
+        setSnackBarType("error");
+        setSnackBarOpen(true);
+        return;
+      }
 
       const response = await updateProduct({ id: selectedProduct.id, payload });
       if (response) {
@@ -233,12 +307,7 @@ const Issue = () => {
       return;
     }
     
-    const issue = issues.find((f: any) => f.id === row.id);
-    if (!issue) return;
-    
-    setSelectedProduct(issue);
-    setIsEditMode(true);
-    setModalOpen(true);
+    void openEditModal(row.name, row.id);
   };
  
 

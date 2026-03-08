@@ -22,8 +22,9 @@ interface FormError {
 }
 
 interface FormData {
-  id?: string; 
-  product_id: string;
+  id?: string | number; 
+  detail_ids?: number[];
+  product_id: string[];
   categories_id: string;
   name: string;
   explanation?: string;
@@ -61,7 +62,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
   const initialState: FormData = {
     id: '', 
     name: '',
-    product_id: '', 
+    product_id: [], 
     categories_id: "",
     explanation: '',
     publish: false,
@@ -101,11 +102,18 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
   // Populate form if editing
   useEffect(() => {
     if (isOpen && selectedProduct) { 
+      const selectedProductIds = Array.isArray((selectedProduct as any).product_id)
+        ? (selectedProduct as any).product_id.map((id: string | number) => String(id))
+        : String((selectedProduct as any).product_id ?? '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean);
+
       setFormData({
         id: selectedProduct.id, 
         name: selectedProduct.name,
         categories_id: String((selectedProduct as any).categories_id ?? ''),
-        product_id: String((selectedProduct as any).product_id ?? ''),
+        product_id: selectedProductIds,
         explanation: (selectedProduct as any).possible_solutions ?? '',
         publish: !!(selectedProduct as any).is_publish
       }); 
@@ -129,7 +137,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
 
     // Only clear product when user actually changes category (not when pre-filling on edit).
     if (prevCategory && prevCategory !== nextCategory) {
-      setFormData((prev) => ({ ...prev, product_id: '' }));
+      setFormData((prev) => ({ ...prev, product_id: [] }));
     }
 
     prevCategoryRef.current = nextCategory;
@@ -151,7 +159,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
 
     // Basic validation
     const errors: FormError = {};
-    if (!formData?.product_id) errors.product_id = 'Model type is required.';
+    if (!formData?.product_id?.length) errors.product_id = 'Model type is required.';
     if (!formData?.categories_id) errors.categories_id ="Device type is required."
     if (!formData?.explanation) errors.explanation = "Possible solution is required."
     if (!formData?.name) errors.name = 'Issue is required.';
@@ -204,15 +212,87 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
             helperText={formError?.categories_id}
           /> 
 
-          <CustomSelectField
-            name="product_id"
-            value={formData?.product_id}
-            options={modelType ?? []}
-            onChange={handleChangeInput}
-            placeholder="Select a Model Type"
-            error={!!formError?.product_id}
-            helperText={formError?.product_id}
-          />  
+          <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <label className="block text-sm font-semibold text-slate-900">
+                  Model Type
+                </label>
+                <p className="mt-1 text-xs text-slate-500">
+                  Choose the model that matches this issue.
+                </p>
+              </div>
+
+              {!!formData?.product_id?.length && (
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {formData.product_id.length} selected
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {isLoading ? (
+                <div className="col-span-full rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500">
+                  Loading model types...
+                </div>
+              ) : modelType?.length ? (
+                modelType.map((item) => {
+                  const isSelected = formData?.product_id?.includes(item.value);
+
+                  return (
+                    <label
+                      key={item.value}
+                      className={`cursor-pointer rounded-lg border px-3 py-3 transition-all ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50 shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="product_id"
+                          value={item.value}
+                          checked={isSelected}
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              product_id: e.target.checked
+                                ? [...prev.product_id, item.value]
+                                : prev.product_id.filter((productId) => productId !== item.value),
+                            }));
+                            setFormError((prev) => ({ ...prev, product_id: undefined }));
+                          }}
+                        />
+
+                        <div className="min-w-0">
+                          <p
+                            className={`text-sm font-medium ${
+                              isSelected ? 'text-emerald-900' : 'text-slate-800'
+                            }`}
+                          >
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {isSelected ? 'Selected' : 'Tap to add this model'}
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })
+              ) : (
+                <div className="col-span-full rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500">
+                  No model types available.
+                </div>
+              )}
+            </div>
+
+            {formError?.product_id && (
+              <p className="mt-3 text-sm font-medium text-red-500">{formError.product_id}</p>
+            )}
+          </div>
 
           <CustomTextField
             name="name"
