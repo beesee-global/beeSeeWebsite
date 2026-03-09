@@ -306,13 +306,21 @@ export default function TableAuditLogs({
                       > 
                         {/* Dynamic Columns */}
                         {safeColumns.map((column) => {
+                          const isStatusMessage = column.id === 'status_message';
+                          const statusValue = row[column.id];
+                          const hasError = isStatusMessage && statusValue?.includes('Error:');
+                          const displayText = isStatusMessage ? statusValue?.replace('Error:', '') : statusValue;
+                          const bgColor = isStatusMessage ? (hasError ? '#fee2e2' : '#d1fae5') : 'transparent';
+
                           return (
                             <div 
                               key={column.id}
-                              className={`${column.width || 'flex-1'} truncate px-4`}
+                              className={`${column.width || 'flex-1'} px-4`}
                               style={{ 
                                 textAlign: column.align || 'left',
-                                position: 'relative'
+                                position: 'relative',
+                                backgroundColor: bgColor,
+                                borderRadius: bgColor !== 'transparent' ? '6px' : '0px'
                               }}
                             >
                               {column.id === 'created_at' ? (
@@ -320,7 +328,7 @@ export default function TableAuditLogs({
                                   {formatDate(row.created_at)}
                                 </span>
                               ) : (
-                                <span className="text-sm">{row[column.id]}</span>
+                                <span className="text-sm">{displayText}</span>
                               )}
                             </div>
                           );
