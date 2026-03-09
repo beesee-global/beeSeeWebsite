@@ -42,37 +42,46 @@ export const fetchApplicantsRejected = async (id: string) => {
   }
 }
  
-export const shortList = async (id: string) => {
+export const shortList = async (payload: { id: string; user_id?: string | number }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${id}`);
+    const response = await axiosClient.put(`${API_URL}/${payload.id}`, {
+      user_id: payload.user_id,
+    });
     return response.data
   } catch (error) {
     throw error
   }
 }
 
-export const rejectedApplicants = async (id: string) => {
+export const rejectedApplicants = async (payload: { id: string; user_id?: string | number }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${id}/rejected`)
+    const response = await axiosClient.put(`${API_URL}/${payload.id}/rejected`, {
+      user_id: payload.user_id,
+    })
     return response.data
   } catch (error) {
     throw error
   }
 }
 
-export const undoRejectedApplicants = async (id: string) => {
+export const undoRejectedApplicants = async (payload: { id: string; user_id?: string | number }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${id}/undo`)
+    const response = await axiosClient.put(`${API_URL}/${payload.id}/undo`, {
+      user_id: payload.user_id,
+    })
     return response.data
   } catch (error) {
     throw error
   }
 }
 
-export const deleteApplicants = async (ids: number[]) => {
+export const deleteApplicants = async (payload: { ids: number[]; user_id?: string | number }) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: { ids }  // send payload in `data` for DELETE
+      data: {
+        ids: payload.ids,
+        user_id: payload.user_id,
+      }
     });
     return response.data
   } catch (error) {

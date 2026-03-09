@@ -13,6 +13,7 @@ import {
   beforeAfterInsert ,
   deleteBeforeAfterAttachment
 } from '../../services/Technician/ticketsServices'
+import JobOrderFlowDialog from '../../pages/TechnicianPage/Home/components/JobOrderFlowDialog';
 import { useMutation } from '@tanstack/react-query'; 
 import {
   Mail,
@@ -31,6 +32,7 @@ import {
   Barcode,
   Trash2,
   Upload, 
+  BadgeQuestionMark
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
 import AlertDialog from '../feedback/AlertDialog';
@@ -72,6 +74,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const [uploadStatus, setUploadStatus] = useState<"before" | "after" | "">("");
   const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
   const beforeAfterFileInputRef = useRef<HTMLInputElement>(null);
+  const [jobOrderFlowDialogOpen, setJobOrderFlowDialogOpen] = useState<boolean>(false);
+
 
   const {
     userInfo,
@@ -244,7 +248,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       JobOrder.append("location", String(formData.location ?? ''));
       JobOrder.append("sender_name", String(userInfo?.full_name || 'Support Team'))
       JobOrder.append("sender_email", String(userTicketInformation.email || 'admin@beesee.com'))
-      JobOrder.append("user_role", String(userInfo?.role || ''))
+      JobOrder.append("user_role", String(userInfo?.role || ''));
+      JobOrder.append("user_id", String(userInfo?.id ?? ''));
 
       // Append PDF file
       JobOrder.append("job_order_pdf", file);
@@ -322,6 +327,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       const form = new FormData()
       form.append("serial_number", formData.serial_number);
       form.append("location", String(formData.location ?? ''));
+      form.append("user_id", String(userInfo?.id ?? ''));
       // Append PDF file
       form.append("job_order_pdf", file);
 
@@ -351,6 +357,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
       formData.append("ticket_id", ticket_id);
       formData.append("status", status)
+      formData.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await deleteBeforeAfterAttachments(formData) 
 
@@ -452,7 +459,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
       const formData = new FormData()
       formData.append("ticket_id", String(userTicketInformation.ticket_id))
-      formData.append("status", uploadStatus)
+      formData.append("status", uploadStatus);
+      formData.append("user_id", String(userInfo?.id ?? ''))
       selectedUploadFiles.forEach((file) => {
         formData.append("images[]", file)
       })
@@ -531,6 +539,10 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   return (
     <div>  
       <div className="p-4 space-y-4">
+        <JobOrderFlowDialog
+          open={jobOrderFlowDialogOpen}
+          onClose={() => setJobOrderFlowDialogOpen(false)}
+        />
 
         <AlertDialog
           open={dialogOpen}
@@ -561,12 +573,13 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         />
 
         {/* Status Badge */}
-        <div className="md:flex items-center justify-between ">  
+        <div className="md:flex items-center  justify-between gap-4">  
           <span className="text-md text-gray-500 flex items-center gap-1">
             <Calendar size={14} />
             {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
           </span>
-          {!publicConversation && (
+          <div className='flex gap-2'>
+            {!publicConversation && userTicketInformation.status != 'resolved' && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
               {userTicketInformation.job_order_url !== null ? (
                 <>
@@ -651,6 +664,19 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               )} 
             </div>
           )} 
+
+          {!publicConversation && (
+            <div>
+              <button 
+                className='bg-gray-200 text-gray-700 px-3 py-3 rounded-md flex items-center'
+                title='Need help?'
+                onClick={() => setJobOrderFlowDialogOpen(true)}
+              >
+                <BadgeQuestionMark size={15}/>
+              </button>
+            </div>
+          )}
+          </div>
         </div>
 
         {/* Ticket ID */}
@@ -703,90 +729,135 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           
           {!publicConversation ? (
             <div className="space-y-2">
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
-              <div className="text-md text-gray-900 font-medium">
-                <CustomSelectField 
-                  options={categories || []}
-                  name='categories_id'
-                  onChange={handleChangeInput}
-                  value={formData.categories_id}
-                  placeholder='Select Device Type'
-                />
-              </div>
-            </div>
-            
-            <div>
-              {isCategoryActive ? (
-                <>
-                  <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomTextField 
-                        onChange={handleChangeInput}
-                        name='item_name'
-                        rows={1}
-                        multiline={false}
-                        value={formData?.item_name} 
-                      />
-                    </div>
-                </>
-              ) : (
-                <div className='space-y-2'>
-                  <div>
-                    <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomSelectField 
-                        options={modelType || []}
-                        name='product_id'
-                        onChange={handleChangeInput}
-                        value={formData.product_id ?? ''}
-                        placeholder='Select Model Type'
-                      />
-                    </div> 
-                  </div>
-
-                  <div>
-                    <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
-                    <div className="text-md text-gray-900 flex items-center gap-2"> 
-                      <CustomSelectField 
-                        options={issueType || []}
-                        name='issue_id'
-                        onChange={handleChangeInput}
-                        value={formData.issue_id ?? ''}
-                        placeholder='Select Issue Type'
-                      />
-                    </div>
+            {userTicketInformation?.is_closed !== 1 ? (
+              <>
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
+                  <div className="text-md text-gray-900 font-medium">
+                    <CustomSelectField 
+                      options={categories || []}
+                      name='categories_id'
+                      onChange={handleChangeInput}
+                      value={formData.categories_id}
+                      placeholder='Select Device Type'
+                    />
                   </div>
                 </div>
-              )}
-              
-            </div>
+                
+                <div>
+                  {isCategoryActive ? (
+                    <>
+                      <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomTextField 
+                            onChange={handleChangeInput}
+                            name='item_name'
+                            rows={1}
+                            multiline={false}
+                            value={formData?.item_name} 
+                          />
+                        </div>
+                    </>
+                  ) : (
+                    <div className='space-y-2'>
+                      <div>
+                        <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomSelectField 
+                            options={modelType || []}
+                            name='product_id'
+                            onChange={handleChangeInput}
+                            value={formData.product_id ?? ''}
+                            placeholder='Select Model Type'
+                          />
+                        </div> 
+                      </div>
 
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
-                <CustomTextField 
-                  onChange={handleChangeInput}
-                  name='serial_number'
-                  rows={1}
-                  multiline={false}
-                  value={formData.serial_number}
-                />
-              </div>
-            </div> 
+                      <div>
+                        <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                        <div className="text-md text-gray-900 flex items-center gap-2"> 
+                          <CustomSelectField 
+                            options={issueType || []}
+                            name='issue_id'
+                            onChange={handleChangeInput}
+                            value={formData.issue_id ?? ''}
+                            placeholder='Select Issue Type'
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                </div>
 
-            <div>
-              <div className="text-md text-orange-600 font-medium mb-1">Location</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
-                <CustomTextField 
-                  onChange={handleChangeInput}
-                  name='location'
-                  rows={1}
-                  multiline={false}
-                  value={formData.location}
-                />
-              </div>
-            </div> 
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2"> 
+                    <CustomTextField 
+                      onChange={handleChangeInput}
+                      name='serial_number'
+                      rows={1}
+                      multiline={false}
+                      value={formData.serial_number}
+                    />
+                  </div>
+                </div> 
+
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2"> 
+                    <CustomTextField 
+                      onChange={handleChangeInput}
+                      name='location'
+                      rows={1}
+                      multiline={false}
+                      value={formData.location}
+                    />
+                  </div>
+                </div> 
+              </>
+            ) : (
+              <>
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
+                  <div className="text-md text-gray-900 font-medium">
+                    {userTicketInformation.device_type || 'N/A'}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
+                  <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                    {userTicketInformation.issue_type || 'N/A'}
+                  </div>
+                </div>
+
+                {userTicketInformation.issue_name && (
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
+                    <div className="text-md text-gray-900 font-medium flex items-center gap-2"> 
+                      {userTicketInformation.issue_name || 'N/A'}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
+                  <div className="text-md text-gray-900 flex items-center font-medium gap-2"> 
+                    {userTicketInformation.serial_number || 'N/A'} 
+                  </div>
+                </div> 
+
+                {userTicketInformation.location && (
+                  <div>
+                    <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                    <div className="text-md text-gray-900 font-medium flex items-center gap-2"> 
+                      {userTicketInformation.location || 'N/A'}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           ) : (
             <div className="space-y-2">
@@ -807,19 +878,36 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             {userTicketInformation.issue_name && (
               <div>
                 <div className="text-md text-orange-600 font-medium mb-1">Issue Type</div>
-                <div className="text-md text-gray-900 flex items-center gap-2"> 
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
                   {userTicketInformation.issue_name || 'N/A'}
                 </div>
               </div>
-            )}
-            
+            )} 
+
+            {userTicketInformation.item_name && (
+              <div>
+                <div className="text-md text-orange-600 font-medium mb-1">Item Name</div>
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                  {userTicketInformation.item_name || 'N/A'}
+                </div>
+              </div>
+            )} 
 
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Serial number</div>
-              <div className="text-md text-gray-900 flex items-center gap-2"> 
+              <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
                 {userTicketInformation.serial_number || 'N/A'}
               </div>
             </div> 
+
+            {userTicketInformation.location && (
+              <div>
+                <div className="text-md text-orange-600 font-medium mb-1">Location</div>
+                <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
+                  {userTicketInformation.location || 'N/A'}
+                </div>
+              </div>
+            )}
           </div>
           )}  
         </div>
@@ -1068,7 +1156,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   Before-Service Report Images ({userTicketInformation?.before_image?.length || 0})
                 </div>
-                {!publicConversation && (
+                {!publicConversation && !userTicketInformation.is_closed && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"
@@ -1128,7 +1216,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   After-Service Report Images ({userTicketInformation?.after_image?.length || 0})
                 </div>
-                {!publicConversation && (
+                {!publicConversation && !userTicketInformation.is_closed && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"

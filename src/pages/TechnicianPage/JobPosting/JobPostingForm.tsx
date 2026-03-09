@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"  
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom"; 
 import {  
   Save,  
   Briefcase,
@@ -19,8 +19,7 @@ import {
   createJob,  
   getSpecificJob, 
   updateJob 
-} from '../../../services/Technician/careersServices'
-import Snackbar from '../../../components/feedback/Snackbar'; 
+} from '../../../services/Technician/careersServices' 
 import { userAuth } from "../../../hooks/userAuth"
 import RichTextEditor from "../../../components/Fields/RichTextEditor";
 
@@ -49,6 +48,7 @@ const JobPostingForm: React.FC = () => {
 
   // Use userAuth hook for snackbar
   const {   
+    userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -187,6 +187,7 @@ const JobPostingForm: React.FC = () => {
       const validQualifications = qualifications.filter(q => q.trim() !== "");
 
       const jobData = {
+        user_id: String(userInfo?.id),
         title: formJobData.title,
         description: formJobData.description,
         location: formJobData.location,

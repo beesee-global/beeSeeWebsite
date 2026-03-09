@@ -33,16 +33,19 @@ export const getAllJobPosting = async () => {
   }
 }
 
-export const deleteCareers = async (ids: number[] | string[]) => {
+export const deleteCareers = async (payload: FormData | number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`/careers`, {
-      data: { ids }  // send payload in `data` for DELETE
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
     });
     return response.data;
   } catch (error) {
     throw error;
   }
-}
+}       
 
 export const getSpecificJob = async (id: string) => {
   try {

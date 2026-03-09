@@ -5,7 +5,7 @@ import {
   User, 
   Clock, 
   Inbox, 
-  Check,
+  TicketCheck,
   X,
   Trash2,
   File,
@@ -16,6 +16,7 @@ import {
   ArrowLeftToLine,
   Image as ImageIcon,  // Rename this!
   Upload,
+  TicketX
 } from 'lucide-react'; 
 import AlertDialog from '../../../components/feedback/AlertDialog'; 
 import { useParams } from 'react-router-dom'; 
@@ -26,6 +27,7 @@ import {
   insertConversation,
   insertImageConversation,
   updateStatus,
+  markAsClosed,
   deleteTickets,
   uploadJobOrders,
   deleteSpecificConversation
@@ -37,6 +39,14 @@ import { userAuth } from '../../../hooks/userAuth';
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 
 export default function EmailConversationApp() {
+  
+  const { 
+    userInfo,
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType, 
+  } = userAuth()
+
   const { pid } = useParams();  
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState('');
@@ -52,7 +62,7 @@ export default function EmailConversationApp() {
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>("");
-  const [dialogAction, setDialogAction] = useState<'delete' | 'upload' | 'messageDelete' | null>(null);
+  const [dialogAction, setDialogAction] = useState<'delete' | 'upload' | 'messageDelete' | 'markAsClosed' | null>(null);
   const [pendingJobOrderFile, setPendingJobOrderFile] = useState<File | null>(null);
   const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
@@ -63,12 +73,8 @@ export default function EmailConversationApp() {
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-  const { 
-    userInfo,
-    setSnackBarMessage,
-    setSnackBarOpen,
-    setSnackBarType, 
-  } = userAuth()
+  
+  const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
   const { data: ticketInfo, isLoading, refetch: refetchTicketInfo } = useQuery({
     queryKey: ['ticketInformation', pid],
@@ -95,6 +101,13 @@ export default function EmailConversationApp() {
   } = useMutation({
     mutationFn: (id: string) => deleteSpecificConversation(id),
   })
+
+  const {
+    mutateAsync: markAsClosedMutation,
+    isPending: isMarkAsClosed
+  } = useMutation({
+    mutationFn: markAsClosed
+  });
 
   const userTicketInformation = ticketInfo?.data || {}; 
 
@@ -334,6 +347,7 @@ export default function EmailConversationApp() {
       formData.append('message_body', composedMessageBody);
       formData.append('user_role', String(userInfo?.role || ''));
       formData.append('is_inbound', "0");
+      formData.append("user_id", String(userInfo?.id));
 
       if (currentAttachedFiles.length > 0) {
         currentAttachedFiles.forEach((fileObj) => {
@@ -376,7 +390,7 @@ export default function EmailConversationApp() {
         }) 
       }
 
-    } catch (error) { 
+    } catch (error: any) { 
       const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       setSnackBarMessage(cleanMessage);
@@ -414,6 +428,34 @@ export default function EmailConversationApp() {
     }
   };
 
+  const markAsClosedJobOrder = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("reference_number", userTicketInformation?.ticket_id);
+      formData.append("is_closed", "1");
+      formData.append("user_id", String(userInfo?.id ?? ''));
+      formData.append("status", "resolved");
+
+      const response = await markAsClosedMutation(formData);
+
+      if (response?.success) {
+        setSnackBarMessage("Job order marked as closed successfully");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+        navigate("/beesee/job-order");
+      }
+
+
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+
+      setSnackBarMessage(cleanMessage)
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    }
+  }
+
   const markAsCompleted = async() => {
     try {
       if (!userTicketInformation?.ticket_id) {
@@ -424,7 +466,7 @@ export default function EmailConversationApp() {
       }
 
       if (userTicketInformation.after_image.length  === 0 ) {
-        setSnackBarMessage("Please upload after report images ")
+        setSnackBarMessage("Please upload after service report images ")
         setSnackBarType("error")
         setSnackBarOpen(true)
         return
@@ -432,6 +474,7 @@ export default function EmailConversationApp() {
 
       const payload = new FormData();
       payload.append("status", "resolved");
+      payload.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await updateStats({
         reference_number: String(userTicketInformation?.ticket_id),
@@ -473,6 +516,7 @@ export default function EmailConversationApp() {
       const formData = new FormData(); 
       formData.append("job_order_pdf", selectedFile);
       formData.append("ticket_id", userTicketInformation?.ticket_id);
+      formData.append("user_id", String(userInfo?.id ?? ''));
 
       const response = await uploadJobOrder({
         id: String(userTicketInformation?.id),
@@ -523,7 +567,6 @@ export default function EmailConversationApp() {
   }
 
   const handleDelete = (ids: number[]) => {
-    const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
     if (!jobOrderPermission || !jobOrderPermission.actions.includes('delete')) {
       setSnackBarMessage("You do not have permission to delete tickets.")
       setSnackBarType("error")
@@ -542,7 +585,11 @@ export default function EmailConversationApp() {
   const handleConfirmDelete = async () => {
     try {
       if (isDeletingTicket) return
-      const response = await deleteTicket(deleteIds); // call mutation
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds));
+      formData.append("user_id", String(userInfo?.id ?? ''));
+
+      const response = await deleteTicket(formData); // call mutation
 
       if (response?.success) {
         closeDialog()
@@ -581,6 +628,13 @@ export default function EmailConversationApp() {
     }
   }
 
+  const handleMarkAsClosed = async () => {
+    setDialogAction('markAsClosed');
+    setDialogTitle("Confirm Mark as Closed");
+    setDialogMessage("Are you sure you want to mark this job order as closed?");
+    setDialogOpen(true);
+  }
+
   const handleDeleteMessageDialog = (id: string | number) => {
     setPendingMessageDeleteId(String(id));
     setDialogAction('messageDelete');
@@ -605,6 +659,10 @@ export default function EmailConversationApp() {
       await handleDeleteMessage(pendingMessageDeleteId);
       closeDialog();
       return;
+    }
+
+    if (dialogAction === 'markAsClosed') {
+      await markAsClosedJobOrder();
     }
 
     closeDialog();
@@ -676,7 +734,7 @@ export default function EmailConversationApp() {
             </div>
 
             {/* ticket */}
-            <div className='flex gap-3 items-center'> 
+            <div className='flex gap-2 items-center '> 
 
               {userTicketInformation?.is_closed != 1 && 
                 userTicketInformation?.status != 'resolved' && 
@@ -684,9 +742,25 @@ export default function EmailConversationApp() {
                 <button 
                   onClick={() => markAsCompleted()}
                   title="Mark as completed"
-                  className='px-3 py-1 rounded-full text-md border bg-green-50'
+                  disabled={isUpdateStats}
+                  className='inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60'
                 >
-                  <Check className='text-green-700'/>
+                  <TicketCheck className='h-4 w-4' />
+                  <span className='hidden sm:inline'>Complete</span>
+                </button>
+              )}
+
+              {jobOrderPermission && 
+                jobOrderPermission.actions.includes('close_job_order') &&
+                !userTicketInformation?.is_closed && (
+                <button 
+                  onClick={() => handleMarkAsClosed()}
+                  title="Mark as closed"
+                  disabled={isMarkAsClosed}
+                  className='inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60'
+                >
+                  <TicketX className='h-4 w-4' />
+                  <span className='hidden sm:inline'>Close</span>
                 </button>
               )}
 
@@ -694,8 +768,8 @@ export default function EmailConversationApp() {
                   <button 
                     onClick={() => setShowSidebar(true)}
                     title="View Job Order Information"
-                    className='p-2 hover:bg-gray-100 rounded-md transition'>
-                  <ArrowLeftToLine />
+                    className='inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-2 text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300'>
+                  <ArrowLeftToLine className='h-4 w-4' />
                 </button>
               </div>
             </div>
@@ -707,28 +781,17 @@ export default function EmailConversationApp() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading && messages.length === 0 ? (
                 <div className="flex justify-center items-center h-full">
-                  <div className="text-gray-400">Loading messages...</div>
+                  <div className="text-gray-400">Loadfing messages...</div>
                 </div>
               ) : (
                 messages.map((msg) => {
                   const hasAttachments = Array.isArray(msg.attachments) && msg.attachments.length > 0;
-
-                  // Keep activity-log-only rows, but allow updated messages with attachments
-                  // (e.g. PDF job orders) to render as normal message bubbles.
-                  if (msg.is_updated === 1 && !hasAttachments) {
-                    return (
-                      <div key={msg.id} ref={messageEndRef} className="w-full">
-                        <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
-                          {msg.activity_logs?.flatMap((log) => log.lines || []).map((line, idx) => (
-                            <p key={`${msg.id}-${idx}`} className='leading-relaxed'>{line}</p>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
                   // Extract quoted-reply info (if present) and clean message text for display.
                   const { replyMeta, cleanBody } = parseReplyBody(msg.message_body || "");
+                  const activityLines = Array.isArray(msg.activity_logs)
+                    ? msg.activity_logs.flatMap((log) => log?.lines || [])
+                    : [];
+                  const shouldRenderBubble = Boolean(cleanBody?.trim()) || hasAttachments;
 
                   const isStartAligned = msg.is_inbound;
 
@@ -801,7 +864,9 @@ export default function EmailConversationApp() {
                           <p className="truncate">{replyMeta?.snippet || ""}</p>
                         </div>
                       )}
-                      <p className="text-sm whitespace-pre-wrap break-words">{cleanBody}</p>
+                      {cleanBody?.trim() && (
+                        <p className="text-sm whitespace-pre-wrap break-words">{cleanBody}</p>
+                      )}
                       
                       {/* Attachments Display */}
                       {msg.attachments && msg.attachments.length > 0 && (
@@ -862,24 +927,34 @@ export default function EmailConversationApp() {
                   );
 
                   return (
-                    <div
-                      key={msg.id}
-                      ref={messageEndRef}
-                      className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {isStartAligned ? (
-                          <>
-                            {messageBubble}
-                            {replyButton}
-                          </>
-                        ) : (
-                          <>
-                            {replyButton}
-                            {messageBubble}
-                          </>
-                        )}
-                      </div>
+                    <div key={msg.id} ref={messageEndRef} className="w-full space-y-2">
+                      {activityLines.length > 0 && (
+                        <div className="mx-auto w-full max-w-2xl text-center text-xs sm:text-sm text-gray-500 space-y-1 break-words">
+                          {activityLines.map((line, idx) => (
+                            <p key={`${msg.id}-${idx}`} className="leading-relaxed">{line}</p>
+                          ))}
+                        </div>
+                      )}
+
+                      {shouldRenderBubble && (
+                        <div
+                          className={`flex ${msg.is_inbound ? 'justify-start' : 'justify-end'}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isStartAligned ? (
+                              <>
+                                {messageBubble}
+                                {replyButton}
+                              </>
+                            ) : (
+                              <>
+                                {replyButton}
+                                {messageBubble}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })
@@ -1023,7 +1098,7 @@ export default function EmailConversationApp() {
               </h2>
 
               <div className='flex items-center gap-2'>
-                {userTicketInformation?.job_order_url && (
+                {userTicketInformation?.status !== 'resolved' && userTicketInformation?.job_order_url && (
                   <button 
                     disabled={isPending}
                     title="Upload Job Order"
@@ -1071,7 +1146,7 @@ export default function EmailConversationApp() {
             </h2>
           </div>
           <div className='space-x-2'>
-            {userTicketInformation?.job_order_url && (
+            {userTicketInformation?.status !== 'resolved' && userTicketInformation?.job_order_url && (
               <button 
                 title="Upload Job Order"
                 onClick={() => jobOrderFileInputRef.current?.click()}

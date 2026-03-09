@@ -66,6 +66,7 @@ const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applican
 const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
 const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Applicants/ApplicantsEmail'))
+const TechnicianAuditLogs = lazy(() => import('../pages/TechnicianPage/AuditLogs/AuditLogs'))
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -316,6 +317,10 @@ const routes = [
             {
                 path: 'job-posting/applicant/email/:id',
                 element: <TechnicianApplicantEmail />
+            },
+            {
+                path: 'audit-logs',
+                element: <TechnicianAuditLogs />
             }
         ]
     },

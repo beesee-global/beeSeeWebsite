@@ -8,7 +8,8 @@ export interface Issues {
     categories_id: number;
     product_id: number
     possible_solutions: string;
-    is_publish: string
+    is_publish: string;
+    user_id: number | string;
 }
 
 export const fetchIssues = async () => {
@@ -75,13 +76,16 @@ export const updateIssues = async (id: number, issue: Omit<Issues, "id">): Promi
   }
 };
 
-export const deleteIssues = async (ids: number[] | string[]) => {
+export const deleteIssues = async (payload: FormData | number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: { ids }  // send payload in `data` for DELETE
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
     });
     return response.data;
   } catch (error) {
     throw error;
   }
-}
+}   

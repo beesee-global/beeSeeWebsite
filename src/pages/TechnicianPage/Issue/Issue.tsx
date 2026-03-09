@@ -151,7 +151,11 @@ const Issue = () => {
       return;
     }
 
-    const response = await deleteIssue(deleteIds);
+    const formData = new FormData();
+    formData.append("ids", JSON.stringify(deleteIds)); 
+    formData.append("user_id", String(userInfo?.id));  
+
+    const response = await deleteIssue(formData);
     if (response?.success) {
       setDialogOpen(false);
       setSnackBarMessage("Issues deleted successfully");
@@ -168,6 +172,7 @@ const Issue = () => {
         product_id: Number(formDataIssue.product_id),
         categories_id: Number(formDataIssue.categories_id),
         possible_solutions: formDataIssue.explanation,
+        user_id: String(userInfo?.id),
         is_publish: formDataIssue.publish
       });
       if (response?.success) {
@@ -194,7 +199,8 @@ const Issue = () => {
         product_id: Number(formDataIssue.product_id),
         categories_id: Number(formDataIssue.categories_id),
         possible_solutions: formDataIssue.explanation,
-        is_publish: formDataIssue.publish
+        is_publish: formDataIssue.publish,
+        user_id: String(userInfo?.id)
       };
 
       const response = await updateProduct({ id: selectedProduct.id, payload });

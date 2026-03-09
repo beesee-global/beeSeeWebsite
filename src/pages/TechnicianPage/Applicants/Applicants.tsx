@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react'
 import {    
   fetchApplicants,
   fetchApplicantsShortList,
+  fetchApplicantsRejected,
   shortList,
   deleteApplicants,
-  fetchApplicantsRejected,
   rejectedApplicants,
   undoRejectedApplicants,
   jobDetails
@@ -42,6 +42,7 @@ const Applicants = () => {
   ] 
 
   const { 
+      userInfo,
       setSnackBarMessage, 
       setSnackBarOpen, 
       setSnackBarType,
@@ -268,13 +269,13 @@ const Applicants = () => {
     try {
       let response;
       if (dataValue === 'delete') {
-        response = await deleteApplicante(deleteIds);
+        response = await deleteApplicante({ ids: deleteIds, user_id: userInfo?.id });
       } else if (dataValue === 'short-listed') {
-        response = await shortListed(shortListedId);
+        response = await shortListed({ id: shortListedId, user_id: userInfo?.id });
       } else if (dataValue === 'undo') {
-        response = await undoApplicant(undoId);
+        response = await undoApplicant({ id: undoId, user_id: userInfo?.id });
       } else if (dataValue === 'rejected') {
-        response = await rejectApplicants(rejectedId);
+        response = await rejectApplicants({ id: rejectedId, user_id: userInfo?.id });
       }
 
       if (response?.success) {
