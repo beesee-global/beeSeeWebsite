@@ -579,7 +579,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
           </span>
           <div className='flex gap-2'>
-            {!publicConversation && userTicketInformation.status != 'resolved' && (
+            {!publicConversation && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
               {userTicketInformation.job_order_url !== null ? (
                 <>
@@ -610,30 +610,36 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       </button>
                     </>
                   )}
- 
-                  <button
-                    title='Update Serial Number' 
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent default navigation  
-                      handleOpenUpdateSerialNumberDialog();
-                    }}
-                    disabled={isGeneratingPDF || isPending || isUpdatingSerialNumber}
-                    className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${(isPending || isUpdatingSerialNumber) ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
-                  >
-                    <Barcode size={14} /> 
-                  </button>
 
-                  <button
-                    title='Sent Job Order' 
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent default navigation  
-                      handleOpenSendJobOrderDialog();
-                    }}
-                    disabled={isGeneratingPDF || isPending || isUpdatingSerialNumber}
-                    className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
-                  >
-                    <Send size={14} /> 
-                  </button>
+                  {userTicketInformation.status != 'resolved' && (
+                    <> 
+                      <button
+                      title='Update Serial Number' 
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default navigation  
+                        handleOpenUpdateSerialNumberDialog();
+                      }}
+                      disabled={isGeneratingPDF || isPending || isUpdatingSerialNumber}
+                      className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${(isPending || isUpdatingSerialNumber) ? "bg-yellow-300" : "bg-yellow-600 hover:bg-yellow-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                    >
+                      <Barcode size={14} /> 
+                    </button>
+
+                    <button
+                      title='Sent Job Order' 
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default navigation  
+                        handleOpenSendJobOrderDialog();
+                      }}
+                      disabled={isGeneratingPDF || isPending || isUpdatingSerialNumber}
+                      className={`inline-flex justify-center items-center gap-2 px-3 py-3 rounded-md ${isPending ? "bg-orange-300" : "bg-orange-600 hover:bg-orange-700 "} text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-300`}
+                    >
+                      <Send size={14} /> 
+                    </button>
+                    </>
+                  )}
+ 
+                  
                 </>
               ) : (
                  <>
@@ -1156,7 +1162,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   Before-Service Report Images ({userTicketInformation?.before_image?.length || 0})
                 </div>
-                {!publicConversation && !userTicketInformation.is_closed && (
+                {!publicConversation && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"
@@ -1216,7 +1222,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   <ImageIcon size={16} />
                   After-Service Report Images ({userTicketInformation?.after_image?.length || 0})
                 </div>
-                {!publicConversation && !userTicketInformation.is_closed && (
+                {!publicConversation && (
                   <div className='flex items-center gap-2'>
                     <button
                       type="button"
