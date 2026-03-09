@@ -25,7 +25,7 @@ import { userAuth } from '../../../hooks/userAuth';
 import { downloadFile } from '../../../utils/downloadFile'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import { useNavigate } from 'react-router-dom';
-import { MinimalIconLoader } from '../../../components/ui/LoadingScreens'
+import { MinimalIconLoader } from '../../../components/ui/LoadingScreens' 
 
 export default function InquriesReplyMessage() { 
   const navigate = useNavigate()
@@ -45,6 +45,7 @@ export default function InquriesReplyMessage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState(''); 
+  const [dialogAction, setDialogAction] = useState<"inquiries-delete" | "inquiries-close"| null>(null); 
   const [dialogMessage, setDialogMessage] = useState('');
   const [deleteIds, setDeleteIds] = useState<number[]>([]);  
 
@@ -193,32 +194,6 @@ export default function InquriesReplyMessage() {
     });
   };
 
-  // close inquiries
-  const handleCloseInquiries = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("id", userInquiriesInfo?.id);
-      formData.append("user_id", String(userInfo?.id));
-
-      const response = await closeInquire(formData);
-
-      if (response.success) {
-        setSnackBarMessage('Inquiry closed successfully');
-        setSnackBarType('success');
-        setSnackBarOpen(true);
-
-        navigate("/beesee/inquiries") 
-      }
-    }
-    catch (error: any) {
-      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
-      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
-      setSnackBarMessage(cleanMessage);
-      setSnackBarType("error")
-      setSnackBarOpen(true);
-    }
-  }
-
   // Handle Delete Inquiry
   const handleDelete = () => {
     const Permission = userInfo?.permissions?.find(p => p.parent_id === 'inquiries' && p.children_id === '');
@@ -234,34 +209,58 @@ export default function InquriesReplyMessage() {
     setDialogMessage('Are you sure you want to delete this inquiry?'); 
   };
 
-  // Confirm Delete
-  const handleConfirmDelete = async () => {
+  // Confirm Delete or Close
+  const handleConfirmAction = async () => {
     try {
-      const formData = new FormData();
-      formData.append("ids", JSON.stringify(deleteIds)); 
-      formData.append("user_id", String(userInfo?.id));  
+      if (dialogAction === "inquiries-close") {
+        const formData = new FormData();
+        formData.append("id", userInquiriesInfo?.id);
+        formData.append("user_id", String(userInfo?.id));
 
-      const response = await deleteInquiries(formData);
+        const response = await closeInquire(formData);
 
-      if (response?.success) {
-        setDialogOpen(false);
-        setDialogMessage('');
-        setDialogTitle('');
-        setDeleteIds([]);
-        
-        setSnackBarMessage('Inquiry deleted successfully');
-        setSnackBarType('success');
-        setSnackBarOpen(true);
+        if (response.success) {
+          setDialogOpen(false);
+          setDialogMessage('');
+          setDialogTitle('');
+          setDialogAction(null);
+          
+          setSnackBarMessage('Inquiry closed successfully');
+          setSnackBarType('success');
+          setSnackBarOpen(true);
 
-        navigate("/beesee/inquiries")
- 
+          navigate("/beesee/inquiries") 
+        }
+      } else if (dialogAction === "inquiries-delete") {
+        const formData = new FormData();
+        formData.append("ids", JSON.stringify(deleteIds)); 
+        formData.append("user_id", String(userInfo?.id));  
+
+        const response = await deleteInquiries(formData);
+
+        if (response?.success) {
+          setDialogOpen(false);
+          setDialogMessage('');
+          setDialogTitle('');
+          setDialogAction(null);
+          setDeleteIds([]);
+          
+          setSnackBarMessage('Inquiry deleted successfully');
+          setSnackBarType('success');
+          setSnackBarOpen(true);
+
+          navigate("/beesee/inquiries")
+        }
       }
     } catch (error) {
-      setSnackBarMessage('Failed to delete inquiry. Please try again.');
+      const errorMessage = dialogAction === "inquiries-close" 
+        ? 'Failed to close inquiry. Please try again.'
+        : 'Failed to delete inquiry. Please try again.';
+      setSnackBarMessage(errorMessage);
       setSnackBarType('error');
       setSnackBarOpen(true);
     }
-  }; 
+  };; 
 
   if (isPending) {
     return <MinimalIconLoader />
@@ -278,8 +277,9 @@ export default function InquriesReplyMessage() {
         onClose={() => {
           setDialogOpen(false);
           setDeleteIds([]);
+          setDialogAction(null);
         }}
-        onSubmit={handleConfirmDelete} 
+        onSubmit={handleConfirmAction} 
       />
 
       {/* Messages View */}
@@ -294,10 +294,15 @@ export default function InquriesReplyMessage() {
               </div>
 
               <div className='flex gap-2'>
-                {InquiriesPermissionJob?.actions.includes("closed_inquiries") && (
+                {InquiriesPermissionJob?.actions.includes("closed_inquiries") && userInquiriesInfo.status !== 'Closed' && (
                   <div>
                     <button
-                      onClick={handleCloseInquiries}
+                      onClick={() => {
+                        setDialogOpen(true);
+                        setDialogAction("inquiries-close");
+                        setDialogTitle('Close Inquiry');
+                        setDialogMessage('Are you sure you want to close this inquiry?');
+                      }}
                       className='inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60'
                     >
                       

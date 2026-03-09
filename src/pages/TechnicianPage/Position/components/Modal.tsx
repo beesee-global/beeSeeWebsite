@@ -740,8 +740,8 @@ const Modal: React.FC<ModalProps> = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={moduleActions.includes("closed inquiries")}
-                  onChange={() => handleActionToggle(moduleId, "closed inquiries")}
+                  checked={moduleActions.includes("closed_inquiries")}
+                  onChange={() => handleActionToggle(moduleId, "closed_inquiries")}
                   disabled={isPermissionLocked || !hasGrantAccess}
                   sx={{
                     color: "#9ca3af",

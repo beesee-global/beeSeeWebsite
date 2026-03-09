@@ -31,7 +31,11 @@ export const fetchInquiriesUnsettled = async () => {
 
 export const closeInquiries = async (data: any) => {
   try {
-    const response = await axiosClient.post(`${API_URL}/closed`, data)
+    const response = await axiosClient.post(`${API_URL}/closed`, data, {
+      headers: {
+        "Content-Type": 'application/json'
+      }
+    })
     return response.data
   } catch (error) {
     throw error
