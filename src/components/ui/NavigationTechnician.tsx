@@ -9,7 +9,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { userAuth } from '../../hooks/userAuth';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserById } from '../../services/Ecommerce/myAccountServices';
+import { fetchUserById } from '../../services/Technician/myAccountServices';
 import { useQuery } from '@tanstack/react-query';
 import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png';
 import { Menu } from 'lucide-react';

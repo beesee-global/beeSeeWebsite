@@ -93,12 +93,46 @@ const FAQs = () => {
 
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
 
+  
+// ------------------------------
+// 1️⃣ Add hook once (top-level of file)
+// ------------------------------
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  // Only allow style attribute for text-align
+  if (node.hasAttribute('style')) {
+    const style = node.getAttribute('style') || '';
+    const allowedStyles = style
+      .split(";")
+      .map((s) => s.trim())
+      .filter(
+        (s) =>
+          s.startsWith("text-align") ||
+          s.startsWith("margin") ||
+          s.startsWith("padding")
+      )
+      .join("; ");;
+
+    if (allowedStyles) {
+      node.setAttribute('style', allowedStyles);
+    } else {
+      node.removeAttribute('style');
+    }
+  }
+});
+
   // Sanitize HTML function
   const sanitizeHTML = (html: string): string => {
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'i', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'b'],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+      ALLOWED_TAGS: [
+        'p', 'br', 'strong', 'em', 'u', 'ul', 'i', 'ol', 'li',
+        'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'b',
+        // Media & layout — required for image/video alignment support
+        'div', 'img', 'video', 'source',
+      ],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'src', 'alt', 'controls', 'type'],
       ALLOW_DATA_ATTR: false,
+      // Allow data: URIs so base64-embedded images from the rich text editor render correctly
+      ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
     });
   };
 

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, ArrowLeft, ArrowUp } from "lucide-react";
+import { fetchSpecificProductPublic } from '../../../services/Ecommerce/productServices'
+import { useQuery } from "@tanstack/react-query";
 
 // Lazy load the checkout modal for better performance
 const CheckoutModal = lazy(() => import("./components/CheckoutModal"));
@@ -9,7 +11,7 @@ const CheckoutModal = lazy(() => import("./components/CheckoutModal"));
 import "../../../assets/css/productDetails.css";
 
 // Import your mock data
-import mockProductData from "../../../data/mockProductData.json";
+// mock data removed — rely on API via react-query
 
 type DemoProduct = {
   pid: string;
@@ -53,6 +55,15 @@ const ProductDetail: React.FC = () => {
   // Carousel autoplay
   const autoplayRef = useRef<number | null>(null);
 
+  // --- fetch specific product params id ---
+  const { data: productInfo, isLoading: productLoading } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => fetchSpecificProductPublic(id as string),
+    enabled: !!id,
+  });
+
+  console.log("productDetails", productInfo)
+
   // Back to top scroll handler
   useEffect(() => {
     const handleScroll = () => {
@@ -68,77 +79,36 @@ const ProductDetail: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        // API-ready: Try fetching from backend first
-        const res = await fetch(`/api/products/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProduct(data);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        // Continue to mock data
-      }
+    // Map `productInfo` from react-query into local `product` state
+    setLoading(Boolean(productLoading));
+    if (!productInfo) return;
 
-      // Use mock data from your JSON file
-      const foundProduct = mockProductData.products.find((p) => p.pid === id);
-      
-      if (foundProduct) {
-        // Get category info
-        const category = mockProductData.categories.find(c => c.id === foundProduct.category);
-        
-        // Format product data
-        const formattedProduct: DemoProduct = {
-          pid: foundProduct.pid,
-          name: foundProduct.name,
-          tagline: foundProduct.tagline,
-          gallery: foundProduct.gallery || [foundProduct.image],
-          price: foundProduct.price,
-          description: foundProduct.description,
-          keyFeatures: foundProduct.keyFeatures,
-          detailedSpecs: foundProduct.detailedSpecs,
-          category: category?.name || foundProduct.category,
-          formattedPrice: currency(foundProduct.price),
-          inStock: true,
-        };
-        
-        setProduct(formattedProduct);
-      } else {
-        // Fallback to first product if not found
-        const fallbackProduct = mockProductData.products[0];
-        const fallbackCategory = mockProductData.categories.find(c => c.id === fallbackProduct.category);
-        
-        const formattedProduct: DemoProduct = {
-          pid: fallbackProduct.pid,
-          name: fallbackProduct.name,
-          tagline: fallbackProduct.tagline,
-          gallery: fallbackProduct.gallery || [fallbackProduct.image],
-          price: fallbackProduct.price,
-          description: fallbackProduct.description,
-          keyFeatures: fallbackProduct.keyFeatures,
-          detailedSpecs: fallbackProduct.detailedSpecs,
-          category: fallbackCategory?.name || fallbackProduct.category,
-          formattedPrice: currency(fallbackProduct.price),
-          inStock: true,
-        };
-        
-        setProduct(formattedProduct);
-      }
-      
-      setLoading(false);
+    const src = productInfo as any;
+    const images = Array.isArray(src.images) ? src.images.slice().sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) : [];
+    const gallery = images.length ? images.map((it: any) => it.image_url) : (src.images && src.images.image_url ? [src.images.image_url] : []);
+
+    const formattedProduct: DemoProduct = {
+      pid: src.pid,
+      name: src.name,
+      tagline: src.tagline,
+      gallery: gallery.length ? gallery : undefined,
+      price: src.price,
+      description: src.description,
+      keyFeatures: src.keyFeatures || src.key_features || [],
+      detailedSpecs: src.detailed_specs || src.detailedSpecs || {},
+      category: src.category_name || src.category,
+      formattedPrice: currency(src.price),
+      inStock: src.inStock ?? true,
     };
 
-    fetchProduct();
+    setProduct(formattedProduct);
 
     return () => {
       if (autoplayRef.current) {
         window.clearInterval(autoplayRef.current);
       }
     };
-  }, [id]);
+  }, [productInfo, productLoading]);
 
   // Carousel autoplay effect
   useEffect(() => {
@@ -294,7 +264,7 @@ const ProductDetail: React.FC = () => {
 
 
               {/* Price Section */}
-              <div className="price-section mt-6">
+              {/* <div className="price-section mt-6">
                 <div className="price-label">Price</div>
                 <div className="price">{product.formattedPrice || currency(product.price)}</div>
                 <button 
@@ -305,7 +275,7 @@ const ProductDetail: React.FC = () => {
                 >
                   {product.inStock === false ? "Out of Stock" : "Buy Now"}
                 </button>
-              </div>
+              </div> */}
             </motion.div>
           </motion.aside>
         </div>
@@ -325,8 +295,16 @@ const ProductDetail: React.FC = () => {
               <div className="specs-table-clean">
                 <table className="specs-table">
                   <tbody>
-                    {Object.entries(product.detailedSpecs).map(([category, specs]) => (
+                    {Object.entries(product.detailedSpecs).map(([category, specs], catIdx) => (
                       <React.Fragment key={category}>
+                        {/* Category Header with separators */} 
+                        <tr>
+                          <td colSpan={2} style={{ textAlign: 'center', paddingBottom: '12px', fontSize: '16px', fontWeight: '600', color: '#000000', letterSpacing: '0.5px' }}>
+                            {category}
+                          </td>
+                        </tr> 
+
+                        {/* Spec rows */}
                         {Object.entries(specs).map(([key, value], index) => (
                           <tr key={`${category}-${index}`} className="spec-row-clean">
                             <td className="spec-label-clean">

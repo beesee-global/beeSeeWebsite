@@ -6,27 +6,128 @@ interface CustomIconPickerProps {
   onChange: (iconName: string) => void;
   label?: string;
   error?: string;
-}
+} 
 
 const iconList = [
-  // General / Common
+  // ⭐ General / Common
   "Home", "Tag", "Save", "SquarePen", "Star", "Settings", "Bell", "User", "Users",
   "Box", "ShoppingCart", "Package", "ClipboardList", "CheckCircle", "AlertCircle",
-  "Search", "Filter", "PlusCircle", "Trash2", "Edit3",
+  "Search", "Filter", "PlusCircle", "Trash2", "Edit3", "HeartPulse",
 
   // 🖥️ Devices / Tech
   "Monitor", "Laptop", "Tablet", "Smartphone", "Watch", "Keyboard", "MousePointer",
-  "Cpu", "Server", "PlugZap", "BatteryCharging", "Usb", "HardDrive", "Router", "Radio",
-  "Satellite", "Bluetooth", "Wifi", "Camera", "Video", "Tv", "Headphones", "Mic",
-  "Speaker", "Gamepad", "Joystick", "Printer", "Projector", "Chip", "Antenna",
-  "BatteryFull", "BatteryLow", "BatteryMedium", "BatteryWarning", "SdCard", "SimCard",
-  "Cloud", "CloudUpload", "CloudDownload", "CloudOff", "QrCode", "Scan", "Folder",
-  "FolderSync", "FileCode", "FileArchive", "FileStack", "Cog", "Power", "PowerOff",
-  "Terminal", "Code", "Command", "Binary", "Robot", "Gauge", "SatelliteDish", "Zap",
+  "Cpu", "Server", "PlugZap", "BatteryCharging", "Usb", "HardDrive", "Router",
+  "Bluetooth", "Wifi", "Camera", "Video", "Tv", "Headphones", "Mic",
+  "Speaker", "Gamepad", "Printer", "Projector", "Chip",
+  "BatteryFull", "BatteryLow", "BatteryMedium", "BatteryWarning",
+  "SdCard", "SimCard", "Microchip",
 
-  // Misc / Business
-  "CreditCard", "Globe", "Briefcase", "BarChart3", "LineChart", "Calendar",
-  "ClipboardCheck", "FileText", "Wrench", "ShieldCheck", "HelpCircle",
+  // ☁️ Cloud / Network / Dev
+  "Cloud", "CloudUpload", "CloudDownload", "CloudOff",
+  "CloudRain", "CloudSnow", "CloudLightning",
+  "Database", "Network", "Activity", "Radar",
+  "GitBranch", "GitCommit", "GitMerge", "GitPullRequest",
+  "Bug", "BugOff", "Webhook", "Workflow",
+
+  // 🧾 Files / Folders / Media
+  "File", "FileText", "FileImage", "FileVideo", "FileAudio",
+  "FilePlus", "FileMinus", "FileX", "FileCheck",
+  "FileCode", "FileArchive", "FileStack",
+  "Folder", "FolderOpen", "FolderPlus", "FolderMinus", "FolderSync",
+  "Image", "Images", "Music", "Film",
+
+  // ▶️ Media Controls
+  "Play", "Pause", "Stop", "SkipForward", "SkipBack",
+  "Volume", "Volume1", "Volume2", "VolumeX",
+  "PlayCircle", "PauseCircle", "StopCircle",
+
+  // 🧭 Navigation / Direction
+  "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+  "ArrowUpRight", "ArrowUpLeft", "ArrowDownRight", "ArrowDownLeft",
+  "ChevronUp", "ChevronDown", "ChevronLeft", "ChevronRight",
+  "ChevronsUp", "ChevronsDown", "ChevronsLeft", "ChevronsRight",
+  "CornerUpLeft", "CornerUpRight", "CornerDownLeft", "CornerDownRight",
+  "Move", "MoveDiagonal", "MoveHorizontal", "MoveVertical",
+  "Expand", "Shrink", "Maximize", "Minimize",
+
+  // 🏗️ Layout / UI
+  "Layout", "LayoutGrid", "LayoutList", "LayoutDashboard",
+  "Columns", "Rows", "Sidebar",
+  "PanelLeft", "PanelRight", "PanelTop", "PanelBottom",
+  "AlignLeft", "AlignCenter", "AlignRight", "AlignJustify",
+  "Grid", "List", "ListOrdered", "ListChecks",
+
+  // 🧰 Tools / Actions
+  "Wrench", "Hammer", "Screwdriver",
+  "RefreshCcw", "RotateCcw", "RotateCw",
+  "Download", "Upload", "Share2", "ExternalLink", "Link",
+
+  // 📊 Business / Finance
+  "CreditCard", "Globe", "Briefcase",
+  "BarChart3", "LineChart", "PieChart",
+  "TrendingUp", "TrendingDown",
+  "DollarSign", "Percent",
+  "Calendar", "Clock", "Timer",
+  "Receipt", "Wallet", "Banknote",
+
+  // 🔐 Security / Status
+  "Shield", "ShieldCheck", "Lock", "Unlock", "Key",
+  "Eye", "EyeOff",
+  "AlertTriangle", "AlertOctagon", "Info",
+  "Check", "X", "Minus", "Plus",
+  "Circle", "Square", "Octagon",
+  "Loader", "Loader2", "LoaderCircle",
+  "HelpCircle",
+
+  // 🚚 Ecommerce / Logistics
+  "Truck", "Store", "Warehouse",
+  "PackageCheck", "PackageOpen",
+  "MapPin", "MapPinOff", "Map",
+  "Navigation", "Navigation2", "Compass",
+  "Barcode", "QrCode", "ShoppingBag", "ShoppingBasket",
+
+  // 🧠 Education / Science / AI
+  "Brain", "FlaskConical", "GraduationCap",
+  "Book", "BookOpen", "Library",
+  "Lightbulb", "Atom", "Beaker", "Microscope",
+  "Sigma", "FunctionSquare", "Infinity", "Calculator",
+
+  // 🌍 Travel / Time / Weather
+  "Plane", "Car", "Bus", "Train", "Ship",
+  "Hotel", "Bed", "Coffee",
+  "Sun", "Moon", "Sunrise", "Sunset",
+  "CloudSun", "CloudMoon",
+  "Clock3", "Clock12",
+
+  // 🎉 UX / Fun / Extras
+  "Sparkles", "Flame", "Rocket",
+  "Gift", "PartyPopper",
+  "Medal", "Trophy", "Crown",
+  "Puzzle", "Feather",
+  "Palette", "Paintbrush",
+  "Smile", "Frown", "Meh",
+  "ThumbsUp", "ThumbsDown",
+  "MessageCircle", "MessagesSquare",
+  "Mail", "Send", "Phone", "PhoneCall",
+
+  "Server",
+  "LaptopMinimal",
+  "Cpu",
+  "Monitor",
+  "SmartphoneCharging",
+  "TabletSmartphone",
+  "Watch",
+  "Tv",
+  "Camera",
+  "Speaker",
+  "Headphones",
+  "Gamepad2",
+  "Printer",
+  "Keyboard",
+  "Mouse",
+  "BatteryCharging",
+  "Router",
+  "HardDrive",
 ];
 
 const CustomIconPicker: React.FC<CustomIconPickerProps> = ({
@@ -36,7 +137,7 @@ const CustomIconPicker: React.FC<CustomIconPickerProps> = ({
   error,
 }) => {
   const [selectedIcon, setSelectedIcon] = useState<string>(value || "");
-
+""
   useEffect(() => {
     if (value !== undefined) {
       setSelectedIcon(value);

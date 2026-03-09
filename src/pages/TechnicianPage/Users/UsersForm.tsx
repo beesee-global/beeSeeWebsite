@@ -4,6 +4,7 @@ import CustomTextField from "../../../components/Fields/CustomTextField"
 import CustomSelectField from "../../../components/Fields/CustomSelectField"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"   
 import { useMutation, useQuery } from "@tanstack/react-query" 
+import { verifyPassword } from '../../../services/Technician/userServices'
 import { 
   createUsers, 
   fetchUsersByPid, 
@@ -11,8 +12,7 @@ import {
   image,
   fetchPositions
 } from '../../../services/Technician/userServices'
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
-import { 
+ import { 
   Mail,
   User2,
   Save,
@@ -20,17 +20,20 @@ import {
   FilePenLine,
   Image as ImageIcon, 
   Upload,
+  Phone,
   CheckCircle, 
 } from "lucide-react"
-import { Email } from "@mui/icons-material"
-import AddImageIcon from '../../../../public/add-image-icon.jpg';
+import { Email } from "@mui/icons-material" 
 import { userAuth } from "../../../hooks/userAuth"
+import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
+
 interface EmployeeFormProps {
   first_name: string,
   last_name: string,
   email: string, 
   password: string;
   confirm_password: string; 
+  contact_number: string;
   role: string;
   status: string;
   image?: File | string | null
@@ -41,6 +44,7 @@ interface FormError {
   last_name?: string,
   email?: string, 
   password?: string;
+  contact_number?: string;
   confirm_password?: string; 
   role?: string;
   image?: string;
@@ -49,16 +53,17 @@ interface FormError {
 const UsersForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const {
     userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
-    snackBarMessage, 
-    snackBarOpen,
-    snackBarType
   } = userAuth();
 
+  
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'list_user');
+  
   /* FormError */
   const [formError, setFormError] = useState<FormError>({})
 
@@ -68,6 +73,7 @@ const UsersForm = () => {
     email: "", 
     password: "",
     confirm_password: "",
+    contact_number: "",
     role: "", 
     status: "Active", 
   }); 
@@ -82,6 +88,9 @@ const UsersForm = () => {
       errors.email = "Email is invalid";
     } 
     const password = formData.password ?? "";
+
+    if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.';
+    else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
 
     if (!id) {
       if (!password) {
@@ -170,8 +179,36 @@ const UsersForm = () => {
       updateUsers(id, payload),
   });
  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Verify password
+  const {
+    mutateAsync: verifyPasswords
+  } = useMutation({
+    mutationFn: verifyPassword
+  });
+
+  const handleVerifyPassword = async (formData: Record<string, string>) => {
+    try {
+      const formDataPassword = new FormData();
+      formDataPassword.append('email', userInfo?.email);
+      formDataPassword.append('password', formData.password)
+
+      const response = await verifyPasswords(formDataPassword)
+
+      if (response.success) { 
+        setModalOpen(false);
+        await handleSubmit();
+      }
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
+      setSnackBarType("error")
+      setSnackBarOpen(true) 
+    }
+  }
+
+  const handleSubmit = async (e?: React.SyntheticEvent) => {
+    e?.preventDefault();
 
     try {
       const errors = validateForm();
@@ -188,18 +225,22 @@ const UsersForm = () => {
         first_name: string;
         last_name: string;
         email: string;
+        contact_number: string;
         details: {
           employment_status: string;
           positions_id: string;
+          url_permission: string;
         };
         password?: string;
       } = {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
+        contact_number: formData.contact_number,
         details: {
           employment_status: formData.status,
           positions_id: formData.role,
+          url_permission: "technician_url",
         },
       };
 
@@ -208,7 +249,7 @@ const UsersForm = () => {
         payload.password = formData.password;
       }
 
-      if (id) {
+      if (id) { 
         // UPDATE USER
         await updateUserMutate({
           id: Number(userInformation?.data.id),
@@ -248,29 +289,32 @@ const UsersForm = () => {
       navigate("/beesee/users");
 
     } catch (error: any) {
-      if (error.response?.status === 400) {
-        const message = error.response.data?.message;
+      if (error.response?.status === 400) { 
+        const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+        const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
 
-        console.log("Server validation error:", message);
+        console.log("Server validation error:", cleanMessage);
 
         // Properly map backend error messages to form fields
-        if (message === "Email already exists.") {
+        if (cleanMessage == "Email already exists") {
           setFormError((prev) => ({
             ...prev,
             email: "Email already exists",
           }));
         }
 
-        if (message === "Name already exists.") {
+        if (cleanMessage == "Name already exists") {
           setFormError((prev) => ({
             ...prev,
             name: "Name already exists",
           }));
         }
+
+        
+        setSnackBarType("error");
+        setSnackBarMessage(`${cleanMessage}`);
       }
 
-      setSnackBarType("error");
-      setSnackBarMessage("Failed to save users. Please try again.");
 
     } finally {
       setSnackBarOpen(true);
@@ -312,8 +356,7 @@ const UsersForm = () => {
       return URL.createObjectURL(formData.image);
     } else if (typeof formData.image === "string" && formData.image.trim() !== "") {
       return formData.image;
-    } else {
-      return AddImageIcon;
+    } else { 
     }
   }, [formData.image]);
 
@@ -325,6 +368,7 @@ const UsersForm = () => {
         first_name: u.first_name || "",
         last_name: u.last_name || "",
         email: u.email || "",  
+        contact_number: u.contact_number || "",
         role: u.details?.position || "",             // ✅ correct
         status: u.details?.employment_status || "Active", // ✅ correct 
         password: "",
@@ -350,13 +394,26 @@ const UsersForm = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-white py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Notification */}
-        <SnackbarTechnician 
-          open={snackBarOpen}
-          type={snackBarType}
-          message={snackBarMessage}
-          onClose={() => setSnackBarOpen(false)}
-        /> 
+
+        {/* Asking password */}
+        <ReusableTextFieldModal 
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={"Enter your password"}
+          fields={[
+            {
+              name: 'password',
+              placeholder: 'Password',
+              maxLength: 100,
+              type: 'text',
+              multiline: false,
+              rows: 1,
+              value: '',
+              validator: (value) => (!value.trim() ? 'password is required' : undefined),
+            }
+          ]}
+          onSubmit={handleVerifyPassword}
+        />
 
         <div className="mb-6">
           {/* Breadcrumbs */}
@@ -388,7 +445,7 @@ const UsersForm = () => {
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={id ? () => setModalOpen(true) : handleSubmit}
                 disabled={isCreating || isUpdating || isCreatingImage}
                 className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
               >
@@ -489,10 +546,10 @@ const UsersForm = () => {
                         Email *
                       </label>
                       <CustomTextField 
-                        name="email"
-                        disabled={userInfo?.position_id !== 25}
+                        name="email" 
                         placeholder="Enter email"
                         value={formData.email}
+                        disabled={!Permission?.actions.includes('edit')}
                         onChange={handleChangeInput}
                         maxLength={100}
                         rows={1}
@@ -501,6 +558,27 @@ const UsersForm = () => {
                         helperText={formError.email}
                         error={!!formError.email}
                         icon={<Email className="w-4 h-4" />}
+                      />
+                    </div>
+
+                    
+                    {/* Contact number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Contact Number *
+                      </label>
+                      <CustomTextField 
+                        name="contact_number"
+                        placeholder="Enter contact number"
+                        value={formData.contact_number}
+                        onChange={handleChangeInput}
+                        maxLength={11}
+                        rows={1}
+                        multiline={false}
+                        type="tel"
+                        helperText={formError.contact_number}
+                        error={!!formError.contact_number}
+                        icon={<Phone className="w-4 h-4" />}
                       />
                     </div>
 
@@ -586,7 +664,8 @@ const UsersForm = () => {
                       </div> */}
       
                       <div className="space-y-4">
-                        <div className="relative group">
+                        <div className="relative group w-full max-w-sm mx-auto">
+
                           <input
                             type="file"
                             accept="image/*"
@@ -594,42 +673,59 @@ const UsersForm = () => {
                             className="hidden"
                             onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
                           />
-      
-                          <label
-                            htmlFor="image-upload"
-                            className="cursor-pointer block w-full"
-                          >
-                            <div className={`relative border-2 ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"} dark:border-gray-600 rounded-xl overflow-hidden transition-colors group`}>
-                              <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                                <img
-                                  src={preview}
-                                  alt="Preview"
-                                  className="object-cover w-full h-full"
-                                />
+
+                          <label htmlFor="image-upload" className="cursor-pointer block w-full">
+
+                            <div
+                              className={`
+                              relative border-2
+                              ${formError.image ? "border-red-400" : "border-gray-300 hover:border-[#FCD000]"}
+                              dark:border-gray-600
+                              rounded-xl
+                              overflow-hidden
+                              transition
+                              `}
+                            >
+                              
+                              {/* IMAGE AREA */}
+                              <div className="h-52 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+
+                                {preview ? (
+                                  <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : null}
+
                               </div>
-      
-                              {/* Upload overlay for empty state */}
+
+                              {/* EMPTY STATE */}
                               {!formData.image && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/90">
                                   <Upload className="w-12 h-12 text-[#FCD000] mb-3" />
-                                  <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">Click to upload image</p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Upload Image
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    PNG, JPG up to 10MB
+                                  </p>
                                 </div>
                               )}
-      
-                               {/* Change image overlay */}
-                                {formData.image && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="text-white text-center">
-                                            <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                                            <p className="font-medium">Change Image</p>
-                                        </div>
-                                    </div>
-                                )}
+
+                              {/* HOVER CHANGE IMAGE */}
+                              {formData.image && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                  <div className="text-white text-center">
+                                    <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                                    <p className="font-semibold">Change Image</p>
+                                  </div>
+                                </div>
+                              )}
+
                             </div>
-                          </label> 
+                          </label>
                         </div>
-      
                         {/* File info */}
                         {/* {formData.image && (
                           <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">

@@ -20,7 +20,8 @@ interface FormError {
 }
 
 const LoginTechnician = () => { 
-  const { login, token } = userAuth()
+  const navigate = useNavigate(); 
+  const { login, token, userInfo } = userAuth()
   const [isChecking, setIsChecking] = useState(false); 
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -71,11 +72,13 @@ const LoginTechnician = () => {
           email: formData.email, // Use the email from the form
           full_name: response.userInfo.full_name,
           role: response.userInfo.role,
-          position_id: response.userInfo.position_id,
-          permissions: response.userInfo.permissions
+          permissions: response.userInfo.permissions,
+          url_permission: response.userInfo.url_permission, 
+          url: `${response.url}`
         };  
         // token is at response.data.token (root level of API response)
         login({ token: response.token, userInfo });  
+        window.location.href = `${response.url}` 
       }
     } catch (err) {
       setSnackbarOpen(true);
@@ -97,8 +100,9 @@ const LoginTechnician = () => {
 
   useEffect(() => {
     // if we don't have a token, go back to home
-    if (token) {
-      window.location.href = "/beesee/dashboard" 
+    if (token) { 
+      if (userInfo?.url_permission === 'technician_url')
+      window.location.href = `${userInfo.url}` 
       return;
     }  
 
@@ -160,12 +164,12 @@ const LoginTechnician = () => {
             />
           </motion.div> 
 
-<motion.h2
-  variants={itemVariants}
-  className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
->
-  Login Your Account
-</motion.h2>
+        <motion.h2
+          variants={itemVariants}
+          className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
+        >
+          Login Your Account
+        </motion.h2>
           <motion.p 
             className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
             variants={itemVariants}
@@ -211,12 +215,12 @@ const LoginTechnician = () => {
               /> 
             </motion.div>
 
-           {/*  <motion.p 
+            <motion.p 
               variants={itemVariants}
               onClick={() => navigate("/forget-password")}
               className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base">
               Forget Password
-            </motion.p> */}
+            </motion.p>
 
             <motion.button
               variants={itemVariants}

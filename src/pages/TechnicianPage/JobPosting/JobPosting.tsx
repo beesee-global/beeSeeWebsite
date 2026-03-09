@@ -13,8 +13,7 @@ import {
 } from "lucide-react"
 import TableJobPosting from "./components/TableJobPosting"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query" 
-import { userAuth } from "../../../hooks/userAuth"
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
+import { userAuth } from "../../../hooks/userAuth" 
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import { useState, useMemo, useEffect } from "react"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
@@ -31,10 +30,7 @@ const JobPosting = () => {
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   
   const { 
-    userInfo, 
-    snackBarMessage, 
-    snackBarType, 
-    snackBarOpen, 
+    userInfo,  
     setSnackBarMessage, 
     setSnackBarOpen, 
     setSnackBarType,
@@ -48,6 +44,7 @@ const JobPosting = () => {
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
     { id: 'work_location', label: 'Work Location', sortable: false, align: 'left' }, 
     { id: 'location', label: 'Location', sortable: false, align: 'left' },
+    { id: 'num_applicant', label: "No. Applicant", sortable: false, align: 'left' },
     { id: 'status', label: "Status", sortable: false, align: 'left' },
     { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
@@ -174,14 +171,7 @@ const JobPosting = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen">
-      {/* Snackbar */}
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white"> 
 
       {/* Dialog */}
       <AlertDialog 

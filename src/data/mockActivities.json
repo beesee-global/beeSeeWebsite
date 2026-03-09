@@ -1,0 +1,94 @@
+[
+  {
+    "id": "christmas-celebration-2024",
+    "title": "Christmas Celebration 2024",
+    "date": "December 25, 2024",
+    "location": "BSG Headquarters",
+    "coverImage": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
+    "description": "A magical evening of celebration, togetherness, and holiday cheer with the entire BeeSee family.",
+    "images": [
+      "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
+      "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=1200&q=80",
+      "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?w=1200&q=80"
+    ]
+  },
+  {
+    "id": "tech-innovation-summit-2024",
+    "title": "Tech Innovation Summit 2024",
+    "date": "November 15, 2024",
+    "location": "Manila Convention Center",
+    "coverImage": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
+    "description": "Industry leaders gathered to explore cutting-edge technologies and digital transformation strategies.",
+    "images": [
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
+      "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80"
+    ]
+  },
+
+  {
+    "id": "ict-training-workshop-2024",
+    "title": "ICT Training Workshop",
+    "date": "September 20, 2024",
+    "location": "BSG Training Facility",
+    "coverImage": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80",
+    "description": "Comprehensive hands-on training sessions empowering participants with essential digital skills.",
+    "images": [
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=80"
+    ]
+  },
+  {
+    "id": "community-tech-outreach-2024",
+    "title": "Community Tech Outreach",
+    "date": "August 5, 2024",
+    "location": "Quezon City Community Hub",
+    "coverImage": "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80",
+    "description": "Bringing technology education to underserved communities and inspiring the next generation.",
+    "images": [
+      "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80",
+      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80"
+    ]
+  },
+  {
+    "id": "product-launch-event-2024",
+    "title": "Product Launch Event",
+    "date": "July 12, 2024",
+    "location": "BGC Innovation Center",
+    "coverImage": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
+    "description": "Unveiling our latest innovation with partners, clients, and technology enthusiasts.",
+    "images": [
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=80",
+      "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1200&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80"
+    ]
+  },
+  {
+    "id": "quarterly-company-meeting-q2",
+    "title": "Q2 Company All-Hands Meeting",
+    "date": "June 28, 2024",
+    "location": "BSG Headquarters",
+    "coverImage": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+    "description": "Celebrating achievements, sharing insights, and aligning on our strategic vision for growth.",
+    "images": [
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80"
+    ]
+  },
+  {
+    "id": "hackathon-2024",
+    "title": "BSG Innovation Hackathon",
+    "date": "May 18, 2024",
+    "location": "Makati Tech Hub",
+    "coverImage": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
+    "description": "48 hours of creativity, coding, and collaboration to solve real-world challenges.",
+    "images": [
+      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80"
+    ]
+  }
+]

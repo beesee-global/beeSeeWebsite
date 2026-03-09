@@ -5,10 +5,12 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 import AddImageIcon from '../../../../public/add-image-icon.jpg';
 import { AlertColor } from '@mui/material/Alert';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, Save, User2, User, Mail, Lock, MapPin, Image as ImageIcon, Upload, CheckCircle } from 'lucide-react';
+import { Edit3, Save, User2, User, Mail, Lock, Phone, MapPin, Image as ImageIcon, Upload, CheckCircle } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchUserById, updateAccountInfo } from '../../../services/Technician/myAccountServices';
 import { userAuth } from '../../../hooks/userAuth';
+import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
+import { verifyPassword } from '../../../services/Technician/userServices'
 
 interface formData {
     first_name: string;
@@ -16,6 +18,7 @@ interface formData {
     email: string;
     password?: string;
     confirm_password?: string;
+    contact_number: string;
     image?: File | string | null;
 }
 
@@ -24,28 +27,42 @@ interface FormError {
     last_name?: string;
     email?: string;
     password?: string;
+    contact_number?: string;
     confirm_password?: string;
     image?: string;
 }
 
 const MyAccount = () => {
-    const { logout, userInfo } = userAuth();
+    const { 
+        logout, 
+        userInfo,
+        setSnackBarMessage,
+        setSnackBarOpen,
+        setSnackBarType,
+        snackBarMessage
+    } = userAuth();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const id = userInfo?.id; 
-
-    const [message, setMessage] = useState<string>('');
-    const [snackBarType, setSnackBarType] = useState<AlertColor>('success');
-    const [showAlert, setShowAlert] = useState<boolean>(false);
+ 
     const [title, setTitle] = useState<string>('');
     const [openModal, setOpenModal] = useState<boolean>(false);
+    const [openModalPassword, setOpenModalPassword] = useState<boolean>(false)
 
     const [formData, setFormData] = useState<formData>({
         first_name: '',
+        contact_number: "",
         last_name: '',
         email: '',
         password: '',
         confirm_password: '',
+    });
+
+    // Verify password
+    const {
+    mutateAsync: verifyPasswords
+    } = useMutation({
+    mutationFn: verifyPassword
     });
 
     const [formError, setFormError] = useState<FormError>({});
@@ -76,6 +93,9 @@ const MyAccount = () => {
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             errors.email = 'Email is invalid';
         }
+
+        if (!formData?.contact_number.trim()) errors.contact_number = 'Phone number is required.';
+        else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
 
         // password validation
         if (formData.password || formData.confirm_password) {
@@ -124,14 +144,14 @@ const MyAccount = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setTitle('');
-        setMessage('');
+        setSnackBarMessage('');
     };
 
     // --- open modal ---
     const handleOpenModal = () => {
         setOpenModal(true);
         setTitle('Update Information');
-        setMessage('Are you sure you want to update your information? You will be logged out and need to log in again.');
+        setSnackBarMessage('Are you sure you want to update your information? You will be logged out and need to log in again.');
     };
 
     // --- fetching data from backend
@@ -162,6 +182,7 @@ const MyAccount = () => {
                 first_name: userInformation?.data.first_name,
                 last_name: userInformation?.data.last_name,
                 email: userInformation?.data.email,
+                contact_number: userInformation?.data.contact_number,
                 image: userInformation?.data.image_url,
             });
         }
@@ -187,8 +208,8 @@ const MyAccount = () => {
 
             if (Object.keys(errors).length > 0) {
                 setSnackBarType('error');
-                setMessage('Please fill in all required fields.');
-                setShowAlert(true);
+                setSnackBarMessage('Please fill in all required fields.');
+                setSnackBarOpen(true);
                 setOpenModal(false);
                 return;
             }
@@ -218,7 +239,7 @@ const MyAccount = () => {
             }
 
             setSnackBarType('success');
-            setMessage('Account information updated successfully!');
+            setSnackBarMessage('Account information updated successfully!');
 
             logout();
             navigate('/sign-in', { replace: true });
@@ -226,9 +247,9 @@ const MyAccount = () => {
             console.error('❌ Error updating account:', err);
             setSnackBarType('error');
             setOpenModal(false);
-            setMessage('Failed to update information, please try again.');
+            setSnackBarMessage('Failed to update information, please try again.');
         } finally {
-            setShowAlert(true);
+            setSnackBarOpen(true);
         }
     };
 
@@ -239,19 +260,70 @@ const MyAccount = () => {
             setFormData({
                 first_name: userInformation.data.first_name || null,
                 last_name: userInformation.data.last_name || null,
+                contact_number: userInformation.data.contact_number || null,
                 email: userInformation.data.email || null,
             });
         }
     };
 
+    const handleVerifyPassword = async (formData: Record<string, string>) => {
+        try {
+            const formDataPassword = new FormData();
+            formDataPassword.append('email', userInfo?.email);
+            formDataPassword.append('password', formData.password)
+
+            const response = await verifyPasswords(formDataPassword)
+
+            if (response.success) { 
+                setOpenModalPassword(false);
+                await handleSubmit();
+            }
+        } catch (error: any) {
+            const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+            const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+            setSnackBarMessage(cleanMessage);
+            setSnackBarType("error")
+            setSnackBarOpen(true) 
+            setOpenModalPassword(false)
+        }
+    }
+
+    const handleShowPassword = async () => {
+        setOpenModalPassword(true)
+        setOpenModal(false)
+    }
+
     return (
         <div className="bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Notification */}
-                <SnackbarTechnician open={showAlert} type={snackBarType} message={message} onClose={() => setShowAlert(false)} />
-
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
                 {/* Modal Component */}
-                <AlertDialog open={openModal} title={title} message={message} onClose={handleCloseModal} onSubmit={handleSubmit} />
+                <AlertDialog 
+                    open={openModal} 
+                    title={title} 
+                    message={snackBarMessage} 
+                    onClose={handleCloseModal} 
+                    onSubmit={(handleShowPassword)} 
+                />
+
+                {/* Asking password */}
+                <ReusableTextFieldModal 
+                    open={openModalPassword}
+                    onClose={() => setOpenModalPassword(false)}
+                    title={"Enter your password"}
+                    fields={[
+                    {
+                        name: 'password',
+                        placeholder: 'Password',
+                        maxLength: 100,
+                        type: 'text',
+                        multiline: false,
+                        rows: 1,
+                        value: '',
+                        validator: (value) => (!value.trim() ? 'password is required' : undefined),
+                    }
+                    ]}
+                    onSubmit={handleVerifyPassword}
+                />
 
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-gray-200 dark:border-gray-700 p-6 mb-6">
@@ -406,6 +478,26 @@ const MyAccount = () => {
                                     helperText={formError.confirm_password}
                                 />
                             </div>
+
+                            {/* confirm password */}
+                            <div>
+                                <label htmlFor="" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Contact Number *
+                                </label>
+                                <CustomTextField
+                                    name="contact_number"
+                                    placeholder="Enter your contact number"
+                                    value={formData.contact_number}
+                                    onChange={handleChangeInput}
+                                    multiline={false}
+                                    maxLength={11}
+                                    type="text"
+                                    rows={1}
+                                    icon={<Phone className="w-4 h-4" />}
+                                    error={!!formError.contact_number}
+                                    helperText={formError.contact_number}
+                                />
+                            </div>
                         </div>
 
                         {/* Image upload */}
@@ -431,8 +523,12 @@ const MyAccount = () => {
                                             className={`relative border boder-dashed  dark:border-gray-600 rounded-xl overflow-hidden transition-colors group
                                         ${formError.image ? 'border-red-400' : 'border-gray-300'}`}
                                         >
-                                            <div className="aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                                                <img src={preview} alt="" className="object-cover w-full h-full" />
+                                            <div className="h-52 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                                                <img 
+                                                    src={preview} 
+                                                    alt="" 
+                                                    className="object-cover " 
+                                                    />
                                             </div>
 
                                             {/* Upload overlay for empty state */}
@@ -489,7 +585,7 @@ const MyAccount = () => {
                     </div>
 
                     {/* Account information */}
-                    <div className="bg-white p-6 mt-8 pt-6 border-t dark:border-gray-700">
+                    {/* <div className="bg-white p-6 mt-8 pt-6 border-t dark:border-gray-700">
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -514,7 +610,7 @@ const MyAccount = () => {
                                 <span className="ml-2 text-gray-900 dark:text-whte">{userInformation?.data?.details?.position}</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

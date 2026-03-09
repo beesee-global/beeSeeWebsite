@@ -1,5 +1,5 @@
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
-import TableDefault from "../../../components/DataDisplay/TableDefault";
+import TableCustomizableHeaders from "./components/TableCustomizableHeadersIssue";
 import { useState, useEffect, useMemo } from "react";
 import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -8,15 +8,14 @@ import {
   fetchIssues, 
   updateIssues,
   createIssue,
-  fetchProducts,
-  fetchCategory,
+  fetchProductAll, 
   Issues
-} from '../../../services/Technician/issuesServices'; 
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician";
+} from '../../../services/Technician/issuesServices';  
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import IssuesModal from './components/IssuesModal';
+import { fetchCategoriesNoIsActive } from '../../../services/Technician/categoryServices'
 
 const Issue = () => {
   const queryClient = useQueryClient();
@@ -30,15 +29,14 @@ const Issue = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null); 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<string>("ALL");
+  const [selectedModel, setSelectedModel] = useState<string>("");
 
   const { 
     userInfo,
     setSnackBarMessage, 
     setSnackBarOpen, 
-    setSnackBarType,
-    snackBarMessage ,
-    snackBarOpen,
-    snackBarType
+    setSnackBarType, 
   } = userAuth();
 
    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'issue');
@@ -47,6 +45,38 @@ const Issue = () => {
     queryKey: ['issues'],
     queryFn: fetchIssues
   }); 
+
+  const { data: productResponse } = useQuery({
+    queryKey: ["product"],
+    queryFn: fetchProductAll
+  });
+
+  const { data: categoryResponse = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategoriesNoIsActive,
+    select: (res) => res.data.map((item: any) => ({
+      value: item.id,
+      label: item.name
+    }))
+  })
+
+  const products = productResponse?.data ?? [];
+  const deviceTabs = ["ALL", ...categoryResponse.map((c: any) => c.label)];
+
+  const modelTabs = useMemo(() => {
+    const selectedCategoryId = categoryResponse.find((c: any) => c.label === selectedDevice)?.value;
+
+    const filteredModels = products.filter((p: any) => {
+      if (selectedDevice === "ALL") return true;
+
+      return (
+        p.category_name === selectedDevice ||
+        Number(p.categories_id) === Number(selectedCategoryId)
+      );
+    });
+
+    return Array.from(new Set(filteredModels.map((p: any) => p.product_name)));
+  }, [products, selectedDevice, categoryResponse]);
 
   const { mutateAsync: IssueCategory } = useMutation({ mutationFn: createIssue });
   const { mutateAsync: updateProduct } = useMutation({
@@ -59,7 +89,9 @@ const Issue = () => {
 
   const columns = [
     {id: 'name', label: 'Name', sortable: true, align: 'left'},
-    {id: 'category_name', label: 'Device Type', sortable: false, align: 'left'}, 
+    {id: "categories_name", label: "Device Type", sortable: true, align: 'left'},
+    {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'}, 
+    {id: 'is_publish', label: 'Publish', sortable: false, align: 'left' },
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
@@ -83,7 +115,7 @@ const Issue = () => {
     setDeleteIds([selectedRowId]);
     setDialogTitle("Confirm Delete");
     setDialogOpen(true);
-    setDialogMessage("Are you sure you want to delete this issue?");
+    setDialogMessage("Are you sure you want to delete this issue? Once deleted, all connected Job Order will also be removed.");
   };
 
     // Handle Update Button Click
@@ -130,11 +162,13 @@ const Issue = () => {
   };
 
   const handleAddIssue = async (formDataIssue: Record<string, string>) => {
-    try {
+    try { 
       const response = await IssueCategory({
         name: formDataIssue.name,
-        /* products_id: Number(formDataIssue.products_id), */
-        categories_id: Number(formDataIssue.categories_id)
+        product_id: Number(formDataIssue.product_id),
+        categories_id: Number(formDataIssue.categories_id),
+        possible_solutions: formDataIssue.explanation,
+        is_publish: formDataIssue.publish
       });
       if (response?.success) {
         setSnackBarMessage("Issue created successfully");
@@ -157,8 +191,10 @@ const Issue = () => {
       const payload = {
         id: selectedProduct.id,
         name: formDataIssue.name,
-      /*  products_id: Number(formDataIssue.products_id), */
-        categories_id: Number(formDataIssue.categories_id)
+        product_id: Number(formDataIssue.product_id),
+        categories_id: Number(formDataIssue.categories_id),
+        possible_solutions: formDataIssue.explanation,
+        is_publish: formDataIssue.publish
       };
 
       const response = await updateProduct({ id: selectedProduct.id, payload });
@@ -206,19 +242,34 @@ const Issue = () => {
   }, [searchValue]);
 
   const filteredProduct = useMemo(() => {
-    if (!debouncedSearch?.trim()) return issues;
-    return issues.filter((c: any) => 
-      c.category_name.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      c.name.toLowerCase().includes(debouncedSearch?.toLowerCase())
-    );
-  }, [issues, debouncedSearch]);
+    let result = issues;
+
+    if (debouncedSearch?.trim()) {
+      const search = debouncedSearch.toLowerCase();
+      result = result.filter((c: any) =>
+        c.product_name.toLowerCase().includes(search) ||
+        c.categories_name.toLowerCase().includes(search) ||
+        c.name.toLowerCase().includes(search)
+      );
+    }
+
+    if (selectedDevice !== "ALL") {
+      result = result.filter((c: any) => c.categories_name === selectedDevice);
+    }
+
+    if (selectedModel) {
+      result = result.filter((c: any) => c.product_name === selectedModel);
+    }
+
+    return result;
+  }, [issues, selectedDevice, selectedModel, debouncedSearch]);
 
   // Check if buttons should be enabled
   const isUpdateEnabled = !!selectedRowId;
   const isDeleteEnabled = !!selectedRowId;
 
   return (
-    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen'>
+    <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'>
       {/* Modal */}
       {modalOpen && (
         <IssuesModal 
@@ -228,14 +279,7 @@ const Issue = () => {
           onSave={isEditMode ? handleUpdateIssue : handleAddIssue}
           isEditMode={isEditMode}
         />
-      )}
-
-      <SnackbarTechnician 
-        open={snackBarOpen} 
-        type={snackBarType} 
-        message={snackBarMessage} 
-        onClose={() => setSnackBarOpen(false)} 
-      />
+      )} 
 
       <AlertDialog 
         open={dialogOpen}
@@ -313,13 +357,22 @@ const Issue = () => {
       </div>
 
       {/* Table Section */}
-      <TableDefault 
+      <TableCustomizableHeaders 
         rows={filteredProduct}
         columns={columns}
         isLoading={isLoading}
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        filterOptionsDevices={deviceTabs}
+        filterOptionsModels={modelTabs}
+        selectedDeviceFilter={selectedDevice}
+        selectedModelFilter={selectedModel}
+        onDeviceFilterChange={(device) => {
+          setSelectedDevice(device);
+          setSelectedModel("");
+        }}
+        onModelFilterChange={(model) => setSelectedModel(model)}
       />
     </div>
   );

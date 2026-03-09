@@ -1,5 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import headerImage from "../assets/header.png";
+import footerImage from "../assets/footer.png";
  
 
 // Optional: custom font registration if needed
@@ -12,6 +14,7 @@ interface JobOrderData {
   city: string;
   phone: string;
   email: string;
+  location: string;
   device_type: string;
   issue_type: string;
   serial_number: string;
@@ -19,9 +22,11 @@ interface JobOrderData {
   technician_name: string; 
 }
 
+const BORDER_COLOR = "#000000";
+
 const styles = StyleSheet.create({
-page: {
-        fontSize: 10,
+    page: {
+        fontSize: 9,
         paddingTop: 55,
         paddingBottom: 50,
         paddingHorizontal: 50,
@@ -47,38 +52,36 @@ page: {
         marginBottom: 5,
     },
     title: {
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: "Helvetica-Bold",
     },
     subtitle: {
-        fontSize: 10,
+        fontSize: 9,
         fontFamily: "Helvetica-Bold",
     },
     section: {
         borderWidth: 0.5,
-        borderColor: "#888",
+        borderColor: BORDER_COLOR,
         backgroundColor: "#e5e5e5",
         padding: 6, 
         alignItems: "center",
     },
-  
     sectiona: {
         borderWidth: 0.5,
-        borderColor: "#888",
+        borderColor: BORDER_COLOR,
         backgroundColor: "#e5e5e5",
         padding: 6, 
         alignItems: "center",
         marginTop: 10,
     },
-  
     sectionText: {
-        fontSize: 12,
+        fontSize: 11,
         fontFamily: "Helvetica-Bold",
     },
     row: {
         flexDirection: "row",
         borderWidth: 0.5,
-        borderColor: "#888",
+        borderColor: BORDER_COLOR,
         borderTopWidth: 0, 
         minHeight: 20,
     },
@@ -87,20 +90,20 @@ page: {
         fontFamily: "Helvetica-Bold",
         padding: 5,
         borderRightWidth: 0.5,
-        borderRightColor: "#888",
+        borderRightColor: BORDER_COLOR,
     },
     dateLabel: {
         width: 80,
-      	paddingLeft: 5,
+        paddingLeft: 5,
         borderLeftWidth: 0.5,
+        borderLeftColor: BORDER_COLOR,
         marginLeft: 100,
     },
     labelBold: {
         fontFamily: "Helvetica-Bold",
-      padding: 5
+        padding: 5
     },
-    value: {
-        flex: 1,
+    value: { 
         paddingLeft: 5,
         paddingTop: 5,
     },
@@ -111,7 +114,7 @@ page: {
     statusRow: {
         flexDirection: "row",
         borderWidth: 0.5,
-        borderColor: "#888",
+        borderColor: BORDER_COLOR,
         borderTopWidth: 0, 
     },
     statusContent: {
@@ -119,12 +122,12 @@ page: {
         padding: 5,
     },
     statusOption: {
-        fontSize: 10,
+        fontSize: 9,
         marginBottom: 2,
     },
     statusLine: {
         borderBottomWidth: 0.5,
-        borderBottomColor: "#888",
+        borderBottomColor: BORDER_COLOR,
         marginVertical: 2,
         marginTop: 10,
         marginLeft: 10,
@@ -132,7 +135,7 @@ page: {
     acknowledgmentBox: {
         flexDirection: "row",
         borderWidth: 0.5,
-        borderColor: "#888",
+        borderColor: BORDER_COLOR,
         borderTopWidth: 0,
         minHeight: 0 
     },
@@ -140,7 +143,7 @@ page: {
         width: 150,
         padding: 5,
         borderRightWidth: 0.5,
-        borderRightColor: "#888",
+        borderRightColor: BORDER_COLOR,
     },
     acknowledgmentContent: {
         flex: 1,
@@ -149,17 +152,17 @@ page: {
         justifyContent: "space-between",
     },
     signatureText: {
-        fontSize: 10,
+        fontSize: 9,
         marginBottom: 10,
     },
     signatureLine: {
         borderBottomWidth: 0.5,
-        borderBottomColor: "#888",
+        borderBottomColor: BORDER_COLOR,
         width: 110,
         marginBottom: 5,
     },
     dateText: {
-        fontSize: 10,
+        fontSize: 9,
         paddingLeft: 40
     },
     acknowledgeLayout: {
@@ -173,8 +176,8 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
      <Document>
         <Page size="A4" style={styles.page}>
         {/* Header and Footer Images */}
-        <Image src="/assets/header.png" style={styles.headerImage} />
-        <Image src="/assets/footer.png" style={styles.footerImage} />
+        <Image src={headerImage} style={styles.headerImage} />
+        <Image src={footerImage} style={styles.footerImage} />
 
         {/* Title */}
         <View style={styles.titleContainer}>
@@ -199,7 +202,7 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         <View style={styles.row}>
             <Text style={styles.label}>CITY:</Text>
             <Text style={styles.value}>{data.city}</Text>
-        </View>
+        </View> 
         <View style={styles.row}>
             <Text style={styles.label}>CONTACT:</Text>
             <Text style={styles.value}>{data.phone}</Text>
@@ -224,6 +227,11 @@ const JobOrderPDF = ({ data }: { data: JobOrderData }) => {
         <View style={styles.row}>
             <Text style={styles.label}>SERIAL NUMBER:</Text>
             <Text style={styles.value}>{data.serial_number}</Text>
+        </View>
+        
+        <View style={styles.row}>
+            <Text style={styles.label}>LOCATION:</Text>
+            <Text style={styles.value}>{data.location}</Text>
         </View>
 
         {/* ISSUE REPORT */}

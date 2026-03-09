@@ -31,10 +31,7 @@ export default function InquriesReplyMessage() {
   const { 
     setSnackBarMessage, 
     setSnackBarType, 
-    setSnackBarOpen,
-    snackBarMessage,
-    snackBarOpen,
-    snackBarType,
+    setSnackBarOpen, 
     userInfo
 } = userAuth()
   const { pid } = useParams();
@@ -231,14 +228,7 @@ export default function InquriesReplyMessage() {
   }
 
   return (
-    <div className="flex h-full bg-gray-50"> 
-      {/* Snackbar */}
-      <SnackbarTechnician 
-          open={snackBarOpen}
-          type={snackBarType}
-          message={snackBarMessage}
-          onClose={() => setSnackBarOpen(false)}
-      />
+    <div className="flex h-full bg-gray-50">  
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog 

@@ -159,12 +159,19 @@ export default function TableInbox({
  
   const [page, setPage] = useState(0); 
   const [orderBy, setOrderBy] = useState<string>(''); // Empty means no sorting
+  // Track the currently selected row so we can highlight it in the UI.
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const rowsPerPage = 20;
 
   // Reset page when status filter or organization changes
   useEffect(() => {
     setPage(0);
   }, [statusFilter, organization]);
+
+  // Clear row selection when filters change to avoid stale highlight.
+  useEffect(() => {
+    setSelectedRowId(null);
+  }, [statusFilter, organization, page]);
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -200,6 +207,11 @@ export default function TableInbox({
     e.stopPropagation();
     if (handleDelete) handleDelete([id]);
   }; 
+
+  // Handle row click and keep only one highlighted row at a time.
+  const handleRowSelect = (rowId: number) => {
+    setSelectedRowId(rowId);
+  };
 
   if (isLoading) {
     return (
@@ -244,6 +256,17 @@ export default function TableInbox({
               </button>
 
               <button
+                onClick={() => setStatusFilter("Ongoing")}
+                className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                  ${statusFilter === "Ongoing" 
+                    ? "bg-yellow-500 text-white border-yellow-500" 
+                    : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                Ongoing
+              </button>
+
+              <button
                 onClick={() => setStatusFilter("Completed")}
                 className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
                   ${statusFilter === "Completed" 
@@ -281,6 +304,7 @@ export default function TableInbox({
             visibleRows.map(row => (
               <div 
                 key={row.id}
+                // Clicking anywhere on the card selects/highlights that row.
                 onClick={() => handleEdit(row.pid)}
                 className="border rounded-lg p-4 hover:bg-gray-300 transition-colors cursor-pointer"
                 style={{ borderColor: COLORS.border }}

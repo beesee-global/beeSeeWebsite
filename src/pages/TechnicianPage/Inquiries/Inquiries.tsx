@@ -164,7 +164,7 @@ const Inquiries = () => {
   if (isLoading) return <SpinningRingLoader />
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white min-h-screen"> 
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white"> 
 
       {/* Header - Responsive layout */}
       <div className='flex flex-col lg:grid lg:grid-cols-2 gap-4'>
