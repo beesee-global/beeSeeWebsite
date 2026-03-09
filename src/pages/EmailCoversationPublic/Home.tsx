@@ -46,7 +46,7 @@ export default function EmailConversationApp() {
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>(""); 
 
-  const message = "This ticket is closed due to inactivity. If you need to follow up or require further assistance, please submit a new job order using the following link"
+  const message = "This Job Order is closed. If you need to follow up or require further assistance, please submit a new job order using the following link"
   const url = `${import.meta.env.VITE_API_URL_FRONTEND}/customer-support`
 
   const {  

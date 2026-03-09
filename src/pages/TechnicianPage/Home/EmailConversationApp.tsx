@@ -72,7 +72,7 @@ export default function EmailConversationApp() {
   // Client-side upload size limit.
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-
+  const message = "This Job Order has been closed."
   
   const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
@@ -966,6 +966,16 @@ export default function EmailConversationApp() {
             <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
               <span className="text-center text-gray-500 text-lg">No message found</span>
             </div></>
+          )}
+
+          {Number(userTicketInformation?.is_closed) === 1 && (
+            <div className="flex justify-center mb-2 text-center">
+              <div className="max-w-2xl w-full rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-900">
+                  {message}{" "} 
+                </p>
+              </div>
+            </div>
           )}
           
           {/* Reply Box */}
