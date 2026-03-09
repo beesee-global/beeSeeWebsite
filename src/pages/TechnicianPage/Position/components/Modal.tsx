@@ -145,14 +145,14 @@ const permissionTree = [
     hasActions: true,
     allowedActions: ["view", "add", "edit", "delete"], // All actions
   },
-  {
-    id: "audit-logs",
-    name: "Audit Logs",
-    url: "/beesee/audit-logs",
-    parent: null,
-    hasActions: true,
-    allowedActions: ["view"], // All actions
-  },
+  // {
+  //   id: "audit-logs",
+  //   name: "Audit Logs",
+  //   url: "/beesee/audit-logs",
+  //   parent: null,
+  //   hasActions: true,
+  //   allowedActions: ["view"], // All actions
+  // },
   {
     id: "users",
     name: "Users",
