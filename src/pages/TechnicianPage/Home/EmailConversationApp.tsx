@@ -1108,7 +1108,7 @@ export default function EmailConversationApp() {
               </h2>
 
               <div className='flex items-center gap-2'>
-                {userTicketInformation?.status !== 'resolved' && userTicketInformation?.job_order_url && (
+                {userTicketInformation?.job_order_url && (
                   <button 
                     disabled={isPending}
                     title="Upload Job Order"
@@ -1156,7 +1156,7 @@ export default function EmailConversationApp() {
             </h2>
           </div>
           <div className='space-x-2'>
-            {userTicketInformation?.status !== 'resolved' && userTicketInformation?.job_order_url && (
+            {userTicketInformation?.job_order_url && (
               <button 
                 title="Upload Job Order"
                 onClick={() => jobOrderFileInputRef.current?.click()}
