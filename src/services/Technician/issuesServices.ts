@@ -86,18 +86,18 @@ export const updateIssues = async (id: number, issue: Omit<Issues, "id">): Promi
   } catch (err) {
   	throw err
   }
-};
+}; 
 
-export const deleteIssues = async (payload: FormData | number[] | string[]) => {
+export const deleteIssues = async (payload: any) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: payload instanceof FormData ? payload : { ids: payload },
-      headers: payload instanceof FormData
-        ? { "Content-Type": "multipart/form-data" }
-        : { "Content-Type": "application/json" },
+      data: payload,
+      headers: {
+        "Content-Type": "application/json",
+      }
     });
     return response.data;
   } catch (error) {
     throw error;
   }
-}   
+} 

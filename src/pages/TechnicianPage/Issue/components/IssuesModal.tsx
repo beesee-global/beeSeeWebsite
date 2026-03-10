@@ -165,14 +165,16 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
     if (!formData?.name) errors.name = 'Issue is required.';
 
     setFormError(errors);
-    setSnackBarMessage("Please fill the required fields.")
-    setSnackBarType("error")
-    setSnackBarOpen(true)
 
     if (Object.keys(errors).length === 0) {
       onSave(formData);
       setFormData(initialState);
+      return
     }
+ 
+    setSnackBarMessage("Please fill the required fields.")
+    setSnackBarType("error")
+    setSnackBarOpen(true)
   };
 
   if (!isOpen) return null;
