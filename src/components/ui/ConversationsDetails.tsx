@@ -535,7 +535,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       beforeAfterFileInputRef.current.value = ""
     }
   }
-
+  
   return (
     <div>  
       <div className="p-4 space-y-4">
@@ -574,10 +574,24 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
 
         {/* Status Badge */}
         <div className="md:flex items-center  justify-between gap-4">  
-          <span className="text-md text-gray-500 flex items-center gap-1">
-            <Calendar size={14} />
-            {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
-          </span>
+          <div className='space-y-2'>
+            <div>
+            <span className='text-md text-gray-600 font-semibold'>Date Created</span>
+            <span className="text-md text-gray-500 flex items-center gap-1">
+              <Calendar size={14} />
+              {userTicketInformation.created_at ? formatDate(userTicketInformation.created_at) : 'N/A'}
+            </span>
+          </div>
+          {userTicketInformation.status === "resolved" && (
+            <div>
+              <span className='text-md text-gray-600 font-semibold'>Date Completed</span>
+              <span className="text-md text-gray-500 flex items-center gap-1">
+                <Calendar size={14} /> 
+                {userTicketInformation.updated_at ? formatDate(userTicketInformation.updated_at) : 'N/A'}
+              </span>
+            </div>
+          )}
+          </div>
           <div className='flex gap-2'>
             {!publicConversation && (
             <div className='flex gap-2 mt-3 md:mt-0'> 
@@ -672,9 +686,9 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           )} 
 
           {!publicConversation && (
-            <div>
+            <div className='mt-3 md:mt-0'>
               <button 
-                className='bg-gray-200 text-gray-700 px-3 py-3 rounded-md flex items-center'
+                className='bg-gray-200 justify-center text-gray-700 px-3 py-3 rounded-md flex items-center'
                 title='Need help?'
                 onClick={() => setJobOrderFlowDialogOpen(true)}
               >
