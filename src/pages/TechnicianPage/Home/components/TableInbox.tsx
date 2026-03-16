@@ -452,8 +452,12 @@ export default function TableInbox({
                               </button>
                             )}
                           </div>
-                        ) : col.id === 'status_date' || col.id === 'status_date' ? (
-                          <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
+                        ) : col.id === 'status_date' || col.id === 'updated_at' || col.id === 'created_at' ? (
+                          row[col.id] != null ? (
+                            <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
+                          ) : (
+                            <div className="text-sm text-gray-500">Date not available</div>
+                          )
                         ) : (
                           <div className="text-sm text-gray-900 truncate" style={{ maxWidth: 320 }}>{row[col.id]}</div>
                         )}

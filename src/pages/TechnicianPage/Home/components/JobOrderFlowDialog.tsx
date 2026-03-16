@@ -114,6 +114,10 @@ const JobOrderFlowDialog: React.FC<AJobOrderFlowDialogProps> = ({
       question: 'Can I edit after closing?',
       answer: 'No. Closed tickets should be treated as final records.',
     },
+    {
+      question: "Will the technician still go on-site if repair isn't possible?",
+      answer: 'Yes, for assessment. If repair cannot be completed, document the reason in Remarks.',
+    },
   ];
   
   const handleClose = () => {

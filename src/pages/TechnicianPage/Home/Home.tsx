@@ -122,6 +122,7 @@ const Home = () => {
     );
   }, [listOfTicket]);
 
+  // when user selects a search suggestion, set the search value and filter the table to show the selected ticket's status
   const handleSearchSuggestionSelect = (referenceNumber: string) => {
     setSearchValue(referenceNumber);
     setDebouncedSearch(referenceNumber);
@@ -131,10 +132,10 @@ const Home = () => {
     );
 
     const status = String(selectedTicket?.status || "").toLowerCase();
-    if (status === "open") setStatusFilter("Pending");
-    if (status === "ongoing") setStatusFilter("Ongoing");
-    if (status === "resolved") setStatusFilter("Completed");
-    if (status === "resolved" && selectedTicket?.is_closed) setStatusFilter("Closed");
+    if (status === "open" && selectedTicket?.is_closed === 0) setStatusFilter("Pending");
+    if (status === "ongoing" && selectedTicket?.is_closed === 0) setStatusFilter("Ongoing");
+    if (status === "resolved" && selectedTicket?.is_closed === 0) setStatusFilter("Completed");
+    if (selectedTicket?.is_closed) setStatusFilter("Closed");
   };
   // ⭐ SELECT WHICH ROWS TO USE - Filter by status
   const rows = useMemo(() => {

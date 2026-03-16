@@ -126,10 +126,11 @@ export default function EmailConversationApp() {
     queryKey: ['status', userTicketInformation?.ticket_id, userTicketInformation?.status],
     queryFn: () =>
       fetchStatus(
-        userTicketInformation.status,
+      userTicketInformation.is_closed === 0 ? userTicketInformation.status : "closed" ,
         userTicketInformation.status === 'open' || userTicketInformation.status === 'ongoing'
           ? 'created_at'
-          : 'updated_at'
+          : 'updated_at',
+        userTicketInformation.is_closed
       ),
     enabled: !!userTicketInformation?.status && !!userTicketInformation?.ticket_id,
   });
@@ -458,10 +459,7 @@ export default function EmailConversationApp() {
         setSnackBarOpen(true);
 
         setTriggerCompletedClosed(true) // Set flag to indicate we just completed a job order.
-        nextJobOrderStep() // Automatically move to the next job order in the list after marking current as completed.
-        await refetchTicketInfo();
-        await fetchTicketConversations();
-        await fetchStatusData();
+        await nextJobOrderStep(true) // Move to next or return to list after completion.
       }
 
 
@@ -506,10 +504,7 @@ export default function EmailConversationApp() {
         setSnackBarOpen(true) 
 
         setTriggerCompletedClosed(true) // Set flag to indicate we just completed a job order.
-        nextJobOrderStep() // Automatically move to the next job order in the list after marking current as completed.
-        await refetchTicketInfo();
-        await fetchTicketConversations();
-        await fetchStatusData();
+        await nextJobOrderStep(true) // Move to next or return to list after completion.
       }
 
     } catch (error) {
@@ -688,7 +683,7 @@ export default function EmailConversationApp() {
     closeDialog();
   }
 
-  const nextJobOrderStep = () => {
+  const nextJobOrderStep = async (forceReturnToList = false) => {
     // Debug: move to the next PID based on statusData order
     const statusList = statusData?.data ?? [];
     const currentIndex = statusList.findIndex((item: any) => item.pid === pid);
@@ -702,10 +697,11 @@ export default function EmailConversationApp() {
 
     const nextItem = statusList[currentIndex + 1];
     if (!nextItem?.pid) {
-
-      if (triggerCompletedClosed === true) {
-        navigate("/beesee/job-order");
+      const shouldReturnToList = forceReturnToList || triggerCompletedClosed;
+      console.log("No next item. Force return to list?", forceReturnToList, "Triggered by completion?", triggerCompletedClosed);
+      if (shouldReturnToList) {
         setTriggerCompletedClosed(false) // Reset flag after redirecting to job order list.
+        navigate("/beesee/job-order");
         return;
       }
 
@@ -714,6 +710,10 @@ export default function EmailConversationApp() {
       setSnackBarOpen(true);
       return;
     }
+
+      await refetchTicketInfo();
+      await fetchTicketConversations();
+      await fetchStatusData();
 
     navigate(`/beesee/job-order/conversation/${nextItem.pid}`);
   }
@@ -1182,12 +1182,14 @@ export default function EmailConversationApp() {
 
               <div className='flex items-center gap-2'>
                 <button 
+                  title='Previous Job Order'
                   onClick={previousJobOrderStep}
                   className='bg-white flex items-center justify-center p-2 rounded-md hover:bg-gray-200'>
                   <ChevronLeft className='w-5 h-5'/>
                 </button>
                 <button 
-                  onClick={nextJobOrderStep}
+                  title="Next Job Order"
+                  onClick={() => nextJobOrderStep()}
                   className='bg-white flex items-center justify-center p-2 rounded-md hover:bg-gray-200'>
                   <ChevronRight className='w-5 h-5'/>
                 </button>
@@ -1242,12 +1244,14 @@ export default function EmailConversationApp() {
           <div className='space-x-1 flex gap-1'>
             <div className='flex gap-1'>
               <button 
+                title="Previous Job Order"
                 onClick={previousJobOrderStep}
                 className='bg-white p-2 rounded-md hover:bg-gray-200'>
                 <ChevronLeft className='w-5 h-5'/>
               </button>
               <button 
-                onClick={nextJobOrderStep}
+                title='Next Job Order'
+                onClick={() => nextJobOrderStep()}
                 className='bg-white p-2 rounded-md hover:bg-gray-200'>
                 <ChevronRight className='w-5 h-5'/>
               </button>

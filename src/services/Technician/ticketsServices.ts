@@ -304,9 +304,9 @@ export const markAsClosed = async (data: FormData) => {
     }
 }
 
-export const fetchStatus = async (status: string, orderBy: string) => {
+export const fetchStatus = async (status: string, orderBy: string, isClosed: string) => {
     try {
-        const response = await axiosClient.get(`${API_URL}/status?status=${status}&orderBy=${orderBy}`);
+        const response = await axiosClient.get(`${API_URL}/status?status=${status}&orderBy=${orderBy}&statusConditionClosed=${isClosed}`);
         return response.data
     } catch (error) {
         throw error

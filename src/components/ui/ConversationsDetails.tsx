@@ -690,7 +690,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     </>
                   )}
 
-                  {userTicketInformation.status != 'resolved' && (
+                  {userTicketInformation.status != 'resolved' && userTicketInformation.is_closed !== 1 &&(
                     <> 
                       <button
                       title='Update Serial Number' 
@@ -716,12 +716,12 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       <Send size={14} /> 
                     </button>
                     </>
-                  )}
- 
+                  )} 
                   
                 </>
               ) : (
-                 <>
+                userTicketInformation.is_closed !== 1 && (
+                  <>
                   <button
                     title='Update Serial Number' 
                     onClick={(e) => {
@@ -745,7 +745,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   >
                     <Send size={14} /> 
                   </button>                 
-                 </>
+                  </>
+                )
               )} 
             </div>
           )} 
@@ -779,10 +780,12 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           
           {!publicConversation ? (
             <div className='flex gap-2'>
-              <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
-              >
-                {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "Completed" : "Ongoing"}
-              </span> 
+              {userTicketInformation.is_closed !== 1 && (
+                <span className={`px-3 py-1 rounded-full text-md font-semibold border ${getStatusColor(userTicketInformation.status)}`}
+                >
+                  {userTicketInformation.status === "open" ? "Pending" :  userTicketInformation.status === "resolved" ? "Completed" : "Ongoing"}
+                </span> 
+              )}
               
               {userTicketInformation?.is_closed === 1 && (
                 <span className={`px-3 py-1 rounded-full text-md font-semibold border bg-gray-200 text-gray-700`}
@@ -1073,14 +1076,16 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               <FileText size={16} />
               Remarks
             </div>
-            <div>
-              <button 
-                onClick={handleOpenRemarksDialog}
-                title="Save Remarks"
-                className='bg-green-200 p-2 rounded-md text-green-700 hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors flex items-center gap-1'>
-                 <Save className='w-5 h-5'/>
-              </button>
-            </div>
+            {userTicketInformation.is_closed !== 1 && (
+              <div>
+                <button 
+                  onClick={handleOpenRemarksDialog}
+                  title="Save Remarks"
+                  className='bg-green-200 p-2 rounded-md text-green-700 hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors flex items-center gap-1'>
+                  <Save className='w-5 h-5'/>
+                </button>
+              </div>
+            )}
           </div>
           <div>
             {userTicketInformation.is_closed ? (
