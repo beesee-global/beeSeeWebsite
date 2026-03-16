@@ -75,8 +75,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
   const beforeAfterFileInputRef = useRef<HTMLInputElement>(null);
   const [jobOrderFlowDialogOpen, setJobOrderFlowDialogOpen] = useState<boolean>(false);
-
-
+ 
   const {
     userInfo,
     setSnackBarMessage,
@@ -145,6 +144,22 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         label: item.product_name
       }))
   })
+
+  // matching to display a name instead of id,
+  const displayDeviceType =
+    (categories || []).find(
+      (item: any) => String(item.value) === String(userTicketInformation.device_type)
+    )?.label ||
+    userTicketInformation.device_type ||
+    'N/A';
+
+  // matching to display a name instead of id,
+  const displayModelType =
+    (modelType || []).find(
+      (item: any) => String(item.value) === String(userTicketInformation.issue_type)
+    )?.label ||
+    userTicketInformation.issue_type ||
+    'N/A';
 
   const { data: issueType } = useQuery({
     queryKey:["issue", formData?.product_id],
@@ -841,14 +856,14 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                 <div>
                   <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
                   <div className="text-md text-gray-900 font-medium">
-                    {userTicketInformation.device_type || 'N/A'}
+                    {displayDeviceType}
                   </div>
                 </div>
                 
                 <div>
                   <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
                   <div className="text-md text-gray-900 flex items-center gap-2 font-medium"> 
-                    {userTicketInformation.issue_type || 'N/A'}
+                    {displayModelType}
                   </div>
                 </div>
 
@@ -884,14 +899,14 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Device Type</div>
               <div className="text-md text-gray-900 font-medium">
-                {userTicketInformation.device_type || 'N/A'}
+                {displayDeviceType}
               </div>
             </div>
             
             <div>
               <div className="text-md text-orange-600 font-medium mb-1">Model Type</div>
               <div className="text-md text-gray-900 flex items-center gap-2"> 
-                {userTicketInformation.issue_type || 'N/A'}
+                {displayModelType}
               </div>
             </div>
 

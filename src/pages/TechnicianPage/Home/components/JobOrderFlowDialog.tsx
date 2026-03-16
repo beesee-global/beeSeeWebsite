@@ -17,6 +17,7 @@ import {
   Barcode,
   Lock,
   CircleHelp,
+  Upload
 } from 'lucide-react';
 
 interface AJobOrderFlowDialogProps {
@@ -65,6 +66,12 @@ const JobOrderFlowDialog: React.FC<AJobOrderFlowDialogProps> = ({
     {
       title: 'Upload Finished Job Order',
       description: 'Upload the final signed or completed job order PDF after service so it can be used for completion and future reference.',
+      icon: Upload,
+      accent: 'text-indigo-700 bg-indigo-100',
+    },
+     {
+      title: 'View Finished Job Order',
+      description: 'View the final signed or completed job order PDF after service.',
       icon: FileCheck2,
       accent: 'text-indigo-700 bg-indigo-100',
     },
