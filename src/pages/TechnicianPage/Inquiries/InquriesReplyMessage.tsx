@@ -303,11 +303,11 @@ export default function InquriesReplyMessage() {
                         setDialogTitle('Close Inquiry');
                         setDialogMessage('Are you sure you want to close this inquiry?');
                       }}
-                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60'
+                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-700 transition hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:cursor-not-allowed disabled:opacity-60'
                     >
                       
                     <MailX className='w-4 h-4' />
-                    <span className='hidden sm:inline'>Close</span>
+                    <span className='hidden sm:inline'>Closed</span>
                     </button>
                   </div>
                 )}

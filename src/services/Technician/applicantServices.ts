@@ -13,6 +13,20 @@ export const fetchApplicants = async (id: string) => {
   }
 };
 
+export const fetchApplicantsClosed = async (id: string) => {
+  try {
+    const response = await axiosClient.get(`${API_URL}/closed`, {
+      params: {
+        status: 'CLOSED',
+        job_applicant: id
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error
+  }
+}
+
 export const fetchApplicantsShortList = async (id: string) => {
   try {
     const response = await axiosClient.get(`${API_URL}/short-list`, {
@@ -56,6 +70,17 @@ export const shortList = async (payload: { id: string; user_id?: string | number
 export const rejectedApplicants = async (payload: { id: string; user_id?: string | number }) => {
   try {
     const response = await axiosClient.put(`${API_URL}/${payload.id}/rejected`, {
+      user_id: payload.user_id,
+    })
+    return response.data
+  } catch (error) {
+    throw error
+  }
+};
+
+export const closedApplicants = async (payload: { id: string; user_id?: string | number }) => {
+  try {
+    const response = await axiosClient.put(`${API_URL}/${payload.id}/closed`, {
       user_id: payload.user_id,
     })
     return response.data

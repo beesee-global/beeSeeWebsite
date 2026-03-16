@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"  
 import { useParams } from "react-router-dom"; 
 import {  
-  Save,  
+  Plus,
+  Pencil,  
   Briefcase,
   MapPin, 
   FileText, 
@@ -316,7 +317,7 @@ const JobPostingForm: React.FC = () => {
                   </span>
                 ) : (
                   <>
-                    <Save className="w-5 h-5 mr-2" />
+                    {id ? <Pencil className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
                     {id ? "Update Job" : "Create Job"}
                   </>
                 )}

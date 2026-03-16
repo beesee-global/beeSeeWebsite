@@ -35,6 +35,19 @@ export const beforeAfterInsert = async (data: FormData) => {
     }
 }
 
+export const saveRemarks = async (id: string, data: FormData) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${id}/remarks`, data, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
 export const deleteBeforeAfterAttachment = async (data: any) => {
     try {
         const response = await axiosClient.delete(`${API_URL}/deleteBeforeAfterAttachment`, {
@@ -285,6 +298,15 @@ export const markAsClosed = async (data: FormData) => {
                 "Content-Type": "application/json"
             }
         });
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchStatus = async (status: string, orderBy: string, isClosed: string) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/status?status=${status}&orderBy=${orderBy}&statusConditionClosed=${isClosed}`);
         return response.data
     } catch (error) {
         throw error

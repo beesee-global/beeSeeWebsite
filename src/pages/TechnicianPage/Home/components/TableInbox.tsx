@@ -331,8 +331,7 @@ export default function TableInbox({
                 key={row.id}
                 // Clicking anywhere on the card selects/highlights that row.
                 onClick={() => handleEdit(row.pid)}
-                className="border rounded-lg p-4 hover:bg-gray-300 transition-colors cursor-pointer"
-                style={{ borderColor: COLORS.border }}
+                className={`border rounded-lg p-4 ${row.is_read ? "bg-transparent" : "bg-amber-100"} hover:bg-gray-300 transition-colors cursor-pointer`} 
               >
                 
                 <div className="flex justify-between items-start mb-3">
@@ -341,60 +340,36 @@ export default function TableInbox({
                       {row.full_name}
                     </h3>
                     <p className="text-md text-gray-500">
-                      {formatDate(row.updated_at)}
+                      {formatDate(row.status_date)}
                     </p>
                   </div>
                   <div className="flex gap-2 ml-2">
                     <button 
                       title="Reply"
                       onClick={(e) => handleComplete(e, row.pid)}
-                      className="text-green-700 bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
+                      className="text-green-700 flex items-center justify-center bg-green-100 p-2 rounded-md hover:bg-green-200 transition-colors"
                     >
                       <Reply size={16} />
-                    </button>
-                    {handleDelete && (
-                      <button 
-                        onClick={(e) => onDelete(e, row.ticket_id)}
-                        className="text-red-700 bg-red-100 p-2 rounded-md hover:bg-red-200 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
+                    </button> 
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  {row.organization_type && (
-                    <div className="flex">
-                      <span className="text-md font-medium text-gray-500 w-28">Organization:</span>
-                      <span className="text-md text-gray-900">{row.organization_type}</span>
+                <div className="space-y-2"> 
+
+                  <div className="flex">
+                    <span className="text-md font-medium text-gray-500 w-28">Job No:</span>
+                    <span className="text-md text-gray-900">{row.reference_number}</span>
+                  </div>  
+                  <div className="flex">
+                    <span className="text-md font-medium text-gray-500 w-28">Company / Institution Name:</span>
+                    <span className="text-md text-gray-900">{row.company}</span>
+                  </div> 
+
+                  {row.location && (
+                    <div className='flex'>
+                      <span className="text-md font-medium text-gray-500 w-28">Location:</span>
+                      <span className='text-md-text-gray-900'> {row.location} </span>
                     </div>
-                  )}
-                  
-                  {row.organization_type === "School" ? (
-                    <>
-                      {row.school_name && (
-                        <div className="flex">
-                          <span className="text-md font-medium text-gray-500 w-28">School:</span>
-                          <span className="text-md text-gray-900">{row.school_name}</span>
-                        </div>
-                      )}
-                      {row.institution && (
-                        <div className="flex">
-                          <span className="text-md font-medium text-gray-500 w-28">Institution:</span>
-                          <span className="text-md text-gray-900">{row.institution}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {row.company && (
-                        <div className="flex">
-                          <span className="text-md font-medium text-gray-500 w-28">Company:</span>
-                          <span className="text-md text-gray-900">{row.company}</span>
-                        </div>
-                      )}
-                    </>
                   )}
                   
                   {row.questions && (
@@ -451,9 +426,12 @@ export default function TableInbox({
                 </tr>
               </thead>
 
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className={`bg-white divide-y divide-gray-100`}>
                 {visibleRows.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-200 cursor-pointer" onClick={() => handleEdit(row.pid)}>
+                  <tr 
+                    key={row.id} 
+                className={`${row.is_read ? "bg-transparent" : "bg-amber-50"} hover:bg-gray-200 cursor-pointer`} 
+                    onClick={() => handleEdit(row.pid)}>
                     {effectiveColumns.map((col) => (
                       <td key={col.id} className={`px-4 py-3 align-top ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
                         {col.id === 'actions' ? (
@@ -474,8 +452,12 @@ export default function TableInbox({
                               </button>
                             )}
                           </div>
-                        ) : col.id === 'status_date' || col.id === 'status_date' ? (
-                          <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
+                        ) : col.id === 'status_date' || col.id === 'updated_at' || col.id === 'created_at' ? (
+                          row[col.id] != null ? (
+                            <div className="text-sm text-gray-500">{formatDate(row[col.id])}</div>
+                          ) : (
+                            <div className="text-sm text-gray-500">Date not available</div>
+                          )
                         ) : (
                           <div className="text-sm text-gray-900 truncate" style={{ maxWidth: 320 }}>{row[col.id]}</div>
                         )}
