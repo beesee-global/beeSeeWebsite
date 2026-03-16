@@ -35,6 +35,19 @@ export const beforeAfterInsert = async (data: FormData) => {
     }
 }
 
+export const saveRemarks = async (id: string, data: FormData) => {
+    try {
+        const response = await axiosClient.put(`${API_URL}/${id}/remarks`, data, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+}
+
 export const deleteBeforeAfterAttachment = async (data: any) => {
     try {
         const response = await axiosClient.delete(`${API_URL}/deleteBeforeAfterAttachment`, {

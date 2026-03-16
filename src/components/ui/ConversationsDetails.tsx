@@ -6,12 +6,13 @@ import { fetchCategoriesSortedByName } from '../../services/Technician/categoryS
 import { fetchProducts, fetchIssueById } from '../../services/Technician/issuesServices'
 import CustomTextField from '../Fields/CustomTextField';
 import CustomSelectField from '../Fields/CustomSelectField';
-import { useQuery, useQueryClient } from '@tanstack/react-query'; 
+import { useQuery, useQueryClient } from '@tanstack/react-query';  
 import { 
   sentJobOder, 
   updateSerialNumber,
   beforeAfterInsert ,
-  deleteBeforeAfterAttachment
+  deleteBeforeAfterAttachment,
+  saveRemarks
 } from '../../services/Technician/ticketsServices'
 import JobOrderFlowDialog from '../../pages/TechnicianPage/Home/components/JobOrderFlowDialog';
 import { useMutation } from '@tanstack/react-query'; 
@@ -32,6 +33,7 @@ import {
   Barcode,
   Trash2,
   Upload, 
+  Save,
   BadgeQuestionMark
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
@@ -44,6 +46,7 @@ interface formData {
   serial_number: string
   location?: string
   item_name?: string
+  remarks?: string
 }
 
 interface ConversationsDetailsProps {
@@ -70,11 +73,11 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   const [dialogTitle, setDialogTitle] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [ticket_id, setTicket_id] = useState<string> ("");
-  const [dialogAction, setDialogAction] = useState<"delete" | "upload" | "sendJobOrder" | "updateSerialNumber" | null>(null);
+  const [dialogAction, setDialogAction] = useState<"delete" | "upload" | "sendJobOrder" | "updateSerialNumber" | "remarks" | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"before" | "after" | "">("");
   const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
   const beforeAfterFileInputRef = useRef<HTMLInputElement>(null);
-  const [jobOrderFlowDialogOpen, setJobOrderFlowDialogOpen] = useState<boolean>(false);
+  const [jobOrderFlowDialogOpen, setJobOrderFlowDialogOpen] = useState<boolean>(false); 
  
   const {
     userInfo,
@@ -89,7 +92,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     issue_id: userTicketInformation.issue_id,
     serial_number: userTicketInformation.serial_number,
     item_name: userTicketInformation.item_name,
-    location: userTicketInformation.location
+    location: userTicketInformation.location,
+    remarks: userTicketInformation.remarks || ""
   })
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
  
@@ -113,6 +117,14 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
   } = useMutation({
     mutationFn: beforeAfterInsert
   })
+
+  const {
+    mutateAsync: saveRemarksMutate,
+    isPending: isSavingRemarks,
+  } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+      saveRemarks(id, data),
+  });
 
   const {
     mutateAsync: updateSerial,
@@ -290,7 +302,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         URL.revokeObjectURL(url);
       }
 
-    } catch (error) { 
+    } catch (error: any) { 
       const rawMessage = error?.response?.data?.message || "Something went wrong while sending Job Order.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
 
@@ -355,7 +367,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         setSnackBarOpen(true)
         setSnackBarType("success") 
       }
-    } catch(error) {
+    } catch(error: any) {
       const rawMessage = error?.response?.data?.message || "Something went wrong while updating serial number.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       
@@ -383,7 +395,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
         await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       }
-    } catch (error) {
+    } catch (error: any) {
       const rawMessage = error?.response?.data?.message
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       
@@ -488,7 +500,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
         await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       }
-    } catch (error) {
+    } catch (error: any) {
       const rawMessage = error?.response?.data?.message || "Something went wrong while uploading images."
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
 
@@ -514,6 +526,13 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     setDialogOpen(true)
   }
 
+  const handleOpenRemarksDialog = () => {
+    setDialogTitle("Save Remarks")
+    setDialogMessage("Are you sure you want to save these remarks?")
+    setDialogAction("remarks")
+    setDialogOpen(true)
+  }
+
   const handleDialogSubmit = async () => {
     if (dialogAction === "upload") {
       await handleUploadConfirmReportImage()
@@ -535,6 +554,11 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
       handleClose()
       await handleUpdateSerialNumber()
     }
+
+    if (dialogAction === "remarks") {
+      handleClose()
+      await handleSaveRemarks() 
+    }
   }
 
   const handleClose = async () => {
@@ -548,6 +572,30 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     setSelectedUploadFiles([])
     if (beforeAfterFileInputRef.current) {
       beforeAfterFileInputRef.current.value = ""
+    }
+  }
+
+  const handleSaveRemarks = async () => {
+    try {
+      const formDataSubmit = new FormData();
+      formDataSubmit.append("remarks", formData.remarks || "");
+      formDataSubmit.append("user_id", String(userInfo?.id ?? ''));
+
+      const response = await saveRemarksMutate({ id: String(userTicketInformation.ticket_id), data: formDataSubmit })
+      if (response?.success) {
+        setSnackBarMessage("Remarks saved successfully.")
+        setSnackBarOpen(true)
+        setSnackBarType("success")
+        await queryClient.invalidateQueries({ queryKey: ['ticketInformation'] });
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      }
+ 
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Something went wrong while saving remarks."
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage)
+      setSnackBarType("error")
+      setSnackBarOpen(true)
     }
   }
   
@@ -574,6 +622,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
               ? isGeneratingPDF || isPending
               : dialogAction === "updateSerialNumber"
               ? isUpdatingSerialNumber
+              : dialogAction === "remarks"
+              ? isSavingRemarks
               : false
           }
         />
@@ -1016,6 +1066,42 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             </div>
           </div>
         )}
+
+        <div className='bg-white rounded-lg p-4 border border-gray-200'>
+          <div className='flex items-center justify-between text-gray-700 font-semibold mb-3'>
+            <div className='flex items-center gap-2'>
+              <FileText size={16} />
+              Remarks
+            </div>
+            <div>
+              <button 
+                onClick={handleOpenRemarksDialog}
+                title="Save Remarks"
+                className='bg-green-200 p-2 rounded-md text-green-700 hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors flex items-center gap-1'>
+                 <Save className='w-5 h-5'/>
+              </button>
+            </div>
+          </div>
+          <div>
+            {userTicketInformation.is_closed ? (
+              <div>
+                <span>{formData.remarks || "None"}</span>
+              </div>
+            ) : (
+              <div>
+                <CustomTextField
+                  name='remarks'
+                  onChange={(e) => setFormData((prev) => ({ ...prev, remarks: e.target.value }))}
+                  value={String(formData.remarks || '')}
+                  placeholder='Add remarks here...'
+                  rows={4}
+                  multiline={true}
+                  type="text"
+                />
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Images */}
         {userTicketInformation.images && userTicketInformation.images.length > 0 && (
