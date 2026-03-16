@@ -3,6 +3,7 @@ import {
   fetchInquiriesSettled,
   fetchInquiriesUnsettled,
   deleteInquiries, 
+  fetchInquiriesClosed
 } from '../../../services/Technician/inquiriesServices'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query' 
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs'
@@ -17,10 +18,17 @@ import ReusableTextFieldModal from '../../../components/feedback/ReusableTextFie
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client' 
+import { userAuth } from '../../../hooks/userAuth';
 
 const Inquiries = () => { 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const {
+    userInfo
+  } = userAuth()
+
+
+
 
   const columns = [
     { id: 'name', label: 'Name', sortable: true },
@@ -53,11 +61,22 @@ const Inquiries = () => {
     queryFn: fetchInquiriesSettled
   });
 
+  const { 
+    data: inquiriesClosedResponse, 
+    isLoading: isClosedLoading, 
+    error: closedError 
+  } = useQuery({
+    queryKey: ["closed-inquiries"],
+    queryFn: fetchInquiriesClosed
+  });
+
+
   const rows = useMemo(() => {
     let baseRows = [];
 
     if (statusFilter === "Unsettled") baseRows = inquiriesPendingResponse?.data || [];
     if (statusFilter === "Settled") baseRows = inquiriesCompletedResponse?.data || [];
+    if (statusFilter === "Closed") baseRows = inquiriesClosedResponse?.data || [];
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
     const uniqueRows = Array.from(

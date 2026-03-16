@@ -59,18 +59,19 @@ export const fetchAllProducts = async () => {
         throw error
     }
 }
-
-export const deleteFaqs = async(ids: number[] | string[]) => {
-    try {
-        const response = await axiosClient.delete(`${API_URL}`, {
-        data: { ids }
-        });
-        
-        return response.data
-    } catch (error) {
-        throw error;
-    }
-}
+export const deleteFaqs = async (payload: FormData | number[] | string[]) => {
+  try {
+    const response = await axiosClient.delete(`${API_URL}`, {
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}    
 
 export const updateFaqs = async(id: number, payload: any) => {
     try {

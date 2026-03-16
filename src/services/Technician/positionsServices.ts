@@ -24,10 +24,27 @@ export const fetchPositions = async() => {
     }
 }
 
-export const deletePositions = async (ids: number[] | string[]) => {
+export const deleteUsers = async (payload: FormData | number[] | string[]) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: { ids }  // send payload in `data` for DELETE
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+} 
+
+export const deletePositions = async (payload: FormData | number[] | string[]) => {
+  try {
+     const response = await axiosClient.delete(`${API_URL}`, {
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
     });
     return response.data;
   } catch (error) {

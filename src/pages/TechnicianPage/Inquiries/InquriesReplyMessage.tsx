@@ -9,22 +9,23 @@ import {
   Image as ImageIcon,
   Trash2,
   FileText,
-  Download
+  Download,
+  MailX
 } from 'lucide-react'; 
 import { 
     inquiriesReply, 
     fetchInquiriesById,
     fetchInquiriesByPid,
+    closeInquiries,
     deleteInquiries
 } from '../../../services/Technician/inquiriesServices'
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { userAuth } from '../../../hooks/userAuth';
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
+import { userAuth } from '../../../hooks/userAuth'; 
 import { downloadFile } from '../../../utils/downloadFile'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import { useNavigate } from 'react-router-dom';
-import { MinimalIconLoader } from '../../../components/ui/LoadingScreens'
+import { MinimalIconLoader } from '../../../components/ui/LoadingScreens' 
 
 export default function InquriesReplyMessage() { 
   const navigate = useNavigate()
@@ -44,8 +45,11 @@ export default function InquriesReplyMessage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState(''); 
+  const [dialogAction, setDialogAction] = useState<"inquiries-delete" | "inquiries-close"| null>(null); 
   const [dialogMessage, setDialogMessage] = useState('');
   const [deleteIds, setDeleteIds] = useState<number[]>([]);  
+
+  const InquiriesPermissionJob = userInfo?.permissions?.find(p=> p.parent_id === "inquiries" && p.children_id === '')
 
   const { data: inquiriesInfo, isLoading, isError } = useQuery ({
     queryKey: ['inquiries-info', pid],
@@ -65,6 +69,12 @@ export default function InquriesReplyMessage() {
     mutateAsync: sentInquiries, isPending
   } = useMutation({
     mutationFn: inquiriesReply
+  })
+
+  const {
+    mutateAsync: closeInquire
+  } = useMutation ({
+    mutationFn: closeInquiries
   })
 
   useEffect(() => {
@@ -125,6 +135,7 @@ export default function InquriesReplyMessage() {
         // Here you would upload files and send message
         const formData = new FormData();
         formData.append('message_body', replyText);
+        formData.append("user_id", String(userInfo?.id));
         formData.append("subject",inquiriesMessage?.data[0]?.subject)
         formData.append('sender_email', userInquiriesInfo?.email); 
         formData.append("inquiries_id", userInquiriesInfo?.id);
@@ -198,30 +209,58 @@ export default function InquriesReplyMessage() {
     setDialogMessage('Are you sure you want to delete this inquiry?'); 
   };
 
-  // Confirm Delete
-  const handleConfirmDelete = async () => {
+  // Confirm Delete or Close
+  const handleConfirmAction = async () => {
     try {
-      const response = await deleteInquiries(deleteIds);
+      if (dialogAction === "inquiries-close") {
+        const formData = new FormData();
+        formData.append("id", userInquiriesInfo?.id);
+        formData.append("user_id", String(userInfo?.id));
 
-      if (response?.success) {
-        setDialogOpen(false);
-        setDialogMessage('');
-        setDialogTitle('');
-        setDeleteIds([]);
-        
-        setSnackBarMessage('Inquiry deleted successfully');
-        setSnackBarType('success');
-        setSnackBarOpen(true);
+        const response = await closeInquire(formData);
 
-        navigate("/beesee/inquiries")
- 
+        if (response.success) {
+          setDialogOpen(false);
+          setDialogMessage('');
+          setDialogTitle('');
+          setDialogAction(null);
+          
+          setSnackBarMessage('Inquiry closed successfully');
+          setSnackBarType('success');
+          setSnackBarOpen(true);
+
+          navigate("/beesee/inquiries") 
+        }
+      } else if (dialogAction === "inquiries-delete") {
+        const formData = new FormData();
+        formData.append("ids", JSON.stringify(deleteIds)); 
+        formData.append("user_id", String(userInfo?.id));  
+
+        const response = await deleteInquiries(formData);
+
+        if (response?.success) {
+          setDialogOpen(false);
+          setDialogMessage('');
+          setDialogTitle('');
+          setDialogAction(null);
+          setDeleteIds([]);
+          
+          setSnackBarMessage('Inquiry deleted successfully');
+          setSnackBarType('success');
+          setSnackBarOpen(true);
+
+          navigate("/beesee/inquiries")
+        }
       }
     } catch (error) {
-      setSnackBarMessage('Failed to delete inquiry. Please try again.');
+      const errorMessage = dialogAction === "inquiries-close" 
+        ? 'Failed to close inquiry. Please try again.'
+        : 'Failed to delete inquiry. Please try again.';
+      setSnackBarMessage(errorMessage);
       setSnackBarType('error');
       setSnackBarOpen(true);
     }
-  }; 
+  };; 
 
   if (isPending) {
     return <MinimalIconLoader />
@@ -238,8 +277,9 @@ export default function InquriesReplyMessage() {
         onClose={() => {
           setDialogOpen(false);
           setDeleteIds([]);
+          setDialogAction(null);
         }}
-        onSubmit={handleConfirmDelete} 
+        onSubmit={handleConfirmAction} 
       />
 
       {/* Messages View */}
@@ -253,13 +293,36 @@ export default function InquriesReplyMessage() {
                 </h2> 
               </div>
 
-              <div>
-                <button 
-                  onClick={() => handleDelete()}
-                  title="Delete"
-                  className='p-2 rounded-full bg-gray-100 text-red-500'>
-                  <Trash2 className='w-5 h-5'/>
-                </button>
+              <div className='flex gap-2'>
+                {InquiriesPermissionJob?.actions.includes("closed_inquiries") && userInquiriesInfo.status !== 'Closed' && (
+                  <div>
+                    <button
+                      onClick={() => {
+                        setDialogOpen(true);
+                        setDialogAction("inquiries-close");
+                        setDialogTitle('Close Inquiry');
+                        setDialogMessage('Are you sure you want to close this inquiry?');
+                      }}
+                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60'
+                    >
+                      
+                    <MailX className='w-4 h-4' />
+                    <span className='hidden sm:inline'>Close</span>
+                    </button>
+                  </div>
+                )}
+                
+                {InquiriesPermissionJob?.actions.includes("delete") && (
+                  <div>
+                    <button 
+                      onClick={() => handleDelete()}
+                      title="Delete"
+                      className='inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60'>
+                      <Trash2 className='w-4 h-4'/>
+                      <span className='hidden sm:inline'>Delete</span>
+                    </button>
+                </div>
+                )}
               </div>
  
             </div>

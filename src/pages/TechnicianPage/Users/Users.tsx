@@ -121,7 +121,11 @@ const Users = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteUser(deleteIds);
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds)); 
+      formData.append("user_id", String(userInfo?.id)); 
+
+      const response = await deleteUser(formData);
 
       if (response?.success) {
         setDialogOpen(false);
@@ -135,7 +139,10 @@ const Users = () => {
         queryClient.invalidateQueries({ queryKey: ['users', userInfo?.id] });
       }
     } catch (error) {
-      setSnackBarMessage("Failed to delete user. Please try again.");
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+
+      setSnackBarMessage(cleanMessage)
       setSnackBarType("error");
       setSnackBarOpen(true);
     }

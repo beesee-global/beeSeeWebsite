@@ -15,8 +15,7 @@ import {
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { userAuth } from '../../../hooks/userAuth';
 import TableDefault from '../../../components/DataDisplay/TableDefault' 
-import Modal from './components/Modal'
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
+import Modal from './components/Modal' 
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import CustomSearchField from '../../../components/Fields/CustomSearchField';
 import WorkIcon from '@mui/icons-material/Work';
@@ -124,7 +123,12 @@ const Position = () => {
     
     const handleConfirmDelete = async () => {
       try {
-        const response = await deletePosition(deleteIds);
+
+        const formData = new FormData();
+        formData.append("ids", JSON.stringify(deleteIds)); 
+        formData.append("user_id", String(userInfo?.id)); 
+
+        const response = await deletePosition(formData);
   
         if (response?.success) {
           setDialogOpen(false)
@@ -208,7 +212,8 @@ const Position = () => {
           name: formDataPosition.name,
           description: formDataPosition.description || "",
           is_protected: 0, // New positions are not protected by default
-          permissions: formDataPosition.permissions
+          permissions: formDataPosition.permissions,
+          user_id: userInfo?.id // Include user_id in the payload
         };
  
 
@@ -248,7 +253,8 @@ const Position = () => {
           name: formDataPosition.name,
           description: formDataPosition.description || "",
           is_protected: selectedPosition.is_protected || 0,
-          permissions: formDataPosition.permissions
+          permissions: formDataPosition.permissions,
+          user_id: userInfo?.id // Include user_id in the payload
         };
   
         const response = await updatePosition({

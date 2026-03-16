@@ -38,21 +38,31 @@ const SnackbarTechnician: React.FC <SnackbarProps> = ({
             anchorOrigin={{
                 vertical: "top",
                 horizontal: "center"
-            }} 
+            }}
+            sx={{
+                zIndex: 9999,
+                top: "105 !important",
+                left: "50% !important",
+                right: "auto !important",
+                bottom: "auto !important",
+                transform: "translate(-50%, -50%)",
+            }}
         >
             <Alert
                 onClose={handleClose}
                 severity={type}
                 variant="filled"
                 sx={{ 
-                    width: "100%",
-                    maxWidth: '400px',
-                    zIndex: 9999,
+                    width: { xs: "calc(100vw - 16px)", sm: "100%" },
+                    maxWidth: { xs: "calc(100vw - 16px)", sm: "420px" },
+                    mx: "auto",
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-                    fontSize: '16px',
-                    // Make it more visible
+                    fontSize: { xs: '14px', sm: '16px' },
+                    borderRadius: { xs: '10px', sm: '12px' },
                     '& .MuiAlert-message': {
-                        fontWeight: 500
+                        fontWeight: 500,
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere',
                     }
                 }}
             >

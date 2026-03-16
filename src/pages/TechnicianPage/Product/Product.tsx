@@ -21,8 +21,7 @@ import {
 import {
   fetchCategoriesNoIsActive
 } from '../../../services/Technician/categoryServices'
-import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
+import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal" 
 import AlertDialog from "../../../components/feedback/AlertDialog"
 import { userAuth } from "../../../hooks/userAuth"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
@@ -136,7 +135,10 @@ const Product = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await deleteProduct(deleteIds); // call mutation
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(deleteIds)); 
+      formData.append("user_id", String(userInfo?.id));  
+      const response = await deleteProduct(formData); // call mutation
 
       if (response?.success) {
         setDialogOpen(false)
@@ -161,6 +163,7 @@ const Product = () => {
       const formData = new FormData();
       formData.append('name', formDataProduct.product_name);
       formData.append('categories_id', formDataProduct.category)
+      formData.append('user_id', String(userInfo?.id)); // Include user_id in the payload
 
       const response = await Products(formData)
 
@@ -185,7 +188,8 @@ const Product = () => {
     try {
       const payload = {
         name: formDataProduct.product_name,
-        categories_id: formDataProduct.category
+        categories_id: formDataProduct.category,
+        user_id: userInfo?.id // Include user_id in the payload
       };
 
       const response = await updateProduct({

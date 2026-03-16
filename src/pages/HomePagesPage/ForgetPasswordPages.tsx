@@ -156,9 +156,12 @@ const ForgetPasswordPages = () => {
           setSnackBarOpen(true)
         }
       }
-    } catch (err) {
-      setSnackBarMessage("An error occurred. Please try again.")
-      setSnackBarType("error") 
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Something went wrong while updating serial number.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      
+      setSnackBarMessage(cleanMessage)
+      setSnackBarType("error")
       setSnackBarOpen(true)
     } finally{
       setLoading(false)

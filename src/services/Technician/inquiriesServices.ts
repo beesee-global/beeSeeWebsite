@@ -29,6 +29,29 @@ export const fetchInquiriesUnsettled = async () => {
   }
 }
 
+export const closeInquiries = async (data: any) => {
+  try {
+    const response = await axiosClient.post(`${API_URL}/closed`, data, {
+      headers: {
+        "Content-Type": 'application/json'
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const fetchInquiriesClosed = async () => {
+  try {
+    const response = await axiosClient.get(`${API_URL}?status=Closed`);
+    return response.data;
+  } catch (error) {
+    throw error
+  }
+}
+
+
 export const fetchInquiriesSettled = async () => {
   try {
     const response = await axiosClient.get(`${API_URL}?status=Settled`);
@@ -56,14 +79,19 @@ export const fetchInquiriesById = async (id: number) => {
   }
 }
 
-export const deleteInquiries = async (ids: number[]) => {
+export const deleteInquiries = async (payload: FormData | number[] | string[]) => {
   try {
-    const response = await axiosClient.delete(`${API_URL}`, { data: { ids } });
+    const response = await axiosClient.delete(`${API_URL}`, {
+      data: payload instanceof FormData ? payload : { ids: payload },
+      headers: payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
+    });
     return response.data;
   } catch (error) {
-    throw error
+    throw error;
   }
-}
+}     
 
 export const inquiriesReply  = async(data: any) => {
   try {
