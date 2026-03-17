@@ -1070,7 +1070,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
           </div>
         )}
 
-        <div className='bg-white rounded-lg p-4 border border-gray-200'>
+        {!publicConversation && (
+          <div className='bg-white rounded-lg p-4 border border-gray-200'>
           <div className='flex items-center justify-between text-gray-700 font-semibold mb-3'>
             <div className='flex items-center gap-2'>
               <FileText size={16} />
@@ -1107,6 +1108,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
             )}
           </div>
         </div>
+        )}
 
         {/* Images */}
         {userTicketInformation.images && userTicketInformation.images.length > 0 && (
