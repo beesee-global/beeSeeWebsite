@@ -313,8 +313,8 @@ const MyAccount = () => {
                     {
                         name: 'password',
                         placeholder: 'Password',
-                        maxLength: 100,
-                        type: 'text',
+                        maxLength: '100',
+                        type: 'password',
                         multiline: false,
                         rows: 1,
                         value: '',
