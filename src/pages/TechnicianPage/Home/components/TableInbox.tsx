@@ -237,95 +237,95 @@ export default function TableInbox({
   // 📊 EXCEL EXPORT HANDLER
   // ================================
   // Exports job orders to Excel with separate sheets for each status
-  const handleExcelExport = async () => {
-    try { 
-      // ⚙️ Define columns for Pending and Ongoing sheets
-      const columnsPendingOngoing = [
-        { header: 'Name', key: 'full_name' },
-        { header: 'Job No', key: 'reference_number' },
-        { header: 'Company / Institution Name', key: 'company' },
-        { header: 'Device Type', key: 'device_type' },
-        { header: 'Model Type', key: 'issue_type' },
-        { header: 'Issue Type', key: 'issue_name' },
-        { header: 'Date Created', key: 'status_date' }, 
-      ];
+    const handleExcelExport = async () => {
+      try { 
+        // ⚙️ Define columns for Pending and Ongoing sheets
+        const columnsPendingOngoing = [
+          { header: 'Name', key: 'full_name', width: 30, wrapText: true },
+          { header: 'Job No', key: 'reference_number', width: 30, wrapText: true },
+          { header: 'Company / Institution Name', key: 'company', width: 30, wrapText: true },
+          { header: 'Device Type', key: 'device_type', width: 30, wrapText: true },
+          { header: 'Model Type', key: 'issue_type', width: 30, wrapText: true },
+          { header: 'Issue Type', key: 'issue_name', width: 30, wrapText: true },
+          { header: 'Date Created', key: 'status_date', width: 30, wrapText: true }, 
+        ];
 
-      // ⚙️ Define columns for Resolved and Closed sheets
-      const columnsResolvedClosed = [
-        { header: 'Name', key: 'full_name' },
-        { header: 'Job No', key: 'reference_number' },
-        { header: 'Company / Institution Name', key: 'company' },
-        { header: 'Device Type', key: 'device_type' },
-        { header: 'Model Type', key: 'issue_type' },
-        { header: 'Issue Type', key: 'issue_name' },
-        { header: 'Date Completed', key: 'status_date' }, 
-      ];
- 
-      // 📦 Organize data into sheets by status
-      const sheetsData: { [key: string]: RowData[] } = {
-        Pending: listOfJobOrder.Pending || [],
-        Ongoing: listOfJobOrder.Ongoing || [],
-        Completed: listOfJobOrder.Completed || [],
-        ...(jobOrderPermission?.actions.includes('close_job_order') && {
-          Closed: listOfJobOrder.Closed || [],
-        }),
-      };
- 
-      // ✅ Verify we have data to export
-      const totalRows = Object.values(sheetsData).reduce((sum, arr) => sum + arr.length, 0);
-      if (totalRows === 0) { 
-        alert('No data available to export');
-        return;
+        // ⚙️ Define columns for Resolved and Closed sheets
+        const columnsResolvedClosed = [
+          { header: 'Name', key: 'full_name', width: 30, wrapText: true },
+          { header: 'Job No', key: 'reference_number', width: 30, wrapText: true },
+          { header: 'Company / Institution Name', key: 'company', width: 30, wrapText: true },
+          { header: 'Device Type', key: 'device_type', width: 30, wrapText: true },
+          { header: 'Model Type', key: 'issue_type', width: 30, wrapText: true },
+          { header: 'Issue Type', key: 'issue_name', width: 30, wrapText: true },
+          { header: 'Date Completed', key: 'status_date', width: 30, wrapText: true }, 
+        ];
+  
+        // 📦 Organize data into sheets by status
+        const sheetsData: { [key: string]: RowData[] } = {
+          Pending: listOfJobOrder.Pending || [],
+          Ongoing: listOfJobOrder.Ongoing || [],
+          Completed: listOfJobOrder.Completed || [],
+          ...(jobOrderPermission?.actions.includes('close_job_order') && {
+            Closed: listOfJobOrder.Closed || [],
+          }),
+        };
+  
+        // ✅ Verify we have data to export
+        const totalRows = Object.values(sheetsData).reduce((sum, arr) => sum + arr.length, 0);
+        if (totalRows === 0) { 
+          alert('No data available to export');
+          return;
+        }
+
+        // 🔄 Prepare sheets with appropriate columns
+        // For Pending and Ongoing, use Date Created header
+        // For Completed and Closed, use Date Completed header
+        const sheetsDataWithColumns: { [key: string]: { data: RowData[]; columns: any[] } } = {
+          Pending: { data: sheetsData.Pending, columns: columnsPendingOngoing },
+          Ongoing: { data: sheetsData.Ongoing, columns: columnsPendingOngoing },
+          Completed: { data: sheetsData.Completed, columns: columnsResolvedClosed },
+        };
+
+        // Add Closed sheet only if user has permission
+        if (jobOrderPermission?.actions.includes('close_job_order') && sheetsData.Closed) {
+          sheetsDataWithColumns.Closed = { data: sheetsData.Closed, columns: columnsResolvedClosed };
+        } 
+        
+        // 📤 Call the export utility with per-sheet column configurations
+        // Map each sheet name to its column configuration
+        const columnConfigsPerSheet: { [key: string]: any[] } = {
+          Pending: columnsPendingOngoing,
+          Ongoing: columnsPendingOngoing,
+          Completed: columnsResolvedClosed,
+        };
+
+        // Add Closed sheet config only if user has permission
+        if (jobOrderPermission?.actions.includes('close_job_order')) {
+          columnConfigsPerSheet.Closed = columnsResolvedClosed;
+        }
+  
+        // Flatten sheetsData for export
+        const flatSheetsData: { [key: string]: RowData[] } = {};
+        Object.entries(sheetsDataWithColumns).forEach(([sheetName, { data }]) => {
+          flatSheetsData[sheetName] = data;
+        });
+
+        // 🎯 Export with per-sheet column configurations
+        await excelGenerate(
+          flatSheetsData,
+          columnConfigsPerSheet, // Pass per-sheet column configs
+          `Job-Orders-${new Date().toISOString().split('T')[0]}`
+        );
+  
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        const cleanedMessage = errorMessage.replace(/Error:\s*/i, '');
+        setSnackBarMessage(`Failed to export Excel: ${cleanedMessage}`);
+        setSnackBarType('error');
+        setSnackBarOpen(true);
       }
-
-      // 🔄 Prepare sheets with appropriate columns
-      // For Pending and Ongoing, use Date Created header
-      // For Completed and Closed, use Date Completed header
-      const sheetsDataWithColumns: { [key: string]: { data: RowData[]; columns: any[] } } = {
-        Pending: { data: sheetsData.Pending, columns: columnsPendingOngoing },
-        Ongoing: { data: sheetsData.Ongoing, columns: columnsPendingOngoing },
-        Completed: { data: sheetsData.Completed, columns: columnsResolvedClosed },
-      };
-
-      // Add Closed sheet only if user has permission
-      if (jobOrderPermission?.actions.includes('close_job_order') && sheetsData.Closed) {
-        sheetsDataWithColumns.Closed = { data: sheetsData.Closed, columns: columnsResolvedClosed };
-      } 
-      
-      // 📤 Call the export utility with per-sheet column configurations
-      // Map each sheet name to its column configuration
-      const columnConfigsPerSheet: { [key: string]: any[] } = {
-        Pending: columnsPendingOngoing,
-        Ongoing: columnsPendingOngoing,
-        Completed: columnsResolvedClosed,
-      };
-
-      // Add Closed sheet config only if user has permission
-      if (jobOrderPermission?.actions.includes('close_job_order')) {
-        columnConfigsPerSheet.Closed = columnsResolvedClosed;
-      }
- 
-      // Flatten sheetsData for export
-      const flatSheetsData: { [key: string]: RowData[] } = {};
-      Object.entries(sheetsDataWithColumns).forEach(([sheetName, { data }]) => {
-        flatSheetsData[sheetName] = data;
-      });
-
-      // 🎯 Export with per-sheet column configurations
-      await excelGenerate(
-        flatSheetsData,
-        columnConfigsPerSheet, // Pass per-sheet column configs
-        `Job-Orders-${new Date().toISOString().split('T')[0]}`
-      );
- 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      const cleanedMessage = errorMessage.replace(/Error:\s*/i, '');
-      setSnackBarMessage(`Failed to export Excel: ${cleanedMessage}`);
-      setSnackBarType('error');
-      setSnackBarOpen(true);
-    }
-  };
+    };
 
   if (isLoading) {
     return (

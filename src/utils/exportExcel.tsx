@@ -10,13 +10,13 @@ type RowData = {
 // ================================
 const THEME = {
   header: {
-    bg: "FF1E3A5F",       // Deep navy
-    font: "FFFFFFFF",     // White
+    bg: "FF1E3A5F",
+    font: "FFFFFFFF",
     font_size: 11,
   },
   row: {
-    odd_bg: "FFFFFFFF",   // White
-    even_bg: "FFF0F4FA",  // Light blue-grey
+    odd_bg: "FFFFFFFF",
+    even_bg: "FFF0F4FA",
     font_color: "FF1A1A2E",
     font_size: 10,
   },
@@ -24,8 +24,13 @@ const THEME = {
   font_name: "Arial",
   min_col_width: 14,
   max_col_width: 45,
-  row_height: 20,
-  header_height: 26,
+  // Padding simulation:
+  //   - indent: adds left/right breathing room (ExcelJS unit, ~1 char wide)
+  //   - row_height: taller rows give vertical breathing room
+  //   - header_height: extra tall header for vertical padding feel
+  cell_indent: 1,         // horizontal indent (left padding equivalent)
+  row_height: 24,         // increased from 20 → more vertical padding
+  header_height: 32,      // increased from 26 → more vertical padding in header
 };
 
 // ================================
@@ -33,7 +38,11 @@ const THEME = {
 // ================================
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  const datePart = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const datePart = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
   const hours24 = date.getHours();
   const period = hours24 >= 12 ? "PM" : "AM";
   const hours12 = hours24 % 12 || 12;
@@ -43,19 +52,23 @@ const formatDate = (dateString: string): string => {
 
 // ================================
 // 📐 COLUMN WIDTH CALCULATOR
-// Measures actual content, not just header length
+// Adds extra gutter to account for indent padding
 // ================================
 const calcColumnWidth = (header: string, values: string[]): number => {
   const allLengths = [header.length, ...values.map((v) => String(v ?? "").length)];
   const max = Math.max(...allLengths);
-  return Math.min(THEME.max_col_width, Math.max(THEME.min_col_width, max + 3));
+  // +4 instead of +3 to compensate for indent on both sides
+  return Math.min(THEME.max_col_width, Math.max(THEME.min_col_width, max + 4));
 };
 
 // ================================
 // 🖊️ BORDER HELPER
 // ================================
 const thinBorder = (): Partial<ExcelJS.Borders> => {
-  const side: Partial<ExcelJS.Border> = { style: "thin", color: { argb: THEME.border_color } };
+  const side: Partial<ExcelJS.Border> = {
+    style: "thin",
+    color: { argb: THEME.border_color },
+  };
   return { top: side, left: side, bottom: side, right: side };
 };
 
@@ -63,15 +76,20 @@ const thinBorder = (): Partial<ExcelJS.Borders> => {
 // 📊 EXCEL EXPORT UTILITY
 // ================================
 /**
- * Generates and exports a professionally styled Excel file with multiple sheets.
- *
  * @param sheetsData     - { SheetName: RowData[] }
- * @param columnConfigs  - { SheetName: Array<{ header: string; key: string }> }
+ * @param columnConfigs  - { SheetName: Array<{ header, key, width?, wrapText? }> }
  * @param fileName       - Output filename (without .xlsx)
  */
 export const excelGenerate = async (
   sheetsData: { [key: string]: RowData[] },
-  columnConfigs: { [key: string]: Array<{ header: string; key: string }> },
+  columnConfigs: {
+    [key: string]: Array<{
+      header: string;
+      key: string;
+      width?: number;
+      wrapText?: boolean;
+    }>;
+  },
   fileName: string = "Job Orders"
 ): Promise<void> => {
   try {
@@ -81,16 +99,16 @@ export const excelGenerate = async (
 
     Object.entries(sheetsData).forEach(([sheetName, rowsData]) => {
       const worksheet = workbook.addWorksheet(sheetName, {
-        views: [{ state: "frozen", ySplit: 1 }], // Freeze header row
+        views: [{ state: "frozen", ySplit: 1 }],
         properties: { defaultRowHeight: THEME.row_height },
       });
 
       const currentColumnConfig =
         columnConfigs[sheetName] ?? columnConfigs[Object.keys(columnConfigs)[0]];
 
-      // ─── Pre-process cell values ───────────────────────────────────────────
       const DATE_KEYS = new Set(["status_date", "created_at", "updated_at"]);
 
+      // ─── Pre-process cell values ───────────────────────────────────────────
       const processedRows = rowsData.map((rowData, rowIndex) =>
         currentColumnConfig.map((col) => {
           const value = rowData[col.key];
@@ -104,10 +122,12 @@ export const excelGenerate = async (
 
       // ─── Set column widths ─────────────────────────────────────────────────
       worksheet.columns = currentColumnConfig.map((col, i) => ({
-        width: calcColumnWidth(
-          col.header,
-          processedRows.map((r) => String(r[i] ?? ""))
-        ),
+        width:
+          col.width ??
+          calcColumnWidth(
+            col.header,
+            processedRows.map((r) => String(r[i] ?? ""))
+          ),
       }));
 
       // ─── Header row ────────────────────────────────────────────────────────
@@ -126,28 +146,41 @@ export const excelGenerate = async (
           pattern: "solid",
           fgColor: { argb: THEME.header.bg },
         };
-        cell.alignment = { horizontal: "center", vertical: "middle", wrapText: false };
+        cell.alignment = {
+          horizontal: "center",
+          vertical: "middle",
+          wrapText: false,
+          // indent not applied to centered header — centering overrides it
+        };
         cell.border = thinBorder();
       });
 
-      // ─── Data rows ─────────────────────────────────────────────────────────
+      // ─── Detect number columns ─────────────────────────────────────────────
       const NUMBER_KEYS = new Set(
         currentColumnConfig
           .filter((col) => !DATE_KEYS.has(col.key))
           .map((col) => col.key)
-          .filter((key) =>
-            rowsData.some((r) => typeof r[key] === "number")
-          )
+          .filter((key) => rowsData.some((r) => typeof r[key] === "number"))
       );
 
+      // ─── Check if any column uses wrapText ─────────────────────────────────
+      const hasWrappedCol = currentColumnConfig.some((col) => col.wrapText);
+
+      // ─── Data rows ─────────────────────────────────────────────────────────
       processedRows.forEach((rowValues, rowIndex) => {
         const row = worksheet.addRow(rowValues);
-        row.height = THEME.row_height;
+
+        // Fix height only when not wrapping; wrapped rows auto-expand
+        if (!hasWrappedCol) {
+          row.height = THEME.row_height;
+        }
 
         const isEven = rowIndex % 2 === 1;
 
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-          const colKey = currentColumnConfig[colNumber - 1]?.key ?? "";
+          const colConfig = currentColumnConfig[colNumber - 1];
+          const colKey = colConfig?.key ?? "";
+          const shouldWrap = colConfig?.wrapText ?? false;
 
           // Zebra striping
           cell.fill = {
@@ -163,13 +196,31 @@ export const excelGenerate = async (
             color: { argb: THEME.row.font_color },
           };
 
-          // Alignment — right-align numbers, center dates, left-align text
+          // Alignment with indent for left/right padding simulation
+          // - Left-aligned text: indent pushes content away from left border
+          // - Right-aligned numbers: indent pushes content away from right border
+          // - Centered dates: indent not applied (would shift off-center)
           if (NUMBER_KEYS.has(colKey)) {
-            cell.alignment = { horizontal: "right", vertical: "middle" };
+            cell.alignment = {
+              horizontal: "right",
+              vertical: "top",
+              wrapText: shouldWrap,
+              indent: THEME.cell_indent,   // right-side breathing room
+            };
           } else if (DATE_KEYS.has(colKey)) {
-            cell.alignment = { horizontal: "center", vertical: "middle" };
+            cell.alignment = {
+              horizontal: "center",
+              vertical: "top",
+              wrapText: shouldWrap,
+              // no indent on centered cells
+            };
           } else {
-            cell.alignment = { horizontal: "left", vertical: "middle" };
+            cell.alignment = {
+              horizontal: "left",
+              vertical: "top",
+              wrapText: shouldWrap,
+              indent: THEME.cell_indent,   // left-side breathing room
+            };
           }
 
           cell.border = thinBorder();
