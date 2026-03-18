@@ -427,8 +427,7 @@ const ApplicantsEmail = () => {
               {formData.status !== 'CLOSED' && (
                 <button 
                   title="Close Applicant" 
-                  onClick={ handleClose }
-                  title="Close"
+                  onClick={ handleClose } 
                   aria-label="Close"
                   className="px-6 py-3 border-2 text-white rounded-xl transition-all duration-200 font-semibold bg-[#0f766e]"
                 >

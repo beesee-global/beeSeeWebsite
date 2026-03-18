@@ -160,6 +160,14 @@ const Home = () => {
     resolvedTicketResponse, 
   ]);
 
+  // listing job orders by status for easy access when user selects a search suggestion (instead of filtering the entire list again, we can just show the relevant list based on status)
+  const listOfJobOrder = {
+    "Pending": openTicketResponse?.data || [],
+    "Ongoing": ongoingTicketResponse?.data || [],
+    "Completed": resolvedTicketResponse?.data || [],
+    "Closed": closedTicketResponse?.data || []
+  }
+ 
   const handleEdit = (pid: number) => { 
     navigate(`/beesee/job-order/conversation/${pid}`)
   };
@@ -325,6 +333,7 @@ const Home = () => {
         setOrganization={setOrganization}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        listOfJobOrder={listOfJobOrder}
       />
     </div>
   );
