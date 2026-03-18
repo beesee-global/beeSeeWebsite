@@ -1,12 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import { userAuth } from '../../../../hooks/userAuth';
+import { excelGenerate } from '../../../../utils/exportExcel'; 
 import { 
   ChevronLeft, 
   ChevronRight, 
   Mail, 
   Trash2, 
   Reply, 
+  Sheet
 } from 'lucide-react';
 
 // ============================================
@@ -145,6 +147,7 @@ interface TableMailProps {
   setOrganization: (val: string) => void;
   statusFilter: string;
   setStatusFilter: (val: string) => void;
+  listOfJobOrder: RowData[]; 
 }
 
 // ============================================
@@ -162,6 +165,7 @@ export default function TableInbox({
   statusFilter,
   setStatusFilter, 
   deviceListing ,
+  listOfJobOrder
 }: TableMailProps) { 
  
   const [page, setPage] = useState(0); 
@@ -170,7 +174,12 @@ export default function TableInbox({
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const rowsPerPage = 20;
 
-  const { userInfo } = userAuth();
+  const { 
+    userInfo,
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType
+  } = userAuth();
 
   const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
@@ -223,6 +232,100 @@ export default function TableInbox({
   const handleRowSelect = (rowId: number) => {
     setSelectedRowId(rowId);
   };
+
+  // ================================
+  // 📊 EXCEL EXPORT HANDLER
+  // ================================
+  // Exports job orders to Excel with separate sheets for each status
+    const handleExcelExport = async () => {
+      try { 
+        // ⚙️ Define columns for Pending and Ongoing sheets
+        const columnsPendingOngoing = [
+          { header: 'Name', key: 'full_name', width: 30, wrapText: true },
+          { header: 'Job No', key: 'reference_number', width: 30, wrapText: true },
+          { header: 'Company / Institution Name', key: 'company', width: 30, wrapText: true },
+          { header: 'Device Type', key: 'device_type', width: 30, wrapText: true },
+          { header: 'Model Type', key: 'issue_type', width: 30, wrapText: true },
+          { header: 'Issue Type', key: 'issue_name', width: 30, wrapText: true },
+          { header: 'Date Created', key: 'status_date', width: 30, wrapText: true }, 
+        ];
+
+        // ⚙️ Define columns for Resolved and Closed sheets
+        const columnsResolvedClosed = [
+          { header: 'Name', key: 'full_name', width: 30, wrapText: true },
+          { header: 'Job No', key: 'reference_number', width: 30, wrapText: true },
+          { header: 'Company / Institution Name', key: 'company', width: 30, wrapText: true },
+          { header: 'Device Type', key: 'device_type', width: 30, wrapText: true },
+          { header: 'Model Type', key: 'issue_type', width: 30, wrapText: true },
+          { header: 'Issue Type', key: 'issue_name', width: 30, wrapText: true },
+          { header: 'Date Completed', key: 'status_date', width: 30, wrapText: true }, 
+        ];
+  
+        // 📦 Organize data into sheets by status
+        const sheetsData: { [key: string]: RowData[] } = {
+          Pending: listOfJobOrder.Pending || [],
+          Ongoing: listOfJobOrder.Ongoing || [],
+          Completed: listOfJobOrder.Completed || [],
+          ...(jobOrderPermission?.actions.includes('close_job_order') && {
+            Closed: listOfJobOrder.Closed || [],
+          }),
+        };
+  
+        // ✅ Verify we have data to export
+        const totalRows = Object.values(sheetsData).reduce((sum, arr) => sum + arr.length, 0);
+        if (totalRows === 0) { 
+          alert('No data available to export');
+          return;
+        }
+
+        // 🔄 Prepare sheets with appropriate columns
+        // For Pending and Ongoing, use Date Created header
+        // For Completed and Closed, use Date Completed header
+        const sheetsDataWithColumns: { [key: string]: { data: RowData[]; columns: any[] } } = {
+          Pending: { data: sheetsData.Pending, columns: columnsPendingOngoing },
+          Ongoing: { data: sheetsData.Ongoing, columns: columnsPendingOngoing },
+          Completed: { data: sheetsData.Completed, columns: columnsResolvedClosed },
+        };
+
+        // Add Closed sheet only if user has permission
+        if (jobOrderPermission?.actions.includes('close_job_order') && sheetsData.Closed) {
+          sheetsDataWithColumns.Closed = { data: sheetsData.Closed, columns: columnsResolvedClosed };
+        } 
+        
+        // 📤 Call the export utility with per-sheet column configurations
+        // Map each sheet name to its column configuration
+        const columnConfigsPerSheet: { [key: string]: any[] } = {
+          Pending: columnsPendingOngoing,
+          Ongoing: columnsPendingOngoing,
+          Completed: columnsResolvedClosed,
+        };
+
+        // Add Closed sheet config only if user has permission
+        if (jobOrderPermission?.actions.includes('close_job_order')) {
+          columnConfigsPerSheet.Closed = columnsResolvedClosed;
+        }
+  
+        // Flatten sheetsData for export
+        const flatSheetsData: { [key: string]: RowData[] } = {};
+        Object.entries(sheetsDataWithColumns).forEach(([sheetName, { data }]) => {
+          flatSheetsData[sheetName] = data;
+        });
+
+        // 🎯 Export with per-sheet column configurations
+        await excelGenerate(
+          flatSheetsData,
+          columnConfigsPerSheet, // Pass per-sheet column configs
+          `Job-Orders-${new Date().toISOString().split('T')[0]}`
+        );
+  
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        const cleanedMessage = errorMessage.replace(/Error:\s*/i, '');
+        setSnackBarMessage(`Failed to export Excel: ${cleanedMessage}`);
+        setSnackBarType('error');
+        setSnackBarOpen(true);
+      }
+    };
 
   if (isLoading) {
     return (
@@ -303,14 +406,29 @@ export default function TableInbox({
               )}
             </div>
 
-            <div className="w-full md:w-auto">
-              <CustomSelectField 
-                name="organization" 
-                value={organization} 
-                options={deviceListing} 
-                onChange={(e) => setOrganization(e.target.value)} 
-                placeholder="Select an Organization" 
-              />
+            <div className="flex gap-2 items-center w-full md:w-auto">
+              {jobOrderPermission?.actions.includes('close_job_order') && (
+                <div>
+                  <button 
+                    onClick={handleExcelExport}
+                    title='Export excel'
+                    style={{ padding: "9px 15px 9px 15px" }}
+                    className='flex gap-2 items-center bg-green-200 text-green-700 rounded-md hover:bg-green-300 transition-colors text-sm font-medium'>
+                    <Sheet size={16} />
+                    Export
+                </button>
+              </div>
+              )}
+              
+              <div>
+                <CustomSelectField 
+                  name="organization" 
+                  value={organization} 
+                  options={deviceListing} 
+                  onChange={(e) => setOrganization(e.target.value)} 
+                  placeholder="Select an Organization" 
+                />
+              </div>
             </div>
 
           </div>

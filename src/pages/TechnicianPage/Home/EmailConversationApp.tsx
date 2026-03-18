@@ -57,7 +57,8 @@ export default function EmailConversationApp() {
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
   const jobOrderFileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageList, setSelectedImageList] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [showSidebar, setShowSidebar] = useState<boolean>(false); 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -77,6 +78,34 @@ export default function EmailConversationApp() {
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const message = "This Job Order has been closed."
+
+  const selectedImage = selectedImageList[selectedImageIndex] ?? null;
+
+  const openImageViewer = (image: string, imageList?: string[], index?: number) => {
+    const list = imageList && imageList.length > 0 ? imageList : [image];
+    const resolvedIndex =
+      typeof index === "number"
+        ? index
+        : Math.max(0, list.indexOf(image));
+    const safeIndex = Math.min(Math.max(resolvedIndex, 0), list.length - 1);
+    setSelectedImageList(list);
+    setSelectedImageIndex(safeIndex);
+  };
+
+  const closeImageViewer = () => {
+    setSelectedImageList([]);
+    setSelectedImageIndex(0);
+  };
+
+  const handlePrevImage = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
+    setSelectedImageIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNextImage = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
+    setSelectedImageIndex((prev) => Math.min(prev + 1, selectedImageList.length - 1));
+  };
   
   const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
@@ -779,14 +808,47 @@ export default function EmailConversationApp() {
       {selectedImage && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={closeImageViewer}
         >
           <button 
-            onClick={() => setSelectedImage(null)}
+            onClick={(event) => {
+              event.stopPropagation();
+              closeImageViewer();
+            }}
             className="absolute top-4 right-4 text-white hover:text-gray-300"
           >
             <X size={32} />
           </button>
+          {selectedImageList.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                disabled={selectedImageIndex === 0}
+                className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition ${
+                  selectedImageIndex === 0
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-white/10"
+                }`}
+                title="Previous image"
+              >
+                <ChevronLeft size={36} />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                disabled={selectedImageIndex === selectedImageList.length - 1}
+                className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition ${
+                  selectedImageIndex === selectedImageList.length - 1
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-white/10"
+                }`}
+                title="Next image"
+              >
+                <ChevronRight size={36} />
+              </button>
+            </>
+          )}
           <img 
             src={selectedImage} 
             alt="Full view" 
@@ -952,7 +1014,7 @@ export default function EmailConversationApp() {
                                   src={attachment.attachment_url}
                                   alt={attachment.name}
                                   className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
-                                  onClick={() => setSelectedImage(attachment.attachment_url)}
+                                  onClick={() => openImageViewer(attachment.attachment_url)}
                                 />
                                 <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
                               </div>
@@ -1221,7 +1283,7 @@ export default function EmailConversationApp() {
             <div className="flex-1 overflow-y-auto">
               <ConversationsDetails 
                 userTicketInformation={userTicketInformation}
-                setSelectedImage={setSelectedImage}
+                setSelectedImage={openImageViewer}
                 formatDate={formatDate}
                 getStatusColor={getStatusColor}
                 setShowSidebar={setShowSidebar}
@@ -1280,7 +1342,7 @@ export default function EmailConversationApp() {
         <div className="flex-1 overflow-y-auto">
           <ConversationsDetails 
             userTicketInformation={userTicketInformation}
-            setSelectedImage={setSelectedImage}
+            setSelectedImage={openImageViewer}
             formatDate={formatDate}
             getStatusColor={getStatusColor}
             setShowSidebar={setShowSidebar}
