@@ -51,7 +51,7 @@ interface formData {
 
 interface ConversationsDetailsProps {
   userTicketInformation: any;
-  setSelectedImage: (image: string) => void;
+  setSelectedImage: (image: string, imageList?: string[], index?: number) => void;
   formatDate: (date: string) => string;
   getStatusColor: (status: string) => string;
   setShowSidebar: React.Dispatch<React.SetStateAction<boolean>>; 
@@ -1123,7 +1123,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                   key={img.id || index}
                   className="relative group cursor-pointer"
                     onClick={() => {
-                    setSelectedImage(img.image);
+                    const imageList = userTicketInformation.images.map((item: any) => item.image);
+                    setSelectedImage(img.image, imageList, index);
                     setShowSidebar(false)
                   }}
                 >
@@ -1183,7 +1184,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     key={img.id || index}
                     className="relative group cursor-pointer"
                     onClick={() => {
-                      setSelectedImage(img.image_url);
+                      const imageList = userTicketInformation.before_image.map((item: any) => item.image_url);
+                      setSelectedImage(img.image_url, imageList, index);
                       setShowSidebar(false)
                     }}
                   >
@@ -1249,7 +1251,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     key={img.id || index}
                     className="relative group cursor-pointer"
                     onClick={() => {
-                      setSelectedImage(img.image_url);
+                      const imageList = userTicketInformation.after_image.map((item: any) => item.image_url);
+                      setSelectedImage(img.image_url, imageList, index);
                       setShowSidebar(false)
                     }}
                   >
@@ -1313,7 +1316,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       key={img.id || index}
                       className="relative group cursor-pointer"
                       onClick={() => {
-                        setSelectedImage(img.image_url);
+                        const imageList = userTicketInformation.before_image.map((item: any) => item.image_url);
+                        setSelectedImage(img.image_url, imageList, index);
                         setShowSidebar(false)
                       }}
                     >
@@ -1373,7 +1377,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                       key={img.id || index}
                       className="relative group cursor-pointer"
                       onClick={() => {
-                        setSelectedImage(img.image_url);
+                        const imageList = userTicketInformation.after_image.map((item: any) => item.image_url);
+                        setSelectedImage(img.image_url, imageList, index);
                         setShowSidebar(false)
                       }}
                     >
