@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ============================================
-// 🎨 DESIGN CUSTOMIZATION SECTION
+// ðŸŽ¨ DESIGN CUSTOMIZATION SECTION
 // ============================================
 
 const COLORS = {
@@ -51,7 +51,7 @@ const RADIUS = {
 };
 
 // ============================================
-// 🛠️ UTILITY FUNCTIONS
+// ðŸ› ï¸ UTILITY FUNCTIONS
 // ============================================
 
 const formatDate = (dateString: string) => {
@@ -87,7 +87,7 @@ function getComparator<Key extends keyof any>(
 }
 
 // ============================================
-// 📦 TYPES
+// ðŸ“¦ TYPES
 // ============================================
 
 interface RowData {
@@ -109,6 +109,7 @@ interface TableDefaultProps {
   selectedRowId?: number | null;
   onRowClick?: (row: RowData) => void;
   onRowDoubleClick?: (row: RowData) => void;
+  onModelClick?: (issueId: number, issueName: string) => void;
   isLoading: boolean;
   sortable?: string;
   filterOptionsDevices?: string[];
@@ -120,7 +121,7 @@ interface TableDefaultProps {
 }
 
 // ============================================
-// 📊 MAIN COMPONENT
+// ðŸ“Š MAIN COMPONENT
 // ============================================
 
 export default function TableCustomizableHeaders({ 
@@ -129,6 +130,7 @@ export default function TableCustomizableHeaders({
   selectedRowId = null,
   onRowClick,
   onRowDoubleClick,
+  onModelClick,
   isLoading = false,
   sortable,
   filterOptionsDevices,
@@ -169,7 +171,7 @@ export default function TableCustomizableHeaders({
       // Second click RESETS to backend default
       setOrder('desc'); // Backend default is DESC
       setOrderBy(sortable || 'created_at'); // Reset to backend's sort column
-      setIsManualSort(false); // ✅ Turn OFF manual sort = use backend order AS-IS
+      setIsManualSort(false); // âœ… Turn OFF manual sort = use backend order AS-IS
     } else {
       setOrder('asc');
       setOrderBy(property);
@@ -224,6 +226,99 @@ export default function TableCustomizableHeaders({
     return order === 'asc' 
       ? <ArrowUp size={14} style={{ opacity: 1 }} />
       : <ArrowDown size={14} style={{ opacity: 1 }} />;
+  };
+
+  const renderModelList = (row: RowData) => {
+    if (!Array.isArray(row.models) && !Array.isArray(row.all_models)) {
+      return <span className="text-sm">{row.product_name ?? ''}</span>;
+    }
+
+    const models = Array.isArray(row.all_models) ? row.all_models : row.models;
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {models.map((model: any) => {
+          const isChecked = model.checked ?? true;
+          const issueId = model.issue_id ?? model.id;
+          return (
+            <button
+              key={`${row.id}-${model.product_id ?? model.id}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (issueId) onModelClick?.(issueId, model.name || row.name);
+              }}
+              className={`flex items-center gap-2 px-2 py-1 rounded-md border text-xs transition-colors ${
+                issueId ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-not-allowed opacity-60'
+              }`}
+              style={{ borderColor: COLORS.border, color: COLORS.text }}
+            >
+              <input
+                type="checkbox"
+                checked={!!isChecked}
+                readOnly
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (issueId) onModelClick?.(issueId, model.name || row.name);
+                }}
+                className="h-3.5 w-3.5 rounded border"
+                style={{
+                  borderColor: isChecked ? '#16a34a' : COLORS.checkboxBorder,
+                  background: isChecked ? '#16a34a' : 'transparent',
+                }}
+              />
+              <span className="truncate max-w-[220px]">{model.product_name}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderPublishList = (row: RowData) => {
+    if (!Array.isArray(row.models) && !Array.isArray(row.all_models)) {
+      return <span className="text-sm">{row.is_publish === 1 ? 'x' : ''}</span>;
+    }
+    const models = Array.isArray(row.all_models) ? row.all_models : row.models;
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {models.map((model: any) => {
+          const isPublished = Number(model.is_publish) === 1;
+          const issueId = model.issue_id ?? model.id;
+          return (
+            <button
+              key={`publish-${row.id}-${model.product_id ?? model.id}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (issueId) onModelClick?.(issueId, model.name || row.name);
+              }}
+              className={`flex items-center gap-2 px-2 py-1 rounded-md border text-xs transition-colors ${
+                issueId ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-not-allowed opacity-60'
+              }`}
+              style={{ borderColor: COLORS.border, color: COLORS.text }}
+            >
+              <input
+                type="checkbox"
+                checked={isPublished}
+                readOnly
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (issueId) onModelClick?.(issueId, model.name || row.name);
+                }}
+                className="h-3.5 w-3.5 rounded border"
+                style={{
+                  borderColor: isPublished ? '#16a34a' : COLORS.checkboxBorder,
+                  background: isPublished ? '#16a34a' : 'transparent',
+                }}
+              />
+              <span className="truncate max-w-[220px]">{model.product_name}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
   };
   
   const scrollFilters = (direction: 'left' | 'right') => {
@@ -474,16 +569,9 @@ export default function TableCustomizableHeaders({
                               }}
                             >
                               {column.id === 'is_publish' ? (
-                                <span
-                                  className={`${
-                                    row.is_publish === 1
-                                      ? "bg-green-500 text-white"
-                                      : "bg-red-500 text-white"
-                                  } px-2 py-1 rounded-lg text-sm font-medium`}
-                                >
-                                  {row.is_publish === 1 ? "Published" : "Draft"}
-                                </span>
-
+                                renderPublishList(row)
+                              ) : column.id === 'product_name' ? (
+                                renderModelList(row)
                               ) : column.id === 'created_at' ? (
                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                   {formatDate(row.created_at)}

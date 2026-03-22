@@ -3,15 +3,15 @@ import TableCustomizableHeaders from "./components/TableCustomizableHeadersIssue
 import { useState, useEffect, useMemo } from "react";
 import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { 
-  deleteIssues, 
-  fetchIssues, 
+import {
+  deleteIssues,
+  fetchIssues,
   updateIssues,
   createIssue,
-  fetchProductAll, 
+  fetchProductAll,
   Issues,
   fetchIssueByName
-} from '../../../services/Technician/issuesServices';  
+} from '../../../services/Technician/issuesServices';
 import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
@@ -50,17 +50,17 @@ const Issue = () => {
   const [dialogTitle, setDialogTitle] = useState<string>("");
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<IssueEditDetails | null>(null); 
+  const [selectedProduct, setSelectedProduct] = useState<IssueEditDetails | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<string>("ALL");
   const [selectedModel, setSelectedModel] = useState<string>("");
 
-  const { 
+  const {
     userInfo,
-    setSnackBarMessage, 
-    setSnackBarOpen, 
-    setSnackBarType, 
+    setSnackBarMessage,
+    setSnackBarOpen,
+    setSnackBarType,
   } = userAuth();
 
    const Permission = userInfo?.permissions?.find(p => p.parent_id === 'settings' && p.children_id === 'issue');
@@ -68,7 +68,7 @@ const Issue = () => {
   const { data: issuesResponse, isLoading } = useQuery({
     queryKey: ['issues'],
     queryFn: fetchIssues
-  }); 
+  });
 
   const { data: productResponse } = useQuery({
     queryKey: ["product"],
@@ -114,14 +114,14 @@ const Issue = () => {
   const columns = [
     {id: 'name', label: 'Name', sortable: true, align: 'left'},
     {id: "categories_name", label: "Device Type", sortable: true, align: 'left'},
-    {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'}, 
+    {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'},
     {id: 'is_publish', label: 'Publish', sortable: false, align: 'left' },
     {id: 'created_at', label: '', sortable: false, align: 'right'}
   ];
 
-  const openEditModal = async(issueName: string, issueId: number) => {
+  const openEditModal = async(issueName: string, issueId: number, selectedDetailId?: number, categories_id?: number) => {
     try {
-      const response = await fetchIssueByName(String(issueName));
+      const response = await fetchIssueByName(String(issueName), Number(categories_id));
       const issue = response?.data?.result ?? response?.result ?? response;
 
       if (!issue) {
@@ -131,19 +131,39 @@ const Issue = () => {
         return;
       }
 
-      setSelectedProduct({
-        id: issueId,
-        detail_ids: Array.isArray(issue?.id) ? issue.id : [],
-        name: issue.name ?? issueName,
-        product_id: Array.isArray(issue?.product_id)
-          ? issue.product_id.map((id: number | string) => String(id))
-          : [],
-        product_detail_pairs: Array.isArray(issue?.product_id) && Array.isArray(issue?.id)
+      const detailIds = Array.isArray(issue?.id) ? issue.id : [];
+      const productIds = Array.isArray(issue?.product_id)
+        ? issue.product_id.map((id: number | string) => String(id))
+        : [];
+
+      let productDetailPairs: Array<{ product_id: string; detail_id: number }> =
+        Array.isArray(issue?.product_id) && Array.isArray(issue?.id)
           ? issue.product_id.map((productId: number | string, index: number) => ({
               product_id: String(productId),
               detail_id: Number(issue.id[index]),
             }))
-          : [],
+          : [];
+
+      if (selectedDetailId) {
+        const selectedIndex = detailIds.findIndex((id: number) => Number(id) === Number(selectedDetailId));
+        if (selectedIndex >= 0) {
+          const selectedProductId = productIds[selectedIndex];
+          productDetailPairs = selectedProductId
+            ? [{ product_id: selectedProductId, detail_id: Number(selectedDetailId) }]
+            : [];
+        }
+      }
+
+      const selectedProductIds = selectedDetailId
+        ? productDetailPairs.map((p) => p.product_id)
+        : productIds;
+
+      setSelectedProduct({
+        id: selectedDetailId ?? issueId,
+        detail_ids: selectedDetailId ? [selectedDetailId] : detailIds,
+        name: issue.name ?? issueName,
+        product_id: selectedProductIds,
+        product_detail_pairs: productDetailPairs,
         categories_id: String(issue?.categories_id ?? ''),
         possible_solutions: issue?.possible_solutions ?? '',
         is_publish: issue?.is_publish ?? false,
@@ -158,7 +178,7 @@ const Issue = () => {
     }
   };
 
-  
+
   // Handle Delete Button Click
   const handleDeleteClick = () => {
     if (!selectedRowId) {
@@ -200,9 +220,9 @@ const Issue = () => {
     const issue = issues.find((f: any) => f.id === selectedRowId);
     if (!issue) return;
 
-    void openEditModal(issue.name, issue.id);
+    void openEditModal(issue.name, issue.id, undefined, issue.categories_id);
   };
-     
+
   const handleConfirmDelete = async () => {
     if (!deleteIds?.length) {
       setSnackBarMessage("No items selected to delete.");
@@ -213,8 +233,8 @@ const Issue = () => {
     }
 
     const formData = new FormData();
-    formData.append("ids", JSON.stringify(deleteIds)); 
-    formData.append("user_id", String(userInfo?.id));  
+    formData.append("ids", JSON.stringify(deleteIds));
+    formData.append("user_id", String(userInfo?.id));
 
     const response = await deleteIssue(formData);
     if (response?.success) {
@@ -227,7 +247,7 @@ const Issue = () => {
   };
 
   const handleAddIssue = async (formDataIssue: IssueFormValues) => {
-    try { 
+    try {
       const response = await IssueCategory({
         name: formDataIssue.name,
         product_id: formDataIssue.product_id.map((id) => Number(id)),
@@ -306,10 +326,10 @@ const Issue = () => {
       setSnackBarOpen(true);
       return;
     }
-    
-    void openEditModal(row.name, row.id);
+
+    void openEditModal(row.name, row.id, undefined, row.categories_id);
   };
- 
+
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchValue), 1000);
@@ -329,7 +349,14 @@ const Issue = () => {
     }
 
     if (selectedDevice !== "ALL") {
-      result = result.filter((c: any) => c.categories_name === selectedDevice);
+      const selectedCategoryId = categoryResponse.find(
+        (c: any) => c.label === selectedDevice
+      )?.value;
+      result = result.filter((c: any) =>
+        c.categories_name === selectedDevice ||
+        (selectedCategoryId != null &&
+          Number(c.categories_id) === Number(selectedCategoryId))
+      );
     }
 
     if (selectedModel) {
@@ -337,7 +364,74 @@ const Issue = () => {
     }
 
     return result;
-  }, [issues, selectedDevice, selectedModel, debouncedSearch]);
+  }, [issues, selectedDevice, selectedModel, debouncedSearch, categoryResponse]);
+
+  const groupedRows = useMemo(() => {
+    const groups = new Map<string, any>();
+    const categoryMap = new Map(
+      categoryResponse.map((c: any) => [String(c.value), c.label])
+    );
+
+    filteredProduct.forEach((issue: any) => {
+      const categoryId = String(issue.categories_id ?? '');
+      const categoryLabel =
+        categoryMap.get(categoryId) ?? issue.categories_name ?? '';
+      const key = `${issue.name ?? ''}__${categoryId}`;
+
+        if (!groups.has(key)) {
+          groups.set(key, {
+            id: issue.id,
+            name: issue.name,
+            categories_id: issue.categories_id,
+            categories_name: categoryLabel,
+            product_name: '',
+            models: [],
+            publish_by_product_id: {},
+            is_publish: null,
+            created_at: issue.created_at,
+          });
+        }
+        const group = groups.get(key);
+        group.models.push({
+          id: issue.id,
+          product_id: issue.product_id,
+          product_name: issue.product_name,
+          is_publish: issue.is_publish,
+          name: issue.name,
+        });
+        group.publish_by_product_id[String(issue.product_id)] =
+          Number(issue.is_publish) === 1;
+        if (new Date(issue.created_at).getTime() > new Date(group.created_at).getTime()) {
+          group.created_at = issue.created_at;
+        }
+      });
+
+      return Array.from(groups.values()).map((group) => {
+        const allModels = products
+          .filter((p: any) => Number(p.categories_id) === Number(group.categories_id))
+          .map((p: any) => {
+            const productId = p.id ?? p.product_id;
+            const issueMatch = group.models.find(
+              (m: any) => Number(m.product_id) === Number(productId)
+            );
+            return {
+              product_id: productId,
+              product_name: p.product_name ?? p.name,
+              checked: !!issueMatch,
+              issue_id: issueMatch?.id,
+              is_publish: group.publish_by_product_id[String(productId)] ? 1 : 0,
+            };
+          });
+
+        group.all_models = allModels;
+        group.product_name = group.models.map((m: any) => m.product_name).join(', ');
+        const publishValues = group.models.map((m: any) => Number(m.is_publish) === 1);
+        const allPublished = publishValues.length > 0 && publishValues.every(Boolean);
+        const allDraft = publishValues.length > 0 && publishValues.every((v: boolean) => !v);
+        group.publish_summary = allPublished ? 'All Published' : allDraft ? 'All Draft' : 'Mixed';
+        return group;
+      });
+    }, [filteredProduct, categoryResponse, products]);
 
   // Check if buttons should be enabled
   const isUpdateEnabled = !!selectedRowId;
@@ -347,54 +441,54 @@ const Issue = () => {
     <div className='p-4 sm:p-6 space-y-6 sm:space-y-10 bg-white'>
       {/* Modal */}
       {modalOpen && (
-        <IssuesModal 
+        <IssuesModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           selectedProduct={selectedProduct}
           onSave={isEditMode ? handleUpdateIssue : handleAddIssue}
           isEditMode={isEditMode}
         />
-      )} 
+      )}
 
-      <AlertDialog 
+      <AlertDialog
         open={dialogOpen}
         title={dialogTitle}
         message={dialogMessage}
         onClose={() => setDialogOpen(false)}
-        onSubmit={handleConfirmDelete} 
+        onSubmit={handleConfirmDelete}
       />
 
       {/* Header Section - Responsive layout */}
       <div className='flex flex-col lg:grid lg:grid-cols-2 gap-4'>
         {/* Breadcrumb Section */}
         <div className="flex items-center w-full">
-          <Breadcrumb 
+          <Breadcrumb
             items={[
               { label: "Issue Type", isActive: true, icon: <Package /> },
             ]}
           />
         </div>
-        
+
         {/* Search and Add Button Section - Search first, then Add button */}
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full'>
           {/* Search Field - Full width on mobile, auto width on larger screens */}
           <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
-            <CustomSearchField 
-              value={searchValue} 
-              onChange={(e) => setSearchValue(e.target.value)} 
-              placeholder='Search issues...' 
+            <CustomSearchField
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder='Search issues...'
               className="w-full"
             />
           </div>
-          
+
           {/* Add Button - Full width on mobile, auto width on larger screens */}
-          {Permission?.actions.includes('add') && 
+          {Permission?.actions.includes('add') &&
             <div className="w-full sm:w-auto">
-              <button 
-                onClick={() => {setModalOpen(true), setIsEditMode(false)}} 
+              <button
+                onClick={() => {setModalOpen(true), setIsEditMode(false)}}
                 className='flex items-center justify-center gap-2 px-4 py-3 w-full sm:w-auto bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base'
               >
-                <Plus size={18} className="sm:size-5" /> 
+                <Plus size={18} className="sm:size-5" />
                 <span className="whitespace-nowrap">Add Issue Type</span>
               </button>
             </div>
@@ -409,7 +503,7 @@ const Issue = () => {
                 background: isUpdateEnabled ? '#15803d' : '#9ca3af',
               }}
             >
-              <Pencil size={18} /> 
+              <Pencil size={18} />
               <span className="whitespace-nowrap">Update</span>
             </button>
           )}
@@ -424,7 +518,7 @@ const Issue = () => {
                 background: isDeleteEnabled ? '#dc2626' : '#9ca3af',
               }}
             >
-              <Trash2 size={18} /> 
+              <Trash2 size={18} />
               <span className="whitespace-nowrap">Delete</span>
             </button>
           )}
@@ -432,13 +526,18 @@ const Issue = () => {
       </div>
 
       {/* Table Section */}
-      <TableCustomizableHeaders 
-        rows={filteredProduct}
+      <TableCustomizableHeaders
+        rows={groupedRows}
         columns={columns}
         isLoading={isLoading}
         selectedRowId={selectedRowId}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        onModelClick={(issueId: number, issueName: string) => {
+          setSelectedRowId(issueId);
+          const issue = issues.find((item: any) => item.id === issueId);
+          void openEditModal(issueName, issueId, issueId, issue?.categories_id);
+        }}
         filterOptionsDevices={deviceTabs}
         filterOptionsModels={modelTabs}
         selectedDeviceFilter={selectedDevice}
