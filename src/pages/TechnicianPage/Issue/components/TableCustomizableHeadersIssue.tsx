@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ============================================
-// ðŸŽ¨ DESIGN CUSTOMIZATION SECTION
+// 🎨 DESIGN CUSTOMIZATION SECTION
 // ============================================
 
 const COLORS = {
@@ -51,7 +51,7 @@ const RADIUS = {
 };
 
 // ============================================
-// ðŸ› ï¸ UTILITY FUNCTIONS
+// 🛠️ UTILITY FUNCTIONS
 // ============================================
 
 const formatDate = (dateString: string) => {
@@ -60,9 +60,21 @@ const formatDate = (dateString: string) => {
 };
 
 // Sorting comparator
+function normalizeSortValue(value: any) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item : item?.name ?? ''))
+      .join(', ');
+  }
+  if (value === null || value === undefined) return '';
+  return value;
+}
+
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  const aValue = a[orderBy];
-  const bValue = b[orderBy];
+  const rawAValue = a[orderBy];
+  const rawBValue = b[orderBy];
+  const aValue = normalizeSortValue(rawAValue);
+  const bValue = normalizeSortValue(rawBValue);
 
   // parse if date column
   if (orderBy === 'created_at') {
@@ -87,7 +99,7 @@ function getComparator<Key extends keyof any>(
 }
 
 // ============================================
-// ðŸ“¦ TYPES
+// 📦 TYPES
 // ============================================
 
 interface RowData {
@@ -118,10 +130,20 @@ interface TableDefaultProps {
   selectedModelFilter?: string;
   onDeviceFilterChange?: (filter: string) => void;
   onModelFilterChange?: (filter: string) => void;
+  onTogglePublish?: (detailId: number, nextPublish: boolean) => void;
+  publishingIds?: number[];
+  onToggleModel?: (
+    baseDetailId: number,
+    modelDetailId: number | null,
+    productId: number,
+    issueKey: string,
+    nextChecked: boolean,
+  ) => Promise<number | null> | void;
+  modelUpdatingIds?: number[];
 }
 
 // ============================================
-// ðŸ“Š MAIN COMPONENT
+// 📊 MAIN COMPONENT
 // ============================================
 
 export default function TableCustomizableHeaders({ 
@@ -139,6 +161,10 @@ export default function TableCustomizableHeaders({
   selectedModelFilter,
   onDeviceFilterChange,
   onModelFilterChange,
+  onTogglePublish,
+  publishingIds = [],
+  onToggleModel,
+  modelUpdatingIds = [],
 }: TableDefaultProps) { 
 
   const [page, setPage] = useState(0);
@@ -147,6 +173,7 @@ export default function TableCustomizableHeaders({
   const [orderBy, setOrderBy] = useState<string>(sortable || 'created_at');
   const [isManualSort, setIsManualSort] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [modelCheckedMap, setModelCheckedMap] = useState<Record<string, boolean>>({});
   const filterScrollRef = useRef<HTMLDivElement | null>(null);
   const [showFilterArrows, setShowFilterArrows] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -171,7 +198,7 @@ export default function TableCustomizableHeaders({
       // Second click RESETS to backend default
       setOrder('desc'); // Backend default is DESC
       setOrderBy(sortable || 'created_at'); // Reset to backend's sort column
-      setIsManualSort(false); // âœ… Turn OFF manual sort = use backend order AS-IS
+      setIsManualSort(false); // ✅ Turn OFF manual sort = use backend order AS-IS
     } else {
       setOrder('asc');
       setOrderBy(property);
@@ -215,6 +242,39 @@ export default function TableCustomizableHeaders({
     }
   };
 
+  useEffect(() => {
+    setModelCheckedMap((prev) => {
+      const next: Record<string, boolean> = {};
+      const setValue = (key: string, value: boolean) => {
+        if (key) {
+          next[key] = value;
+        }
+      };
+
+      safeRows.forEach((row) => {
+        if (Array.isArray(row?.product_name)) {
+          row.product_name.forEach((item: any) => {
+            const productId = Number(item?.product_id);
+            const issueKey = row?.issue_key ?? '';
+            const key = item?.detail_id
+              ? `detail-${item.detail_id}`
+              : `issue-${issueKey}-product-${Number.isNaN(productId) ? item?.name ?? '' : productId}`;
+            setValue(key, !!item?.is_selected);
+          });
+        } else {
+          const productId = Number(row?.product_id);
+          const issueKey = row?.issue_key ?? '';
+          const key = row?.id
+            ? `detail-${row.id}`
+            : `issue-${issueKey}-product-${Number.isNaN(productId) ? row?.product_name ?? '' : productId}`;
+          setValue(key, true);
+        }
+      });
+
+      return { ...prev, ...next };
+    });
+  }, [safeRows]);
+
   const renderSortIcon = (columnId: string) => {
     const column = safeColumns.find(col => col.id === columnId);
     if (column?.sortable === false) {
@@ -228,96 +288,202 @@ export default function TableCustomizableHeaders({
       : <ArrowDown size={14} style={{ opacity: 1 }} />;
   };
 
-  const renderModelList = (row: RowData) => {
-    if (!Array.isArray(row.models) && !Array.isArray(row.all_models)) {
-      return <span className="text-sm">{row.product_name ?? ''}</span>;
-    }
-
-    const models = Array.isArray(row.all_models) ? row.all_models : row.models;
-
+  const renderModelList = (
+    items: Array<{
+      name: string;
+      detail_id?: number;
+      product_id?: number | string;
+      is_selected?: boolean;
+    }>,
+    issueKey: string,
+    baseDetailId: number,
+  ) => {
     return (
       <div className="flex flex-wrap gap-2">
-        {models.map((model: any) => {
-          const isChecked = model.checked ?? true;
-          const issueId = model.issue_id ?? model.id;
+        {items.map((item) => {
+          const productId = Number(item?.product_id);
+          const key = item?.detail_id
+            ? `detail-${item.detail_id}`
+            : `issue-${issueKey}-product-${Number.isNaN(productId) ? item?.name ?? '' : productId}`;
+          const isChecked = modelCheckedMap[key] ?? !!item?.is_selected;
+          const detailId = Number(item?.detail_id);
+          const isUpdating = modelUpdatingIds.includes(baseDetailId);
+
           return (
-            <button
-              key={`${row.id}-${model.product_id ?? model.id}`}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (issueId) onModelClick?.(issueId, model.name || row.name);
-              }}
-              className={`flex items-center gap-2 px-2 py-1 rounded-md border text-xs transition-colors ${
-                issueId ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-not-allowed opacity-60'
-              }`}
-              style={{ borderColor: COLORS.border, color: COLORS.text }}
+            <label
+              key={`model-${item.name}`}
+              className="inline-flex items-center gap-1 text-sm text-slate-700"
+              onClick={(event) => event.stopPropagation()}
             >
               <input
                 type="checkbox"
-                checked={!!isChecked}
-                readOnly
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (issueId) onModelClick?.(issueId, model.name || row.name);
-                }}
-                className="h-3.5 w-3.5 rounded border"
-                style={{
-                  borderColor: isChecked ? '#16a34a' : COLORS.checkboxBorder,
-                  background: isChecked ? '#16a34a' : 'transparent',
+                checked={isChecked}
+                disabled={
+                  isUpdating ||
+                  !onToggleModel ||
+                  Number.isNaN(detailId) ||
+                  Number.isNaN(productId)
+                }
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => {
+                  const nextChecked = event.target.checked;
+                  console.log('model click', {
+                    issueKey,
+                    baseDetailId,
+                    detailId,
+                    productId,
+                    nextChecked,
+                  });
+                  setModelCheckedMap((prev) => ({ ...prev, [key]: nextChecked }));
+                  if (!Number.isNaN(productId)) {
+                    onToggleModel?.(
+                      baseDetailId,
+                      Number.isNaN(detailId) ? null : detailId,
+                      productId,
+                      issueKey,
+                      nextChecked,
+                    );
+                  }
                 }}
               />
-              <span className="truncate max-w-[220px]">{model.product_name}</span>
-            </button>
+              <span className="whitespace-nowrap">{item.name}</span>
+            </label>
           );
         })}
       </div>
     );
   };
 
-  const renderPublishList = (row: RowData) => {
-    if (!Array.isArray(row.models) && !Array.isArray(row.all_models)) {
-      return <span className="text-sm">{row.is_publish === 1 ? 'x' : ''}</span>;
-    }
-    const models = Array.isArray(row.all_models) ? row.all_models : row.models;
-
+  const renderPublishList = (
+    items: Array<{
+      name: string;
+      is_publish?: number | boolean;
+      detail_id?: number | null;
+      product_id?: number | string;
+    }>,
+    issueKey: string,
+    baseDetailId: number,
+  ) => {
     return (
       <div className="flex flex-wrap gap-2">
-        {models.map((model: any) => {
-          const isPublished = Number(model.is_publish) === 1;
-          const issueId = model.issue_id ?? model.id;
+        {items.map((item) => {
+          const isPublished = Number(item?.is_publish) === 1;
+          const isChecked = isPublished;
+          const detailId = Number(item?.detail_id);
+          const productId = Number(item?.product_id);
+          const hasDetail = Number.isFinite(detailId) && detailId > 0;
+          const isUpdating = publishingIds.includes(detailId);
+
           return (
-            <button
-              key={`publish-${row.id}-${model.product_id ?? model.id}`}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (issueId) onModelClick?.(issueId, model.name || row.name);
-              }}
-              className={`flex items-center gap-2 px-2 py-1 rounded-md border text-xs transition-colors ${
-                issueId ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-not-allowed opacity-60'
-              }`}
-              style={{ borderColor: COLORS.border, color: COLORS.text }}
+            <label
+              key={`publish-${item.name}`}
+              className="inline-flex items-center gap-1 text-sm text-slate-700"
+              onClick={(event) => event.stopPropagation()}
             >
               <input
                 type="checkbox"
-                checked={isPublished}
-                readOnly
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (issueId) onModelClick?.(issueId, model.name || row.name);
-                }}
-                className="h-3.5 w-3.5 rounded border"
-                style={{
-                  borderColor: isPublished ? '#16a34a' : COLORS.checkboxBorder,
-                  background: isPublished ? '#16a34a' : 'transparent',
+                checked={isChecked}
+                disabled={
+                  isUpdating ||
+                  (!onTogglePublish && !onToggleModel) ||
+                  (!hasDetail && Number.isNaN(productId))
+                }
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+                onClick={(event) => event.stopPropagation()}
+                onChange={async (event) => {
+                  const nextChecked = event.target.checked;
+                  const nextPublish = nextChecked;
+                  if (hasDetail) {
+                    onTogglePublish?.(detailId, nextPublish);
+                    return;
+                  }
+
+                  if (!Number.isNaN(productId) && onToggleModel) {
+                    const createdId = await onToggleModel(
+                      baseDetailId,
+                      null,
+                      productId,
+                      issueKey,
+                      nextChecked,
+                    );
+                    if (createdId) {
+                      onTogglePublish?.(createdId, nextPublish);
+                    }
+                  }
                 }}
               />
-              <span className="truncate max-w-[220px]">{model.product_name}</span>
-            </button>
+              <span className="whitespace-nowrap">{item.name}</span>
+            </label>
           );
         })}
       </div>
+    );
+  };
+
+  const renderSingleModel = (row: RowData) => {
+    const productId = Number(row?.product_id);
+    const issueKey = row?.issue_key ?? '';
+    const key = row?.id
+      ? `detail-${row.id}`
+      : `issue-${issueKey}-product-${Number.isNaN(productId) ? row?.product_name ?? '' : productId}`;
+    const isChecked = modelCheckedMap[key] ?? true;
+    const detailId = Number(row?.id);
+    const isUpdating = modelUpdatingIds.includes(detailId);
+
+    return (
+      <label
+        className="inline-flex items-center gap-2 text-sm text-slate-700"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={isChecked}
+          disabled={
+            isUpdating ||
+            !onToggleModel ||
+            Number.isNaN(detailId) ||
+            Number.isNaN(productId)
+          }
+          className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            const nextChecked = event.target.checked;
+            setModelCheckedMap((prev) => ({ ...prev, [key]: nextChecked }));
+            if (!Number.isNaN(detailId) && !Number.isNaN(productId)) {
+              onToggleModel?.(detailId, detailId, productId, issueKey, nextChecked);
+            }
+          }}
+        />
+        <span className="whitespace-nowrap">{row?.product_name}</span>
+      </label>
+    );
+  };
+
+  const renderSinglePublish = (row: RowData) => {
+    const isPublished = Number(row?.is_publish) === 1;
+    const isChecked = isPublished;
+    const detailId = Number(row?.id);
+    const isUpdating = publishingIds.includes(detailId);
+
+    return (
+      <label className="inline-flex items-center gap-2 text-sm text-slate-700" onClick={(event) => event.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={isChecked}
+          disabled={isUpdating || !onTogglePublish || Number.isNaN(detailId)}
+          className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            const nextChecked = event.target.checked;
+            const nextPublish = nextChecked;
+            if (!Number.isNaN(detailId)) {
+              onTogglePublish?.(detailId, nextPublish);
+            }
+          }}
+        />
+        <span className="whitespace-nowrap">{row?.product_name}</span>
+      </label>
     );
   };
   
@@ -361,6 +527,7 @@ export default function TableCustomizableHeaders({
       if (resizeObserver) resizeObserver.disconnect();
     };
   }, [filterOptionsDevices, filterOptionsModels]);
+
 
   if (isLoading) {
     return (
@@ -568,10 +735,18 @@ export default function TableCustomizableHeaders({
                                 position: 'relative'
                               }}
                             >
-                              {column.id === 'is_publish' ? (
-                                renderPublishList(row)
-                              ) : column.id === 'product_name' ? (
-                                renderModelList(row)
+                              {column.id === 'product_name' ? (
+                                Array.isArray(row.product_name) ? (
+                                  renderModelList(row.product_name, row.issue_key ?? '', Number(row.id))
+                                ) : (
+                                  renderSingleModel(row)
+                                )
+                              ) : column.id === 'is_publish' ? (
+                                Array.isArray(row.publish_list) ? (
+                                  renderPublishList(row.publish_list, row.issue_key ?? '', Number(row.id))
+                                ) : (
+                                  renderSinglePublish(row)
+                                )
                               ) : column.id === 'created_at' ? (
                                 <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
                                   {formatDate(row.created_at)}
