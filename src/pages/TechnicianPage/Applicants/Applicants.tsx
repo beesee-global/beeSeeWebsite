@@ -251,7 +251,7 @@ const Applicants = () => {
     setDataValue('closed')
     setDialogTitle("Confirm Closed");
     setDialogOpen(true);
-    setDialogMessage("Are you sure you want to mark this applicant as closed? This will send a notification email to the applicant.");
+    setDialogMessage("Are you sure you want to mark this applicant as closed?");
   }
 
   // Handle Delete (Trash)
