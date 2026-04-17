@@ -137,13 +137,28 @@ const permissionTree = [
     hasActions: true,
     allowedActions: ["view", "delete", "closed_inquiries"], // Only view and delete (no add/edit)
   },
-  {
+ {
     id: "careers",
-    name: "Careers",
-    url: "/beesee/job-posting",
+    name: "Careers", 
     parent: null,
-    hasActions: true,
-    allowedActions: ["view", "add", "edit", "delete"], // All actions
+    hasActions: false,
+    children: [
+      // Child modules under Users
+      {
+        id: "job-postings",
+        name: "Job Postings",
+        url: "/beesee/job-posting",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
+      {
+        id: "interviews",
+        name: "Interviews",
+        url: "/beesee/applicant/interview",
+        hasActions: true,
+        allowedActions: ["view"],
+      },
+    ], 
   },
   {
     id: "audit-logs",
@@ -241,6 +256,9 @@ const Modal: React.FC<ModalProps> = ({
   // State to control whether Users section is expanded
   const [expandedUsers, setExpandedUsers] = useState(false);
 
+  // State to control whether Careers section is expanded
+  const [expandedCareers, setExpandedCareers] = useState(false);
+
   // Effect runs when modal opens - initializes form data and permissions
   useEffect(() => {
     if (open) {
@@ -277,6 +295,12 @@ const Modal: React.FC<ModalProps> = ({
         (key) => permMap[key] && permMap[key].length > 0
       );
       setExpandedUsers(hasUsersPerms);
+
+       // Auto-expand Careers section if any child module has permissions
+      const hasCareersPerms = ["job-postings", "interviews"].some(
+        (key) => permMap[key] && permMap[key].length > 0
+      );
+      setExpandedCareers(hasCareersPerms);
     }
   }, [open, fields, initialPermissions]); // Re-run when these dependencies change
 
@@ -909,10 +933,15 @@ const Modal: React.FC<ModalProps> = ({
               </Box>
             </Box>
 
-            {/* Main Modules - render all except Settings and Users */}
+            {/* Main Modules - render all except grouped parent sections */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {permissionTree
-                .filter((item) => item.id !== "settings" && item.id !== "users") // Exclude Settings and Users (they're rendered separately below)
+                .filter(
+                  (item) =>
+                    item.id !== "settings" &&
+                    item.id !== "users" &&
+                    item.id !== "careers"
+                ) // Exclude grouped parents (they're rendered separately below)
                 .map((item) =>
                   renderModuleCheckboxes(
                     item.id,
@@ -921,6 +950,68 @@ const Modal: React.FC<ModalProps> = ({
                     item.allowedActions || ["view", "add", "edit", "delete"] // Use default actions if not specified
                   )
                 )}
+            </Box>
+
+            {/* Careers Section - Collapsible */}
+            <Box
+              sx={{
+                mt: 3, // Margin top
+                p: 2.5, // Padding
+                borderRadius: "16px", // Rounded corners
+                border: "2px solid #e5e7eb", // Light gray border
+                backgroundColor: "#fafafa", // Very light gray background
+              }}
+            >
+              {/* Careers expand/collapse button */}
+              <Button
+                fullWidth
+                type="button" // Not a submit button
+                variant="text" // Text style (no background)
+                endIcon={
+                  <ChevronDown
+                    size={18}
+                    style={{
+                      transition: "transform 0.3s ease", // Smooth rotation
+                      transform: expandedCareers
+                        ? "rotate(180deg)" // Point up when expanded
+                        : "rotate(0deg)", // Point down when collapsed
+                    }}
+                  />
+                }
+                onClick={() => setExpandedCareers(!expandedCareers)} // Toggle expanded state
+                sx={{
+                  justifyContent: "space-between", // Space between text and icon
+                  textTransform: "none", // Don't uppercase text
+                  padding: "14px 18px",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  color: "#111827",
+                  borderRadius: "12px",
+                  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" }, // Slight gray on hover
+                }}
+              >
+                Careers
+              </Button>
+
+              {/* Collapsible content for Careers children */}
+              <Collapse in={expandedCareers}>
+                <Box
+                  sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                  {/* Render child modules under Careers */}
+                  {permissionTree
+                    .find((p) => p.id === "careers") // Find Careers parent
+                    ?.children?.map((child) =>
+                      renderModuleCheckboxes(
+                        child.id,
+                        child.name,
+                        child.hasActions,
+                        child.allowedActions || ["view", "add", "edit", "delete"],
+                        true // isChild = true for different styling
+                      )
+                    )}
+                </Box>
+              </Collapse>
             </Box>
 
             {/* Users Section - Collapsible */}

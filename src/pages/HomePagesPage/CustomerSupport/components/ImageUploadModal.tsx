@@ -9,7 +9,7 @@ interface AddImageUploadModalProps {
     onSubmit: (file: File | null, base64?: string) => void; // 👈 now returns file + optional base64
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const ImageUploadModal: React.FC<AddImageUploadModalProps> = ({ open, onClose, onSubmit }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -32,7 +32,7 @@ const ImageUploadModal: React.FC<AddImageUploadModalProps> = ({ open, onClose, o
 
         if (file) {
             if (file.size > MAX_FILE_SIZE) {
-                setError("File size must be less than 5MB.");
+                setError(`File size must be less than ${MAX_FILE_SIZE}MB.`);
                 setSelectedFile(null);
                 setPreview(null);
                 return;

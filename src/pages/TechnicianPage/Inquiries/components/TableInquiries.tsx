@@ -224,15 +224,15 @@ export default function TableInquiries({
           style={{ background: COLORS.surface, borderColor: COLORS.border }}
         >
             {/* Filter Section */}
-            <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
+            <div className="border-b" style={{ borderColor: COLORS.border }}>
               <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
                 
-                <div className="flex gap-2">
+                <div className="flex">
                   <button
                     onClick={() => setStatusFilter("Unsettled")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                    className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                       ${statusFilter === "Unsettled" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
+                        ? "text-yellow-500 border-yellow-500" 
                         : "border-gray-200 text-gray-700 hover:bg-gray-100"
                       }`}
                   >
@@ -241,9 +241,9 @@ export default function TableInquiries({
     
                   <button
                     onClick={() => setStatusFilter("Settled")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                    className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                       ${statusFilter === "Settled" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
+                        ? "text-yellow-500 border-yellow-500" 
                         : "border-gray-200 text-gray-700 hover:bg-gray-100"
                       }`}
                   >
@@ -253,9 +253,9 @@ export default function TableInquiries({
                   {InquiriesPermissionJob?.actions.includes("closed_inquiries") && (
                     <button
                     onClick={() => setStatusFilter("Closed")}
-                    className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                    className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                       ${statusFilter === "Closed" 
-                        ? "bg-yellow-500 text-white border-yellow-500" 
+                        ? "text-yellow-500 border-yellow-500" 
                         : "border-gray-200 text-gray-700 hover:bg-gray-100"
                       }`}
                   >

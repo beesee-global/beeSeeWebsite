@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Mail } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mail, CalendarCheck } from 'lucide-react';
 
 // ============================================
 // 🎨 DESIGN CUSTOMIZATION SECTION
@@ -18,17 +18,7 @@ const COLORS = {
     checkboxBorder: '#d1d5db',
     danger: '#3f4042',
 };
-
-const TYPOGRAPHY = {
-    nameSize: 'text-sm',
-    nameWeight: 'font-medium',
-    concernSize: 'text-sm',
-    concernWeight: 'font-normal',
-    dateSize: 'text-xs',
-    dateWeight: 'font-normal',
-    headerSize: 'text-sm',
-    headerWeight: 'font-medium',
-};
+ 
 
 const SPACING = {
     containerPadding: 'p-3 md:p-4',
@@ -224,32 +214,57 @@ export default function TableApplicants({
 
     return (
         <div className="w-full" style={{ background: COLORS.background }}>
-            <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+            <div 
+                className={`${RADIUS.container} ${SPACING.containerPadding} border p-4 mb-4`} 
+                style={{ background: COLORS.surface, borderColor: COLORS.border }}
+            >
                 {/* Filter Section */}
-                <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
-                    <div className="flex gap-2">
+                <div className="border-b" >
+                    <div className="flex">
                         <button
                             onClick={() => setStatusFilter('all')}
-                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'all' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                            className={`py-2 px-4 border-b transition text-sm font-medium 
+                                ${statusFilter === 'all' 
+                                    ? 'text-yellow-500 border-yellow-500' 
+                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
+                                `}
                         >
                             ALL
                         </button>
                         <button
+                            onClick={() => setStatusFilter('new_applicants')}
+                            className={`py-2 px-4 border-b transition text-sm font-medium 
+                                ${statusFilter === 'new_applicants' 
+                                    ? 'text-yellow-500  border-yellow-500' 
+                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                        >
+                            New Applicant
+                        </button>
+                        <button
                             onClick={() => setStatusFilter('short_listed')}
-                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'short_listed' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                            className={`py-2 px-4 border-b transition text-sm font-medium 
+                                ${statusFilter === 'short_listed' 
+                                    ? 'text-yellow-500 border-yellow-500' 
+                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                         >
                             Short Listed
                         </button>
                         <button
                             onClick={() => setStatusFilter('rejected')}
-                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'rejected' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                            className={`py-2 px-4 border-b transition text-sm font-medium 
+                                ${statusFilter === 'rejected' 
+                                    ? 'text-yellow-500 border-yellow-500' 
+                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                         >
                             Rejected
                         </button>
 
                         <button
                             onClick={() => setStatusFilter('closed')}
-                            className={`py-2 px-4 border rounded-md transition text-sm font-medium ${statusFilter === 'closed' ? 'bg-yellow-500 text-white border-yellow-500' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                            className={`py-2 px-4 border-b transition text-sm font-medium 
+                                ${statusFilter === 'closed' 
+                                    ? 'text-yellow-500 border-yellow-500' 
+                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                         >
                             Closed
                         </button>
@@ -257,7 +272,7 @@ export default function TableApplicants({
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="hidden md:block overflow-x-auto p-3">
                     {visibleRows.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16">
                             <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
@@ -312,6 +327,18 @@ export default function TableApplicants({
                                                             </span>
                                                             );
                                                         })()
+                                                    ) : col.id === 'full_name' ? (
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <div className="text-sm text-gray-900 truncate max-w-[200px]">{row[col.id]}</div>
+                                                            {row?.schedule_date ? (
+                                                                <span
+                                                                    className="flex-shrink-0 text-emerald-600"
+                                                                    title={`Schedule: ${row.schedule_date}`}
+                                                                >
+                                                                    <CalendarCheck size={16} />
+                                                                </span>
+                                                            ) : null} 
+                                                        </div>
                                                     ) : col.id === 'created_at' ? (
                                                         <span className="text-sm text-gray-500">{formatDate(row[col.id])}</span>
                                                     ) : (

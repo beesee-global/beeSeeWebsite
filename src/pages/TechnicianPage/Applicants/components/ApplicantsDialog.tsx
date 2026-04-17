@@ -11,7 +11,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { Send, MapPin, Clock, CalendarClock } from 'lucide-react';
 import CustomTimePicker from '../../../../components/Fields/CustomTimePicker';
-import CustomDuration from '../../../../components/Fields/CustomDuration';
 import CustomFormat from '../../../../components/Fields/CustomFormat';
 
 interface ApplicantsDialogProps {
@@ -22,7 +21,6 @@ interface ApplicantsDialogProps {
     time: string;
     date: string;
     schedule: string;
-    duration: string;
     format: string;
   }) => void;
   applicantName?: string;
@@ -47,7 +45,6 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     time: '',
     date: '',
     schedule: '',
-    duration: '',
     format: ''
   });
 
@@ -61,7 +58,6 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
         time: '',
         date: '',
         schedule: '',
-        duration: '',
         format: ''
       });
       setFormError({});
@@ -95,10 +91,6 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
 
     if (!formData.format.trim()) {
       errors.format = "Format is required";
-    }
-
-    if (!formData.duration.trim()) {
-      errors.duration = "Duration is required";
     }
 
     return errors;
@@ -192,7 +184,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
               </div>
 
               {/* duration */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Duration *
                 </label>
@@ -206,7 +198,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
                   error={!!formError.duration}
                   helperText={formError.duration}
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="w-full max-w-xl space-y-2">

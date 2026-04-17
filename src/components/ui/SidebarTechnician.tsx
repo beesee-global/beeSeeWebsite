@@ -52,8 +52,24 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
             ],
         },
         { id: 'faqs', name: 'Faqs', path: '/beesee/faqs', isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> },
-        { id: 'inquiries', name: 'Inquiries', path: '/beesee/inquiries', icon: <MailQuestionMarkIcon size={20} /> },
-        { id: 'careers', name: 'Careers', path: '/beesee/job-posting', icon: <Briefcase size={20} /> },
+        { id: 'inquiries', name: 'Inquiries', path: '/beesee/inquiries', icon: <MailQuestionMarkIcon size={20} /> }, 
+        {
+            id: 'careers',
+            name: 'Careers',
+            icon: <Briefcase size={20} />,
+            children: [
+                 { 
+                    id: 'job-postings', 
+                    name: 'Job Postings', 
+                    path: '/beesee/job-posting' 
+                },
+                { 
+                    id: 'interviews', 
+                    name: 'Interviews',  
+                    path: '/beesee/applicant/interview' 
+                }, 
+            ],
+        },
         { id: 'audit-logs', name: 'Audit Logs', path: '/beesee/audit-logs', icon: <Logs size={20} /> },
     ];
 
