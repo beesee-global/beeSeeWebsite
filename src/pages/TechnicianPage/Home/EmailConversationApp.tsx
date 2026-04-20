@@ -16,7 +16,9 @@ import {
   ArrowLeftToLine,
   Image as ImageIcon,  // Rename this!
   Upload,
-  TicketX
+  TicketX,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'; 
 import AlertDialog from '../../../components/feedback/AlertDialog'; 
 import { useParams } from 'react-router-dom'; 
@@ -30,7 +32,8 @@ import {
   markAsClosed,
   deleteTickets,
   uploadJobOrders,
-  deleteSpecificConversation
+  deleteSpecificConversation,
+  fetchStatus
 } from '../../../services/Technician/ticketsServices';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConversationsDetails from '../../../components/ui/ConversationsDetails';
@@ -54,7 +57,8 @@ export default function EmailConversationApp() {
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
   const jobOrderFileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageList, setSelectedImageList] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [showSidebar, setShowSidebar] = useState<boolean>(false); 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -67,12 +71,41 @@ export default function EmailConversationApp() {
   const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | null>(null);
   const [deleteIds, setDeleteIds] = useState<number[]>([]);
   const [socket, setSocket] = useState<any>(null);
+  const [triggerCompletedClosed, setTriggerCompletedClosed] = useState<boolean>(false);
   // Stores the message user selected to reply to (Messenger-style reply target).
   const [repliedMessage, setRepliedMessage] = useState<any | null>(null);
   // Client-side upload size limit.
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const message = "This Job Order has been closed."
+
+  const selectedImage = selectedImageList[selectedImageIndex] ?? null;
+
+  const openImageViewer = (image: string, imageList?: string[], index?: number) => {
+    const list = imageList && imageList.length > 0 ? imageList : [image];
+    const resolvedIndex =
+      typeof index === "number"
+        ? index
+        : Math.max(0, list.indexOf(image));
+    const safeIndex = Math.min(Math.max(resolvedIndex, 0), list.length - 1);
+    setSelectedImageList(list);
+    setSelectedImageIndex(safeIndex);
+  };
+
+  const closeImageViewer = () => {
+    setSelectedImageList([]);
+    setSelectedImageIndex(0);
+  };
+
+  const handlePrevImage = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
+    setSelectedImageIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNextImage = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
+    setSelectedImageIndex((prev) => Math.min(prev + 1, selectedImageList.length - 1));
+  };
   
   const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
@@ -111,11 +144,26 @@ export default function EmailConversationApp() {
 
   const userTicketInformation = ticketInfo?.data || {}; 
 
-  const { data: conversationsData, } = useQuery({
+  const { data: conversationsData, refetch: fetchTicketConversations } = useQuery({
     queryKey: ['conversations', userTicketInformation?.ticket_id],
     queryFn: () => fetchConversation(userTicketInformation?.ticket_id),
     enabled: !!userTicketInformation?.ticket_id
   });
+
+  // fetch status for conditional rendering  
+  const { data: statusData, refetch: fetchStatusData } = useQuery({
+    queryKey: ['status', userTicketInformation?.ticket_id, userTicketInformation?.status],
+    queryFn: () =>
+      fetchStatus(
+      userTicketInformation.is_closed === 0 ? userTicketInformation.status : "closed" ,
+        userTicketInformation.status === 'open' || userTicketInformation.status === 'ongoing'
+          ? 'created_at'
+          : 'updated_at',
+        userTicketInformation.is_closed
+      ),
+    enabled: !!userTicketInformation?.status && !!userTicketInformation?.ticket_id,
+  });
+
 
   // Initialize socket connection per ticket
   useEffect(() => {
@@ -144,9 +192,7 @@ export default function EmailConversationApp() {
       setMessages(prev => [...prev, msg]);
       // Only invalidate queries to refetch from server - this ensures we get attachments
       // Don't add msg directly to state as it doesn't contain attachment data
-      queryClient.invalidateQueries({
-        queryKey: ['conversations', userTicketInformation?.ticket_id]
-      });
+     fetchTicketConversations();
 
       queryClient.invalidateQueries({
         queryKey: ['ticketInformation', pid],
@@ -175,7 +221,7 @@ export default function EmailConversationApp() {
   // --- inserting conversation ---
   const {
     mutateAsync: insertConversations,
-    isPending: isInsertConversations
+    isPending: isInsertConversations,
   } = useMutation({
     mutationFn: insertConversation,
     onSuccess: () => {
@@ -385,9 +431,7 @@ export default function EmailConversationApp() {
         //   message: newMessage
         // });
 
-        queryClient.invalidateQueries({
-          queryKey: ['conversations', userTicketInformation?.ticket_id]
-        }) 
+        await fetchTicketConversations();
       }
 
     } catch (error: any) { 
@@ -442,7 +486,9 @@ export default function EmailConversationApp() {
         setSnackBarMessage("Job order marked as closed successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
-        navigate("/beesee/job-order");
+
+        setTriggerCompletedClosed(true) // Set flag to indicate we just completed a job order.
+        await nextJobOrderStep(true) // Move to next or return to list after completion.
       }
 
 
@@ -484,8 +530,10 @@ export default function EmailConversationApp() {
       if (response?.success) {
         setSnackBarMessage("Successfully Mark as Completed")
         setSnackBarType("success")
-        setSnackBarOpen(true)
-        navigate("/beesee/job-order")
+        setSnackBarOpen(true) 
+
+        setTriggerCompletedClosed(true) // Set flag to indicate we just completed a job order.
+        await nextJobOrderStep(true) // Move to next or return to list after completion.
       }
 
     } catch (error) {
@@ -528,9 +576,7 @@ export default function EmailConversationApp() {
         setSnackBarType("success");
         setSnackBarOpen(true);
         await refetchTicketInfo();
-        queryClient.invalidateQueries({
-          queryKey: ['conversations', userTicketInformation?.ticket_id]
-        });
+        await fetchTicketConversations();
       } else {
         setSnackBarMessage("Failed to upload. Please try again.");
         setSnackBarType("error");
@@ -614,9 +660,7 @@ export default function EmailConversationApp() {
         setSnackBarMessage("Message deleted successfully");
         setSnackBarType("success");
         setSnackBarOpen(true);
-        queryClient.invalidateQueries({
-          queryKey: ['conversations', userTicketInformation?.ticket_id]
-        });
+        await fetchTicketConversations();
       }
     } catch (error) {
       const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
@@ -668,6 +712,64 @@ export default function EmailConversationApp() {
     closeDialog();
   }
 
+  const nextJobOrderStep = async (forceReturnToList = false) => {
+    // Debug: move to the next PID based on statusData order
+    const statusList = statusData?.data ?? [];
+    const currentIndex = statusList.findIndex((item: any) => item.pid === pid);
+
+    if (currentIndex === -1) {
+      setSnackBarMessage("Current ticket not found in status list.");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    const nextItem = statusList[currentIndex + 1];
+    if (!nextItem?.pid) {
+      const shouldReturnToList = forceReturnToList || triggerCompletedClosed;
+      console.log("No next item. Force return to list?", forceReturnToList, "Triggered by completion?", triggerCompletedClosed);
+      if (shouldReturnToList) {
+        setTriggerCompletedClosed(false) // Reset flag after redirecting to job order list.
+        navigate("/beesee/job-order");
+        return;
+      }
+
+      setSnackBarMessage("You are already at the last job order.");
+      setSnackBarType("info");
+      setSnackBarOpen(true);
+      return;
+    }
+
+      await refetchTicketInfo();
+      await fetchTicketConversations();
+      await fetchStatusData();
+
+    navigate(`/beesee/job-order/conversation/${nextItem.pid}`);
+  }
+
+  const previousJobOrderStep = () => {
+    // Debug: move to the previous PID based on statusData order
+    const statusList = statusData?.data ?? [];
+    const currentIndex = statusList.findIndex((item: any) => item.pid === pid);
+
+    if (currentIndex === -1) {
+      setSnackBarMessage("Current ticket not found in status list.");
+      setSnackBarType("warning");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    const prevItem = statusList[currentIndex - 1];
+    if (!prevItem?.pid) {
+      setSnackBarMessage("You are already at the first job order.");
+      setSnackBarType("info");
+      setSnackBarOpen(true);
+      return;
+    }
+
+    navigate(`/beesee/job-order/conversation/${prevItem.pid}`);
+  }
+
   if (isLoading) {
     return <SpinningRingLoader />;
   }
@@ -706,14 +808,47 @@ export default function EmailConversationApp() {
       {selectedImage && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={closeImageViewer}
         >
           <button 
-            onClick={() => setSelectedImage(null)}
+            onClick={(event) => {
+              event.stopPropagation();
+              closeImageViewer();
+            }}
             className="absolute top-4 right-4 text-white hover:text-gray-300"
           >
             <X size={32} />
           </button>
+          {selectedImageList.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                disabled={selectedImageIndex === 0}
+                className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition ${
+                  selectedImageIndex === 0
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-white/10"
+                }`}
+                title="Previous image"
+              >
+                <ChevronLeft size={36} />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                disabled={selectedImageIndex === selectedImageList.length - 1}
+                className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition ${
+                  selectedImageIndex === selectedImageList.length - 1
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-white/10"
+                }`}
+                title="Next image"
+              >
+                <ChevronRight size={36} />
+              </button>
+            </>
+          )}
           <img 
             src={selectedImage} 
             alt="Full view" 
@@ -757,10 +892,10 @@ export default function EmailConversationApp() {
                   onClick={() => handleMarkAsClosed()}
                   title="Mark as closed"
                   disabled={isMarkAsClosed}
-                  className='inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60'
+                  className='inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-700 transition hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <TicketX className='h-4 w-4' />
-                  <span className='hidden sm:inline'>Close</span>
+                  <span className='hidden sm:inline'>Closed</span>
                 </button>
               )}
 
@@ -879,7 +1014,7 @@ export default function EmailConversationApp() {
                                   src={attachment.attachment_url}
                                   alt={attachment.name}
                                   className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition"
-                                  onClick={() => setSelectedImage(attachment.attachment_url)}
+                                  onClick={() => openImageViewer(attachment.attachment_url)}
                                 />
                                 <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
                               </div>
@@ -1101,13 +1236,26 @@ export default function EmailConversationApp() {
 
           {/* Slide in sidebar */}
           <div className='absolute left-0 top-0 h-screen w-80 bg-gray-100 shadow-xl animate-slideIn flex flex-col'>
-            <div className='p-4 border-b flex bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
+            <div className='p-4 border-b md:flex space-y-2 bg-gradient-to-r from-gray-900 to-gray-800 justify-between items-center'>
               <h2 className="text-xl text-[20px] font-bold text-white flex items-center gap-2">
                 <Inbox className="w-5 h-5" />
                 Job Order Information
               </h2>
 
               <div className='flex items-center gap-2'>
+                <button 
+                  title='Previous Job Order'
+                  onClick={previousJobOrderStep}
+                  className='bg-white flex items-center justify-center p-2 rounded-md hover:bg-gray-200'>
+                  <ChevronLeft className='w-5 h-5'/>
+                </button>
+                <button 
+                  title="Next Job Order"
+                  onClick={() => nextJobOrderStep()}
+                  className='bg-white flex items-center justify-center p-2 rounded-md hover:bg-gray-200'>
+                  <ChevronRight className='w-5 h-5'/>
+                </button>
+
                 {userTicketInformation?.job_order_url && (
                   <button 
                     disabled={isPending}
@@ -1126,7 +1274,7 @@ export default function EmailConversationApp() {
                 >
                   <Trash2 size={16} />
                 </button>
-                <button className='text-white' onClick={() => setShowSidebar(false)}>
+                <button className='text-white bg-gray-500 hover:bg-gray-700 flex justify-center items-center rounded-md' onClick={() => setShowSidebar(false)}>
                   <X />
                 </button>
               </div>
@@ -1135,7 +1283,7 @@ export default function EmailConversationApp() {
             <div className="flex-1 overflow-y-auto">
               <ConversationsDetails 
                 userTicketInformation={userTicketInformation}
-                setSelectedImage={setSelectedImage}
+                setSelectedImage={openImageViewer}
                 formatDate={formatDate}
                 getStatusColor={getStatusColor}
                 setShowSidebar={setShowSidebar}
@@ -1148,14 +1296,29 @@ export default function EmailConversationApp() {
       {/* Desktop view */}
       {/* Conversations List */}
       <div className="hidden md:flex md:flex-col w-1/3 bg-gray-100 border-r border-gray-200">
-        <div className="flex justify-between p-4 border-b border-gray-200 "  style={{ backgroundColor: '#000000' }}>
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 "  style={{ backgroundColor: '#000000' }}>
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Inbox className="w-5 h-5" />
               Job Order Information
             </h2>
           </div>
-          <div className='space-x-2'>
+          <div className='space-x-1 flex gap-1'>
+            <div className='flex gap-1'>
+              <button 
+                title="Previous Job Order"
+                onClick={previousJobOrderStep}
+                className='bg-white p-2 rounded-md hover:bg-gray-200'>
+                <ChevronLeft className='w-5 h-5'/>
+              </button>
+              <button 
+                title='Next Job Order'
+                onClick={() => nextJobOrderStep()}
+                className='bg-white p-2 rounded-md hover:bg-gray-200'>
+                <ChevronRight className='w-5 h-5'/>
+              </button>
+            </div>
+
             {userTicketInformation?.job_order_url && (
               <button 
                 title="Upload Job Order"
@@ -1179,7 +1342,7 @@ export default function EmailConversationApp() {
         <div className="flex-1 overflow-y-auto">
           <ConversationsDetails 
             userTicketInformation={userTicketInformation}
-            setSelectedImage={setSelectedImage}
+            setSelectedImage={openImageViewer}
             formatDate={formatDate}
             getStatusColor={getStatusColor}
             setShowSidebar={setShowSidebar}

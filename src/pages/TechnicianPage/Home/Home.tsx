@@ -41,16 +41,32 @@ const Home = () => {
     statusFilter,
   } = userAuth();
 
-  const columns = [   
-    { id: 'full_name', label: 'Full Name', sortable: true},
-    { id: 'reference_number', label: 'Job No.', sortable: true },
-    { id: 'company', label: 'Company', sortable: true }, 
-    { id: 'device_type', label: "Device Type", sortable: true },
-    { id: "issue_type", label: "Model Type", sortable: true },
-    { id: "issue_name", label: "Issue Type", sortable: true }, 
-    { id: 'status_date', label: 'Date', sortable: false },
-   /*  { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' }, */
-  ];
+  let columns: any = [];
+
+  // filter columns based on status - ongoing and pending have same columns, resolved and closed have same columns (can be different from ongoing/pending)
+  if (statusFilter === "Pending" || statusFilter === "Ongoing") {
+    columns = [
+      { id: 'full_name', label: 'Full Name', sortable: true},
+      { id: 'reference_number', label: 'Job No.', sortable: true },
+      { id: 'company', label: 'Company / Institution Name', sortable: true }, 
+      { id: 'device_type', label: "Device Type", sortable: true },
+      { id: "issue_type", label: "Model Type", sortable: true },
+      { id: "issue_name", label: "Issue Type", sortable: true }, 
+      { id: 'status_date', label: 'Date Created', sortable: false },
+    /*  { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' }, */
+    ]
+  } else {
+    columns = [
+      { id: 'full_name', label: 'Full Name', sortable: true},
+      { id: 'reference_number', label: 'Job No.', sortable: true },
+      { id: 'company', label: 'Company / Institution Name', sortable: true }, 
+      { id: 'device_type', label: "Device Type", sortable: true },
+      { id: "issue_type", label: "Model Type", sortable: true },
+      { id: "issue_name", label: "Issue Type", sortable: true }, 
+      { id: 'status_date', label: 'Date Completed', sortable: false },
+    /*  { id: 'actions', label: '', sortable: false, width: 'w-24', align: 'right' }, */
+    ]
+  }
 
   const jobOrderPermission = userInfo?.permissions?.find(p => p.parent_id === 'job-order' && p.children_id === '');
 
@@ -106,6 +122,7 @@ const Home = () => {
     );
   }, [listOfTicket]);
 
+  // when user selects a search suggestion, set the search value and filter the table to show the selected ticket's status
   const handleSearchSuggestionSelect = (referenceNumber: string) => {
     setSearchValue(referenceNumber);
     setDebouncedSearch(referenceNumber);
@@ -115,9 +132,10 @@ const Home = () => {
     );
 
     const status = String(selectedTicket?.status || "").toLowerCase();
-    if (status === "open") setStatusFilter("Pending");
-    if (status === "ongoing") setStatusFilter("Ongoing");
-    if (status === "resolved") setStatusFilter("Completed");
+    if (status === "open" && selectedTicket?.is_closed === 0) setStatusFilter("Pending");
+    if (status === "ongoing" && selectedTicket?.is_closed === 0) setStatusFilter("Ongoing");
+    if (status === "resolved" && selectedTicket?.is_closed === 0) setStatusFilter("Completed");
+    if (selectedTicket?.is_closed) setStatusFilter("Closed");
   };
   // ⭐ SELECT WHICH ROWS TO USE - Filter by status
   const rows = useMemo(() => {
@@ -142,6 +160,14 @@ const Home = () => {
     resolvedTicketResponse, 
   ]);
 
+  // listing job orders by status for easy access when user selects a search suggestion (instead of filtering the entire list again, we can just show the relevant list based on status)
+  const listOfJobOrder = {
+    "Pending": openTicketResponse?.data || [],
+    "Ongoing": ongoingTicketResponse?.data || [],
+    "Completed": resolvedTicketResponse?.data || [],
+    "Closed": closedTicketResponse?.data || []
+  }
+ 
   const handleEdit = (pid: number) => { 
     navigate(`/beesee/job-order/conversation/${pid}`)
   };
@@ -307,6 +333,7 @@ const Home = () => {
         setOrganization={setOrganization}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        listOfJobOrder={listOfJobOrder}
       />
     </div>
   );

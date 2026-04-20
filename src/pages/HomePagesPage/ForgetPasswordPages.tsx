@@ -10,8 +10,7 @@ import {
   forgetPassword
 } from '../../services/Technician/userServices'
 import { useMutation } from "@tanstack/react-query"
-import { userAuth } from '../../hooks/userAuth'
-import axiosClient from "../../axiosClient"
+import { userAuth } from '../../hooks/userAuth' 
 
 interface FormErrorEmail {
   email?: string

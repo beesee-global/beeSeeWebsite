@@ -7,7 +7,7 @@ interface CustomTextFieldProps {
   value: string | number;
   rows: number;
   type: string;
-  maxLength: number;
+  maxLength?: number;
   disabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   multiline: boolean;

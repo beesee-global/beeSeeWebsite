@@ -30,6 +30,7 @@ interface CustomerIssue {
   email: string; 
   contact_number: string; 
   category_id: string;
+  location: string;
   is_active: string;
   item_name?: string;
   device_id: string; 
@@ -42,6 +43,7 @@ interface FormError {
   full_name?: string;
   company?: string;
   city?: string;
+  location?: string;
   email?: string;
   item_name?: string;
   issue_id?: string;
@@ -83,6 +85,7 @@ const TicketForm = () => {
     issue_id: '',
     questions: '',
     serial_number: '',
+    location: '',
   }); 
 
   const { data: categoryResponse = [] } = useQuery({
@@ -180,6 +183,8 @@ const TicketForm = () => {
       }
 
       if (!formData?.questions.trim()) errors.questions = "Please provide details about your issue."; 
+
+      if (!formData?.location.trim()) errors.location = "Location is required."
    
     return errors;
   }
@@ -233,6 +238,7 @@ const TicketForm = () => {
           products_id: formData?.device_id,
           issues_id: formData?.issue_id,
           item_name: formData?.item_name,
+          location: formData?.location,
           serial_number: formData?.serial_number,
           status: "open",
           questions: formData?.questions, 
@@ -276,6 +282,7 @@ const TicketForm = () => {
             category_id: '',
             device_id: '',
             serial_number: '',
+            location: '',
             questions: '', 
           });
 
@@ -571,6 +578,26 @@ const TicketForm = () => {
                       value={formData?.serial_number}  
                       onChange={handleChangeInput} 
                       placeholder="Serial Number"  
+                      type="text"
+                      multiline={false}
+                      rows={1}
+                      maxLength={100}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center mt-3">
+                  <div className="w-48">
+                      <span>
+                        Location
+                      </span>
+                  </div>
+                  <div className="w-full max-w-lg">
+                    <CustomTextField 
+                      name="location" 
+                      value={formData?.location}  
+                      onChange={handleChangeInput} 
+                      placeholder="Location / Room"  
                       type="text"
                       multiline={false}
                       rows={1}

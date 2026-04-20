@@ -3,10 +3,12 @@ import {
   fetchApplicants,
   fetchApplicantsShortList,
   fetchApplicantsRejected,
+  fetchApplicantsClosed,
   shortList,
   deleteApplicants,
   rejectedApplicants,
   undoRejectedApplicants,
+  closedApplicants,
   jobDetails
 } from '../../../services/Technician/applicantServices'
 import { downloadFile } from '../../../utils/downloadFile';
@@ -15,7 +17,8 @@ import {
   Undo,
   Trash2, 
   Plus, 
-  Eye
+  Eye,
+  MailX
 } from 'lucide-react'; 
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query' 
@@ -25,8 +28,7 @@ import TableApplicants from './components/TableApplicants';
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens' 
 import { userAuth } from "../../../hooks/userAuth"
-import AlertDialog from '../../../components/feedback/AlertDialog';
-import SnackbarTechnician from '../../../components/feedback/SnackbarTechnician';
+import AlertDialog from '../../../components/feedback/AlertDialog'; 
 import { useParams, useNavigate } from 'react-router-dom';
 
 const Applicants = () => { 
@@ -42,11 +44,11 @@ const Applicants = () => {
   ] 
 
   const { 
-      userInfo,
-      setSnackBarMessage, 
-      setSnackBarOpen, 
-      setSnackBarType,
-    } = userAuth()
+    userInfo,
+    setSnackBarMessage, 
+    setSnackBarOpen, 
+    setSnackBarType,
+  } = userAuth()
    
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
@@ -98,7 +100,16 @@ const Applicants = () => {
     queryKey: ['rejected', id],
     queryFn: () => fetchApplicantsRejected(String(id)),
     enabled: !!id,
-  })
+  });
+
+  const {
+    data: closedApplicantsResponse,
+    isLoading: isClosedLoading,
+  } = useQuery ({
+    queryKey: ['closed', id],
+    queryFn: () => fetchApplicantsClosed(String(id)),
+    enabled: !!id,
+  });
 
   const { mutateAsync: shortListed } = useMutation({
     mutationFn: shortList
@@ -114,18 +125,21 @@ const Applicants = () => {
 
   const { mutateAsync: undoApplicant } = useMutation({
     mutationFn: undoRejectedApplicants
-  })
+  });
+
+  const { mutateAsync: closedApplicant } = useMutation({
+    mutationFn: closedApplicants
+  });
 
   const jobDetailed = jobDetailsResponse?.data || []
-
-  console.log(jobDetailed)
-
+  
   const rows = useMemo(() => {
     let baseRows = [];
 
     if (statusFilter === "all") baseRows = applicantPendingResponse?.data || [];
     if (statusFilter === "short_listed") baseRows = applicantShortListedResponse?.data || [];
     if (statusFilter === 'rejected') baseRows = applicantsRejectedResponse?.data || [];
+    if (statusFilter === 'closed') baseRows = closedApplicantsResponse?.data || [];
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
     const uniqueRows = Array.from(
@@ -133,7 +147,7 @@ const Applicants = () => {
     );
 
     return uniqueRows;
-  }, [statusFilter, applicantPendingResponse, applicantShortListedResponse, applicantsRejectedResponse])
+  }, [statusFilter, applicantPendingResponse, applicantShortListedResponse, applicantsRejectedResponse, closedApplicantsResponse])
 
   const selectedRow = rows.find((r: any) => r.id === selectedRowId);
 
@@ -220,6 +234,26 @@ const Applicants = () => {
     setDialogMessage("Are you sure you want to reject this applicant?");
   }
 
+  const handleClosed = () => {
+    if (!selectedRowId) {
+      setSnackBarMessage("Please select an applicant first")
+      setSnackBarType("warning")
+      setSnackBarOpen(true)
+      return
+    }
+    if (selectedRow?.status !== 'REJECTED') {
+      setSnackBarMessage("This action is only available for rejected applicants")
+      setSnackBarType("warning")
+      setSnackBarOpen(true)
+      return
+    }
+    setRejectedId(String(selectedRowId));
+    setDataValue('closed')
+    setDialogTitle("Confirm Closed");
+    setDialogOpen(true);
+    setDialogMessage("Are you sure you want to mark this applicant as closed? This will send a notification email to the applicant.");
+  }
+
   // Handle Delete (Trash)
   const handleDelete = () => {
     if (!selectedRowId) {
@@ -276,6 +310,9 @@ const Applicants = () => {
         response = await undoApplicant({ id: undoId, user_id: userInfo?.id });
       } else if (dataValue === 'rejected') {
         response = await rejectApplicants({ id: rejectedId, user_id: userInfo?.id });
+      } else if (dataValue === 'closed') {
+        // For closed, we will also use the rejectApplicants mutation but with a different status
+        response = await closedApplicant({ id: rejectedId, user_id: userInfo?.id });
       }
 
       if (response?.success) {
@@ -292,6 +329,8 @@ const Applicants = () => {
           setSnackBarMessage("Applicant undo successfully");
         } else if (dataValue === 'rejected') {
           setSnackBarMessage("Applicant rejected successfully");
+        } else if (dataValue === 'closed') {
+          setSnackBarMessage("Applicant marked as closed successfully");
         }
         
         setSnackBarType("success");
@@ -342,11 +381,13 @@ const Applicants = () => {
   const isLoading = isPendingLoading || isCompletedLoading
   
   // Check if buttons should be enabled based on selected row status
+  const isSelectedClosed = selectedRow?.status === 'CLOSED';
   const isViewEnabled = !!selectedRowId;
-  const isAddEnabled = selectedRowId && selectedRow?.status === 'NEW_APPLICANT';
-  const isUndoEnabled = selectedRowId && (selectedRow?.status === 'SHORTLISTED' || selectedRow?.status === 'REJECTED');
-  const isRejectEnabled = selectedRowId && selectedRow?.status !== 'REJECTED';
-  const isDeleteEnabled = selectedRowId && selectedRow?.status === 'REJECTED';
+  const isAddEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'NEW_APPLICANT';
+  const isUndoEnabled = !isSelectedClosed && !!selectedRowId && (selectedRow?.status === 'SHORTLISTED' || selectedRow?.status === 'REJECTED');
+  const isRejectEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status !== 'REJECTED';
+  const isDeleteEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
+  const isClosedEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
 
   if (isLoading) return <SpinningRingLoader />
 
@@ -387,19 +428,20 @@ const Applicants = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className='flex flex-wrap gap-2'>
+          <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto'>
             {/* View Button - Always available when row is selected */}
             <button
               onClick={handleView}
               disabled={!isViewEnabled}
               title="View"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              aria-label="View"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
               style={{
                 background: isViewEnabled ? '#1e40af' : '#9ca3af',
               }}
             >
               <Eye size={18} /> 
-              <span className="whitespace-nowrap">View</span>
+              <span className="hidden sm:inline whitespace-nowrap">View</span>
             </button>
 
             {/* Add/Shortlist Button - Only for NOT_SHORTLISTED */}
@@ -407,13 +449,14 @@ const Applicants = () => {
               onClick={handleAdd}
               disabled={!isAddEnabled}
               title="Add to Shortlist"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              aria-label="Add to Shortlist"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
               style={{
                 background: isAddEnabled ? '#15803d' : '#9ca3af',
               }}
             >
               <Plus size={18} /> 
-              <span className="whitespace-nowrap">Add</span>
+              <span className="hidden sm:inline whitespace-nowrap">Add</span>
             </button>
 
             {/* Undo Button - For SHORTLISTED and REJECTED */}
@@ -421,13 +464,14 @@ const Applicants = () => {
               onClick={handleUndo}
               disabled={!isUndoEnabled}
               title="Undo"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              aria-label="Undo"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
               style={{
                 background: isUndoEnabled ? '#f59e0b' : '#9ca3af',
               }}
             >
               <Undo size={18} /> 
-              <span className="whitespace-nowrap">Undo</span>
+              <span className="hidden sm:inline whitespace-nowrap">Undo</span>
             </button>
 
             {/* Reject Button - For NOT_SHORTLISTED and SHORTLISTED */}
@@ -435,13 +479,14 @@ const Applicants = () => {
               onClick={handleReject}
               disabled={!isRejectEnabled}
               title="Reject"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              aria-label="Reject"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
               style={{
                 background: isRejectEnabled ? '#dc2626' : '#9ca3af',
               }}
             >
               <X size={18} /> 
-              <span className="whitespace-nowrap">Reject</span>
+              <span className="hidden sm:inline whitespace-nowrap">Reject</span>
             </button>
 
             {/* Delete Button - Only for REJECTED */}
@@ -449,13 +494,29 @@ const Applicants = () => {
               onClick={handleDelete}
               disabled={!isDeleteEnabled}
               title="Delete"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              aria-label="Delete"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
               style={{
                 background: isDeleteEnabled ? '#7f1d1d' : '#9ca3af',
               }}
             >
               <Trash2 size={18} /> 
-              <span className="whitespace-nowrap">Delete</span>
+              <span className="hidden sm:inline whitespace-nowrap">Delete</span>
+            </button>
+
+            {/* Closed Button - Only for REJECTED */}
+            <button
+              onClick={handleClosed}
+              disabled={!isClosedEnabled}
+              title="Closed"
+              aria-label="Closed"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
+              style={{
+                background: isClosedEnabled ? '#0f766e' : '#9ca3af',
+              }}
+            >
+              <MailX size={18} /> 
+              <span className="hidden sm:inline whitespace-nowrap">Closed</span>
             </button>
           </div>
         </div> 

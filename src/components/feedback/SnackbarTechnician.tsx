@@ -41,11 +41,11 @@ const SnackbarTechnician: React.FC <SnackbarProps> = ({
             }}
             sx={{
                 zIndex: 9999,
-                top: "105 !important",
-                left: "50% !important",
-                right: "auto !important",
-                bottom: "auto !important",
-                transform: "translate(-50%, -50%)",
+                top: { xs: "16px", sm: "105px" },
+                left: "50%",
+                right: "auto",
+                bottom: "auto",
+                transform: "translateX(-50%)",
             }}
         >
             <Alert

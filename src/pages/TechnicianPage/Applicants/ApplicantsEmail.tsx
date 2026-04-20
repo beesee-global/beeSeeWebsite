@@ -8,9 +8,9 @@ import {
   shortList,
   rejectedApplicants,
   deleteApplicants, 
+  closedApplicants,
   sendInterviewInvitation
-} from '../../../services/Technician/applicantServices'
-import SnackbarTechnician from "../../../components/feedback/SnackbarTechnician"
+} from '../../../services/Technician/applicantServices' 
 import { downloadFileDesktop } from '../../../utils/downloadFile'
 import {  
   User2,
@@ -22,7 +22,8 @@ import {
   Send,
   FileText,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Ban 
 } from "lucide-react"
 import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
@@ -79,6 +80,10 @@ const ApplicantsEmail = () => {
 
   const { mutateAsync: shortListed } = useMutation({
     mutationFn: shortList
+  });
+
+  const { mutateAsync: closedApplicant } = useMutation({
+    mutationFn: closedApplicants
   });
 
   const { mutateAsync: rejectApplicant } = useMutation({
@@ -157,7 +162,7 @@ const ApplicantsEmail = () => {
       return;
     }
     setEmailDialogOpen(true);
-  };
+  }; 
 
   const handleEmailSubmit = async(emailData: {
     messages: string;
@@ -216,6 +221,13 @@ const ApplicantsEmail = () => {
     setDialogOpen(true);
   };
 
+  const handleClose = () => {
+    setActionType('close');
+    setDialogTitle("Confirm Close");
+    setDialogMessage("Are you sure you want to close this applicant? This action cannot be undone.");
+    setDialogOpen(true);
+  }
+
   const handleConfirmAction = async () => {
     try {
       let response;
@@ -226,6 +238,8 @@ const ApplicantsEmail = () => {
         response = await rejectApplicant({ id: String(formData.id), user_id: authUserInfo?.id });
       } else if (actionType === 'delete') {
         response = await deleteApplicant({ ids: [formData.id], user_id: authUserInfo?.id });
+      } else if (actionType === 'close') {
+        response = await closedApplicant({ id: String(formData.id), user_id: authUserInfo?.id });
       }
 
       if (response?.success) {
@@ -236,10 +250,11 @@ const ApplicantsEmail = () => {
         } else if (actionType === 'reject') {
           setSnackBarMessage("Applicant rejected successfully");
         } else if (actionType === 'delete') {
-          setSnackBarMessage("Applicant deleted successfully");
-          setTimeout(() => {
-            navigate(-1);
-          }, 1500);
+          setSnackBarMessage("Applicant deleted successfully"); 
+          navigate(-1); 
+        } else if (actionType === 'close') {  
+          setSnackBarMessage("Applicant closed successfully"); 
+          navigate(-1); 
         }
         
         setSnackBarType("success");
@@ -345,18 +360,20 @@ const ApplicantsEmail = () => {
             
             <div className="flex flex-wrap gap-3"> 
               {/* Send Email Button */}
-              <button
-                title="Send Email"
-                onClick={handleOpenEmailDialog}
-                disabled={formData.status !== 'SHORTLISTED'}
-                className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
-                  formData.status === 'SHORTLISTED'
-                    ? 'bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <Send className="w-6 h-6" /> 
-              </button>
+              {formData.status !== "CLOSED" && (
+                <button
+                  title="Send Email"
+                  onClick={handleOpenEmailDialog}
+                  disabled={formData.status !== 'SHORTLISTED'}
+                  className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
+                    formData.status === 'SHORTLISTED'
+                      ? 'bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <Send className="w-6 h-6" /> 
+                </button>
+              )}
 
               {/* Action Buttons based on status */}
               {formData.status === 'NEW_APPLICANT' && (
@@ -405,6 +422,17 @@ const ApplicantsEmail = () => {
                     <span>Delete</span>
                   </button>
                 </>
+              )}
+
+              {formData.status !== 'CLOSED' && (
+                <button 
+                  title="Close Applicant" 
+                  onClick={ handleClose } 
+                  aria-label="Close"
+                  className="px-6 py-3 border-2 text-white rounded-xl transition-all duration-200 font-semibold bg-[#0f766e]"
+                >
+                  <Ban className="w-5 h-5" />
+                </button>
               )}
 
               <button

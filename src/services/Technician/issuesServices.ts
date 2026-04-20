@@ -6,7 +6,8 @@ export interface Issues {
     id: number;
     name: string;
     categories_id: number;
-    product_id: number
+    product_id: number | number[]
+    detail_ids?: number[]
     possible_solutions: string;
     is_publish: string;
     user_id: number | string;
@@ -24,6 +25,17 @@ export const fetchIssues = async () => {
 export const fetchIssueById = async (id: number | string) => {
     try {
         const response = await axiosClient.get(`/${API_URL}/${id}/public`)
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const fetchIssueByName = async (name: string) => {
+    try {
+        const response = await axiosClient.get(`/${API_URL}/fetch-name`, {
+            params: { name }
+        })
         return response.data
     } catch (error) {
         throw error
@@ -74,18 +86,18 @@ export const updateIssues = async (id: number, issue: Omit<Issues, "id">): Promi
   } catch (err) {
   	throw err
   }
-};
+}; 
 
-export const deleteIssues = async (payload: FormData | number[] | string[]) => {
+export const deleteIssues = async (payload: any) => {
   try {
     const response = await axiosClient.delete(`${API_URL}`, {
-      data: payload instanceof FormData ? payload : { ids: payload },
-      headers: payload instanceof FormData
-        ? { "Content-Type": "multipart/form-data" }
-        : { "Content-Type": "application/json" },
+      data: payload,
+      headers: {
+        "Content-Type": "application/json",
+      }
     });
     return response.data;
   } catch (error) {
     throw error;
   }
-}   
+} 
