@@ -22,6 +22,8 @@ interface ApplicationFormData {
   phone: string;
   subject: string;
   resume: File | null;
+  port_polio_link: string;
+  port_folio:  File | null;
 }
 
 interface ApplyProps {
@@ -38,10 +40,13 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     email: '',
     phone: '',
     subject: '',
-    resume: null
+    resume: null,
+    port_polio_link: "",
+    port_folio: null
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); 
+  const [isDraggingResume, setIsDraggingResume] = useState(false);
+  const [isDraggingPortfolio, setIsDraggingPortfolio] = useState(false);
 
   const {
     setSnackBarMessage,
@@ -53,27 +58,43 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   } = userAuth()
 
   // File upload handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  type FileField = 'resume' | 'port_folio';
+
+  const allowedMimeTypes = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]);
+
+  const allowedExtensions = new Set([
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'pdf',
+    'doc',
+    'docx',
+    'txt',
+    'xls',
+    'xlsx'
+  ]);
+
+  const isAllowedFile = (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return (ext ? allowedExtensions.has(ext) : false) || allowedMimeTypes.has(file.type);
+  };
+
+  const handleFileChange = (field: FileField) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedMimeTypes = [
-        '.jpg',
-        '.jpeg',
-        '.png',
-        '.gif',
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      ];
-
-      if (!allowedMimeTypes.includes(file.type)) {
+      if (!isAllowedFile(file)) {
         setSnackBarMessage('Please upload only valid file types (PDF, Word, Excel, or Images)');
         setSnackBarOpen(true);
         setSnackBarType('warning');
@@ -88,7 +109,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         return;
       }
  
-      setFormData({ ...formData, resume: file });
+      setFormData((prev) => (field === 'resume' ? { ...prev, resume: file } : { ...prev, port_folio: file }));
     }
   };
 
@@ -98,25 +119,27 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     mutationFn: careersEmail
   })
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    if (field === 'resume') setIsDraggingResume(true);
+    else setIsDraggingPortfolio(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(false);
+    if (field === 'resume') setIsDraggingResume(false);
+    else setIsDraggingPortfolio(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(false);
+    if (field === 'resume') setIsDraggingResume(false);
+    else setIsDraggingPortfolio(false);
     
     const file = e.dataTransfer.files[0];
     if (file) {
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        setSnackBarMessage('Please upload only PDF or Word documents');
+      if (!isAllowedFile(file)) {
+        setSnackBarMessage('Please upload only valid file types (PDF, Word, Excel, or Images)');
         setSnackBarOpen(true);
         setSnackBarType('warning');
         return;
@@ -129,12 +152,16 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         return;
       }
       
-      setFormData({ ...formData, resume: file });
+      setFormData((prev) => (field === 'resume' ? { ...prev, resume: file } : { ...prev, port_folio: file }));
     }
   };
 
   const removeResume = () => {
     setFormData({ ...formData, resume: null });
+  };
+
+  const removePortfolio = () => {
+    setFormData({ ...formData, port_folio: null });
   };
 
   const handleSubmit = async() => {
@@ -176,6 +203,14 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         submitData.append('resume', formData.resume);
       } 
 
+      if (formData.port_polio_link) {
+        submitData.append('portfolio_link', formData.port_polio_link);
+      }
+
+      if (formData.port_folio) {
+        submitData.append('portfolio', formData.port_folio)
+      }
+
       const response = await sentEmailCareers(submitData);
       if(response?.success) { 
         setIsSubmitted(true);
@@ -203,7 +238,9 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
         email: '',
         phone: '',
         subject: '',
-        resume: null
+        resume: null,
+        port_polio_link: "",
+        port_folio: null 
     });
   }
 
@@ -217,7 +254,9 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
           email: '',
           phone: '',
           subject: '',
-          resume: null
+          resume: null,
+          port_polio_link: "",
+          port_folio: null
         });
       }, 300);
     }
@@ -401,9 +440,9 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 ) : (
                   // Upload Drop Zone
                   <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
+                    onDragOver={handleDragOver('resume')}
+                    onDragLeave={handleDragLeave('resume')}
+                    onDrop={handleDrop('resume')}
                     className="relative"
                   >
                     <input
@@ -429,17 +468,17 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                       image/png,
                       image/gif
                       "
-                      onChange={handleFileChange}
+                      onChange={handleFileChange('resume')}
                       className="hidden"
                     />
                     <label
                       htmlFor="resume-upload"
                       className="block p-8 rounded-xl text-center cursor-pointer transition-all duration-300"
                       style={{
-                        background: isDragging 
+                        background: isDraggingResume 
                           ? 'rgba(253, 204, 0, 0.12)' 
                           : 'rgba(255, 255, 255, 0.04)',
-                        border: isDragging
+                        border: isDraggingResume
                           ? '2px dashed rgba(253, 204, 0, 0.5)'
                           : '2px dashed rgba(255, 255, 255, 0.1)',
                         transition: 'all 0.3s ease'
@@ -455,7 +494,130 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                         <Upload size={26} style={{ color: 'var(--beesee-gold)' }} />
                       </div>
                       <p className="bee-body mb-2" style={{ color: 'var(--text-light)' }}>
-                        {isDragging ? 'Drop your file here' : 'Click to upload or drag and drop'}
+                        {isDraggingResume ? 'Drop your file here' : 'Click to upload or drag and drop'}
+                      </p>
+                      <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
+                       (Max 10MB)
+                      </p>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
+                  Portfolio url (Optional)
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="input-default"
+                  placeholder="https://portfolio.vercel.app"
+                  value={formData.port_polio_link}
+                  onChange={(e) => setFormData({ ...formData, port_polio_link: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
+                  Upload Portfolio (Optional)
+                </label>
+                
+                {formData.port_folio ? (
+                  // Resume Uploaded State
+                  <div
+                    className="p-5 rounded-xl flex items-center justify-between"
+                    style={{
+                      background: 'rgba(253, 204, 0, 0.08)',
+                      border: '1px solid rgba(253, 204, 0, 0.3)'
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style={{
+                          background: 'rgba(253, 204, 0, 0.15)',
+                          border: '1px solid rgba(253, 204, 0, 0.4)'
+                        }}
+                      >
+                        <FileText size={24} style={{ color: 'var(--beesee-gold)' }} />
+                      </div>
+                      <div>
+                        <p className="bee-body-sm font-medium" style={{ color: 'var(--text-light)' }}>
+                          {formData.port_folio.name}
+                        </p>
+                        <p className="bee-body-sm" style={{ color: 'var(--muted)', fontSize: '13px' }}>
+                          {(formData.port_folio.size / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={removePortfolio}
+                      className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:bg-red-500/20"
+                      style={{ color: '#ff6b6b' }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                ) : (
+                  // Upload Drop Zone
+                  <div
+                    onDragOver={handleDragOver('port_folio')}
+                    onDragLeave={handleDragLeave('port_folio')}
+                    onDrop={handleDrop('port_folio')}
+                    className="relative"
+                  >
+                    <input
+                      type="file"
+                      id="portfolio-upload"
+                      accept=".pdf,
+                      .doc,
+                      .docx,
+                      .txt,
+                      .xls,
+                      .xlsx,
+                      application/pdf,
+                      application/msword,
+                      application/vnd.openxmlformats-officedocument.wordprocessingml.document,
+                      text/plain,
+                      application/vnd.ms-excel,
+                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                      .jpg,
+                      .jpeg,
+                      .png,
+                      .gif,
+                      image/jpeg,
+                      image/png,
+                      image/gif
+                      "
+                      onChange={handleFileChange('port_folio')}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="portfolio-upload"
+                      className="block p-8 rounded-xl text-center cursor-pointer transition-all duration-300"
+                      style={{
+                        background: isDraggingPortfolio 
+                          ? 'rgba(253, 204, 0, 0.12)' 
+                          : 'rgba(255, 255, 255, 0.04)',
+                        border: isDraggingPortfolio
+                          ? '2px dashed rgba(253, 204, 0, 0.5)'
+                          : '2px dashed rgba(255, 255, 255, 0.1)',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <div
+                        className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center"
+                        style={{
+                          background: 'rgba(253, 204, 0, 0.12)',
+                          border: '1px solid rgba(253, 204, 0, 0.3)'
+                        }}
+                      >
+                        <Upload size={26} style={{ color: 'var(--beesee-gold)' }} />
+                      </div>
+                      <p className="bee-body mb-2" style={{ color: 'var(--text-light)' }}>
+                        {isDraggingPortfolio ? 'Drop your file here' : 'Click to upload or drag and drop'}
                       </p>
                       <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
                        (Max 10MB)

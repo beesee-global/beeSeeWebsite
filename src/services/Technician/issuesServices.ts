@@ -31,10 +31,10 @@ export const fetchIssueById = async (id: number | string) => {
     }
 }
 
-export const fetchIssueByName = async (name: string) => {
+export const fetchIssueByName = async (name: string, categories_id: number) => {
     try {
         const response = await axiosClient.get(`/${API_URL}/fetch-name`, {
-            params: { name }
+            params: { name, categories_id }
         })
         return response.data
     } catch (error) {

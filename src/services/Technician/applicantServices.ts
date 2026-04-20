@@ -55,6 +55,21 @@ export const fetchApplicantsRejected = async (id: string) => {
     throw error
   }
 }
+
+export const fetchApplicantsNewApplicants = async (id: string) => {
+  try {
+    const response = await axiosClient.get(`${API_URL}/new-applicant`, {
+      params: {
+        status: 'NEW_APPLICANT',
+        job_applicant: id
+      }
+    });
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
  
 export const shortList = async (payload: { id: string; user_id?: string | number }) => {
   try {
@@ -67,10 +82,11 @@ export const shortList = async (payload: { id: string; user_id?: string | number
   }
 }
 
-export const rejectedApplicants = async (payload: { id: string; user_id?: string | number }) => {
+export const rejectedApplicants = async (payload: { id: string; user_id?: string | number; remarks?: string }) => {
   try {
     const response = await axiosClient.put(`${API_URL}/${payload.id}/rejected`, {
       user_id: payload.user_id,
+      remarks: payload.remarks,
     })
     return response.data
   } catch (error) {
@@ -136,6 +152,48 @@ export const jobDetails = async  (id: string) => {
   try {
     const response = await axiosClient.post(`${API_URL}/${id}/job-details`)
     return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+export const interviewAction = async (type: string, pid: string) => {
+  try {
+    const response = await axiosClient.get(
+      `${API_URL}/interview/action`,
+      {
+        params: {
+          type,
+          pid
+        }
+      }
+    );
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const interviewList = async () => {
+  try { 
+    const response = await axiosClient.get(
+      `${API_URL}/interview-list`
+    );
+
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
+export const applicantUpdateStatus = async (data: any) => {
+  try {
+    const response = await axiosClient.put(
+      `${API_URL}/update-status`, data
+    );
+
+    return response
   } catch (error) {
     throw error
   }

@@ -49,8 +49,8 @@ const JobPosting = () => {
     { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
 
-  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'careers' && p.children_id === '');
-  
+  const Permission = userInfo?.permissions?.find(p => p.parent_id === 'careers' && p.children_id === 'job-postings');
+ 
   const { data: jobResponse, isLoading } = useQuery({
     queryKey: ['job', userInfo?.id],
     queryFn: () => getAllJobPosting(),

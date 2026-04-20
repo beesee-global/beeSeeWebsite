@@ -75,7 +75,7 @@ export default function EmailConversationApp() {
   // Stores the message user selected to reply to (Messenger-style reply target).
   const [repliedMessage, setRepliedMessage] = useState<any | null>(null);
   // Client-side upload size limit.
-  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_MB = 130; // Set your desired max file size in MB
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const message = "This Job Order has been closed."
 
@@ -284,7 +284,9 @@ export default function EmailConversationApp() {
       name: file.name,
       size: file.size,
       type: file.type,
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+      preview: file.type.startsWith('image/') || file.type.startsWith('video/')
+        ? URL.createObjectURL(file)
+        : null
     }));
     setAttachedFiles(prev => [...prev, ...fileObjects]);
     e.target.value = "";
@@ -1018,6 +1020,16 @@ export default function EmailConversationApp() {
                                 />
                                 <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
                               </div>
+                            ) : attachment.type?.startsWith('video/') ? (
+                              // Display videos with inline player
+                              <div key={idx} className="mt-2">
+                                <video
+                                  src={attachment.attachment_url}
+                                  controls
+                                  className="max-w-full max-h-64 rounded-lg"
+                                />
+                                <p className="text-xs mt-1 opacity-70">{attachment.name}</p>
+                              </div>
                             ) : (
                               // Display other file types as downloadable items
                               <div
@@ -1149,11 +1161,20 @@ export default function EmailConversationApp() {
                     className="flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-lg p-2 pr-1"
                   >
                     {fileObj.preview ? (
-                      <img 
-                        src={fileObj.preview} 
-                        alt={fileObj.name}
-                        className="w-10 h-10 rounded object-cover"
-                      />
+                      fileObj.type?.startsWith('video/') ? (
+                        <video
+                          src={fileObj.preview}
+                          className="w-10 h-10 rounded object-cover"
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img 
+                          src={fileObj.preview} 
+                          alt={fileObj.name}
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                      )
                     ) : (
                       <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
                         {getFileIcon(fileObj.type)}
@@ -1183,7 +1204,7 @@ export default function EmailConversationApp() {
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
                 /*  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" */
               />
 
@@ -1208,17 +1229,20 @@ export default function EmailConversationApp() {
               />
               <button
                 onClick={handleSendReply}
-                disabled={loading || (!replyText.trim() && attachedFiles.length === 0)}
+                disabled={loading || isInsertConversations || (!replyText.trim() && attachedFiles.length === 0)}
                 className="px-6 py-3 bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
-                Send
+                {isInsertConversations ? "Sending..." : "Send"}
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Reply will be sent via email and saved in the conversation
               {attachedFiles.length > 0 && ` • ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''} attached`}
             </p>
+            {isInsertConversations && (
+              <p className="text-xs text-gray-600 mt-1">Uploading attachments, please wait...</p>
+            )}
           </div>
           )}
         </>  
@@ -1352,3 +1376,5 @@ export default function EmailConversationApp() {
     </div>
   );
 }
+
+

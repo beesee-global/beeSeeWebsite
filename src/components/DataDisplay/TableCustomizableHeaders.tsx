@@ -292,7 +292,7 @@ export default function TableCustomizableHeaders({
             <div className='min-w-[900px]'>
               {/* Filter Section */}
               {filterOptions && filterOptions.length > 0 && (
-                <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
+                <div className="border-b " style={{ borderColor: COLORS.border }}>
                   <div className="relative">
                     {showFilterArrows && (
                       <button
@@ -320,15 +320,15 @@ export default function TableCustomizableHeaders({
                     )}
                     <div
                       ref={filterScrollRef}
-                      className="flex flex-col md:flex-row md:items-center md:justify-start gap-3 overflow-x-hidden pb-2 md:pb-0 px-10"
+                      className="flex flex-col md:flex-row md:items-center md:justify-start overflow-x-hidden pb-2 md:pb-0 "
                     >
                     {filterOptions.map((filter) => (
                       <button
                         key={filter}
                         onClick={() => onFilterChange?.(filter)}
-                        className={`py-2 px-4 border rounded-md transition text-sm font-medium whitespace-nowrap flex-shrink-0
+                        className={`py-2 px-4 border-b transition text-sm font-medium whitespace-nowrap flex-shrink-0
                           ${selectedFilter === filter 
-                            ? "bg-yellow-500 text-white border-yellow-500" 
+                            ? "text-yellow-500 border-yellow-500" 
                             : "border-gray-200 text-gray-700 hover:bg-gray-100"
                           }`}
                       >

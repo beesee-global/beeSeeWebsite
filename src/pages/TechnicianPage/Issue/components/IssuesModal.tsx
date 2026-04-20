@@ -28,7 +28,7 @@ interface FormData {
   categories_id: string;
   name: string;
   explanation?: string;
-  publish?: boolean;
+  publish?: string[];
 }
 
 interface IssuesModalProps {
@@ -65,7 +65,7 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
     product_id: [], 
     categories_id: "",
     explanation: '',
-    publish: false,
+    publish: [],
   };
 
   const [formData, setFormData] = useState<FormData>(initialState);
@@ -109,13 +109,27 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
             .map((id) => id.trim())
             .filter(Boolean);
 
+      const publishIds =
+        Array.isArray((selectedProduct as any).is_publish) &&
+        Array.isArray((selectedProduct as any).product_id)
+          ? (selectedProduct as any).product_id
+              .map((id: string | number, index: number) => ({
+                id: String(id),
+                is_publish: Number((selectedProduct as any).is_publish[index] ?? 0),
+              }))
+              .filter((item) => item.is_publish === 1)
+              .map((item) => item.id)
+          : Array.isArray((selectedProduct as any).publish)
+            ? (selectedProduct as any).publish.map((id: string | number) => String(id))
+            : [];
+
       setFormData({
         id: selectedProduct.id, 
         name: selectedProduct.name,
         categories_id: String((selectedProduct as any).categories_id ?? ''),
         product_id: selectedProductIds,
         explanation: (selectedProduct as any).possible_solutions ?? '',
-        publish: !!(selectedProduct as any).is_publish
+        publish: publishIds,
       }); 
     }
   }, [isOpen, selectedProduct]);
@@ -160,13 +174,13 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
     // Basic validation
     const errors: FormError = {};
     if (!formData?.product_id?.length) errors.product_id = 'Model type is required.';
-    if (!formData?.categories_id) errors.categories_id ="Device type is required."
-    if (!formData?.explanation) errors.explanation = "Possible solution is required."
+    if (!formData?.categories_id) errors.categories_id ="Device type is required."  
     if (!formData?.name) errors.name = 'Issue is required.';
 
     setFormError(errors);
 
     if (Object.keys(errors).length === 0) {
+      console.log('IssuesModal submit payload:', formData);
       onSave(formData);
       setFormData(initialState);
       return
@@ -325,16 +339,75 @@ const IssuesModal: React.FC<IssuesModalProps> = ({
             )}
           </div>
 
-          {/* Checkbox */}
-          <div className="flex items-center gap-2">
-            <input
-              id="publish"
-              name="publish"
-              type="checkbox"
-              checked={!!formData.publish}
-              onChange={handleChangeInput}
-            />
-            <label htmlFor="publish">Publish</label>
+          {/* Publish */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+            <div className="mb-3">
+              <label className="block text-sm font-semibold text-slate-900">
+                Publish
+              </label>
+              <p className="mt-1 text-xs text-slate-500">
+                Choose which models should be published.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {isLoading ? (
+                <div className="col-span-full rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500">
+                  Loading model types...
+                </div>
+              ) : modelType?.length ? (
+                modelType.map((item) => {
+                  const isSelectedPublish = formData?.publish?.includes(item.value);
+
+                  return (
+                    <label
+                      key={item.value}
+                      className={`cursor-pointer rounded-lg border px-3 py-3 transition-all ${
+                        isSelectedPublish
+                          ? 'border-emerald-500 bg-emerald-50 shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="publish"
+                          value={item.value}
+                          checked={isSelectedPublish}
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              publish: e.target.checked
+                                ? [...(prev.publish ?? []), item.value]
+                                : (prev.publish ?? []).filter((id) => id !== item.value),
+                            }));
+                            setFormError((prev) => ({ ...prev, publish: undefined }));
+                          }}
+                        />
+
+                        <div className="min-w-0">
+                          <p
+                            className={`text-sm font-medium ${
+                              isSelectedPublish ? 'text-emerald-900' : 'text-slate-800'
+                            }`}
+                          >
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {isSelectedPublish ? 'Published' : 'Draft'}
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })
+              ) : (
+                <div className="col-span-full rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500">
+                  No model types available.
+                </div>
+              )}
+            </div>
           </div>
         </form>
       </DialogContent>
