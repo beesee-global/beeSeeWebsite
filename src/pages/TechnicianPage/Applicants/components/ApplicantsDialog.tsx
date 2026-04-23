@@ -18,7 +18,7 @@ interface ApplicantsDialogProps {
   onClose: () => void;
   onSubmit: (formData: { 
     location: string;
-    time: string;
+    time: string[];
     date: string;
     schedule: string;
     format: string;
@@ -40,9 +40,11 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
   applicantName = '',
   applicantEmail = ''
 }) => {
+  const quickTimeOptions = ['11:00 AM', '2:00 PM'];
+
   const [formData, setFormData] = useState({ 
     location: '',
-    time: '',
+    time: [] as string[],
     date: '',
     schedule: '',
     format: ''
@@ -50,12 +52,30 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
 
   const [formError, setFormError] = useState<Record<string, string>>({});
 
+  const getSelectedQuickTimes = () =>
+    quickTimeOptions.filter((timeOption) => formData.time.includes(timeOption));
+
+  const handleQuickTimeToggle = (timeOption: string) => {
+    const selectedQuickTimes = getSelectedQuickTimes();
+    const isAlreadySelected = selectedQuickTimes.includes(timeOption);
+
+    const updatedTimes = isAlreadySelected
+      ? selectedQuickTimes.filter((time) => time !== timeOption)
+      : [...selectedQuickTimes, timeOption];
+
+    setFormData((prev) => ({
+      ...prev,
+      time: updatedTimes,
+    }));
+    setFormError((prev) => ({ ...prev, time: '' }));
+  };
+
   useEffect(() => {
     if (!open) {
       // Reset form when dialog closes
       setFormData({ 
         location: '',
-        time: '',
+        time: [],
         date: '',
         schedule: '',
         format: ''
@@ -77,7 +97,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       errors.location = "Location is required";
     }
     
-    if (!formData.time.trim()) {
+    if (formData.time.length === 0) {
       errors.time = "Time is required";
     }
     
@@ -169,18 +189,43 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
               {/* Time */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Start Time *
+                  Time *
                 </label>
-                <CustomTimePicker 
-                  value={formData.time}
-                  onChange={(time) => {
-                    setFormData(prev => ({ ...prev, time }));
-                    setFormError(prev => ({ ...prev, time: '' }));
-                  }}
-                  placeholder="Select start time"
-                  error={!!formError.time}
-                  helperText={formError.time}
-                />
+                <div className='mb-3 flex flex-wrap gap-2 w-full items-center justify-center'>
+                  {quickTimeOptions.map((timeOption) => {
+                    const isActive = getSelectedQuickTimes().includes(timeOption);
+
+                    return (
+                      <button
+                        key={timeOption}
+                        type="button"
+                        onClick={() => handleQuickTimeToggle(timeOption)}
+                        className={`rounded-md w-44 border px-4 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'border-slate-900 bg-slate-900 text-white'
+                            : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900'
+                        }`}
+                      >
+                        {timeOption}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Or choose another time
+                  </label>
+                  <CustomTimePicker 
+                    value={formData.time.join(', ')}
+                    onChange={(time) => {
+                      setFormData(prev => ({ ...prev, time: time ? [time] : [] }));
+                      setFormError(prev => ({ ...prev, time: '' }));
+                    }}
+                    placeholder="Select start time"
+                    error={!!formError.time}
+                    helperText={formError.time}
+                  />
+                </div>
               </div>
 
               {/* duration */}

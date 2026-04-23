@@ -6,8 +6,15 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  CalendarClock
 } from 'lucide-react'
 import CustomSelectField from '../../../../components/Fields/CustomSelectField'
+import { getAllJobPosting } from '../../../../services/Technician/careersServices'
+import { useQuery } from '@tanstack/react-query'
+import ApplicantsDialog from './ApplicantsDialog'
+import { sendInterviewInvitation } from '../../../../services/Technician/applicantServices'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { userAuth } from '../../../../hooks/userAuth'
 
 const COLORS = {
   background: '#ffffff',
@@ -61,6 +68,17 @@ const formatDate = (dateString?: string) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+const formatTime = (dateString?: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
 type Order = 'asc' | 'desc'
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -80,6 +98,8 @@ function getComparator<Key extends keyof any>(
 
 interface RowData {
   id: number
+  email?: string
+  full_name?: string
   [key: string]: any
 }
 
@@ -100,6 +120,13 @@ interface TableInterviewProps {
   updatingRowId?: number | null
 }
 
+interface ApplicantsDialog {
+  applicantName: string;
+  applicantEmail: string;
+  applicantPosition: string;
+  applicantId?: string;
+}
+
 export default function TableInterview({
   rows = [],
   columns = [],
@@ -108,13 +135,66 @@ export default function TableInterview({
   onStatusApplicantChange,
   updatingRowId = null,
 }: TableInterviewProps) {
+
+  const { 
+    userInfo, 
+    setSnackBarMessage, 
+    setSnackBarType, 
+    setSnackBarOpen 
+  } = userAuth();
+  const queryClient = useQueryClient();
+  const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
   const [page, setPage] = useState(0)
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
   const [order, setOrder] = useState<Order>('asc')
   const [orderBy, setOrderBy] = useState<string>('schedule_date')
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [jobCategory, setJobCategory] = useState('')
   const rowsPerPage = 20
 
+  const [formData, setFormData] = useState<ApplicantsDialog>({
+    applicantName: '',
+    applicantEmail: '',
+    applicantPosition: "",
+    applicantId: ''
+  });
+
+  const { mutateAsync: sendInterviewInvitations } = useMutation({
+    mutationFn: sendInterviewInvitation
+  })
+
   const safeRows = Array.isArray(rows) ? rows : []
+
+  const { data: jobResponse } = useQuery({
+    queryKey: ['job-listing'],
+    queryFn: getAllJobPosting,
+
+  })
+
+  const jobOptions = useMemo(() => {
+    const jobList = Array.isArray(jobResponse?.data) ? jobResponse.data : []
+
+    return [
+      { value: '', label: 'All' },
+      ...jobList.map((job: any) => ({
+        value: String(job.title ?? ''),
+        label: String(job.title ?? ''),
+      })),
+    ]
+  }, [jobResponse])
+
+  const filteredRows = useMemo(() => {
+    return safeRows.filter((row) => {
+      const matchesStatus =
+        statusFilter === 'All' ? true : row.status === statusFilter
+      const matchesJob =
+        jobCategory.trim() === ''
+          ? true
+          : String(row.position ?? '').toLowerCase() === jobCategory.toLowerCase()
+
+      return matchesStatus && matchesJob
+    })
+  }, [safeRows, statusFilter, jobCategory])
 
   const handleRequestSort = (property: string) => {
     setOrder((prevOrder) => (orderBy === property && prevOrder === 'asc' ? 'desc' : 'asc'))
@@ -122,9 +202,9 @@ export default function TableInterview({
   }
 
   const sortedRows = useMemo(() => {
-    if (safeRows.length === 0) return []
+    if (filteredRows.length === 0) return []
 
-    return [...safeRows].sort((a, b) => {
+    return [...filteredRows].sort((a, b) => {
       if (orderBy === 'schedule_date' || orderBy === 'created_at') {
         const aDate = new Date(a[orderBy] ?? '').getTime()
         const bDate = new Date(b[orderBy] ?? '').getTime()
@@ -133,12 +213,12 @@ export default function TableInterview({
 
       return getComparator(order, orderBy)(a, b)
     })
-  }, [safeRows, order, orderBy])
+  }, [filteredRows, order, orderBy])
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage)
-  const totalPages = Math.ceil(safeRows.length / rowsPerPage)
-  const startIndex = safeRows.length > 0 ? page * rowsPerPage + 1 : 0
-  const endIndex = Math.min((page + 1) * rowsPerPage, safeRows.length)
+  const totalPages = Math.ceil(filteredRows.length / rowsPerPage)
+  const startIndex = filteredRows.length > 0 ? page * rowsPerPage + 1 : 0
+  const endIndex = Math.min((page + 1) * rowsPerPage, filteredRows.length)
 
   const renderSortIcon = (columnId: string) => {
     if (orderBy !== columnId) {
@@ -153,10 +233,36 @@ export default function TableInterview({
   }
 
   const renderCell = (row: RowData, column: ColumnConfig) => {
-    if (column.id === 'schedule_date' || column.id === 'created_at') {
-      return <span className="text-sm text-slate-900">{formatDate(row[column.id])}</span>
+    if (column.id === 'schedule_date') {
+      const scheduleTime = row.time || "—" // formatTime(row.schedule_date)
+
+      return (
+        <div className="flex flex-col">
+          <span className="text-sm text-slate-900">{formatDate(row.schedule_date)}</span>
+          <span className="text-xs text-slate-500">{scheduleTime}</span>
+        </div>
+      )
     }
 
+    if (column.id === 'created_at') {
+      return (
+        <div className='flex gap-2 items-center'>
+          <span className="text-sm text-slate-900">
+            {formatDate(row[column.id])}
+          </span>
+
+          {row.status === 'Cancelled' && (
+            <button 
+              className='bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105 p-2 rounded-md'
+              onClick={() => handleDisplayDialog(row.id)}
+              title='Reschedule'
+            >
+              <CalendarClock className='w-4 h-4' />
+            </button>
+          )}
+        </div>
+      )
+    }   
     if (column.id === 'status') {
       const { label, classes } = getStatusConfig(row.status)
       return <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${classes}`}>{label}</span>
@@ -206,6 +312,63 @@ export default function TableInterview({
     return <span className="text-sm text-slate-900">{row[column.id] ?? '-'}</span>
   }
 
+  const handleEmailSubmit = async (emailData: { 
+    location: string;
+    time: string;
+    date: string;
+    schedule: string;
+    format: string
+  }) => {
+    const payload = {
+      id: formData.applicantId,
+      name: formData.applicantName,
+      position:formData.applicantPosition,
+      email: formData.applicantEmail, 
+      location: emailData.location,
+      time: emailData.time,
+      date: emailData.date,
+      schedule_details: emailData.schedule,
+      format: emailData.format,
+      duration: "60",
+      user_id: userInfo?.id
+    };
+
+    try {
+      const response = await sendInterviewInvitations(payload)
+      if (response?.success) {
+        setSnackBarMessage("Interview invitation sent successfully!");
+        setSnackBarType("success");
+        setSnackBarOpen(true);
+        queryClient.invalidateQueries({
+          queryKey: ['interview-list']
+        })
+      }
+    } catch (error: any) {
+      const rawMessage = error?.response?.data.message 
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
+      setSnackBarType(error);
+      setSnackBarOpen(true);
+    }
+  }
+
+  // open display dialog 
+  const handleDisplayDialog = (id: number) => {
+    const selectedRow = rows.find((row) => row.id === id)
+ 
+    if (!selectedRow ) return
+
+    setFormData((prev) => ({
+      ...prev,
+      applicantEmail: selectedRow.email || '',
+      applicantName: selectedRow.full_name || '',
+      applicantPosition: selectedRow.position || '',
+      applicantId: selectedRow.applicants_id || ""
+    }))
+
+    setEmailDialogOpen(true) 
+  }
+
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: COLORS.background }}>
@@ -225,9 +388,57 @@ export default function TableInterview({
 
   return (
     <div className="w-full" style={{ background: COLORS.background }}>
+
+      {/* Email Dialog */}
+      <ApplicantsDialog
+        open={emailDialogOpen}
+        onClose={() => setEmailDialogOpen(false)}
+        onSubmit={handleEmailSubmit}
+        applicantName={formData.applicantName}
+        applicantEmail={formData.applicantEmail}
+      />
+
       <div className="w-full mx-auto">
         <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
-          <div className="overflow-x-auto">
+          <div className="flex flex-col lg:flex-row    lg:justify-between">
+            <div className="flex flex-wrap ">
+              {['All', 'Pending', 'Confirmed', 'Cancelled'].map((status) => {
+                const isActive = statusFilter === status
+
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(status)
+                      setPage(0)
+                    }}
+                    className={`border-b px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-yellow-500 border-yellow-500'
+                        : 'border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="w-full lg:w-[280px]">
+              <CustomSelectField 
+                name='job_category'
+                placeholder='Filter by job position'
+                value={jobCategory}
+                onChange={(e) => {
+                  setJobCategory(e.target.value)
+                  setPage(0)
+                }}
+                options={jobOptions}
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto border-t border-gray-200 pt-2">
             <div className="min-w-[900px]">
               <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
                 <div className="flex items-center py-2">
@@ -310,7 +521,7 @@ export default function TableInterview({
           <div className="w-full flex justify-end mt-3">
             <div className="flex items-center gap-6">
               <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
-                {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
+                {filteredRows.length > 0 ? `${startIndex}-${endIndex} of ${filteredRows.length}` : '0 items'}
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -330,12 +541,12 @@ export default function TableInterview({
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page === totalPages - 1 || safeRows.length === 0}
+                  disabled={page === totalPages - 1 || filteredRows.length === 0}
                   style={{
                     padding: '6px',
                     borderRadius: '6px',
-                    opacity: page === totalPages - 1 || safeRows.length === 0 ? 0.3 : 1,
-                    cursor: page === totalPages - 1 || safeRows.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: page === totalPages - 1 || filteredRows.length === 0 ? 0.3 : 1,
+                    cursor: page === totalPages - 1 || filteredRows.length === 0 ? 'not-allowed' : 'pointer',
                     color: COLORS.text,
                     background: '#f3f4f6',
                     border: 'none',
