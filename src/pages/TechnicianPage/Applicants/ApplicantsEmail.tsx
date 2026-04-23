@@ -26,7 +26,8 @@ import {
   Ban,
   UserRoundCog,
   Link,
-  CalendarCheck
+  CalendarCheck,
+  CalendarClock
 } from "lucide-react"
 import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
@@ -399,6 +400,11 @@ const ApplicantsEmail = () => {
                   <span className="font-semibold">Interview Date: </span> {applicantDetails?.schedule_date}
                 </p>
               )}
+              {applicantDetails?.time && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold">Interview Date: </span> {applicantDetails?.time}
+                </p>
+              )}
             </div>
             
             <div className="flex flex-wrap gap-3"> 
@@ -414,7 +420,7 @@ const ApplicantsEmail = () => {
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  <Send className="w-6 h-6" /> 
+                  <CalendarClock className="w-6 h-6" /> 
                 </button>
               )}
 
