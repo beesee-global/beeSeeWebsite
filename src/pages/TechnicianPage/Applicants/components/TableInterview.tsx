@@ -15,6 +15,7 @@ import ApplicantsDialog from './ApplicantsDialog'
 import { sendInterviewInvitation } from '../../../../services/Technician/applicantServices'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { userAuth } from '../../../../hooks/userAuth'
+import { downloadFile } from "../../../../utils/downloadFile"
 
 const COLORS = {
   background: '#ffffff',
@@ -233,6 +234,18 @@ export default function TableInterview({
   }
 
   const renderCell = (row: RowData, column: ColumnConfig) => {
+
+    if (column.id === 'full_name') {
+      return (
+         <button
+          type="button"
+          onClick={() => downloadFile(row.attachment_url, 'view')}
+         >
+          {row[column.id]}
+        </button>
+      )
+    }
+    
     if (column.id === 'schedule_date') {
       const scheduleTime = row.time || "—" // formatTime(row.schedule_date)
 
@@ -263,6 +276,7 @@ export default function TableInterview({
         </div>
       )
     }   
+
     if (column.id === 'status') {
       const { label, classes } = getStatusConfig(row.status)
       return <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${classes}`}>{label}</span>
