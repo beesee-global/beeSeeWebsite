@@ -3,9 +3,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   CalendarClock
 } from 'lucide-react'
 import CustomSelectField from '../../../../components/Fields/CustomSelectField'
@@ -82,19 +79,52 @@ const formatTime = (dateString?: string) => {
 
 type Order = 'asc' | 'desc'
 
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) return -1
-  if (b[orderBy] > a[orderBy]) return 1
-  return 0
+const getTimestamp = (value?: string | null) => {
+  if (!value) return Number.NEGATIVE_INFINITY
+
+  const timestamp = new Date(value).getTime()
+  return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp
 }
 
-function getComparator<Key extends keyof any>(
+const compareStrings = (a: string, b: string) =>
+  a.localeCompare(b, undefined, { sensitivity: 'base' })
+
+function compareRowValues(a: RowData, b: RowData, orderBy: string) {
+  const aValue = a[orderBy]
+  const bValue = b[orderBy]
+
+  if (orderBy === 'schedule_date' || orderBy === 'created_at' || orderBy === 'updated_at') {
+    return getTimestamp(String(aValue ?? '')) - getTimestamp(String(bValue ?? ''))
+  }
+
+  if (typeof aValue === 'number' && typeof bValue === 'number') {
+    return aValue - bValue
+  }
+
+  if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+    return Number(aValue) - Number(bValue)
+  }
+
+  return compareStrings(String(aValue ?? ''), String(bValue ?? ''))
+}
+
+function getComparator<T extends RowData>(
   order: Order,
-  orderBy: Key,
-): (a: { [key in Key]: number | string | null | undefined }, b: { [key in Key]: number | string | null | undefined }) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy)
+  orderBy: string,
+  rowOrderMap: Map<number, number>,
+) {
+  return (a: T, b: T) => {
+    const primaryDiff = compareRowValues(a, b, orderBy)
+
+    if (primaryDiff !== 0) {
+      return order === 'asc' ? primaryDiff : -primaryDiff
+    }
+
+    const aIndex = rowOrderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER
+    const bIndex = rowOrderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER
+
+    return aIndex - bIndex
+  }
 }
 
 interface RowData {
@@ -147,7 +177,7 @@ export default function TableInterview({
   const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
   const [page, setPage] = useState(0)
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
-  const [order, setOrder] = useState<Order>('asc')
+  const [order, setOrder] = useState<Order>('desc')
   const [orderBy, setOrderBy] = useState<string>('schedule_date')
   const [statusFilter, setStatusFilter] = useState('All')
   const [jobCategory, setJobCategory] = useState('')
@@ -197,41 +227,36 @@ export default function TableInterview({
     })
   }, [safeRows, statusFilter, jobCategory])
 
+  const rowOrderMap = useMemo(
+    () => new Map(safeRows.map((row, index) => [row.id, index])),
+    [safeRows],
+  )
+
   const handleRequestSort = (property: string) => {
-    setOrder((prevOrder) => (orderBy === property && prevOrder === 'asc' ? 'desc' : 'asc'))
+    setOrder((prevOrder) => {
+      if (orderBy !== property) {
+        return 'asc'
+      }
+
+      return prevOrder === 'asc' ? 'desc' : 'asc'
+    })
     setOrderBy(property)
   }
 
   const sortedRows = useMemo(() => {
     if (filteredRows.length === 0) return []
 
-    return [...filteredRows].sort((a, b) => {
-      if (orderBy === 'schedule_date' || orderBy === 'created_at') {
-        const aDate = new Date(a[orderBy] ?? '').getTime()
-        const bDate = new Date(b[orderBy] ?? '').getTime()
-        return order === 'asc' ? aDate - bDate : bDate - aDate
-      }
+    if (orderBy === 'schedule_date' && order === 'desc') {
+      return filteredRows
+    }
 
-      return getComparator(order, orderBy)(a, b)
-    })
-  }, [filteredRows, order, orderBy])
+    return [...filteredRows].sort(getComparator(order, orderBy, rowOrderMap))
+  }, [filteredRows, order, orderBy, rowOrderMap])
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage)
   const totalPages = Math.ceil(filteredRows.length / rowsPerPage)
   const startIndex = filteredRows.length > 0 ? page * rowsPerPage + 1 : 0
   const endIndex = Math.min((page + 1) * rowsPerPage, filteredRows.length)
-
-  const renderSortIcon = (columnId: string) => {
-    if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />
-    }
-
-    return order === 'asc' ? (
-      <ArrowUp size={14} style={{ opacity: 1 }} />
-    ) : (
-      <ArrowDown size={14} style={{ opacity: 1 }} />
-    )
-  }
 
   const renderCell = (row: RowData, column: ColumnConfig) => {
 
@@ -240,6 +265,7 @@ export default function TableInterview({
          <button
           type="button"
           onClick={() => downloadFile(row.attachment_url, 'view')}
+          className="truncate text-left text-sm text-gray-900 hover:underline"
          >
           {row[column.id]}
         </button>
@@ -452,87 +478,78 @@ export default function TableInterview({
               />
             </div>
           </div>
-          <div className="overflow-x-auto border-t border-gray-200 pt-2">
-            <div className="min-w-[900px]">
-              <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
-                <div className="flex items-center py-2">
-                  {columns.map((column) => (
-                    <div
-                      key={column.id}
-                      className={`${column.width || 'flex-1'} px-4`}
-                      style={{ textAlign: column.align || 'left' }}
-                    >
-                      {column.sortable !== false ? (
-                        <button
-                          onClick={() => handleRequestSort(column.id)}
-                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`}
-                          style={{
-                            marginLeft: column.align === 'right' ? 'auto' : '0',
-                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            width: column.align === 'right' ? '100%' : 'auto',
-                            color: COLORS.text,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {column.label}
-                          {renderSortIcon(column.id)}
-                        </button>
-                      ) : (
-                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
-                          {column.label}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          <div className="overflow-x-auto border-t border-gray-200 p-3">
+            {isError ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+                <p className="mt-4 text-sm text-red-600">Unable to load interview schedules.</p>
               </div>
-
-              <div className="mt-1">
-                {isError ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b">
-                    <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                    <p className="mt-4 text-sm text-red-600">Unable to load interview schedules.</p>
-                  </div>
-                ) : visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b">
-                    <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                    <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                      No interview schedule records found.
-                    </p>
-                  </div>
-                ) : (
-                  visibleRows.map((row) => {
+            ) : visibleRows.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+                <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
+                  No interview schedule records found.
+                </p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="sticky top-0 bg-white">
+                  <tr>
+                    {columns.map((column) => (
+                      <th
+                        key={column.id}
+                        className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 ${
+                          column.align === 'right' ? 'text-right' : 'text-left'
+                        } ${column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
+                        onClick={() => column.sortable !== false && handleRequestSort(column.id)}
+                      >
+                        <div
+                          className={`flex items-center gap-2 ${
+                            column.align === 'right' ? 'justify-end' : 'justify-start'
+                          }`}
+                        >
+                          <span>{column.label}</span>
+                          {column.sortable !== false && orderBy === column.id && order === 'asc' && (
+                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {visibleRows.map((row) => {
                     const isHovered = hoveredRow === row.id
 
                     return (
-                      <div
+                      <tr
                         key={row.id}
                         onMouseEnter={() => setHoveredRow(row.id)}
                         onMouseLeave={() => setHoveredRow(null)}
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} border-b transition-all duration-200`}
+                        className="transition-all duration-200"
                         style={{
                           background: isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border,
                         }}
                       >
                         {columns.map((column) => (
-                          <div
+                          <td
                             key={column.id}
-                            className={`${column.width || 'flex-1'} truncate px-4`}
-                            style={{ textAlign: column.align || 'left', position: 'relative' }}
+                            className={`px-4 py-2 align-middle ${
+                              column.align === 'right' ? 'text-right' : 'text-left'
+                            }`}
                           >
                             {renderCell(row, column)}
-                          </div>
+                          </td>
                         ))}
-                      </div>
+                      </tr>
                     )
-                  })
-                )}
-              </div>
-            </div>
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
 
-          <div className="w-full flex justify-end mt-3">
+          <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">
             <div className="flex items-center gap-6">
               <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
                 {filteredRows.length > 0 ? `${startIndex}-${endIndex} of ${filteredRows.length}` : '0 items'}

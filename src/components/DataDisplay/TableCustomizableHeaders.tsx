@@ -3,9 +3,6 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Mail,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react';
 
 // ============================================
@@ -207,19 +204,6 @@ export default function TableCustomizableHeaders({
     }
   };
 
-  const renderSortIcon = (columnId: string) => {
-    const column = safeColumns.find(col => col.id === columnId);
-    if (column?.sortable === false) {
-      return null;
-    }
-    if (orderBy !== columnId || !isManualSort) {
-      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
-    }
-    return order === 'asc' 
-      ? <ArrowUp size={14} style={{ opacity: 1 }} />
-      : <ArrowDown size={14} style={{ opacity: 1 }} />;
-  };
-  
   const scrollFilters = (direction: 'left' | 'right') => {
     const container = filterScrollRef.current;
     if (!container) return;
@@ -340,109 +324,96 @@ export default function TableCustomizableHeaders({
                 </div>
               )}
 
-              {/* Header Section */}
-              <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
-                {/* Column Headers */}
-                <div className="flex items-center py-2">
-                  {safeColumns.map((column) => (
-                    <div 
-                      key={column.id}
-                      className={`${column.width || 'flex-1'} px-4`}
-                      style={{ textAlign: column.align || 'left' }}
-                    >
-                      {column.sortable !== false ? (
-                        <button
-                          onClick={() => handleRequestSort(column.id)}
-                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`}
-                          style={{ 
-                            marginLeft: column.align === 'right' ? 'auto' : '0',
-                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            width: column.align === 'right' ? '100%' : 'auto',
-                            color: COLORS.text,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {column.label}
-                          {renderSortIcon(column.id)}
-                        </button>
-                      ) : (
-                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
-                          {column.label}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Table Body */}
-              <div className="mt-1">
+              <div className="overflow-x-auto p-3">
                 {visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b">
+                  <div className="flex flex-col items-center justify-center py-16">
                     <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
                     <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
                       No data found
                     </p>
                   </div>
                 ) : (
-                  visibleRows.map(row => {
-                    const isHovered = hoveredRow === row.id;
-                    const isSelected = selectedRowId === row.id;
-
-                    return (
-                      <div 
-                        key={row.id} 
-                        onClick={() => handleRowClick(row)}
-                        onMouseEnter={() => setHoveredRow(row.id)} 
-                        onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-all duration-200`}
-                        style={{ 
-                          background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border
-                        }}
-                      > 
-                        {/* Dynamic Columns */}
-                        {safeColumns.map((column) => {
-                          return (
-                            <div 
-                              key={column.id}
-                              className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ 
-                                textAlign: column.align || 'left',
-                                position: 'relative'
-                              }}
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="sticky top-0 bg-white">
+                      <tr>
+                        {safeColumns.map((column) => (
+                          <th
+                            key={column.id}
+                            className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 ${
+                              column.align === 'right' ? 'text-right' : 'text-left'
+                            } ${column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
+                            onClick={() => column.sortable !== false && handleRequestSort(column.id)}
+                          >
+                            <div
+                              className={`flex items-center gap-2 ${
+                                column.align === 'right' ? 'justify-end' : 'justify-start'
+                              }`}
                             >
-                              {column.id === 'is_publish' ? (
-                                <span
-                                  className={`${
-                                    row.is_publish === 1
-                                      ? "bg-green-500 text-white"
-                                      : "bg-red-500 text-white"
-                                  } px-2 py-1 rounded-lg text-sm font-medium`}
-                                >
-                                  {row.is_publish === 1 ? "Published" : "Draft"}
-                                </span>
-
-                              ) : column.id === 'created_at' ? (
-                                <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
-                                  {formatDate(row.created_at)}
-                                </span>
-                              ) : (
-                                <span className="text-sm">{row[column.id]}</span>
+                              <span>{column.label}</span>
+                              {column.sortable !== false && orderBy === column.id && isManualSort && order === 'asc' && (
+                                <div className="h-2 w-2 rounded-full bg-blue-500" />
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {visibleRows.map((row) => {
+                        const isHovered = hoveredRow === row.id;
+                        const isSelected = selectedRowId === row.id;
+
+                        return (
+                          <tr
+                            key={row.id}
+                            onClick={() => handleRowClick(row)}
+                            onMouseEnter={() => setHoveredRow(row.id)}
+                            onMouseLeave={() => setHoveredRow(null)}
+                            className="cursor-pointer transition-all duration-200"
+                            style={{
+                              background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                            }}
+                          >
+                            {safeColumns.map((column) => (
+                              <td
+                                key={column.id}
+                                className={`px-4 py-3 align-middle ${
+                                  column.align === 'right' ? 'text-right' : 'text-left'
+                                }`}
+                              >
+                                {column.id === 'is_publish' ? (
+                                  <span
+                                    className={`${
+                                      row.is_publish === 1
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-red-500 text-white'
+                                    } rounded-lg px-2 py-1 text-sm font-medium`}
+                                  >
+                                    {row.is_publish === 1 ? 'Published' : 'Draft'}
+                                  </span>
+                                ) : column.id === 'created_at' ? (
+                                  <span className="text-sm text-gray-500">
+                                    {formatDate(row.created_at)}
+                                  </span>
+                                ) : (
+                                  <div className="max-w-[220px] truncate text-sm text-gray-900">
+                                    {row[column.id]}
+                                  </div>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 )}
               </div>
             </div>
           </div>
           
           {/* Pagination */}
-          <div className="w-full flex justify-end mt-3">      
+          <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">      
             <div className="flex items-center gap-6">
               <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
                 {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
