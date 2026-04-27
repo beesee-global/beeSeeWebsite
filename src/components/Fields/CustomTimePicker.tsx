@@ -20,13 +20,18 @@ const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Generate time options in 15-minute intervals starting from 8:00 AM
+  // Generate time options in 15-minute intervals from 9:00 AM to 5:00 PM
   const generateTimeOptions = () => {
     const times: string[] = [];
-    const startHour = 8;
-    
-    for (let hour = startHour; hour < 24; hour++) {
+    const startHour = 9;
+    const endHour = 17;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
+        if (hour === endHour && minute > 0) {
+          break;
+        }
+
         const period = hour >= 12 ? 'PM' : 'AM';
         const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
         const formattedMinute = minute.toString().padStart(2, '0');
