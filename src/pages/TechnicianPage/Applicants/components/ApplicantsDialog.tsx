@@ -90,6 +90,19 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     setFormError(prev => ({ ...prev, [name]: '' }));
   };
 
+  const parseTimeToMinute = (time:string) => {
+    const [rawTime, meridiem] = time.trim().split(" ");
+    const [rawHours, rawMinutes] = rawTime.split(":").map(Number);
+
+    let hours = rawHours;
+    const minutes = rawMinutes; 
+      
+    if (meridiem?.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+    if (meridiem?.toUpperCase() === 'AM' && hours === 12) hours = 0;
+
+    return hours * 60 + minutes;
+  }
+
   const validateForm = () => {
     const errors: Record<string, string> = {}; 
     
@@ -99,10 +112,27 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     
     if (formData.time.length === 0) {
       errors.time = "Time is required";
+    } else if (formData.time.length === 2) {
+      const start = parseTimeToMinute(formData.time[0]);
+      const end = parseTimeToMinute(formData.time[1]);
+
+      if (start >= end) {
+        errors.time = "End time must be later than start time";
+      }
     }
     
     if (!formData.date.trim()) {
       errors.date = "Date is required";
+    } else {
+      const selectedDate = new Date (formData.date);
+      selectedDate.setHours(0,0,0,0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        errors.date = "Past dates are not allowed"
+      }
     }
     
     if (!formData.schedule.trim()) {
