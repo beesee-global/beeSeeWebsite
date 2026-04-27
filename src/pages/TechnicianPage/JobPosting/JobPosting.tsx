@@ -40,11 +40,11 @@ const JobPosting = () => {
 
   const columns = [
     { id: 'job_reference_number', label: 'Job No.', sortable: true, align: 'left' },
-    { id: 'title', label: 'Job Position', sortable: false, align: 'left' },   
+    { id: 'title', label: 'Job Position', sortable: true, align: 'left' },   
     { id: 'job_type', label: 'Job Type', sortable: true, align: 'left' },
-    { id: 'work_location', label: 'Work Location', sortable: false, align: 'left' }, 
-    { id: 'location', label: 'Location', sortable: false, align: 'left' },
-    { id: 'num_applicant', label: "No. Applicant", sortable: false, align: 'left' },
+    { id: 'work_location', label: 'Work Location', sortable: true, align: 'left' }, 
+    { id: 'location', label: 'Location', sortable: true, align: 'left' },
+    { id: 'num_applicant', label: "No. Applicant", sortable: true, align: 'left' },
     { id: 'status', label: "Status", sortable: false, align: 'left' },
     { id: 'created_at', label: 'Posted Date', sortable: false, align: 'right' }
   ]
