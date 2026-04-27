@@ -77,9 +77,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     'jpeg',
     'png',
     'gif',
-    'pdf',
-    'doc',
-    'docx',
+    'pdf', 
     'txt',
     'xls',
     'xlsx'
@@ -459,9 +457,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                     <input
                       type="file"
                       id="resume-upload"
-                      accept=".pdf,
-                      .doc,
-                      .docx,
+                      accept=".pdf, 
                       .txt,
                       .xls,
                       .xlsx,
@@ -508,7 +504,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                         {isDraggingResume ? 'Drop your file here' : 'Click to upload or drag and drop'}
                       </p>
                       <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                       (Max 10MB)
+                       Upload PDF or image (max 10 MB)
                       </p>
                     </label>
                   </div>
@@ -582,9 +578,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                     <input
                       type="file"
                       id="portfolio-upload"
-                      accept=".pdf,
-                      .doc,
-                      .docx,
+                      accept=".pdf, 
                       .txt,
                       .xls,
                       .xlsx,
@@ -631,7 +625,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                         {isDraggingPortfolio ? 'Drop your file here' : 'Click to upload or drag and drop'}
                       </p>
                       <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                       (Max 10MB)
+                       Upload PDF or image (max 10 MB)
                       </p>
                     </label>
                   </div>
