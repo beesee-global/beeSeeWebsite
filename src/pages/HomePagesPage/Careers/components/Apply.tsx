@@ -230,6 +230,12 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     }
   };
 
+  const toTitleCase = (str: string) => 
+    str.replace(/\w\S*/g, (txt) => 
+      txt.charAt(0).toUpperCase() +  txt.slice(1).toLowerCase());
+
+  const toLowerCase = (str: string) => str.toLowerCase();
+
   const handleCloseSubmit = () => {
     setIsSubmitted(false);
       onClose();
@@ -360,7 +366,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                   className="input-default"
                   placeholder="Juan Dela Cruz"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, fullName: toTitleCase(e.target.value) })}
                 />
               </div>
 
@@ -375,7 +381,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                   className="input-default"
                   placeholder="juan.delacruz@email.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: toLowerCase(e.target.value) })}
                 />
               </div>
 
@@ -388,10 +394,15 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                   type="tel"
                   required
                   maxLength={11}
+                  inputMode='numeric'
+                  pattern='[0-9]*'
                   className="input-default"
                   placeholder="09XXXXXXXXX"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    phone: e.target.value.replace(/\D/g, '')
+                  })}
                 />
               </div>
   
