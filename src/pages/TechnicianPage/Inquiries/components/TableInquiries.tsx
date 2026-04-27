@@ -153,8 +153,9 @@ export default function TableInquiries({
   const { userInfo } = userAuth()
 
   const InquiriesPermissionJob = userInfo?.permissions?.find(p=> p.parent_id === "inquiries" && p.children_id === '')
- 
+
   const [page, setPage] = useState(0); 
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [orderBy, setOrderBy] = useState<string>(''); // Empty means no sorting
   const rowsPerPage = 20;
 
@@ -359,7 +360,7 @@ export default function TableInquiries({
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto p-3">
               {visibleRows.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
@@ -375,24 +376,22 @@ export default function TableInquiries({
                         <th
                           key={col.id}
                           scope="col"
-                          className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.width || ''} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
+                          className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                            col.align === 'right' ? 'text-right' : 'text-left'
+                          } ${col.width || ''} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
                           onClick={() => {
                             if (!col.sortable) return;
-                            // Toggle between sorting this column and no sort
                             setOrderBy(orderBy === col.id ? '' : col.id);
                           }}
                         >
-                          <div className="flex items-center gap-2">
+                          <div
+                            className={`flex items-center gap-2 ${
+                              col.align === 'right' ? 'justify-end' : 'justify-start'
+                            }`}
+                          >
                             <span>{col.label}</span>
                             {col.sortable && orderBy === col.id && (
-                              <svg
-                                className="w-3 h-3 text-blue-500"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                              >
-                                <path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
+                              <div className="h-2 w-2 rounded-full bg-blue-500" />
                             )}
                           </div>
                         </th>
@@ -401,8 +400,20 @@ export default function TableInquiries({
                   </thead>
     
                   <tbody className="bg-white divide-y divide-gray-100">
-                    {visibleRows.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-200 cursor-pointer" onClick={() => handleEdit(row.pid)}>
+                    {visibleRows.map((row) => {
+                      const isHovered = hoveredRow === row.id;
+
+                      return (
+                      <tr
+                        key={row.id}
+                        className="cursor-pointer transition-all duration-200"
+                        onClick={() => handleEdit(row.pid)}
+                        onMouseEnter={() => setHoveredRow(row.id)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        style={{
+                          background: isHovered ? COLORS.surfaceHover : 'transparent',
+                        }}
+                      >
                         {effectiveColumns.map((col) => (
                           <td key={col.id} className={`px-4 py-3 align-top ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
                             {col.id === 'actions' ? (
@@ -431,14 +442,14 @@ export default function TableInquiries({
                           </td>
                         ))}
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               )}
             </div>
 
             {/* Pagination */}
-            <div className="w-full flex justify-end mt-3 border-t border-gray-200 pt-2">      
+            <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">      
             <div className="flex items-center gap-6">
                 <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
                 {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
