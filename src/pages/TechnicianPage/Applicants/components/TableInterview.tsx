@@ -290,7 +290,7 @@ export default function TableInterview({
             {formatDate(row[column.id])}
           </span>
 
-          {row.status === 'Cancelled' && (
+          {row.status === 'Cancelled' && row.status_applicant === 'SHORTLISTED' && (
             <button 
               className='bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105 p-2 rounded-md'
               onClick={() => handleDisplayDialog(row.id)}
