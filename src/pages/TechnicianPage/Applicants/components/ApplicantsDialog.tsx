@@ -130,10 +130,10 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      if (selectedDate < today) {
-        errors.date = "Past dates are not allowed"
-      } else if (selectedDate === today) {
-        errors.date = "Today's date is not allowed. Please select a future date."
+      if (selectedDate.getTime() < today.getTime()) {
+        errors.date = "Past dates are not allowed";
+      } else if (selectedDate.getTime() === today.getTime()) {
+        errors.date = "Today's date is not allowed. Please select a future date.";
       }
     }
     
