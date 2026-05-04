@@ -42,7 +42,7 @@ const Applicants = () => {
     { id: 'phone', label: 'Phone', sortable: true },
     { id: "email", label: 'Email', sortable: true },
     { id: "status", label: "Status", sortable: true },
-    { id: 'created_at', label: "Date Applied", sortable: false}
+    { id: 'created_at', label: "Date Applied", sortable: true}
   ] 
 
   const { 
