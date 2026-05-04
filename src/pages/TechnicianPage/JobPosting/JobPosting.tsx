@@ -162,13 +162,17 @@ const JobPosting = () => {
   }, [searchValue]);
 
   const filteredJob = useMemo(() => {
-    if (!debouncedSearch?.trim()) return job 
+    const search = debouncedSearch.trim().toLowerCase();
+    if (!search) return job 
+
     return job.filter((u: any) => 
-      u.job_reference_number.toLowerCase().includes(debouncedSearch?.toLowerCase()) || 
-      u.title.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      u.description.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
-      u.work_location.toLowerCase().includes(debouncedSearch?.toLowerCase()) || 
-      u.location.toLowerCase().includes(debouncedSearch?.toLowerCase())
+      [
+        u.job_reference_number,
+        u.title,
+        u.description,
+        u.work_location,
+        u.location,
+      ].some((value) => String(value ?? "").toLowerCase().includes(search))
     )
   }, [job, debouncedSearch]);
 
