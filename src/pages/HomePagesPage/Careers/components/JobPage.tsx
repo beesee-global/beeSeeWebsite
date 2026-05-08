@@ -125,7 +125,7 @@ const JobPage: React.FC = () => {
         </p>
         
         <button
-          onClick={() => window.location.href = '/careers'}
+          onClick={() => window.location.href = '/bsg/career'}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all"
           style={{
             background: 'var(--beesee-gold, #FDCC00)',

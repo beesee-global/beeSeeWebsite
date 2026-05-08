@@ -1,79 +1,72 @@
-import { lazy } from 'react'; 
-import { Navigate, createBrowserRouter } from 'react-router-dom';  
-   
-const NotFound = lazy(() => import('../pages/Error/404NotFound'));  
+import { Navigate } from 'react-router-dom';
+
+import NotFound from '../pages/Error/404NotFound';
 
 /* Homepage */
-const HomePageLayout = lazy(() => import ("../../src/layout/HomePageLayout"))
-const FrontPage = lazy (() => import("../pages/HomePagesPage/Home/HomePage"))
-const AboutBeesee = lazy(() => import ("../../src/pages/HomePagesPage/About/AboutUs")) 
-const FaqsHomePage = lazy(() => import ("../../src/pages/HomePagesPage/Faqs/Faqs"))
-const InquiriesPage = lazy(() => import('../pages/HomePagesPage/Inquiries/Inquiries'));
-const PrivacyPolicy = lazy(() => import ('../pages/HomePagesPage/PrivacyPolicy/PrivacyPolicy'))
-const TermsAndConditions = lazy(() => import ('../pages/HomePagesPage/TermAndConditions/TermsAndConditions'))
-const CostumerSupport = lazy (() => import('../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport')) 
-const ProductDetail = lazy(() => import('../pages/HomePagesPage/ProductDetails/ProductDetail'));
-const Loggedin = lazy(() => import('../pages/HomePagesPage/LoginEcom'));
-const LoginTechnician = lazy(() => import('../pages/HomePagesPage/LoginTechnician'));
-const Register = lazy(() => import("../pages/HomePagesPage/Register"));
-const ForgetPassword = lazy(() => import ("../pages/HomePagesPage/ForgetPasswordPages")); 
-const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/ProductsHub"));
-const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
+import HomePageLayout from '../../src/layout/HomePageLayout';
+import FrontPage from '../pages/HomePagesPage/Home/HomePage';
+import AboutBeesee from '../../src/pages/HomePagesPage/About/AboutUs';
+import FaqsHomePage from '../../src/pages/HomePagesPage/Faqs/Faqs';
+import InquiriesPage from '../pages/HomePagesPage/Inquiries/Inquiries';
+import PrivacyPolicy from '../pages/HomePagesPage/PrivacyPolicy/PrivacyPolicy';
+import TermsAndConditions from '../pages/HomePagesPage/TermAndConditions/TermsAndConditions';
+import CostumerSupport from '../../src/pages/HomePagesPage/CustomerSupport/CustomerSupport';
+import ProductDetail from '../pages/HomePagesPage/ProductDetails/ProductDetail';
+import Loggedin from '../pages/HomePagesPage/LoginEcom';
+import LoginTechnician from '../pages/HomePagesPage/LoginTechnician';
+import Register from '../pages/HomePagesPage/Register';
+import ForgetPassword from '../pages/HomePagesPage/ForgetPasswordPages';
+import ProductsHub from '../pages/HomePagesPage/Products-hub/ProductsHub';
+import Careers from '../pages/HomePagesPage/Careers/Careers';
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
-const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution")); 
-const InterviewAction  = lazy(() => import("../pages/HomePagesPage/Careers/InterviewAction"))
+import Solution from '../pages/HomePagesPage/Solution/Solution';
+import InterviewAction from '../pages/HomePagesPage/Careers/InterviewAction';
 
 /* Activity Details */
-const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
-const CareerDetails = lazy(() => import('../pages/HomePagesPage/Careers/components/JobPage'))
-const UserForm = lazy(() => import('../pages/HomePagesPage/UserForm/UserForm'));
+import ActivitiesDetails from '../pages/HomePagesPage/Activities/components/ActivitiesDetails';
+import CareerDetails from '../pages/HomePagesPage/Careers/components/JobPage';
+import UserForm from '../pages/HomePagesPage/UserForm/UserForm';
 
 /* MainLayout */
-const MainLayout = lazy(() => import ("../layout/EcommerceLayout"));
-const MainDashboard = lazy(() => import ('../pages/EcommerceLayout/Dashboard/Dashboard'));
-const MainProduct = lazy(() => import('../pages/EcommerceLayout/Product/Products'));
-const MainProductForm = lazy (() => import ('../pages/EcommerceLayout/Product/ProductForm'));
-const MainCategory = lazy(() => import('../pages/EcommerceLayout/Category/Category'));
-const MainCategoryForm = lazy (() => import ('../pages/EcommerceLayout/Category/CategoryForm'));
-const MainMyAccount = lazy(() => import("../pages/EcommerceLayout/MyAccount/MyAccount"));
-const FeaturedProduct = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts'))
-const FeaturedProductForm = lazy(() => import('../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm'))
-// const Employee = lazy(() => import ('../pages/EcommerceLayout/Employee/Employee'));
-// const EmployeeForm = lazy(() => import ('../pages/EcommerceLayout/Employee/EmployeeForm'));
-// const MainSolutionsOverview = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverview"));
-// const MainSolutionsOverviewForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/SolutionsOverview/SolutionsOverviewForm"));
-// const MainSalesBanner = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManager"));
-// const MainSalesBannerForm = lazy(() => import("../pages/EcommerceLayout/HomePageDesign/BannerManager/BannerManagerForm"));
- 
+import MainLayout from '../layout/EcommerceLayout';
+import MainDashboard from '../pages/EcommerceLayout/Dashboard/Dashboard';
+import MainProduct from '../pages/EcommerceLayout/Product/Products';
+import MainProductForm from '../pages/EcommerceLayout/Product/ProductForm';
+import MainCategory from '../pages/EcommerceLayout/Category/Category';
+import MainCategoryForm from '../pages/EcommerceLayout/Category/CategoryForm';
+import MainMyAccount from '../pages/EcommerceLayout/MyAccount/MyAccount';
+import FeaturedProduct from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts';
+import FeaturedProductForm from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm';
+
 /* Technician */
-const TechnicianLayout = lazy(() => import ("../layout/TechnicianLayout")); 
-const TechnicianAccount = lazy(() => import('../pages/TechnicianPage/MyAccount/MyAccount')) 
-const TechnicianCategory = lazy(() => import ('../pages/TechnicianPage/Category/Category'))
-const TechnicianProduct = lazy(() => import('../pages/TechnicianPage/Product/Product'))
-const TechnicianDashboard = lazy(() => import("../pages/TechnicianPage/Dashboard/Dashboard"))
-const TechnicianUsers = lazy(() => import('../pages/TechnicianPage/Users/Users')); 
-const TechnicianFaqs = lazy(() => import('../pages/TechnicianPage/Faqs/faqs'))
-const TechnicianUsersForm = lazy(() => import('../pages/TechnicianPage/Users/UsersForm')) 
-const TechnicianPosition = lazy(() => import('../pages/TechnicianPage/Position/Position'))
-const TechnicianInquiries = lazy(() => import('../pages/TechnicianPage/Inquiries/Inquiries'))
-const TechnicianTicketForm = lazy(() => import('../pages/TechnicianPage/Ticket/TicketForm'))
-const TechnicianOrganization = lazy(() => import('../pages/TechnicianPage/Organization/Organization'))
-const TechnicianIssueType = lazy(() => import ('../pages/TechnicianPage/Issue/Issue'))
-const TechnicianInquiriesReply = lazy(() => import("../pages/TechnicianPage/Inquiries/InquriesReplyMessage"))
-import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';   
-import Projects from '../pages/HomePagesPage/Projects/Projects'; 
+import TechnicianLayout from '../layout/TechnicianLayout';
+import TechnicianAccount from '../pages/TechnicianPage/MyAccount/MyAccount';
+import TechnicianCategory from '../pages/TechnicianPage/Category/Category';
+import TechnicianProduct from '../pages/TechnicianPage/Product/Product';
+import TechnicianDashboard from '../pages/TechnicianPage/Dashboard/Dashboard';
+import TechnicianUsers from '../pages/TechnicianPage/Users/Users';
+import TechnicianFaqs from '../pages/TechnicianPage/Faqs/faqs';
+import TechnicianUsersForm from '../pages/TechnicianPage/Users/UsersForm';
+import TechnicianPosition from '../pages/TechnicianPage/Position/Position';
+import TechnicianInquiries from '../pages/TechnicianPage/Inquiries/Inquiries';
+import TechnicianTicketForm from '../pages/TechnicianPage/Ticket/TicketForm';
+import TechnicianOrganization from '../pages/TechnicianPage/Organization/Organization';
+import TechnicianIssueType from '../pages/TechnicianPage/Issue/Issue';
+import TechnicianRejectedNote from '../pages/TechnicianPage/RejectedNote/RejectedNote';
+import TechnicianInquiriesReply from '../pages/TechnicianPage/Inquiries/InquriesReplyMessage';
+import TechnicianEmailConversationApp from '../pages/TechnicianPage/Home/EmailConversationApp';
+import Projects from '../pages/HomePagesPage/Projects/Projects';
 import Activities from '../pages/HomePagesPage/Activities/Activities';
-const TechnicianApplicant = lazy(() => import ('../pages/TechnicianPage/Applicants/Applicants'))
-const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPosting"))
-const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
-const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Applicants/ApplicantsEmail'))
-const TechnicianAuditLogs = lazy(() => import('../pages/TechnicianPage/AuditLogs/AuditLogs'))
-const TechnicianApplicantsInterviewList = lazy(() => import('../pages/TechnicianPage/Applicants/Interview'));
+import TechnicianApplicant from '../pages/TechnicianPage/Applicants/Applicants';
+import TechnicianJobPosting from '../pages/TechnicianPage/JobPosting/JobPosting';
+import TechnicianJobPostingForm from '../pages/TechnicianPage/JobPosting/JobPostingForm';
+import TechnicianApplicantEmail from '../pages/TechnicianPage/Applicants/ApplicantsEmail';
+import TechnicianAuditLogs from '../pages/TechnicianPage/AuditLogs/AuditLogs';
+import TechnicianApplicantsInterviewList from '../pages/TechnicianPage/Applicants/Interview';
 
 /* Conversation */
-const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
-const ConversationDetails = lazy(() => import('../pages/EmailCoversationPublic/Home'))
-
+import ConversationLayout from '../layout/EmailConversationLayout';
+import ConversationDetails from '../pages/EmailCoversationPublic/Home';
 // user
 
 const routes = [
@@ -267,6 +260,10 @@ const routes = [
             {
                 path: 'issue',
                 element: <TechnicianIssueType />
+            },
+            {
+                path: 'rejected-note',
+                element: <TechnicianRejectedNote />
             },
             {
                 path: 'position',

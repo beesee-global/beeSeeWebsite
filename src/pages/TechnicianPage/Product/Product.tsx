@@ -329,7 +329,7 @@ const Product = () => {
             <CustomSearchField
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder='Search products...'
+              placeholder='Search...'
               className="w-full"
             />
           </div>
