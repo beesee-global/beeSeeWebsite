@@ -56,17 +56,10 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
     quickTimeOptions.filter((timeOption) => formData.time.includes(timeOption));
 
   const handleQuickTimeToggle = (timeOption: string) => {
-    const selectedQuickTimes = getSelectedQuickTimes();
-    const isAlreadySelected = selectedQuickTimes.includes(timeOption);
-
-    const updatedTimes = isAlreadySelected
-      ? selectedQuickTimes.filter((time) => time !== timeOption)
-      : [...selectedQuickTimes, timeOption];
-
-    setFormData((prev) => ({
+     setFormData((prev) => ({
       ...prev,
-      time: updatedTimes,
-    }));
+      time: prev.time[0] === timeOption ? [] : [timeOption]
+     }))
     setFormError((prev) => ({ ...prev, time: '' }));
   };
 
@@ -225,7 +218,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
                 </label>
                 <div className='mb-3 flex flex-wrap gap-2 w-full items-center justify-center'>
                   {quickTimeOptions.map((timeOption) => {
-                    const isActive = getSelectedQuickTimes().includes(timeOption);
+                    const isActive =  formData.time[0] === timeOption
 
                     return (
                       <button

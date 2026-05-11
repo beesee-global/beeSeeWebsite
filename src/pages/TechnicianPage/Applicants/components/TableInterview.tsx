@@ -23,19 +23,14 @@ const COLORS = {
   textMuted: '#6b7280',
 }
 
-const TYPOGRAPHY = {
-  headerSize: 'text-sm',
-  headerWeight: 'font-medium',
-  dateSize: 'text-xs',
-}
-
 const SPACING = {
-  containerPadding: 'p-4',
+  containerPadding: 'p-3 md:p-4',
   rowPadding: 'py-2.5 px-3',
 }
 
 const RADIUS = {
   container: 'rounded-lg',
+  button: 'rounded-md',
   row: 'rounded-md',
 }
 
@@ -261,14 +256,41 @@ export default function TableInterview({
   const renderCell = (row: RowData, column: ColumnConfig) => {
 
     if (column.id === 'full_name') {
+      const canReschedule = row.status !== 'Pending' && row.status_applicant === 'SHORTLISTED'
+
       return (
-         <button
-          type="button"
-          onClick={() => downloadFile(row.attachment_url, 'view')}
-          className="truncate text-left text-sm text-gray-900 hover:underline"
-         >
-          {row[column.id]}
-        </button>
+        <div className="flex items-center gap-3 min-w-0">
+          {canReschedule ? (
+            <button
+              type="button"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800 hover:shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDisplayDialog(row.id)
+              }}
+              title="Reschedule interview"
+              aria-label="Reschedule interview"
+            >
+              <CalendarClock size={16} strokeWidth={2.25} />
+            </button>
+          ) : (
+            <span className="h-8 w-8 shrink-0" aria-hidden="true" />
+          )}
+
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                downloadFile(row.attachment_url, 'view')
+              }}
+              className="block max-w-[220px] truncate text-left text-sm font-medium text-gray-900 hover:underline"
+              title={String(row[column.id] ?? '')}
+            >
+              {row[column.id]}
+            </button> 
+          </div>
+        </div>
       )
     }
     
@@ -277,41 +299,33 @@ export default function TableInterview({
 
       return (
         <div className="flex flex-col">
-          <span className="text-sm text-slate-900">{formatDate(row.schedule_date)}</span>
-          <span className="text-xs text-slate-500">{scheduleTime}</span>
+          <span className="text-sm text-gray-900">{formatDate(row.schedule_date)}</span>
+          <span className="text-xs text-gray-500">{scheduleTime}</span>
         </div>
       )
     }
 
     if (column.id === 'created_at') {
       return (
-        <div className='flex gap-2 items-center'>
-          <span className="text-sm text-slate-900">
-            {formatDate(row[column.id])}
-          </span>
-
-          {row.status === 'Cancelled' && row.status_applicant === 'SHORTLISTED' && (
-            <button 
-              className='bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105 p-2 rounded-md'
-              onClick={() => handleDisplayDialog(row.id)}
-              title='Reschedule'
-            >
-              <CalendarClock className='w-4 h-4' />
-            </button>
-          )}
-        </div>
+        <span className="text-sm text-gray-500">
+          {formatDate(row[column.id])}
+        </span>
       )
     }   
 
     if (column.id === 'status') {
       const { label, classes } = getStatusConfig(row.status)
-      return <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${classes}`}>{label}</span>
+      return (
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}>
+          {label}
+        </span>
+      )
     }
 
     if (column.id === 'is_already_responded') {
       return (
         <span
-          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
             row.is_already_responded === 1
               ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
               : 'bg-slate-100 text-slate-700 border border-slate-200'
@@ -340,6 +354,7 @@ export default function TableInterview({
               { value: 'SHORTLISTED', label: 'SHORTLISTED' },
               { value: 'HIRED', label: 'HIRED' },
               { value: 'REJECTED', label: 'REJECTED' },
+              { value: 'CLOSED', label: 'CLOSED' },
             ]}
           />
           {updatingRowId === row.id && (
@@ -349,12 +364,16 @@ export default function TableInterview({
       )
     }
 
-    return <span className="text-sm text-slate-900">{row[column.id] ?? '-'}</span>
+    return (
+      <div className="text-sm text-gray-900 truncate max-w-[200px]">
+        {row[column.id] ?? '-'}
+      </div>
+    )
   }
 
   const handleEmailSubmit = async (emailData: { 
     location: string;
-    time: string;
+    time: string[];
     date: string;
     schedule: string;
     format: string
@@ -412,14 +431,15 @@ export default function TableInterview({
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: COLORS.background }}>
-        <div className="w-full mx-auto p-6">
-          <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="rounded-full h-12 w-12 border-b-2 border-gray-900 animate-spin"></div>
-              <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                Loading interview schedules...
-              </p>
-            </div>
+        <div className="w-full mx-auto p-4 md:p-6">
+          <div
+            className={`${RADIUS.container} ${SPACING.containerPadding} border flex flex-col items-center justify-center py-16`}
+            style={{ background: COLORS.surface, borderColor: COLORS.border }}
+          >
+            <div className="rounded-full h-12 w-12 border-b-2 border-gray-900 animate-spin"></div>
+            <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
+              Loading interview schedules...
+            </p>
           </div>
         </div>
       </div>
@@ -439,46 +459,51 @@ export default function TableInterview({
       />
 
       <div className="w-full mx-auto">
-        <div className={`${RADIUS.container} ${SPACING.containerPadding} border`} style={{ background: COLORS.surface, borderColor: COLORS.border }}>
-          <div className="flex flex-col lg:flex-row    lg:justify-between">
-            <div className="flex flex-wrap ">
-              {['All', 'Pending', 'Confirmed', 'Cancelled'].map((status) => {
-                const isActive = statusFilter === status
+        <div
+          className={`${RADIUS.container} ${SPACING.containerPadding} border p-4 mb-4`}
+          style={{ background: COLORS.surface, borderColor: COLORS.border }}
+        >
+          <div className="border-b">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap">
+                {['All', 'Pending', 'Confirmed', 'Cancelled'].map((status) => {
+                  const isActive = statusFilter === status
 
-                return (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => {
-                      setStatusFilter(status)
-                      setPage(0)
-                    }}
-                    className={`border-b px-4 py-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'text-yellow-500 border-yellow-500'
-                        : 'border-gray-200 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {status}
-                  </button>
-                )
-              })}
-            </div>
+                  return (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter(status)
+                        setPage(0)
+                      }}
+                      className={`py-2 px-4 border-b transition text-sm font-medium ${
+                        isActive
+                          ? 'text-yellow-500 border-yellow-500'
+                          : 'border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  )
+                })}
+              </div>
 
-            <div className="w-full lg:w-[280px]">
-              <CustomSelectField 
-                name='job_category'
-                placeholder='Filter by job position'
-                value={jobCategory}
-                onChange={(e) => {
-                  setJobCategory(e.target.value)
-                  setPage(0)
-                }}
-                options={jobOptions}
-              />
+              <div className="w-full pb-3 lg:w-[280px] lg:pb-0">
+                <CustomSelectField
+                  name='job_category'
+                  placeholder='Filter by job position'
+                  value={jobCategory}
+                  onChange={(e) => {
+                    setJobCategory(e.target.value)
+                    setPage(0)
+                  }}
+                  options={jobOptions}
+                />
+              </div>
             </div>
           </div>
-          <div className="overflow-x-auto border-t border-gray-200 p-3">
+          <div className="overflow-x-auto p-3">
             {isError ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
@@ -509,8 +534,8 @@ export default function TableInterview({
                           }`}
                         >
                           <span>{column.label}</span>
-                          {column.sortable !== false && orderBy === column.id && order === 'asc' && (
-                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                          {column.sortable !== false && orderBy === column.id && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
                           )}
                         </div>
                       </th>
@@ -534,7 +559,7 @@ export default function TableInterview({
                         {columns.map((column) => (
                           <td
                             key={column.id}
-                            className={`px-4 py-2 align-middle ${
+                            className={`px-4 py-3 align-middle ${
                               column.align === 'right' ? 'text-right' : 'text-left'
                             }`}
                           >
@@ -551,37 +576,21 @@ export default function TableInterview({
 
           <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">
             <div className="flex items-center gap-6">
-              <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
+              <span className="text-xs text-gray-500">
                 {filteredRows.length > 0 ? `${startIndex}-${endIndex} of ${filteredRows.length}` : '0 items'}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  style={{
-                    padding: '6px',
-                    borderRadius: '6px',
-                    opacity: page === 0 ? 0.3 : 1,
-                    cursor: page === 0 ? 'not-allowed' : 'pointer',
-                    color: COLORS.text,
-                    background: '#f3f4f6',
-                    border: 'none',
-                  }}
+                  className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page === totalPages - 1 || filteredRows.length === 0}
-                  style={{
-                    padding: '6px',
-                    borderRadius: '6px',
-                    opacity: page === totalPages - 1 || filteredRows.length === 0 ? 0.3 : 1,
-                    cursor: page === totalPages - 1 || filteredRows.length === 0 ? 'not-allowed' : 'pointer',
-                    color: COLORS.text,
-                    background: '#f3f4f6',
-                    border: 'none',
-                  }}
+                  disabled={page >= totalPages - 1 || filteredRows.length === 0}
+                  className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={18} />
                 </button>

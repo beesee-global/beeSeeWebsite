@@ -147,7 +147,7 @@ const Interview = () => {
             <CustomSearchField 
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder='Search...'
+                placeholder='Search by name...'
                 className='w-full'
             />
         </div>

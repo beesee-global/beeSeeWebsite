@@ -25,10 +25,7 @@ const Inquiries = () => {
   const navigate = useNavigate();
   const {
     userInfo
-  } = userAuth()
-
-
-
+  } = userAuth() 
 
   const columns = [
     { id: 'name', label: 'Name', sortable: true },
@@ -106,48 +103,7 @@ const Inquiries = () => {
       i.name.toLowerCase().includes(debouncedSearch.toLowerCase())
     )
   }, [rows, debouncedSearch])
-
-/*   // Export to CSV
-  const handleExportCSV = () => {
-    if (inquiries.length === 0) {
-      setSnackBarMessage('No data to export');
-      setSnackBarType('warning');
-      setSnackBarOpen(true);
-      return;
-    }
-
-    // Create CSV content
-    const headers = ['Name', 'Email', 'Contact Number', 'Company', 'Position', 'Solution', 'Description', 'Created At'];
-    const csvContent = [
-      headers.join(','),
-      ...inquiries.map((row: any) => [
-        row.name || '',
-        row.email || '',
-        row.contact_number || '',
-        row.company || '',
-        row.position || '',
-        row.solution || '',
-        `"${(row.description || '').replace(/"/g, '""')}"`, // Escape quotes in description
-        new Date(row.created_at).toLocaleDateString()
-      ].join(','))
-    ].join('\n');
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `inquiries_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setSnackBarMessage('Inquiries exported successfully');
-    setSnackBarType('success');
-    setSnackBarOpen(true);
-  }; */
-
+ 
   const isLoading = isPendingLoading || isCompletedLoading
 
   useEffect(() => {
@@ -203,7 +159,7 @@ const Inquiries = () => {
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search inquiries..."
+              placeholder="Search by name..."
               className="w-full"
             />
           </div>
