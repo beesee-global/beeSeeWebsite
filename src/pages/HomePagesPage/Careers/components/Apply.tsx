@@ -325,7 +325,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 Application Submitted Successfully!
               </h3>
               <p className="bee-body max-w-md mx-auto">
-                Thank you for applying to BEESEE. Our HR team will review your application
+                Thank you for applying to BEESEE GLOBAL TECHNOLOGIES, INC. Our HR team will review your application
                 and get back to you within 5-7 business days.
               </p>
             </div>
