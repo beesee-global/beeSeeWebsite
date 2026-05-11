@@ -299,7 +299,7 @@ const Home = () => {
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search..."
+              placeholder="Search by job no..."
               className="h-10 sm:h-11 w-full"
               suggestions={listTicketNumber}
               onSuggestionSelect={handleSearchSuggestionSelect}

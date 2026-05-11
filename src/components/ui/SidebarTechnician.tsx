@@ -49,6 +49,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 { id: 'device', name: 'Device type', path: '/beesee/device' },
                 { id: 'model', name: 'Model type', path: '/beesee/model' },
                 { id: 'issue', name: 'Issue type', path: '/beesee/issue' }, 
+                { id: 'rejected-note', name: 'Rejected Note', path: '/beesee/rejected-note' },
             ],
         },
         { id: 'faqs', name: 'Faqs', path: '/beesee/faqs', isUnderLineTop: true, icon: <MessageCircleQuestionMark size={20} /> },

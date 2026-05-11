@@ -1,11 +1,11 @@
 import React from 'react'
 import { 
+  Autocomplete,
   TextField, 
   MenuItem, 
   InputAdornment 
 } from "@mui/material"
-import { careersList } from "../../services/Technician/careersServices"
-import { useQuery } from '@tanstack/react-query'
+
 interface Option {
   value: string,
   label: string,
@@ -21,6 +21,9 @@ interface CustomSelectFieldProps {
   options: Option[];
   error?: boolean;
   helperText?: string;
+  disabled?: boolean;
+  freeSolo?: boolean;
+  maxLength?: number;
 }
 
 const CustomSelectField: React.FC <CustomSelectFieldProps> = ({ 
@@ -31,14 +34,11 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
   icon,
   options,
   error = false,
-  helperText = ""
+  helperText = "",
+  disabled = false,
+  freeSolo = false,
+  maxLength
  }) => {
-
-  const { data, isError, isLoading } = useQuery({
-    queryKey: ['job-list'],
-    queryFn: careersList
-  });
-
   const textFieldSx = {
     backgroundColor: "#f5f5f5",
     borderRadius: "6px",
@@ -62,6 +62,73 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
     },
   };
 
+  const selectedOption = options.find((option) => option.value === value) || null;
+
+  const buildChangeEvent = (newValue: string | number) => ({
+    target: { name, value: newValue },
+  } as React.ChangeEvent<HTMLInputElement>);
+
+  if (freeSolo) {
+    return (
+      <div className='w-full'>
+        <Autocomplete<Option, false, false, true>
+          freeSolo
+          disabled={disabled}
+          options={options}
+          value={selectedOption || String(value || '')}
+          inputValue={String(value || '')}
+          getOptionLabel={(option) => typeof option === 'string' ? option : option.label}
+          isOptionEqualToValue={(option, currentValue) => (
+            typeof currentValue !== 'string' && option.value === currentValue.value
+          )}
+          onChange={(_, selectedValue) => {
+            const newValue = typeof selectedValue === 'string'
+              ? selectedValue
+              : selectedValue?.value || '';
+
+            onChange(buildChangeEvent(newValue));
+          }}
+          onInputChange={(_, inputValue, reason) => {
+            if (reason === 'reset') return;
+            onChange(buildChangeEvent(inputValue));
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              name={name}
+              placeholder={placeholder}
+              margin='dense'
+              fullWidth
+              size='small'
+              sx={textFieldSx}
+              error={error}
+              inputProps={{
+                ...params.inputProps,
+                maxLength,
+              }}
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {icon && (
+                      <InputAdornment position='end'>
+                        {icon}
+                      </InputAdornment>
+                    )}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
+        {helperText && (
+          <p className='text-red-500 text-sm mt-1 ml-2'>{helperText}</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className='w-full'>
       <TextField
@@ -73,6 +140,8 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
       value={value}
       sx={textFieldSx}
       onChange={onChange}
+      disabled={disabled}
+      inputProps={{ maxLength }}
       SelectProps={{
         displayEmpty: true,
         renderValue: (selected) => {
@@ -81,7 +150,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
           } 
           const selectOption = options.find((opt) => opt.value === selected)
 
-          return selectOption ? selectOption.label : selected
+          return selectOption ? selectOption.label : String(selected)
         },
       }}
       InputProps={{

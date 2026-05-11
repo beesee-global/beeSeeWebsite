@@ -315,7 +315,7 @@ const Faqs = () => {
             <CustomSearchField 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search FAQs..."
+              placeholder="Search by title..."
               className="w-full"
             />
           </div>

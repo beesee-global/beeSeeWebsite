@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Send, 
   CheckCircle2, 
@@ -46,7 +46,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDraggingResume, setIsDraggingResume] = useState(false);
-  const [isDraggingPortfolio, setIsDraggingPortfolio] = useState(false);
+  const portfolioInputRef = useRef<HTMLInputElement>(null);
 
   const {
     setSnackBarMessage,
@@ -120,19 +120,16 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   const handleDragOver = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
     if (field === 'resume') setIsDraggingResume(true);
-    else setIsDraggingPortfolio(true);
   };
 
   const handleDragLeave = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
     if (field === 'resume') setIsDraggingResume(false);
-    else setIsDraggingPortfolio(false);
   };
 
   const handleDrop = (field: FileField) => (e: React.DragEvent) => {
     e.preventDefault();
     if (field === 'resume') setIsDraggingResume(false);
-    else setIsDraggingPortfolio(false);
     
     const file = e.dataTransfer.files[0];
     if (file) {
@@ -159,7 +156,10 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
   };
 
   const removePortfolio = () => {
-    setFormData({ ...formData, port_folio: null });
+    setFormData((prev) => ({ ...prev, port_folio: null }));
+    if (portfolioInputRef.current) {
+      portfolioInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async() => {
@@ -515,42 +515,49 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
                   Portfolio url (Optional)
                 </label>
-                <input
-                  type="text"
-                  required
-                  className="input-default"
-                  placeholder="https://portfolio.vercel.app"
-                  value={formData.port_polio_link}
-                  onChange={(e) => setFormData({ ...formData, port_polio_link: e.target.value })}
-                />
-              </div>
+                <div className='flex gap-4'>
+                  <input
+                    type="text"
+                    className="input-default"
+                    placeholder="https://portfolio.vercel.app"
+                    value={formData.port_polio_link}
+                    onChange={(e) => setFormData({ ...formData, port_polio_link: e.target.value })}
+                  />
 
-              <div>
-                <label className="block bee-body-sm mb-3 font-medium" style={{ color: 'var(--muted)' }}>
-                  Upload Portfolio (Optional)
-                </label>
-                
+                  <input
+                    ref={portfolioInputRef}
+                    type="file"
+                    id="portfolio-upload"
+                    accept=".pdf,.txt,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif"
+                    onChange={handleFileChange('port_folio')}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => portfolioInputRef.current?.click()}
+                    aria-label="Upload portfolio file"
+                    title="Upload portfolio file"
+                    className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(253, 204, 0, 0.3)'
+                    }}
+                  >
+                    <Upload size={22} style={{ color: 'var(--beesee-gold)' }}/>
+                  </button>
+                </div>
                 {formData.port_folio ? (
-                  // Resume Uploaded State
                   <div
-                    className="p-5 rounded-xl flex items-center justify-between"
+                    className="mt-3 p-3 rounded-xl flex items-center justify-between gap-3"
                     style={{
                       background: 'rgba(253, 204, 0, 0.08)',
                       border: '1px solid rgba(253, 204, 0, 0.3)'
                     }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center"
-                        style={{
-                          background: 'rgba(253, 204, 0, 0.15)',
-                          border: '1px solid rgba(253, 204, 0, 0.4)'
-                        }}
-                      >
-                        <FileText size={24} style={{ color: 'var(--beesee-gold)' }} />
-                      </div>
-                      <div>
-                        <p className="bee-body-sm font-medium" style={{ color: 'var(--text-light)' }}>
+                    <div className="min-w-0 flex items-center gap-3">
+                      <FileText size={18} className="shrink-0" style={{ color: 'var(--beesee-gold)' }} />
+                      <div className="min-w-0">
+                        <p className="bee-body-sm font-medium truncate" style={{ color: 'var(--text-light)' }}>
                           {formData.port_folio.name}
                         </p>
                         <p className="bee-body-sm" style={{ color: 'var(--muted)', fontSize: '13px' }}>
@@ -559,76 +566,16 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={removePortfolio}
-                      className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:bg-red-500/20"
+                      className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all hover:bg-red-500/20"
                       style={{ color: '#ff6b6b' }}
+                      aria-label="Remove portfolio file"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
                   </div>
-                ) : (
-                  // Upload Drop Zone
-                  <div
-                    onDragOver={handleDragOver('port_folio')}
-                    onDragLeave={handleDragLeave('port_folio')}
-                    onDrop={handleDrop('port_folio')}
-                    className="relative"
-                  >
-                    <input
-                      type="file"
-                      id="portfolio-upload"
-                      accept=".pdf, 
-                      .txt,
-                      .xls,
-                      .xlsx,
-                      application/pdf,
-                      application/msword,
-                      application/vnd.openxmlformats-officedocument.wordprocessingml.document,
-                      text/plain,
-                      application/vnd.ms-excel,
-                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
-                      .jpg,
-                      .jpeg,
-                      .png,
-                      .gif,
-                      image/jpeg,
-                      image/png,
-                      image/gif
-                      "
-                      onChange={handleFileChange('port_folio')}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="portfolio-upload"
-                      className="block p-8 rounded-xl text-center cursor-pointer transition-all duration-300"
-                      style={{
-                        background: isDraggingPortfolio 
-                          ? 'rgba(253, 204, 0, 0.12)' 
-                          : 'rgba(255, 255, 255, 0.04)',
-                        border: isDraggingPortfolio
-                          ? '2px dashed rgba(253, 204, 0, 0.5)'
-                          : '2px dashed rgba(255, 255, 255, 0.1)',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <div
-                        className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'rgba(253, 204, 0, 0.12)',
-                          border: '1px solid rgba(253, 204, 0, 0.3)'
-                        }}
-                      >
-                        <Upload size={26} style={{ color: 'var(--beesee-gold)' }} />
-                      </div>
-                      <p className="bee-body mb-2" style={{ color: 'var(--text-light)' }}>
-                        {isDraggingPortfolio ? 'Drop your file here' : 'Click to upload or drag and drop'}
-                      </p>
-                      <p className="bee-body-sm" style={{ color: 'var(--muted)' }}>
-                       Upload PDF or image (max 10 MB)
-                      </p>
-                    </label>
-                  </div>
-                )}
+                ) : null}
               </div>
 
               {/* Submit Button */}
