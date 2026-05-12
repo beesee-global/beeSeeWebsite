@@ -55,12 +55,11 @@ const CustomTextFieldAutoCamelCase: React.FC<CustomTextFieldProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let newValue = e.target.value;
 
-    // Convert each word to Title Case unless field is email/password.
+    // Convert to sentence case unless field is email/password.
     if (!['email', 'password'].includes(name) && newValue.length > 0) {
-      newValue = newValue.replace(/\S+/g, (word) => {
-        if (!word.length) return word;
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      });
+      newValue = newValue
+        .toLowerCase()
+        .replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, (match) => match.toUpperCase());
     }
 
     const syntheticEvent = {
