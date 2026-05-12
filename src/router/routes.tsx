@@ -21,6 +21,7 @@ const ProductsHub = lazy(() => import("../pages/HomePagesPage/Products-hub/Produ
 const Careers = lazy(() => import("../pages/HomePagesPage/Careers/Careers"));
 import TechnicianHome from '../pages/TechnicianPage/Home/Home';
 const Solution = lazy(() => import("../pages/HomePagesPage/Solution/Solution")); 
+const InterviewAction  = lazy(() => import("../pages/HomePagesPage/Careers/InterviewAction"))
 
 /* Activity Details */
 const ActivitiesDetails = lazy(() => import('../pages/HomePagesPage/Activities/components/ActivitiesDetails'));
@@ -67,6 +68,7 @@ const TechnicianJobPosting = lazy(() => import("../pages/TechnicianPage/JobPosti
 const TechnicianJobPostingForm = lazy(() => import("../pages/TechnicianPage/JobPosting/JobPostingForm"))
 const TechnicianApplicantEmail = lazy(() => import('../pages/TechnicianPage/Applicants/ApplicantsEmail'))
 const TechnicianAuditLogs = lazy(() => import('../pages/TechnicianPage/AuditLogs/AuditLogs'))
+const TechnicianApplicantsInterviewList = lazy(() => import('../pages/TechnicianPage/Applicants/Interview'));
 
 /* Conversation */
 const ConversationLayout = lazy(() => import ("../layout/EmailConversationLayout"));
@@ -159,6 +161,10 @@ const routes = [
             {
                 path:  "forget-password",
                 element: <ForgetPassword />
+            },
+            {
+                path: "/applicants/action",
+                element: <InterviewAction  />
             }
         ]
     },
@@ -306,6 +312,10 @@ const routes = [
                 path:  "job-posting",
                 element: <TechnicianJobPosting />
             }, 
+            {
+                path: "applicant/interview",
+                element: <TechnicianApplicantsInterviewList />
+            },
             {
                 path:  "job-posting/applicants/:id",
                 element: <TechnicianApplicant />

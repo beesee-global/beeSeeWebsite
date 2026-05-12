@@ -4,7 +4,8 @@ import {
   MenuItem, 
   InputAdornment 
 } from "@mui/material"
-
+import { careersList } from "../../services/Technician/careersServices"
+import { useQuery } from '@tanstack/react-query'
 interface Option {
   value: string,
   label: string,
@@ -33,10 +34,16 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
   helperText = ""
  }) => {
 
+  const { data, isError, isLoading } = useQuery({
+    queryKey: ['job-list'],
+    queryFn: careersList
+  });
+
   const textFieldSx = {
     backgroundColor: "#f5f5f5",
     borderRadius: "6px",
     "& .MuiOutlinedInput-root": {
+      fontSize: "14px",
       '& fieldset': {
         borderColor: error ? 'red' : '#d1d5db', // gray-300 by default
       },
@@ -89,7 +96,9 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
         options.map((option) => (
         <MenuItem 
           key={option.value} 
-          value={option.value}>
+          value={option.value}
+           sx={{ fontSize: '14px' }}
+          >
           {option.label}
         </MenuItem>
       ))

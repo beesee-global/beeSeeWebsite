@@ -241,7 +241,10 @@ const CustomerSupportForm = () => {
       <ImageUploadModal 
         open={openUploadModal} 
         onClose={() => setOpenUploadModal(false)} 
-        onSubmit={handleImageSubmit} 
+        onSubmit={handleImageSubmit}
+        accept="image/*,video/*"
+        title="Image or Video Upload"
+        helperText="Upload an image or video file up to 10 MB."
       />
 
       {/* ✨ Animated Container */}
@@ -404,7 +407,7 @@ const CustomerSupportForm = () => {
               onClick={() => setOpenUploadModal(true)}
               className="w-full text-center p-4 border border-gray-300 bg-[#f5f5f5] rounded-[6px] cursor-pointer text-gray-500 hover:text-gray-700 hover:border-gray-700 font-semibold"
             >
-              {uploadedImage.file ? 'File Uploaded ✓' : 'File Upload (Optional)'}
+              {uploadedImage.file ? 'Media Uploaded' : 'Image / Video Upload (Optional)'}
             </div>
           </motion.div>
 

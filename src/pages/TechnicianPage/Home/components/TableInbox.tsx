@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+  import React, { useState, useMemo, useEffect } from 'react';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import { userAuth } from '../../../../hooks/userAuth';
 import { excelGenerate } from '../../../../utils/exportExcel'; 
@@ -40,7 +40,7 @@ const TYPOGRAPHY = {
 };
 
 const SPACING = {
-  containerPadding: 'p-3 md:p-4',
+  containerPadding: 'pr-3 pl-3 pt-2',
   rowPadding: 'py-2.5 px-3', 
   gap: 'gap-3',
 };
@@ -354,15 +354,14 @@ export default function TableInbox({
       >
         
         {/* Filter Section */}
-        <div className="border-b pb-3 mb-3" style={{ borderColor: COLORS.border }}>
-          <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
-            
-            <div className="flex gap-2">
+        <div className="border-b flex flex-col gap-3 md:flex-row md:justify-between md:items-end" style={{ borderColor: COLORS.border }}>
+          <div className='flex flex-col md:flex-row md:items-end md:justify-between gap-3 -mb-px'>
+            <div className="flex flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setStatusFilter("Pending")}
-                className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                   ${statusFilter === "Pending" 
-                    ? "bg-yellow-500 text-white border-yellow-500" 
+                    ? "text-yellow-500 border-yellow-500" 
                     : "border-gray-200 text-gray-700 hover:bg-gray-100"
                   }`}
               >
@@ -371,9 +370,9 @@ export default function TableInbox({
 
               <button
                 onClick={() => setStatusFilter("Ongoing")}
-                className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                   ${statusFilter === "Ongoing" 
-                    ? "bg-yellow-500 text-white border-yellow-500" 
+                    ? "text-yellow-500 border-yellow-500" 
                     : "border-gray-200 text-gray-700 hover:bg-gray-100"
                   }`}
               >
@@ -382,9 +381,9 @@ export default function TableInbox({
 
               <button
                 onClick={() => setStatusFilter("Completed")}
-                className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                   ${statusFilter === "Completed" 
-                    ? "bg-yellow-500 text-white border-yellow-500" 
+                    ? "text-yellow-500 border-yellow-500" 
                     : "border-gray-200 text-gray-700 hover:bg-gray-100"
                   }`}
               >
@@ -395,9 +394,9 @@ export default function TableInbox({
                 <button
                   onClick={() => setStatusFilter("Closed")}
                   title='Closed mean all job order that already closed'
-                  className={`flex-1 md:flex-none py-2 px-4 border rounded-md transition text-sm font-medium
+                  className={`flex-1 md:flex-none py-2 px-4 border-b transition text-sm font-medium
                     ${statusFilter === "Closed" 
-                      ? "bg-yellow-500 text-white border-yellow-500" 
+                      ? "text-yellow-500 border-yellow-500" 
                       : "border-gray-200 text-gray-700 hover:bg-gray-100"
                     }`}
                 >
@@ -405,22 +404,23 @@ export default function TableInbox({
                 </button>
               )}
             </div>
+          </div> 
 
-            <div className="flex gap-2 items-center w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center pb-2 w-full md:w-auto">
               {jobOrderPermission?.actions.includes('close_job_order') && (
-                <div>
+                <div className="w-full sm:w-auto">
                   <button 
                     onClick={handleExcelExport}
                     title='Export excel'
                     style={{ padding: "9px 15px 9px 15px" }}
-                    className='flex gap-2 items-center bg-green-200 text-green-700 rounded-md hover:bg-green-300 transition-colors text-sm font-medium'>
+                    className='flex w-full sm:w-auto justify-center gap-2 items-center bg-green-200 text-green-700 rounded-md hover:bg-green-300 transition-colors text-sm font-medium'>
                     <Sheet size={16} />
                     Export
                 </button>
               </div>
               )}
               
-              <div>
+              <div className="w-full sm:min-w-[120px]">
                 <CustomSelectField 
                   name="organization" 
                   value={organization} 
@@ -430,8 +430,6 @@ export default function TableInbox({
                 />
               </div>
             </div>
-
-          </div>
         </div>
  
         {/* Mobile Card View */}

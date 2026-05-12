@@ -19,7 +19,7 @@ const HomePageLayout = () => {
   const lastScrollY = useRef(0);
 
   const hideLayoutRoutes = []; 
-  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form", "/sign-in"];
+  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form", "/sign-in", "/applicants/action"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)

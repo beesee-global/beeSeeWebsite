@@ -3,9 +3,6 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Mail,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react';
 
 // ============================================
@@ -60,9 +57,21 @@ const formatDate = (dateString: string) => {
 };
 
 // Sorting comparator
+function normalizeSortValue(value: any) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item : item?.name ?? ''))
+      .join(', ');
+  }
+  if (value === null || value === undefined) return '';
+  return value;
+}
+
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  const aValue = a[orderBy];
-  const bValue = b[orderBy];
+  const rawAValue = a[orderBy];
+  const rawBValue = b[orderBy];
+  const aValue = normalizeSortValue(rawAValue);
+  const bValue = normalizeSortValue(rawBValue);
 
   // parse if date column
   if (orderBy === 'created_at') {
@@ -109,6 +118,7 @@ interface TableDefaultProps {
   selectedRowId?: number | null;
   onRowClick?: (row: RowData) => void;
   onRowDoubleClick?: (row: RowData) => void;
+  onModelClick?: (issueId: number, issueName: string) => void;
   isLoading: boolean;
   sortable?: string;
   filterOptionsDevices?: string[];
@@ -117,6 +127,16 @@ interface TableDefaultProps {
   selectedModelFilter?: string;
   onDeviceFilterChange?: (filter: string) => void;
   onModelFilterChange?: (filter: string) => void;
+  onTogglePublish?: (detailId: number, nextPublish: boolean) => void;
+  publishingIds?: number[];
+  onToggleModel?: (
+    baseDetailId: number,
+    modelDetailId: number | null,
+    productId: number,
+    issueKey: string,
+    nextChecked: boolean,
+  ) => Promise<number | null> | void;
+  modelUpdatingIds?: number[];
 }
 
 // ============================================
@@ -129,6 +149,7 @@ export default function TableCustomizableHeaders({
   selectedRowId = null,
   onRowClick,
   onRowDoubleClick,
+  onModelClick,
   isLoading = false,
   sortable,
   filterOptionsDevices,
@@ -137,6 +158,10 @@ export default function TableCustomizableHeaders({
   selectedModelFilter,
   onDeviceFilterChange,
   onModelFilterChange,
+  onTogglePublish,
+  publishingIds = [],
+  onToggleModel,
+  modelUpdatingIds = [],
 }: TableDefaultProps) { 
 
   const [page, setPage] = useState(0);
@@ -145,6 +170,7 @@ export default function TableCustomizableHeaders({
   const [orderBy, setOrderBy] = useState<string>(sortable || 'created_at');
   const [isManualSort, setIsManualSort] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [modelCheckedMap, setModelCheckedMap] = useState<Record<string, boolean>>({});
   const filterScrollRef = useRef<HTMLDivElement | null>(null);
   const [showFilterArrows, setShowFilterArrows] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -213,17 +239,236 @@ export default function TableCustomizableHeaders({
     }
   };
 
-  const renderSortIcon = (columnId: string) => {
-    const column = safeColumns.find(col => col.id === columnId);
-    if (column?.sortable === false) {
-      return null;
-    }
-    if (orderBy !== columnId || !isManualSort) {
-      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
-    }
-    return order === 'asc' 
-      ? <ArrowUp size={14} style={{ opacity: 1 }} />
-      : <ArrowDown size={14} style={{ opacity: 1 }} />;
+  useEffect(() => {
+    setModelCheckedMap((prev) => {
+      const next: Record<string, boolean> = {};
+      const setValue = (key: string, value: boolean) => {
+        if (key) {
+          next[key] = value;
+        }
+      };
+
+      safeRows.forEach((row) => {
+        if (Array.isArray(row?.product_name)) {
+          row.product_name.forEach((item: any) => {
+            const productId = Number(item?.product_id);
+            const issueKey = row?.issue_key ?? '';
+            const key = item?.detail_id
+              ? `detail-${item.detail_id}`
+              : `issue-${issueKey}-product-${Number.isNaN(productId) ? item?.name ?? '' : productId}`;
+            setValue(key, !!item?.is_selected);
+          });
+        } else {
+          const productId = Number(row?.product_id);
+          const issueKey = row?.issue_key ?? '';
+          const key = row?.id
+            ? `detail-${row.id}`
+            : `issue-${issueKey}-product-${Number.isNaN(productId) ? row?.product_name ?? '' : productId}`;
+          setValue(key, true);
+        }
+      });
+
+      return { ...prev, ...next };
+    });
+  }, [safeRows]);
+
+  const renderModelList = (
+    items: Array<{
+      name: string;
+      detail_id?: number;
+      product_id?: number | string;
+      is_selected?: boolean;
+    }>,
+    issueKey: string,
+    baseDetailId: number,
+  ) => {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => {
+          const productId = Number(item?.product_id);
+          const key = item?.detail_id
+            ? `detail-${item.detail_id}`
+            : `issue-${issueKey}-product-${Number.isNaN(productId) ? item?.name ?? '' : productId}`;
+          const isChecked = modelCheckedMap[key] ?? !!item?.is_selected;
+          const detailId = Number(item?.detail_id);
+          const isUpdating = modelUpdatingIds.includes(baseDetailId);
+
+          return (
+            <label
+              key={`model-${item.name}`}
+              className="inline-flex items-center gap-1 text-sm text-slate-700"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                disabled={
+                  isUpdating ||
+                  !onToggleModel ||
+                  Number.isNaN(detailId) ||
+                  Number.isNaN(productId)
+                }
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => {
+                  const nextChecked = event.target.checked;
+                  console.log('model click', {
+                    issueKey,
+                    baseDetailId,
+                    detailId,
+                    productId,
+                    nextChecked,
+                  });
+                  setModelCheckedMap((prev) => ({ ...prev, [key]: nextChecked }));
+                  if (!Number.isNaN(productId)) {
+                    onToggleModel?.(
+                      baseDetailId,
+                      Number.isNaN(detailId) ? null : detailId,
+                      productId,
+                      issueKey,
+                      nextChecked,
+                    );
+                  }
+                }}
+              />
+              <span className="whitespace-nowrap">{item.name}</span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderPublishList = (
+    items: Array<{
+      name: string;
+      is_publish?: number | boolean;
+      detail_id?: number | null;
+      product_id?: number | string;
+    }>,
+    issueKey: string,
+    baseDetailId: number,
+  ) => {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => {
+          const isPublished = Number(item?.is_publish) === 1;
+          const isChecked = isPublished;
+          const detailId = Number(item?.detail_id);
+          const productId = Number(item?.product_id);
+          const hasDetail = Number.isFinite(detailId) && detailId > 0;
+          const isUpdating = publishingIds.includes(detailId);
+
+          return (
+            <label
+              key={`publish-${item.name}`}
+              className="inline-flex items-center gap-1 text-sm text-slate-700"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                disabled={
+                  isUpdating ||
+                  (!onTogglePublish && !onToggleModel) ||
+                  (!hasDetail && Number.isNaN(productId))
+                }
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+                onClick={(event) => event.stopPropagation()}
+                onChange={async (event) => {
+                  const nextChecked = event.target.checked;
+                  const nextPublish = nextChecked;
+                  if (hasDetail) {
+                    onTogglePublish?.(detailId, nextPublish);
+                    return;
+                  }
+
+                  if (!Number.isNaN(productId) && onToggleModel) {
+                    const createdId = await onToggleModel(
+                      baseDetailId,
+                      null,
+                      productId,
+                      issueKey,
+                      nextChecked,
+                    );
+                    if (createdId) {
+                      onTogglePublish?.(createdId, nextPublish);
+                    }
+                  }
+                }}
+              />
+              <span className="whitespace-nowrap">{item.name}</span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderSingleModel = (row: RowData) => {
+    const productId = Number(row?.product_id);
+    const issueKey = row?.issue_key ?? '';
+    const key = row?.id
+      ? `detail-${row.id}`
+      : `issue-${issueKey}-product-${Number.isNaN(productId) ? row?.product_name ?? '' : productId}`;
+    const isChecked = modelCheckedMap[key] ?? true;
+    const detailId = Number(row?.id);
+    const isUpdating = modelUpdatingIds.includes(detailId);
+
+    return (
+      <label
+        className="inline-flex items-center gap-2 text-sm text-slate-700"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={isChecked}
+          disabled={
+            isUpdating ||
+            !onToggleModel ||
+            Number.isNaN(detailId) ||
+            Number.isNaN(productId)
+          }
+          className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            const nextChecked = event.target.checked;
+            setModelCheckedMap((prev) => ({ ...prev, [key]: nextChecked }));
+            if (!Number.isNaN(detailId) && !Number.isNaN(productId)) {
+              onToggleModel?.(detailId, detailId, productId, issueKey, nextChecked);
+            }
+          }}
+        />
+        <span className="whitespace-nowrap">{row?.product_name}</span>
+      </label>
+    );
+  };
+
+  const renderSinglePublish = (row: RowData) => {
+    const isPublished = Number(row?.is_publish) === 1;
+    const isChecked = isPublished;
+    const detailId = Number(row?.id);
+    const isUpdating = publishingIds.includes(detailId);
+
+    return (
+      <label className="inline-flex items-center gap-2 text-sm text-slate-700" onClick={(event) => event.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={isChecked}
+          disabled={isUpdating || !onTogglePublish || Number.isNaN(detailId)}
+          className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600"
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            const nextChecked = event.target.checked;
+            const nextPublish = nextChecked;
+            if (!Number.isNaN(detailId)) {
+              onTogglePublish?.(detailId, nextPublish);
+            }
+          }}
+        />
+        <span className="whitespace-nowrap">{row?.product_name}</span>
+      </label>
+    );
   };
   
   const scrollFilters = (direction: 'left' | 'right') => {
@@ -266,6 +511,7 @@ export default function TableCustomizableHeaders({
       if (resizeObserver) resizeObserver.disconnect();
     };
   }, [filterOptionsDevices, filterOptionsModels]);
+
 
   if (isLoading) {
     return (
@@ -394,116 +640,98 @@ export default function TableCustomizableHeaders({
                 </div>
               ) : null}
 
-              {/* Header Section: modern frosted header with responsive layout */}
-              <div
-                // header wrapper with subtle divider and backdrop blur for a modern look
-                className="pb-3"
-                style={{ borderBottom: `1px solid ${COLORS.border}` }}
-              >
-                {/* Column Headers row - uses a light frosted background and shadow */}
-                <div className="flex items-center gap-2 py-2 px-2 sm:px-0 bg-white/60 backdrop-blur-sm rounded-md shadow-sm">
-                  {safeColumns.map((column) => (
-                    <div
-                      // each header cell; width and alignment are preserved from config
-                      key={column.id}
-                      className={`${column.width || 'flex-1'} px-2 sm:px-4`}
-                      style={{ textAlign: column.align || 'left' }}
-                    >
-                      {column.sortable !== false ? (
-                        <button
-                          // clickable sortable header
-                          onClick={() => handleRequestSort(column.id)}
-                          className={`flex items-center gap-2 w-full ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight} text-left`}
-                          style={{
-                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            color: COLORS.text,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {/* header label */}
-                          <span className="truncate">{column.label}</span>
-                          {/* sort icon (faint when not active) */}
-                          <span className="flex-shrink-0">{renderSortIcon(column.id)}</span>
-                        </button>
-                      ) : (
-                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
-                          {/* non-sortable header label */}
-                          {column.label}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Table Body */}
-              <div className="mt-1">
+              <div className="overflow-x-auto px-3">
                 {visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b">
+                  <div className="flex flex-col items-center justify-center py-16">
                     <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
                     <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
                       No data found
                     </p>
                   </div>
                 ) : (
-                  visibleRows.map(row => {
-                    const isHovered = hoveredRow === row.id;
-                    const isSelected = selectedRowId === row.id;
-
-                    return (
-                      <div 
-                        key={row.id} 
-                        onClick={() => handleRowClick(row)}
-                        onMouseEnter={() => setHoveredRow(row.id)} 
-                        onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-all duration-200`}
-                        style={{ 
-                          background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border
-                        }}
-                      > 
-                        {/* Dynamic Columns */}
-                        {safeColumns.map((column) => {
-                          return (
-                            <div 
-                              key={column.id}
-                              className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ 
-                                textAlign: column.align || 'left',
-                                position: 'relative'
-                              }}
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="sticky top-0 bg-white">
+                      <tr>
+                        {safeColumns.map((column) => (
+                          <th
+                            key={column.id}
+                            className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 ${
+                              column.align === 'right' ? 'text-right' : 'text-left'
+                            } ${column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
+                            onClick={() => column.sortable !== false && handleRequestSort(column.id)}
+                          >
+                            <div
+                              className={`flex items-center gap-2 ${
+                                column.align === 'right' ? 'justify-end' : 'justify-start'
+                              }`}
                             >
-                              {column.id === 'is_publish' ? (
-                                <span
-                                  className={`${
-                                    row.is_publish === 1
-                                      ? "bg-green-500 text-white"
-                                      : "bg-red-500 text-white"
-                                  } px-2 py-1 rounded-lg text-sm font-medium`}
-                                >
-                                  {row.is_publish === 1 ? "Published" : "Draft"}
-                                </span>
-
-                              ) : column.id === 'created_at' ? (
-                                <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
-                                  {formatDate(row.created_at)}
-                                </span>
-                              ) : (
-                                <span className="text-sm">{row[column.id]}</span>
+                              <span>{column.label}</span>
+                              {column.sortable !== false && orderBy === column.id && isManualSort && order === 'asc' && (
+                                <div className="h-2 w-2 rounded-full bg-blue-500" />
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {visibleRows.map((row) => {
+                        const isHovered = hoveredRow === row.id;
+                        const isSelected = selectedRowId === row.id;
+
+                        return (
+                          <tr
+                            key={row.id}
+                            onClick={() => handleRowClick(row)}
+                            onMouseEnter={() => setHoveredRow(row.id)}
+                            onMouseLeave={() => setHoveredRow(null)}
+                            className="cursor-pointer transition-all duration-200"
+                            style={{
+                              background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
+                            }}
+                          >
+                            {safeColumns.map((column) => (
+                              <td
+                                key={column.id}
+                                className={`px-4 py-3 align-middle ${
+                                  column.align === 'right' ? 'text-right' : 'text-left'
+                                }`}
+                              >
+                                {column.id === 'product_name' ? (
+                                  Array.isArray(row.product_name) ? (
+                                    renderModelList(row.product_name, row.issue_key ?? '', Number(row.id))
+                                  ) : (
+                                    renderSingleModel(row)
+                                  )
+                                ) : column.id === 'is_publish' ? (
+                                  Array.isArray(row.publish_list) ? (
+                                    renderPublishList(row.publish_list, row.issue_key ?? '', Number(row.id))
+                                  ) : (
+                                    renderSinglePublish(row)
+                                  )
+                                ) : column.id === 'created_at' ? (
+                                  <span className="text-sm text-gray-500">
+                                    {formatDate(row.created_at)}
+                                  </span>
+                                ) : (
+                                  <div className="max-w-[220px] truncate text-sm text-gray-900">
+                                    {row[column.id]}
+                                  </div>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 )}
               </div>
             </div>
           </div>
           
           {/* Pagination */}
-          <div className="w-full flex justify-end mt-3">      
+          <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">      
             <div className="flex items-center gap-6">
               <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
                 {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}

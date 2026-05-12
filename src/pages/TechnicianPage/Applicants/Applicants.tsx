@@ -4,6 +4,7 @@ import {
   fetchApplicantsShortList,
   fetchApplicantsRejected,
   fetchApplicantsClosed,
+  fetchApplicantsNewApplicants,
   shortList,
   deleteApplicants,
   rejectedApplicants,
@@ -18,7 +19,8 @@ import {
   Trash2, 
   Plus, 
   Eye,
-  MailX
+  MailX,
+  ArrowLeftToLine
 } from 'lucide-react'; 
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query' 
@@ -28,7 +30,7 @@ import TableApplicants from './components/TableApplicants';
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens' 
 import { userAuth } from "../../../hooks/userAuth"
-import AlertDialog from '../../../components/feedback/AlertDialog'; 
+import AlertDialogRejected from '../../../components/feedback/AlertDialogRejected'; 
 import { useParams, useNavigate } from 'react-router-dom';
 
 const Applicants = () => { 
@@ -40,7 +42,7 @@ const Applicants = () => {
     { id: 'phone', label: 'Phone', sortable: true },
     { id: "email", label: 'Email', sortable: true },
     { id: "status", label: "Status", sortable: true },
-    { id: 'created_at', label: "Date Applied", sortable: false}
+    { id: 'created_at', label: "Date Applied", sortable: true}
   ] 
 
   const { 
@@ -103,6 +105,15 @@ const Applicants = () => {
   });
 
   const {
+    data: applicantsNewApplicantResponse,
+    isLoading: isNewApplicantLoading,
+  } = useQuery ({
+    queryKey: ['new-applicant', id],
+    queryFn: () => fetchApplicantsNewApplicants(String(id)),
+    enabled: !!id,
+  });
+
+  const {
     data: closedApplicantsResponse,
     isLoading: isClosedLoading,
   } = useQuery ({
@@ -111,25 +122,27 @@ const Applicants = () => {
     enabled: !!id,
   });
 
-  const { mutateAsync: shortListed } = useMutation({
+  const { mutateAsync: shortListed, isPending: isShortListing } = useMutation({
     mutationFn: shortList
   });
 
-  const { mutateAsync: deleteApplicante } = useMutation({
+  const { mutateAsync: deleteApplicante, isPending: isDeleting } = useMutation({
      mutationFn: deleteApplicants
   });
 
-  const { mutateAsync: rejectApplicants } = useMutation({
+  const { mutateAsync: rejectApplicants, isPending: isRejecting } = useMutation({
     mutationFn: rejectedApplicants
   })
 
-  const { mutateAsync: undoApplicant } = useMutation({
+  const { mutateAsync: undoApplicant, isPending: isUndoing } = useMutation({
     mutationFn: undoRejectedApplicants
   });
 
-  const { mutateAsync: closedApplicant } = useMutation({
+  const { mutateAsync: closedApplicant, isPending: isClosing } = useMutation({
     mutationFn: closedApplicants
   });
+
+  const isDialogLoading = dialogOpen && ((dataValue === 'delete' && isDeleting) || (dataValue === 'short-listed' && isShortListing) || (dataValue === 'undo' && isUndoing) || (dataValue === 'rejected' && isRejecting) || (dataValue === 'closed' && isClosing));
 
   const jobDetailed = jobDetailsResponse?.data || []
   
@@ -137,6 +150,7 @@ const Applicants = () => {
     let baseRows = [];
 
     if (statusFilter === "all") baseRows = applicantPendingResponse?.data || [];
+    if (statusFilter === 'new_applicants') baseRows = applicantsNewApplicantResponse?.data || [];
     if (statusFilter === "short_listed") baseRows = applicantShortListedResponse?.data || [];
     if (statusFilter === 'rejected') baseRows = applicantsRejectedResponse?.data || [];
     if (statusFilter === 'closed') baseRows = closedApplicantsResponse?.data || [];
@@ -147,7 +161,14 @@ const Applicants = () => {
     );
 
     return uniqueRows;
-  }, [statusFilter, applicantPendingResponse, applicantShortListedResponse, applicantsRejectedResponse, closedApplicantsResponse])
+  }, [
+    statusFilter, 
+    applicantPendingResponse, 
+    applicantsNewApplicantResponse, 
+    applicantShortListedResponse, 
+    applicantsRejectedResponse, 
+    closedApplicantsResponse
+  ])
 
   const selectedRow = rows.find((r: any) => r.id === selectedRowId);
 
@@ -251,7 +272,7 @@ const Applicants = () => {
     setDataValue('closed')
     setDialogTitle("Confirm Closed");
     setDialogOpen(true);
-    setDialogMessage("Are you sure you want to mark this applicant as closed? This will send a notification email to the applicant.");
+    setDialogMessage("Are you sure you want to mark this applicant as closed?");
   }
 
   // Handle Delete (Trash)
@@ -281,13 +302,17 @@ const Applicants = () => {
     setSelectedRowId(row.id);
   }
 
+  const handleBack = () => {
+    navigate(`/beesee/job-posting`)
+  }
+
   const handleRowDoubleClick = (row: any) => {  
-    if (row.status === 'REJECTED') {
-      setSnackBarMessage("Cannot view details of rejected applicants. Please shortlist this applicant first or delete permanently.");
-      setSnackBarType("info");
-      setSnackBarOpen(true);
-      return;
-    } 
+    // if (row.status === 'REJECTED') {
+    //   setSnackBarMessage("Cannot view details of rejected applicants. Please shortlist this applicant first or delete permanently.");
+    //   setSnackBarType("info");
+    //   setSnackBarOpen(true);
+    //   return;
+    // } 
     navigate(`/beesee/job-posting/applicant/email/${row.pid}`)  
   }
 
@@ -299,8 +324,15 @@ const Applicants = () => {
     setShortListedId("")
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (remarks?: string) => {
     try {
+      if (dataValue === 'rejected' && !remarks?.trim()) {
+        setSnackBarMessage('Please enter a rejection note.');
+        setSnackBarType('warning');
+        setSnackBarOpen(true);
+        return;
+      }
+
       let response;
       if (dataValue === 'delete') {
         response = await deleteApplicante({ ids: deleteIds, user_id: userInfo?.id });
@@ -309,7 +341,7 @@ const Applicants = () => {
       } else if (dataValue === 'undo') {
         response = await undoApplicant({ id: undoId, user_id: userInfo?.id });
       } else if (dataValue === 'rejected') {
-        response = await rejectApplicants({ id: rejectedId, user_id: userInfo?.id });
+        response = await rejectApplicants({ id: rejectedId, user_id: userInfo?.id, remarks: remarks?.trim() });
       } else if (dataValue === 'closed') {
         // For closed, we will also use the rejectApplicants mutation but with a different status
         response = await closedApplicant({ id: rejectedId, user_id: userInfo?.id });
@@ -338,8 +370,9 @@ const Applicants = () => {
 
         // Refetch
         queryClient.invalidateQueries({ queryKey: ['all-applicant'] });
-        queryClient.invalidateQueries({ queryKey: ["short-listed"]})
-        queryClient.invalidateQueries({ queryKey: ['rejected']})
+        queryClient.invalidateQueries({ queryKey: ["short-listed"]});
+        queryClient.invalidateQueries({ queryKey: ['rejected']});
+        queryClient.invalidateQueries({ queryKey: ['new-applicant']});
         clearFormat()
       }
     } catch (error) {
@@ -395,12 +428,20 @@ const Applicants = () => {
     <div className="p-6 space-y-10 bg-white"> 
 
       {/* Dialog */}
-      <AlertDialog 
+      <AlertDialogRejected 
         open={dialogOpen}
         title={dialogTitle}
         message={dialogMessage}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false);
+          clearFormat();
+        }}
         onSubmit={handleConfirm} 
+        isLoading={isDialogLoading}
+        showRemarks={dataValue === 'rejected'}
+        remarksRequired={dataValue === 'rejected'}
+        remarksLabel="Rejection Note"
+        remarksPlaceholder="Why is this applicant rejected?"
       /> 
 
       {/* Header */}
@@ -502,6 +543,19 @@ const Applicants = () => {
             >
               <Trash2 size={18} /> 
               <span className="hidden sm:inline whitespace-nowrap">Delete</span>
+            </button>
+
+            <button
+              onClick={handleBack} 
+              title="Back"
+              aria-label="Back"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
+              style={{
+                background: '#FFC81E',
+              }}
+            >
+              <ArrowLeftToLine size={18} /> 
+              <span className="hidden sm:inline whitespace-nowrap">Back</span>
             </button>
 
             {/* Closed Button - Only for REJECTED */}

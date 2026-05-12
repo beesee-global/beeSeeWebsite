@@ -23,12 +23,17 @@ import {
   FileText,
   ZoomIn,
   ZoomOut,
-  Ban 
+  Ban,
+  UserRoundCog,
+  Link,
+  CalendarCheck,
+  CalendarClock
 } from "lucide-react"
 import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
-import AlertDialog from '../../../components/feedback/AlertDialog'
+import AlertDialogRejected from '../../../components/feedback/AlertDialogRejected'
 import ApplicantsDialog from "./components/ApplicantsDialog"
+import { P } from "framer-motion/dist/types.d-DagZKalS"
 
 interface ApplicantFormProps {
   id: number;
@@ -39,6 +44,9 @@ interface ApplicantFormProps {
   job_number: string;
   status: string; 
   attachment_url: string;
+  portfolio_link?: string;
+  portfolio?: string;
+  remarks?: string;
 }
 
 const ApplicantsEmail = () => {
@@ -60,6 +68,10 @@ const ApplicantsEmail = () => {
   const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
   const [isImageZoomed, setIsImageZoomed] = useState<boolean>(false);
 
+  // Backwards-compat alias: some JSX/logic may still reference `dataValue`
+  // (e.g. copied from Applicants.tsx). Keep this to avoid runtime ReferenceError.
+  const dataValue = actionType;
+
   const [formData, setFormData] = useState<ApplicantFormProps>({
     id: 0,
     full_name: "",
@@ -68,7 +80,10 @@ const ApplicantsEmail = () => {
     position: "",
     job_number: "",
     status: "", 
-    attachment_url: ""
+    attachment_url: "",
+    portfolio: "",
+    portfolio_link: "",
+    remarks: "",
   }); 
 
   // Fetch data only when id exists
@@ -102,8 +117,7 @@ const ApplicantsEmail = () => {
   
   // Load data when fetched
   useEffect(() => {
-    if (applicantDetails) {
-      console.log("Applicant", applicantDetails);
+    if (applicantDetails) { 
       setFormData({
         id: applicantDetails.id || 0,
         full_name: applicantDetails.full_name || "",
@@ -112,7 +126,10 @@ const ApplicantsEmail = () => {
         position: applicantDetails.position || "",
         job_number: applicantDetails.job_number || "",
         status: applicantDetails.status || "",
-        attachment_url: applicantDetails.attachment_url || ""
+        attachment_url: applicantDetails.attachment_url || "",
+        portfolio: applicantDetails.portfolio || "",
+        portfolio_link: applicantDetails.portfolio_link,
+        remarks: applicantDetails?.remarks || ""
       });
     }
   }, [applicantDetails]);
@@ -129,18 +146,18 @@ const ApplicantsEmail = () => {
     setIsImageZoomed(!isImageZoomed);
   }
 
-  const handleDownload = () => {
-    if (!formData.attachment_url) {
+  const handleDownload = (attachment_url: any) => {
+    if (!attachment_url) {
       setSnackBarMessage("No file available to download");
       setSnackBarType("error");
       setSnackBarOpen(true);
       return;
     }
 
-    downloadFileDesktop(formData.attachment_url, {
+    downloadFileDesktop(attachment_url, {
       filename:
-        formData.attachment_url.split("/").pop() ||
-        `${formData.full_name}_resume.pdf`,
+       attachment_url.split("/").pop() ||
+        `${formData.full_name}.pdf`,
       onSuccess: () => { 
         // setSnackBarMessage("File downloaded successfully");
         // setSnackBarType("success");
@@ -164,13 +181,11 @@ const ApplicantsEmail = () => {
     setEmailDialogOpen(true);
   }; 
 
-  const handleEmailSubmit = async(emailData: {
-    messages: string;
+  const handleEmailSubmit = async(emailData: { 
     location: string;
     time: string;
     date: string;
     schedule: string;
-    duration: string;
     format: string;
   }) => {
     const payload = {
@@ -183,20 +198,29 @@ const ApplicantsEmail = () => {
       date: emailData.date,
       schedule_details: emailData.schedule,
       format: emailData.format,
-      duration: emailData.duration,
+      duration: "60",
       user_id: authUserInfo?.id
     };
 
-    const response = await sendInterviewInvitations(payload)
+   try {
+     const response = await sendInterviewInvitations(payload)
 
     if (response?.success) {
       setSnackBarMessage("Interview invitation sent successfully!");
       setSnackBarType("success");
       setSnackBarOpen(true);
+      queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] })
     }
     // TODO: Replace with actual API call
     // const response = await sendInterviewInvitation(payload);
     
+   } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
+      setSnackBarMessage(cleanMessage);
+      setSnackBarType("error")
+      setSnackBarOpen(true);
+   }
     
   };
 
@@ -208,7 +232,7 @@ const ApplicantsEmail = () => {
   };
 
   const handleReject = () => {
-    setActionType('reject');
+    setActionType('rejected');
     setDialogTitle("Confirm Reject");
     setDialogMessage("Are you sure you want to reject this applicant?");
     setDialogOpen(true);
@@ -228,14 +252,14 @@ const ApplicantsEmail = () => {
     setDialogOpen(true);
   }
 
-  const handleConfirmAction = async () => {
+  const handleConfirmAction = async (remarks?: string) => {
     try {
       let response;
       
       if (actionType === 'shortlist') {
         response = await shortListed({ id: String(formData.id), user_id: authUserInfo?.id });
-      } else if (actionType === 'reject') {
-        response = await rejectApplicant({ id: String(formData.id), user_id: authUserInfo?.id });
+      } else if (actionType === 'rejected') {
+        response = await rejectApplicant({ id: String(formData.id), user_id: authUserInfo?.id, remarks: remarks?.trim() });
       } else if (actionType === 'delete') {
         response = await deleteApplicant({ ids: [formData.id], user_id: authUserInfo?.id });
       } else if (actionType === 'close') {
@@ -247,7 +271,7 @@ const ApplicantsEmail = () => {
         
         if (actionType === 'shortlist') {
           setSnackBarMessage("Applicant shortlisted successfully");
-        } else if (actionType === 'reject') {
+        } else if (actionType === 'rejected') {
           setSnackBarMessage("Applicant rejected successfully");
         } else if (actionType === 'delete') {
           setSnackBarMessage("Applicant deleted successfully"); 
@@ -260,7 +284,7 @@ const ApplicantsEmail = () => {
         setSnackBarType("success");
         setSnackBarOpen(true);
 
-        queryClient.invalidateQueries({ queryKey: ['applicant-detail'] });
+        queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] });
       }
     } catch (error) {
       setSnackBarMessage("Action failed. Please try again.");
@@ -311,12 +335,16 @@ const ApplicantsEmail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
 
         {/* Alert Dialog */}
-        <AlertDialog 
+        <AlertDialogRejected 
           open={dialogOpen}
           title={dialogTitle}
           message={dialogMessage}
           onClose={() => setDialogOpen(false)}
           onSubmit={handleConfirmAction}
+          showRemarks={actionType === 'rejected'}
+          remarksRequired={actionType === 'rejected'}
+          remarksLabel="Rejection Note"
+          remarksPlaceholder="Why is this applicant rejected?"
         />
 
         {/* Email Dialog */}
@@ -349,6 +377,12 @@ const ApplicantsEmail = () => {
                 <span className={`px-4 py-2 rounded-full border-2 font-bold text-sm ${getStatusColor(formData.status)}`}>
                   {getStatusText(formData.status)}
                 </span>
+
+                {applicantDetails?.applicants_interview_status && (
+                  <button title="Already Sended">
+                    <CalendarCheck className="text-green-700"/>
+                  </button>
+                )}
               </div>
               <p className="text-lg text-gray-600 mb-2">
                 <span className="font-semibold">Position:</span> {formData.position}
@@ -356,13 +390,28 @@ const ApplicantsEmail = () => {
               <p className="text-sm text-gray-500">
                 <span className="font-semibold">Job Reference:</span> {formData.job_number}
               </p>
+              {applicantDetails?.scheduled_by && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold">Scheduled Interview By: </span> {applicantDetails?.scheduled_by}
+                </p>
+              )}
+              {applicantDetails?.schedule_date && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold">Interview Date: </span> {applicantDetails?.schedule_date}
+                </p>
+              )}
+              {applicantDetails?.time && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold">Interview Date: </span> {applicantDetails?.time}
+                </p>
+              )}
             </div>
             
             <div className="flex flex-wrap gap-3"> 
               {/* Send Email Button */}
               {formData.status !== "CLOSED" && (
                 <button
-                  title="Send Email"
+                  title="Send Schedule"
                   onClick={handleOpenEmailDialog}
                   disabled={formData.status !== 'SHORTLISTED'}
                   className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
@@ -371,7 +420,7 @@ const ApplicantsEmail = () => {
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  <Send className="w-6 h-6" /> 
+                  <CalendarClock className="w-6 h-6" /> 
                 </button>
               )}
 
@@ -521,78 +570,185 @@ const ApplicantsEmail = () => {
                   rows={1}
                   multiline={false}
                   type="text"
-                  icon={<FileText className="w-4 h-4" />}
+                  icon={<UserRoundCog className="w-4 h-4" />}
                 />
               </div>
+
+              {formData.portfolio_link && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Portfolio Link
+                  </label>
+                  <CustomTextField 
+                    name="portfolio_link"
+                    placeholder="Portfolio Link"
+                    value={formData.portfolio_link}
+                    onChange={handleChangeInput}
+                    disabled={true}
+                    rows={1}
+                    multiline={false}
+                    type="text"
+                    icon={<Link className="w-4 h-4" />}
+                  />
+                </div>
+              )}
+
+              {formData.remarks && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Remarks
+                  </label>
+                  <CustomTextField 
+                    name="remarks"
+                    placeholder="Remarks"
+                    value={formData.remarks}
+                    onChange={handleChangeInput}
+                    disabled={true}
+                    rows={4}
+                    multiline={true}
+                    type="text"
+                    icon={<FileText className="w-4 h-4" />}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
           {/* Resume Card */}  
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center"> 
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Resume/CV</h2>
-                <p className="text-gray-600">Applicant's resume</p>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center"> 
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Resume/CV</h2>
+                  <p className="text-gray-600">Applicant's resume</p>
+                </div>
               </div>
+              <button
+                onClick={() => {handleDownload(formData.attachment_url)}}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <Download className="w-5 h-5" />
+                <span>Download</span>
+              </button>
             </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download</span>
-            </button>
-          </div>
-          
-          {formData.attachment_url ? (
-            <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
-              {/* Check if file is an image */}
-              {applicantDetails?.file_type?.startsWith('image/') ? (
-                <div 
-                  className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
-                  onClick={handleImageZoomToggle}
-                >
-                  <img
-                    src={formData.attachment_url}
-                    alt="Resume"
-                    className={`transition-all duration-300 ${
-                      isImageZoomed 
-                        ? 'max-w-none w-full cursor-zoom-out' 
-                        : 'max-w-full max-h-full object-contain cursor-zoom-in'
-                    }`}
-                  />
-                  
-                  {/* Zoom Indicator Icon */}
-                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {isImageZoomed ? (
-                      <>
-                        <ZoomOut className="w-5 h-5" />
-                        <span className="text-sm font-medium">Click to zoom out</span>
-                      </>
-                    ) : (
-                      <>
-                        <ZoomIn className="w-5 h-5" />
-                        <span className="text-sm font-medium">Click to zoom in</span>
-                      </>
-                    )}
+            
+            {formData.attachment_url ? (
+              <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
+                {/* Check if file is an image */}
+                {applicantDetails?.file_type?.startsWith('image/') ? (
+                  <div 
+                    className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
+                    onClick={handleImageZoomToggle}
+                  >
+                    <img
+                      src={formData.attachment_url}
+                      alt="Resume"
+                      className={`transition-all duration-300 ${
+                        isImageZoomed 
+                          ? 'max-w-none w-full cursor-zoom-out' 
+                          : 'max-w-full max-h-full object-contain cursor-zoom-in'
+                      }`}
+                    />
+                    
+                    {/* Zoom Indicator Icon */}
+                    <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {isImageZoomed ? (
+                        <>
+                          <ZoomOut className="w-5 h-5" />
+                          <span className="text-sm font-medium">Click to zoom out</span>
+                        </>
+                      ) : (
+                        <>
+                          <ZoomIn className="w-5 h-5" />
+                          <span className="text-sm font-medium">Click to zoom in</span>
+                        </>
+                      )}
+                    </div>
                   </div>
+                ) : (
+                  <iframe
+                    src={formData.attachment_url}
+                    className="w-full h-[600px]"
+                    title="Resume Preview"
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 font-medium">No resume uploaded</p>
+              </div>
+            )}
+          </div>
+
+          {/* Portfolio link */}
+          {formData.portfolio && (
+                      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center"> 
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Portfolio</h2>
+                  <p className="text-gray-600">Applicant's portfolio</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {handleDownload(formData.portfolio)}}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <Download className="w-5 h-5" />
+                <span>Download</span>
+              </button>
+            </div>
+            
+            {formData.portfolio ? (
+              <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
+                  {/* Check if file is an image */}
+                  {applicantDetails?.file_type?.startsWith('image/') ? (
+                    <div 
+                      className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
+                      onClick={handleImageZoomToggle}
+                    >
+                      <img
+                        src={formData.portfolio}
+                        alt="Portfolio"
+                        className={`transition-all duration-300 ${
+                          isImageZoomed 
+                            ? 'max-w-none w-full cursor-zoom-out' 
+                            : 'max-w-full max-h-full object-contain cursor-zoom-in'
+                        }`}
+                      />
+                      
+                      {/* Zoom Indicator Icon */}
+                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {isImageZoomed ? (
+                          <>
+                            <ZoomOut className="w-5 h-5" />
+                            <span className="text-sm font-medium">Click to zoom out</span>
+                          </>
+                        ) : (
+                          <>
+                            <ZoomIn className="w-5 h-5" />
+                            <span className="text-sm font-medium">Click to zoom in</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={formData.attachment_url}
+                      className="w-full h-[600px]"
+                      title="Resume Preview"
+                    />
+                  )}
                 </div>
               ) : (
-                <iframe
-                  src={formData.attachment_url}
-                  className="w-full h-[600px]"
-                  title="Resume Preview"
-                />
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No portfolio upload</p>
+                </div>
               )}
             </div>
-          ) : (
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">No resume uploaded</p>
-            </div>
           )}
-        </div>
         </div>
       </div>
     </div>

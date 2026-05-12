@@ -3,9 +3,6 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Mail,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react';
 
 // ============================================
@@ -38,8 +35,8 @@ const TYPOGRAPHY = {
 };
 
 const SPACING = {
-  containerPadding: 'p-4',
-  rowPadding: 'py-2.5 px-3', 
+  containerPadding: 'px-3',
+  rowPadding: 'py-2 px-3', 
   gap: 'gap-3',
 };
 
@@ -206,15 +203,6 @@ export default function TableJobPosting({
     }
   };
 
-  const renderSortIcon = (columnId: string) => {
-    if (orderBy !== columnId) {
-      return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
-    }
-    return order === 'asc' 
-      ? <ArrowUp size={14} style={{ opacity: 1 }} />
-      : <ArrowDown size={14} style={{ opacity: 1 }} />;
-  };
-
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: COLORS.background }}>
@@ -240,120 +228,100 @@ export default function TableJobPosting({
           className={`${RADIUS.container} ${SPACING.containerPadding} border`} 
           style={{ background: COLORS.surface, borderColor: COLORS.border }}
         >
-          
-          {/* Scrollable table container */}
-          <div className='overflow-x-auto'>
-            <div className='min-w-[900px]'>
-              {/* Header Section */}
-              <div className="border-b pb-3" style={{ borderColor: COLORS.border }}>
-                {/* Column Headers */}
-                <div className="flex items-center py-2">
-                  {tableColumns.map((column) => (
-                    <div 
-                      key={column.id}
-                      className={`${column.width || 'flex-1'} px-4`}
-                      style={{ textAlign: column.align || 'left' }}
-                    >
-                      {column.sortable !== false ? (
-                        <button
-                          onClick={() => handleRequestSort(column.id)}
-                          className={`flex items-center gap-2 ${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`}
-                          style={{ 
-                            marginLeft: column.align === 'right' ? 'auto' : '0',
-                            justifyContent: column.align === 'right' ? 'flex-end' : 'flex-start',
-                            width: column.align === 'right' ? '100%' : 'auto',
-                            color: COLORS.text,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {column.label}
-                          {renderSortIcon(column.id)}
-                        </button>
-                      ) : (
-                        <span className={`${TYPOGRAPHY.headerSize} ${TYPOGRAPHY.headerWeight}`} style={{ color: COLORS.text }}>
-                          {column.label}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          <div className="hidden md:block overflow-x-auto p-3">
+            {visibleRows.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+                <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
+                  No data found
+                </p>
               </div>
-
-              {/* Table Body */}
-              <div className="mt-1">
-                {visibleRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 border-b">
-                    <Mail size={48} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
-                    <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
-                      No data found
-                    </p>
-                  </div>
-                ) : (
-                  visibleRows.map(row => {
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-white sticky top-0">
+                  <tr>
+                    {tableColumns.map((column) => (
+                      <th
+                        key={column.id}
+                        className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 ${
+                          column.align === 'right' ? 'text-right' : 'text-left'
+                        } ${column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
+                        onClick={() => column.sortable !== false && handleRequestSort(column.id)}
+                      >
+                        <div
+                          className={`flex items-center gap-2 ${
+                            column.align === 'right' ? 'justify-end' : 'justify-start'
+                          }`}
+                        >
+                          <span>{column.label}</span>
+                          {column.sortable !== false && orderBy === column.id && order === 'asc' && (
+                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {visibleRows.map((row) => {
                     const isHovered = hoveredRow === row.id;
                     const isSelected = selectedRowId === row.id;
 
                     return (
-                      <div 
-                        key={row.id} 
+                      <tr
+                        key={row.id}
                         onClick={() => handleRowClick(row)}
-                        onMouseEnter={() => setHoveredRow(row.id)} 
-                        onMouseLeave={() => setHoveredRow(null)} 
-                        className={`flex items-center ${SPACING.rowPadding} ${RADIUS.row} cursor-pointer border-b transition-all duration-200`}
-                        style={{ 
+                        onMouseEnter={() => setHoveredRow(row.id)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        className="cursor-pointer transition-all duration-200"
+                        style={{
                           background: isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
-                          borderColor: COLORS.border
                         }}
-                      > 
-                        {/* Dynamic Columns */}
-                        {tableColumns.map((column) => {
-                          return (
-                            <div 
-                              key={column.id}
-                              className={`${column.width || 'flex-1'} truncate px-4`}
-                              style={{ 
-                                textAlign: column.align || 'left',
-                                position: 'relative'
-                              }}
-                            >
-                              {column.id === 'status' ? (
-                               (() => {
-                                const { label,classes } = getStatusConfig(row.status);
+                      >
+                        {tableColumns.map((column) => (
+                          <td
+                            key={column.id}
+                            className={`px-4 py-3 align-middle ${column.align === 'right' ? 'text-right' : 'text-left'}`}
+                          >
+                            {column.id === 'status' ? (
+                              (() => {
+                                const { label, classes } = getStatusConfig(row.status);
                                 return (
                                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}>
                                     {label}
                                   </span>
-                                )
-                               })()
-                              ) : column.id === 'num_applicant' ? (
-                               (() => {
-                                const { label,classes } = getStatusConfig(row.num_applicant);
+                                );
+                              })()
+                            ) : column.id === 'num_applicant' ? (
+                              (() => {
+                                const { label, classes } = getStatusConfig(row.num_applicant);
                                 return (
                                   <span className={`inline-flex items-center ml-2 px-3 py-1 rounded-full text-xs font-medium ${classes}`}>
                                     {label} New Applicants
                                   </span>
-                                )
-                               })()
-                              ) : column.id === 'created_at' ? (
-                                <span className={`${TYPOGRAPHY.dateSize} ${TYPOGRAPHY.dateWeight}`}>
-                                  {formatDate(row.created_at)}
-                                </span>
-                              ) : (
-                                <span className="text-sm">{row[column.id]}</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                                );
+                              })()
+                            ) : column.id === 'created_at' ? (
+                              <span className="text-sm text-gray-500">
+                                {formatDate(row.created_at)}
+                              </span>
+                            ) : (
+                              <div className="max-w-[200px] truncate text-sm text-gray-900">
+                                {row[column.id]}
+                              </div>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
                     );
-                  })
-                )}
-              </div>
-            </div>
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
           
           {/* Pagination */}
-          <div className="w-full flex justify-end mt-3">      
+          <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">      
             <div className="flex items-center gap-6">
               <span className={`${TYPOGRAPHY.dateSize}`} style={{ color: COLORS.textMuted }}>
                 {safeRows.length > 0 ? `${startIndex}-${endIndex} of ${safeRows.length}` : '0 items'}
