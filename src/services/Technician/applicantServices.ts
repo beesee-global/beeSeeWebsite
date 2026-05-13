@@ -218,3 +218,15 @@ export const applicantUpdateStatus = async (data: any) => {
     throw error
   }
 }
+
+export const applicantAttendanceStatus = async(data: any) => {
+  try {
+    const response = await axiosClient.put(
+      `${API_URL}/update-attendance`, data
+    );
+
+    return response
+  } catch (error) {
+    throw error
+  }
+}

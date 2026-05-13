@@ -3,16 +3,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
-  CalendarClock
+  CalendarClock,
+  Check,
+  X
 } from 'lucide-react'
 import CustomSelectField from '../../../../components/Fields/CustomSelectField'
 import { getAllJobPosting } from '../../../../services/Technician/careersServices'
 import { useQuery } from '@tanstack/react-query'
 import ApplicantsDialog from './ApplicantsDialog'
-import { sendInterviewInvitation } from '../../../../services/Technician/applicantServices'
+import { sendInterviewInvitation, applicantAttendanceStatus } from '../../../../services/Technician/applicantServices'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { userAuth } from '../../../../hooks/userAuth'
 import { downloadFile } from "../../../../utils/downloadFile"
+
 
 const COLORS = {
   background: '#ffffff',
@@ -25,7 +28,7 @@ const COLORS = {
 
 const SPACING = {
   containerPadding: 'p-3 md:p-4',
-  rowPadding: 'py-2.5 px-3',
+  rowPadding: 'py-2.5 px-3', 
 }
 
 const RADIUS = {
@@ -364,6 +367,31 @@ export default function TableInterview({
       )
     }
 
+    if (column.id === 'is_attended') { 
+ 
+      return (
+        <div>
+          <button
+            type="button"
+            disabled={updateApplicantAttendanceMutation.isPending}
+            onClick={() => handleAttendanceToggle(row.applicants_id, "Yes")}
+          >
+            <Check />
+          </button>
+          <button
+            type="button"
+            disabled={updateApplicantAttendanceMutation.isPending}
+            onClick={() => handleAttendanceToggle(row.applicants_id, "No")}
+          >
+            <X />
+          </button>
+        </div>
+      )
+    }
+
+
+
+
     return (
       <div className="text-sm text-gray-900 truncate max-w-[200px]">
         {row[column.id] ?? '-'}
@@ -371,6 +399,7 @@ export default function TableInterview({
     )
   }
 
+  
   const handleEmailSubmit = async (emailData: { 
     location: string;
     time: string[];
@@ -410,6 +439,47 @@ export default function TableInterview({
       setSnackBarOpen(true);
     }
   }
+
+  const updateApplicantAttendanceMutation = useMutation({
+    mutationFn: applicantAttendanceStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interview-list'] })
+      setSnackBarMessage('Attendance status updated successfully.')
+      setSnackBarType('success')
+      setSnackBarOpen(true)
+    },
+    onError: (error: any) => {
+      const rawMessage = error?.response?.data?.message || 'Failed to update attendance status.'
+      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, '')
+      setSnackBarMessage(cleanMessage)
+      setSnackBarType('error')
+      setSnackBarOpen(true)
+    },
+  })
+
+  const handleAttendanceToggle = (applicantId: number | string, attendanceStatus: 'Yes' | 'No') => {
+    if (!applicantId) return
+ 
+    updateApplicantAttendanceMutation.mutate(
+      {
+        id: applicantId,
+        is_attended: attendanceStatus,
+      }
+    )
+  }
+
+  
+
+
+
+
+
+
+
+
+
+
+
 
   // open display dialog 
   const handleDisplayDialog = (id: number) => {
