@@ -685,9 +685,7 @@ const ApplicantsEmail = () => {
                   </div>
                 ) : (
                 <iframe
-                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                    formData.attachment_url
-                  )}`}
+                  src={ formData.attachment_url }
                   className="w-full h-[600px]"
                   title="Resume Preview"
                 />  
@@ -755,9 +753,7 @@ const ApplicantsEmail = () => {
                     </div>
                   ) : (
                     <iframe
-                     src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                      formData.attachment_url
-                    )}`}
+                     src={ formData.attachment_url }
                       className="w-full h-[600px]"
                       title="Resume Preview"
                     />

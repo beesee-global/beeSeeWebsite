@@ -294,10 +294,13 @@ export default function TableJobPosting({
                               })()
                             ) : column.id === 'num_applicant' ? (
                               (() => {
-                                const { label, classes } = getStatusConfig(row.num_applicant);
+                                const count = Number(row.num_applicant);
+                                const classes = count === 0
+                                  ? 'bg-gray-100 text-gray-700 border border-gray-200'
+                                  : 'bg-green-100 text-green-800 border border-green-200';
                                 return (
                                   <span className={`inline-flex items-center ml-2 px-3 py-1 rounded-full text-xs font-medium ${classes}`}>
-                                    {label} New Applicants
+                                    {count} New Applicants
                                   </span>
                                 );
                               })()

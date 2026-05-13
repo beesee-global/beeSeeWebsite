@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Send, 
   CheckCircle2, 
@@ -266,6 +266,21 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
     }
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -325,8 +340,7 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId }) => {
                 Application Submitted Successfully!
               </h3>
               <p className="bee-body max-w-md mx-auto">
-                Thank you for applying to BEESEE. Our HR team will review your application
-                and get back to you within 5-7 business days.
+                Thank you for applying to BEESEE GLOBAL TECHNOLOGIES, INC. 
               </p>
             </div>
           </div>
