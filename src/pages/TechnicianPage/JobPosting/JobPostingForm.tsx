@@ -109,10 +109,11 @@ const JobPostingForm: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    const nextValue = name === "title" ? value.replace(/\d/g, "") : value;
 
     setJobData((prev: FormJobData) => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
 
     // clear error when typing
@@ -134,6 +135,7 @@ const JobPostingForm: React.FC = () => {
     const careers_job_details = String(formJobData.careers_job_details || '');
 
     if (!title.trim()) errors.title = "Job title is required.";
+    else if (/\d/.test(title)) errors.title = "Job title must not contain numbers.";
     if (!description.trim()) errors.description = "Job description is required."; 
     if (!location.trim()) errors.location = "Location is required.";
     if (!workLocation.trim()) errors.work_location = "Work location is required.";

@@ -272,7 +272,12 @@ const Category = () => {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full">
                     {/* Search Field - Full width on mobile, auto width on larger screens */}
                     <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
-                        <CustomSearchField value={searchValue} onChange={(e) => setSearchValue(e.target.value)} placeholder="Search categories..." className="w-full" />
+                        <CustomSearchField 
+                            value={searchValue} 
+                            onChange={(e) => setSearchValue(e.target.value)} 
+                            placeholder="Search by name..." 
+                            className="w-full" 
+                        />
                     </div>
 
                     {/* Action Buttons */}
