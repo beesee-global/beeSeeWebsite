@@ -4,8 +4,8 @@ import {
   ChevronRight,
   Mail,
   CalendarClock,
-  Check,
-  X
+  CircleCheck,
+  CircleX
 } from 'lucide-react'
 import CustomSelectField from '../../../../components/Fields/CustomSelectField'
 import { getAllJobPosting } from '../../../../services/Technician/careersServices'
@@ -28,7 +28,7 @@ const COLORS = {
 
 const SPACING = {
   containerPadding: 'p-3 md:p-4',
-  rowPadding: 'py-2.5 px-3', 
+  rowPadding: 'py-2.5 px-3',
 }
 
 const RADIUS = {
@@ -67,7 +67,6 @@ const formatDate = (dateString?: string) => {
 const formatTime = (dateString?: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -79,7 +78,6 @@ type Order = 'asc' | 'desc'
 
 const getTimestamp = (value?: string | null) => {
   if (!value) return Number.NEGATIVE_INFINITY
-
   const timestamp = new Date(value).getTime()
   return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp
 }
@@ -149,7 +147,7 @@ interface TableInterviewProps {
   updatingRowId?: number | null
 }
 
-interface ApplicantsDialog {
+interface ApplicantsDialogData {
   applicantName: string;
   applicantEmail: string;
   applicantPosition: string;
@@ -165,11 +163,11 @@ export default function TableInterview({
   updatingRowId = null,
 }: TableInterviewProps) {
 
-  const { 
-    userInfo, 
-    setSnackBarMessage, 
-    setSnackBarType, 
-    setSnackBarOpen 
+  const {
+    userInfo,
+    setSnackBarMessage,
+    setSnackBarType,
+    setSnackBarOpen
   } = userAuth();
   const queryClient = useQueryClient();
   const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
@@ -181,7 +179,7 @@ export default function TableInterview({
   const [jobCategory, setJobCategory] = useState('')
   const rowsPerPage = 20
 
-  const [formData, setFormData] = useState<ApplicantsDialog>({
+  const [formData, setFormData] = useState<ApplicantsDialogData>({
     applicantName: '',
     applicantEmail: '',
     applicantPosition: "",
@@ -197,7 +195,6 @@ export default function TableInterview({
   const { data: jobResponse } = useQuery({
     queryKey: ['job-listing'],
     queryFn: getAllJobPosting,
-
   })
 
   const jobOptions = useMemo(() => {
@@ -220,8 +217,9 @@ export default function TableInterview({
         jobCategory.trim() === ''
           ? true
           : String(row.position ?? '').toLowerCase() === jobCategory.toLowerCase()
+      const notRejected = row.status_applicant !== 'REJECTED'
 
-      return matchesStatus && matchesJob
+      return matchesStatus && matchesJob && notRejected
     })
   }, [safeRows, statusFilter, jobCategory])
 
@@ -235,7 +233,6 @@ export default function TableInterview({
       if (orderBy !== property) {
         return 'asc'
       }
-
       return prevOrder === 'asc' ? 'desc' : 'asc'
     })
     setOrderBy(property)
@@ -243,9 +240,6 @@ export default function TableInterview({
 
   const sortedRows = useMemo(() => {
     if (filteredRows.length === 0) return []
-
-     
-
     return [...filteredRows].sort(getComparator(order, orderBy, rowOrderMap))
   }, [filteredRows, order, orderBy, rowOrderMap])
 
@@ -289,14 +283,14 @@ export default function TableInterview({
               title={String(row[column.id] ?? '')}
             >
               {row[column.id]}
-            </button> 
+            </button>
           </div>
         </div>
       )
     }
-    
+
     if (column.id === 'schedule_date') {
-      const scheduleTime = row.time || "—" // formatTime(row.schedule_date)
+      const scheduleTime = row.time || "—"
 
       return (
         <div className="flex flex-col">
@@ -312,7 +306,7 @@ export default function TableInterview({
           {formatDate(row[column.id])}
         </span>
       )
-    }   
+    }
 
     if (column.id === 'status') {
       const { label, classes } = getStatusConfig(row.status)
@@ -364,7 +358,7 @@ export default function TableInterview({
               { value: 'OFFER_STAGE', label: 'OFFER_STAGE' },
               { value: 'ONBOARDING', label: 'ONBOARDING' },
               { value: 'DECLINED_OFFER', label: 'DECLINED_OFFER' },
-              { value: 'WITHDRAWN_INACTIVE', label: 'WITHDRAWN_INACTIVE' },  
+              { value: 'WITHDRAWN_INACTIVE', label: 'WITHDRAWN_INACTIVE' },
             ]}
           />
           {updatingRowId === row.id && (
@@ -374,30 +368,53 @@ export default function TableInterview({
       )
     }
 
-    if (column.id === 'is_attended') { 
- 
+    if (column.id === 'is_attended') {
+      const attendanceStatus = String(row.is_attended ?? '').toLowerCase()
+      const isAttended = attendanceStatus === 'yes'
+      const isRejected = row.status_applicant === 'REJECTED'
+
       return (
-        <div>
+        <div className="flex items-center gap-2">
+          {/* Check — always gray by default, green only when attended and not rejected */}
           <button
             type="button"
             disabled={updateApplicantAttendanceMutation.isPending}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+              isAttended && !isRejected
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-gray-200 bg-gray-50 text-gray-400'
+            }`}
             onClick={() => handleAttendanceToggle(row.applicants_id, "Yes")}
+            title="Mark attended"
+            aria-label="Mark attended"
           >
-            <Check />
+            <CircleCheck size={20} strokeWidth={2.25} />
           </button>
+
+          {/* X — always gray by default, red only when REJECTED */}
           <button
             type="button"
             disabled={updateApplicantAttendanceMutation.isPending}
-            onClick={() => handleAttendanceToggle(row.applicants_id, "No")}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+              isRejected
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-gray-200 bg-gray-50 text-gray-400'
+            }`}
+            onClick={() =>
+              onStatusApplicantChange?.({
+                id: row.applicants_id,
+                status: 'REJECTED',
+                currentStatus: row.status_applicant,
+              })
+            }
+            title="Mark as rejected"
+            aria-label="Mark as rejected"
           >
-            <X />
+            <CircleX size={20} strokeWidth={2.25} />
           </button>
         </div>
       )
     }
-
-
-
 
     return (
       <div className="text-sm text-gray-900 truncate max-w-[200px]">
@@ -406,8 +423,7 @@ export default function TableInterview({
     )
   }
 
-  
-  const handleEmailSubmit = async (emailData: { 
+  const handleEmailSubmit = async (emailData: {
     location: string;
     time: string[];
     date: string;
@@ -417,8 +433,8 @@ export default function TableInterview({
     const payload = {
       id: formData.applicantId,
       name: formData.applicantName,
-      position:formData.applicantPosition,
-      email: formData.applicantEmail, 
+      position: formData.applicantPosition,
+      email: formData.applicantEmail,
       location: emailData.location,
       time: emailData.time,
       date: emailData.date,
@@ -439,7 +455,7 @@ export default function TableInterview({
         })
       }
     } catch (error: any) {
-      const rawMessage = error?.response?.data.message 
+      const rawMessage = error?.response?.data.message
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       setSnackBarMessage(cleanMessage);
       setSnackBarType(error);
@@ -466,33 +482,17 @@ export default function TableInterview({
 
   const handleAttendanceToggle = (applicantId: number | string, attendanceStatus: 'Yes' | 'No') => {
     if (!applicantId) return
- 
-    updateApplicantAttendanceMutation.mutate(
-      {
-        id: applicantId,
-        is_attended: attendanceStatus,
-      }
-    )
+    updateApplicantAttendanceMutation.mutate({
+      id: applicantId,
+      is_attended: attendanceStatus,
+    })
   }
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-  // open display dialog 
+  // Open display dialog
   const handleDisplayDialog = (id: number) => {
     const selectedRow = rows.find((row) => row.id === id)
- 
-    if (!selectedRow ) return
+
+    if (!selectedRow) return
 
     setFormData((prev) => ({
       ...prev,
@@ -502,7 +502,7 @@ export default function TableInterview({
       applicantId: selectedRow.applicants_id || ""
     }))
 
-    setEmailDialogOpen(true) 
+    setEmailDialogOpen(true)
   }
 
   if (isLoading) {
@@ -526,7 +526,7 @@ export default function TableInterview({
   return (
     <div className="w-full" style={{ background: COLORS.background }}>
 
-      {/* Email Dialog */}
+      {/* Interview Invitation Email Dialog */}
       <ApplicantsDialog
         open={emailDialogOpen}
         onClose={() => setEmailDialogOpen(false)}
