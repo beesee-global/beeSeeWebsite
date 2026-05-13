@@ -244,9 +244,7 @@ export default function TableInterview({
   const sortedRows = useMemo(() => {
     if (filteredRows.length === 0) return []
 
-    if (orderBy === 'schedule_date' && order === 'desc') {
-      return filteredRows
-    }
+     
 
     return [...filteredRows].sort(getComparator(order, orderBy, rowOrderMap))
   }, [filteredRows, order, orderBy, rowOrderMap])
