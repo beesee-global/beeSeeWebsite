@@ -6,8 +6,9 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
-import CustomSelectField from '../Fields/CustomSelectField';
 import { useQuery } from '@tanstack/react-query';
 import  { fetchAllRejectedNotes } from "../../services/Technician/rejectedNotedService"
   
@@ -56,18 +57,24 @@ const AlertDialogRejected: React.FC<AlertDialogProps> = ({
   const [remarksError, setRemarksError] = useState(false);
 
   const { data: rejectedNotesResponse } = useQuery({
-    queryKey: ['rejected'],
-    queryFn: fetchAllRejectedNotes
+    queryKey: ['rejected-notes'],
+    queryFn: fetchAllRejectedNotes,
+    enabled: open && showRemarks,
   });
 
-  const dataRejectedNotes = rejectedNotesResponse?.data || []
+  const dataRejectedNotes = rejectedNotesResponse?.data?.data || rejectedNotesResponse?.data || []
  
   const rejectedNoteOptions = useMemo(() => {
-    return dataRejectedNotes.map((note: any) => ({
-      value: note.message,
-      label: note.message,
-    }))
-  }, [dataRejectedNotes])
+    const apiOptions = Array.isArray(dataRejectedNotes)
+      ? dataRejectedNotes.map((note: any) => String(note.message || '').trim()).filter(Boolean)
+      : [];
+
+    const fallbackOptions = (remarksOptions.length > 0 ? remarksOptions : commonRejectionOptions)
+      .map((option) => String(option.label || option.value || '').trim())
+      .filter(Boolean);
+
+    return Array.from(new Set([...apiOptions, ...fallbackOptions]));
+  }, [dataRejectedNotes, remarksOptions])
 
   useEffect(() => {
     if (!open) return;
@@ -102,22 +109,54 @@ const AlertDialogRejected: React.FC<AlertDialogProps> = ({
 
         {showRemarks && (
           <div>
-            <label htmlFor="rejection-remarks">{remarksLabel}</label>
-            <CustomSelectField
-              name="remarks"
-              placeholder={remarksPlaceholder}
-              value={remarks}
-              onChange={(e) => {
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              {remarksLabel}
+            </label>
+            <Autocomplete
+              freeSolo
+              options={rejectedNoteOptions}
+              inputValue={remarks}
+              onInputChange={(_, value) => {
                 setRemarksError(false);
-                setRemarks(String(e.target.value));
+                setRemarks(value.slice(0, 250));
+              }}
+              onChange={(_, value) => {
+                setRemarksError(false);
+                setRemarks(String(value || '').slice(0, 250));
               }}
               disabled={isLoading}
-              freeSolo
-              options={rejectedNoteOptions.length > 0 ? rejectedNoteOptions : commonRejectionOptions} 
-              maxLength={250}
-              error={remarksError}
-              helperText={remarksError ? 'Remarks is required.' : ''}
+              noOptionsText="Type a custom rejection note"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={remarksPlaceholder}
+                  size="small"
+                  error={remarksError}
+                  sx={{
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '6px',
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '14px',
+                      '& fieldset': {
+                        borderColor: remarksError ? 'red' : '#d1d5db',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: remarksError ? 'red' : '#9ca3af',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: remarksError ? 'red' : '#FCD000',
+                      },
+                    },
+                  }}
+                />
+              )}
             />
+            <div className="mt-1 flex justify-between gap-3 text-xs">
+              <span className={remarksError ? 'text-red-500' : 'text-gray-500'}>
+                {remarksError ? 'Remarks is required.' : 'Choose an option or type a custom note.'}
+              </span>
+              <span className="text-gray-400">{remarks.length}/250</span>
+            </div>
           </div>
         )}
       </DialogContent>

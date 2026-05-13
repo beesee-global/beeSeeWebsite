@@ -755,9 +755,9 @@ const ApplicantsEmail = () => {
                     </div>
                   ) : (
                     <iframe
-                      src={`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(
-                        formData.attachment_url
-                      )}`}
+                     src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                      formData.attachment_url
+                    )}`}
                       className="w-full h-[600px]"
                       title="Resume Preview"
                     />
