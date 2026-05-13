@@ -354,10 +354,19 @@ export default function TableInterview({
               })
             }
             options={[
+              { value: 'NEW_APPLICANT', label: 'NEW_APPLICANT' },
               { value: 'SHORTLISTED', label: 'SHORTLISTED' },
-              { value: 'HIRED', label: 'HIRED' },
               { value: 'REJECTED', label: 'REJECTED' },
+              { value: 'HIRED', label: 'HIRED' },
               { value: 'CLOSED', label: 'CLOSED' },
+              { value: 'INTERVIEWED', label: 'INTERVIEWED' },
+              { value: 'ASSESSMENT', label: 'ASSESSMENT' },
+              { value: 'FOR_APPROVAL', label: 'FOR_APPROVAL' },
+              { value: 'BACKGROUND_CHECK', label: 'BACKGROUND_CHECK' },
+              { value: 'OFFER_STAGE', label: 'OFFER_STAGE' },
+              { value: 'ONBOARDING', label: 'ONBOARDING' },
+              { value: 'DECLINED_OFFER', label: 'DECLINED_OFFER' },
+              { value: 'WITHDRAWN_INACTIVE', label: 'WITHDRAWN_INACTIVE' },  
             ]}
           />
           {updatingRowId === row.id && (
