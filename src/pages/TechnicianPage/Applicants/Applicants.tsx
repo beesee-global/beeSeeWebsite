@@ -6,6 +6,8 @@ import {
   fetchApplicantsClosed,
   fetchApplicantsNewApplicants,
   fetchApplicantsHired,
+  applicantMode,
+  APPLICANT_MODE_STATUSES,
   shortList,
   deleteApplicants,
   rejectedApplicants,
@@ -13,6 +15,7 @@ import {
   closedApplicants,
   jobDetails
 } from '../../../services/Technician/applicantServices'
+import type { ApplicantModeStatus } from '../../../services/Technician/applicantServices'
 import { downloadFile } from '../../../utils/downloadFile';
 import {   
   X,
@@ -34,6 +37,9 @@ import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { userAuth } from "../../../hooks/userAuth"
 import AlertDialogRejected from '../../../components/feedback/AlertDialogRejected'; 
 import { useParams, useNavigate } from 'react-router-dom';
+
+const isApplicantModeStatus = (status: string): status is ApplicantModeStatus =>
+  APPLICANT_MODE_STATUSES.includes(status as ApplicantModeStatus);
 
 const Applicants = () => { 
   const queryClient = useQueryClient(); 
@@ -141,6 +147,18 @@ const Applicants = () => {
     enabled: !!id,
   })
 
+  const {
+    data: applicantModeResponse,
+    isLoading: isApplicantModeLoading,
+  } = useQuery({
+    queryKey: ['applicant-mode', id, statusFilter],
+    queryFn: () => applicantMode({
+      job_applicant: String(id),
+      status: statusFilter,
+    }),
+    enabled: !!id && isApplicantModeStatus(statusFilter),
+  })
+
   const { mutateAsync: shortListed, isPending: isShortListing } = useMutation({
     mutationFn: shortList
   });
@@ -174,6 +192,7 @@ const Applicants = () => {
     if (statusFilter === 'rejected') baseRows = applicantsRejectedResponse?.data || [];
     if (statusFilter === 'hired') baseRows = hiredApplicantsResponse?.data || [];
     if (statusFilter === 'closed') baseRows = closedApplicantsResponse?.data || [];
+    if (isApplicantModeStatus(statusFilter)) baseRows = applicantModeResponse?.data || [];
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
     const uniqueRows = Array.from(
@@ -188,7 +207,8 @@ const Applicants = () => {
     applicantShortListedResponse, 
     applicantsRejectedResponse, 
     hiredApplicantsResponse,
-    closedApplicantsResponse
+    closedApplicantsResponse,
+    applicantModeResponse
   ])
 
   const selectedRow = rows.find((r: any) => r.id === selectedRowId);
@@ -425,6 +445,7 @@ const Applicants = () => {
         queryClient.invalidateQueries({ queryKey: ['new-applicant']});
         queryClient.invalidateQueries({ queryKey: ['hired']});
         queryClient.invalidateQueries({ queryKey: ['closed']});
+        queryClient.invalidateQueries({ queryKey: ['applicant-mode']});
         clearFormat()
       }
     } catch (error) {
@@ -498,7 +519,15 @@ const Applicants = () => {
     )
   }, [rows, debouncedSearch])
  
-  const isLoading = isPendingLoading || isCompletedLoading
+  const isInitialLoading = isPendingLoading || isCompletedLoading
+  const isTableLoading =
+    (statusFilter === 'all' && isPendingLoading) ||
+    (statusFilter === 'new_applicants' && isNewApplicantLoading) ||
+    (statusFilter === 'short_listed' && isCompletedLoading) ||
+    (statusFilter === 'rejected' && isRejectedLoading) ||
+    (statusFilter === 'hired' && isHiredLoading) ||
+    (statusFilter === 'closed' && isClosedLoading) ||
+    (isApplicantModeStatus(statusFilter) && isApplicantModeLoading)
   
   // Check if buttons should be enabled based on selected row status
   const isSelectedClosed = selectedRow?.status === 'CLOSED';
@@ -517,7 +546,7 @@ const Applicants = () => {
     ? checkedRows.length > 0 && checkedRows.every((row: any) => row.status === 'REJECTED')
     : !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
 
-  if (isLoading) return <SpinningRingLoader />
+  if (isInitialLoading) return <SpinningRingLoader />
 
   return (
     <div className="p-6 space-y-10 bg-white"> 
@@ -554,7 +583,7 @@ const Applicants = () => {
           </p>
         </div>
 
-        <div className='flex flex-col sm:flex-row items-stretch lg:col-span-2 sm:items-center justify-end gap-3 w-full'>
+        <div className='flex flex-col justify-end sm:flex-row items-stretch lg:col-span-2 sm:items-center gap-3 w-full'>
           <div className="w-full sm:w-auto sm:flex-grow sm:max-w-xs">
             <CustomSearchField 
               value={searchValue}
@@ -564,7 +593,7 @@ const Applicants = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto'>
+          <div className='grid grid-cols-2 sm:grid-cols-3 gap-2 w-full sm:w-auto'>
             {/* View Button - Always available when row is selected */}
             <button
               onClick={handleView}
@@ -581,7 +610,7 @@ const Applicants = () => {
             </button>
 
             {/* Add/Shortlist Button - Only for NOT_SHORTLISTED */}
-            <button
+            {/* <button
               onClick={handleAdd}
               disabled={!isAddEnabled}
               title="Add to Shortlist"
@@ -593,10 +622,10 @@ const Applicants = () => {
             >
               <Plus size={18} /> 
               <span className="hidden sm:inline whitespace-nowrap">Add</span>
-            </button>
+            </button> */}
 
             {/* Undo Button - For SHORTLISTED and REJECTED */}
-            <button
+            {/* <button
               onClick={handleUndo}
               disabled={!isUndoEnabled}
               title="Undo"
@@ -608,10 +637,10 @@ const Applicants = () => {
             >
               <Undo size={18} /> 
               <span className="hidden sm:inline whitespace-nowrap">Undo</span>
-            </button>
+            </button> */}
 
             {/* Reject Button - For NOT_SHORTLISTED and SHORTLISTED */}
-            <button
+            {/* <button
               onClick={handleReject}
               disabled={!isRejectEnabled}
               title="Reject"
@@ -623,10 +652,10 @@ const Applicants = () => {
             >
               <X size={18} /> 
               <span className="hidden sm:inline whitespace-nowrap">Reject</span>
-            </button>
+            </button> */}
 
             {/* Delete Button - Only for REJECTED */}
-            <button
+            {/* <button
               onClick={handleDelete}
               disabled={!isDeleteEnabled}
               title="Delete"
@@ -638,7 +667,7 @@ const Applicants = () => {
             >
               <Trash2 size={18} /> 
               <span className="hidden sm:inline whitespace-nowrap">Delete</span>
-            </button>
+            </button> */}
 
             <button
               onClick={handleBack} 
@@ -655,8 +684,7 @@ const Applicants = () => {
 
             {/* Closed Button - Only for REJECTED */}
             <button
-              onClick={handleClosed}
-              disabled={!isClosedEnabled}
+              onClick={handleClosed} 
               title="Closed"
               aria-label="Closed"
               className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 w-full sm:w-auto"
@@ -682,7 +710,7 @@ const Applicants = () => {
         onRowDoubleClick={handleRowDoubleClick}
         page={applicantsPage}
         onPageChange={handleApplicantsPageChange}
-        isLoading={isLoading}
+        isLoading={isTableLoading}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
       />

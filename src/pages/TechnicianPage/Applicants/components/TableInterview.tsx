@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
   Mail,
   CalendarClock,
   CircleCheck,
-  CircleX
+  CircleX,
+  ChevronDown
 } from 'lucide-react'
 import CustomSelectField from '../../../../components/Fields/CustomSelectField'
 import { getAllJobPosting } from '../../../../services/Technician/careersServices'
@@ -51,6 +52,22 @@ const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
     classes: 'bg-red-100 text-red-700 border border-red-200',
   },
 }
+
+const STATUS_OPTIONS = [
+  { value: 'NEW_APPLICANT', label: 'New Applicant', color: 'bg-blue-100 text-blue-800' },
+  { value: 'SHORTLISTED', label: 'Shortlisted', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'REJECTED', label: 'Rejected', color: 'bg-red-100 text-red-800' },
+  { value: 'HIRED', label: 'Hired', color: 'bg-green-100 text-green-800' },
+  { value: 'CLOSED', label: 'Closed', color: 'bg-gray-100 text-gray-800' },
+  { value: 'INTERVIEWED', label: 'Interviewed', color: 'bg-purple-100 text-purple-800' },
+  { value: 'ASSESSMENT', label: 'Assessment', color: 'bg-indigo-100 text-indigo-800' },
+  { value: 'FOR_APPROVAL', label: 'For Approval', color: 'bg-orange-100 text-orange-800' },
+  { value: 'BACKGROUND_CHECK', label: 'Background Check', color: 'bg-teal-100 text-teal-800' },
+  { value: 'OFFER_STAGE', label: 'Offer Stage', color: 'bg-pink-100 text-pink-800' },
+  { value: 'ONBOARDING', label: 'Onboarding', color: 'bg-cyan-100 text-cyan-800' },
+  { value: 'DECLINED_OFFER', label: 'Declined Offer', color: 'bg-red-200 text-red-900' },
+  { value: 'WITHDRAWN_INACTIVE', label: 'Withdrawn/Inactive', color: 'bg-gray-200 text-gray-900' },
+]
 
 const getStatusConfig = (status: string) =>
   STATUS_CONFIG[status] ?? {
@@ -177,6 +194,18 @@ export default function TableInterview({
   const [orderBy, setOrderBy] = useState<string>('schedule_date')
   const [statusFilter, setStatusFilter] = useState('All')
   const [jobCategory, setJobCategory] = useState('')
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
+  const [dropdownPosition, setDropdownPosition] = useState<{top: number, left: number, width: number} | null>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownOpen && !(event.target as Element).closest('.status-dropdown')) {
+        setDropdownOpen(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
   const rowsPerPage = 20
 
   const [formData, setFormData] = useState<ApplicantsDialogData>({
@@ -251,11 +280,10 @@ export default function TableInterview({
   const renderCell = (row: RowData, column: ColumnConfig) => {
 
     if (column.id === 'full_name') {
-      const canReschedule = row.status !== 'Pending' && row.status_applicant === 'SHORTLISTED'
+    
 
       return (
-        <div className="flex items-center gap-3 min-w-0">
-          {canReschedule ? (
+        <div className="flex items-center gap-3 min-w-0"> 
             <button
               type="button"
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800 hover:shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
@@ -267,10 +295,7 @@ export default function TableInterview({
               aria-label="Reschedule interview"
             >
               <CalendarClock size={16} strokeWidth={2.25} />
-            </button>
-          ) : (
-            <span className="h-8 w-8 shrink-0" aria-hidden="true" />
-          )}
+            </button> 
 
           <div className="min-w-0">
             <button
@@ -331,42 +356,96 @@ export default function TableInterview({
       )
     }
 
-    if (column.id === 'status_applicant') {
-      return (
-        <div className="min-w-[100px]">
-          <CustomSelectField
-            name={`status_applicant_${row.id}`}
-            placeholder="Select status"
-            value={row.status_applicant || ''}
-            onChange={(e) =>
-              onStatusApplicantChange?.({
-                id: row.applicants_id,
-                status: String(e.target.value),
-                currentStatus: row.status_applicant,
+  if (column.id === 'status_applicant') {
+    const isOpen = dropdownOpen === row.id
+    const currentStatus = STATUS_OPTIONS.find(
+      (o) => o.value === row.status_applicant
+    )
+
+    return (
+      <div className="relative min-w-[160px] status-dropdown">
+        <button
+          type="button"
+          className={`w-full px-3 py-1.5 text-xs font-medium rounded-full flex items-center justify-between transition-colors ${
+            currentStatus?.color || 'bg-gray-100 text-gray-800'
+          }`}
+          onClick={(e) => {
+            e.stopPropagation()
+
+            const rect = e.currentTarget.getBoundingClientRect()
+
+            if (isOpen) {
+              setDropdownOpen(null)
+              setDropdownPosition(null)
+            } else {
+              setDropdownPosition({
+                top: rect.bottom + 4,
+                left: rect.left,
+                width: Math.max(rect.width, 230),
               })
+              setDropdownOpen(row.id)
             }
-            options={[
-              { value: 'NEW_APPLICANT', label: 'NEW_APPLICANT' },
-              { value: 'SHORTLISTED', label: 'SHORTLISTED' },
-              { value: 'REJECTED', label: 'REJECTED' },
-              { value: 'HIRED', label: 'HIRED' },
-              { value: 'CLOSED', label: 'CLOSED' },
-              { value: 'INTERVIEWED', label: 'INTERVIEWED' },
-              { value: 'ASSESSMENT', label: 'ASSESSMENT' },
-              { value: 'FOR_APPROVAL', label: 'FOR_APPROVAL' },
-              { value: 'BACKGROUND_CHECK', label: 'BACKGROUND_CHECK' },
-              { value: 'OFFER_STAGE', label: 'OFFER_STAGE' },
-              { value: 'ONBOARDING', label: 'ONBOARDING' },
-              { value: 'DECLINED_OFFER', label: 'DECLINED_OFFER' },
-              { value: 'WITHDRAWN_INACTIVE', label: 'WITHDRAWN_INACTIVE' },
-            ]}
+          }}
+          disabled={updatingRowId === row.id}
+        >
+          <span className="truncate">
+            {currentStatus?.label || 'Select Status'}
+          </span>
+
+          <ChevronDown
+            className={`w-3 h-3 ml-2 shrink-0 transition-transform ${
+              isOpen ? 'rotate-180' : ''
+            }`}
           />
-          {updatingRowId === row.id && (
-            <p className="mt-1 text-xs text-slate-500">Updating...</p>
-          )}
-        </div>
-      )
-    }
+        </button>
+
+        {isOpen && dropdownPosition && (
+          <div
+            className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto status-dropdown"
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width,
+            }}
+          >
+            {STATUS_OPTIONS.map((option) => {
+              const isSelected = option.value === row.status_applicant
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${
+                    isSelected
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+
+                    onStatusApplicantChange?.({
+                      id: row.applicants_id,
+                      status: option.value,
+                      currentStatus: row.status_applicant,
+                    })
+
+                    setDropdownOpen(null)
+                    setDropdownPosition(null)
+                  }}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {updatingRowId === row.id && (
+          <p className="mt-1 text-xs text-slate-500">Updating...</p>
+        )}
+      </div>
+    )
+  }
 
     if (column.id === 'is_attended') {
       const attendanceStatus = String(row.is_attended ?? '').toLowerCase()
@@ -636,9 +715,7 @@ export default function TableInterview({
                         {columns.map((column) => (
                           <td
                             key={column.id}
-                            className={`px-4 py-3 align-middle ${
-                              column.align === 'right' ? 'text-right' : 'text-left'
-                            }`}
+                            className={`px-4 py-3 align-middle ${column.align === 'right' ? 'text-right' : 'text-left'} ${column.id === 'status_applicant' ? 'overflow-visible' : ''}`}
                           >
                             {renderCell(row, column)}
                           </td>
