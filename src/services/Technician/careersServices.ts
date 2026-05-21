@@ -101,3 +101,12 @@ export const careersList = async () => {
     throw error
   }
 }
+
+export const preScreenList = async () => {
+  try {
+    const response = await axiosClient.get(`/careers/pre-screening-list`);
+    return response.data
+  } catch (error) {
+     throw error
+  }
+}

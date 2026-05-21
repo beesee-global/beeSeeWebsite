@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 import CustomTextField from "../../../components/Fields/CustomTextField"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
@@ -30,6 +30,7 @@ import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
 import AlertDialogRejected from "../../../components/feedback/AlertDialogRejected"
 import ApplicantsDialog from "./components/ApplicantsDialog"
+import { preScreenList } from "../../../services/Technician/careersServices"
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -46,6 +47,10 @@ interface ApplicantFormProps {
   portfolio?: string
   remarks?: string
 }
+
+const BLANK_REGEX = /_{2,}/
+const fillBlank = (question: string, value: string) =>
+  value.trim() ? question.replace(BLANK_REGEX, value.trim()) : question
 
 /* ─── Status config ──────────────────────────────────────────────────────── */
 
@@ -287,6 +292,61 @@ const ApplicantsEmail = () => {
     useMutation({ mutationFn: applicantUpdateStatus })
 
   const applicantDetails = applicantInfoResponse?.data
+
+  const { data: preScreeningData } = useQuery({
+    queryKey: ['pre-screening-list'],
+    queryFn: preScreenList,
+    enabled: !!id,
+  })
+  const preScreeningQuestions = preScreeningData?.data || []
+
+  const getEmbeddedQuestion = (item: any) => {
+    if (item.pre_screening_question) return item.pre_screening_question
+    if (item.preScreeningQuestion) return item.preScreeningQuestion
+    if (typeof item.question === 'object' && item.question !== null) return item.question
+    return undefined
+  }
+
+  const getEmbeddedQuestionText = (item: any) => {
+    if (typeof item.question === 'string') return item.question
+    if (typeof item.question_text === 'string') return item.question_text
+    return getEmbeddedQuestion(item)?.question || ''
+  }
+
+  const getBlankValue = (item: any) =>
+    item.blank_value === null || item.blank_value === undefined ? '' : String(item.blank_value)
+
+  const resolveApplicantQuestionText = (item: any, question: any) => {
+    const questionText =
+      getEmbeddedQuestionText(item) || question?.question || `Question #${item.question_id}`
+    return fillBlank(questionText, getBlankValue(item))
+  }
+
+  const resolvedApplicantPreScreening = useMemo(() => {
+    const answers = applicantDetails?.pre_screening
+    if (!Array.isArray(answers) || answers.length === 0) return []
+
+    return answers.map((item: any) => {
+      const question = preScreeningQuestions.find(
+        (questionItem: any) => Number(questionItem.id) === Number(item.question_id)
+      )
+
+      const questionText = resolveApplicantQuestionText(item, question)
+
+      const answerText = question?.choices?.find(
+        (choice: any) => String(choice.value) === String(item.answer)
+      )?.choice_text || String(item.answer ?? '')
+
+      return {
+        questionText,
+        answerText,
+        deal_breaker_expected_value:
+          item.deal_breaker_expected_value === null || item.deal_breaker_expected_value === undefined
+            ? ''
+            : String(item.deal_breaker_expected_value),
+      }
+    })
+  }, [applicantDetails?.pre_screening, preScreeningQuestions])
 
   useEffect(() => {
     if (applicantDetails) {
@@ -747,6 +807,53 @@ const ApplicantsEmail = () => {
                   <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800">
                     {formData.remarks}
                   </p>
+                </div>
+              </div>
+            )}
+
+            {resolvedApplicantPreScreening.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Pre-screening Answers</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Applicant responses matched against the latest pre-screening questions.
+                </p>
+                <div className="space-y-3">
+                  {resolvedApplicantPreScreening.map((item, index) => (
+                    <div
+                      key={`${item.questionText}-${index}`}
+                      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition"
+                    >
+                      {/* Question */}
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                        Question
+                      </p>
+                      <p className="mt-1 text-base font-semibold text-gray-900">
+                        {item.questionText}
+                      </p>
+
+                      {/* Answer */}
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Answer</p>
+                        <p className="mt-1 text-sm text-gray-800">
+                          {item.answerText || (
+                            <span className="italic text-gray-400">No answer provided</span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Expected Answer */}
+                      {item.deal_breaker_expected_value != null && item.deal_breaker_expected_value != "" && item.deal_breaker_expected_value != item.answerText && (
+                        <div className="mt-4 border-t pt-3">
+                          <p className="text-sm font-medium text-gray-500">
+                            Expected Answer
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-blue-600">
+                            {item.deal_breaker_expected_value}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
