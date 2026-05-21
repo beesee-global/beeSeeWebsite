@@ -1,125 +1,355 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 import CustomTextField from "../../../components/Fields/CustomTextField"
-import Breadcrumb from "../../../components/Navigation/Breadcrumbs"   
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query" 
-import { 
+import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
   getInformationApplicant,
-  shortList,
-  rejectedApplicants,
-  deleteApplicants, 
-  closedApplicants,
-  sendInterviewInvitation
-} from '../../../services/Technician/applicantServices' 
-import { downloadFileDesktop } from '../../../utils/downloadFile'
-import {  
+  deleteApplicants,
+  sendInterviewInvitation,
+  applicantUpdateStatus,
+  APPLICANT_MODE_STATUSES,
+} from "../../../services/Technician/applicantServices"
+import { downloadFileDesktop } from "../../../utils/downloadFile"
+import {
   User2,
   FilePenLine,
   Download,
-  Plus,
-  X,
   Trash2,
-  Send,
   FileText,
   ZoomIn,
   ZoomOut,
-  Ban,
   UserRoundCog,
   Link,
   CalendarCheck,
-  CalendarClock
+  CalendarClock,
+  ChevronDown,
+  Check,
 } from "lucide-react"
 import { Email, Phone } from "@mui/icons-material"
 import { userAuth } from "../../../hooks/userAuth"
-import AlertDialogRejected from '../../../components/feedback/AlertDialogRejected'
+import AlertDialogRejected from "../../../components/feedback/AlertDialogRejected"
 import ApplicantsDialog from "./components/ApplicantsDialog"
-import { P } from "framer-motion/dist/types.d-DagZKalS"
+import { preScreenList } from "../../../services/Technician/careersServices"
+
+/* ─── Types ─────────────────────────────────────────────────────────────── */
 
 interface ApplicantFormProps {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string; 
-  position: string; 
-  job_number: string;
-  status: string; 
-  attachment_url: string;
-  portfolio_link?: string;
-  portfolio?: string;
-  remarks?: string;
-
+  id: number
+  full_name: string
+  email: string
+  phone: string
+  position: string
+  job_number: string
+  status: string
+  attachment_url: string
+  portfolio_link?: string
+  portfolio?: string
+  remarks?: string
 }
 
+const BLANK_REGEX = /_{2,}/
+const fillBlank = (question: string, value: string) =>
+  value.trim() ? question.replace(BLANK_REGEX, value.trim()) : question
+
+/* ─── Status config ──────────────────────────────────────────────────────── */
+
+const STATUS_META: Record<
+  string,
+  { label: string; dot: string; pill: string; text: string }
+> = {
+  NEW_APPLICANT:      { label: "New Applicant",       dot: "#378ADD", pill: "#E6F1FB", text: "#185FA5" },
+  SHORTLISTED:        { label: "Shortlisted",          dot: "#7F77DD", pill: "#EEEDFE", text: "#534AB7" },
+  INTERVIEWED:        { label: "Interviewed",          dot: "#1D9E75", pill: "#E1F5EE", text: "#0F6E56" },
+  ASSESSMENT:         { label: "Assessment",           dot: "#EF9F27", pill: "#FAEEDA", text: "#854F0B" },
+  FOR_APPROVAL:       { label: "For Approval",         dot: "#BA7517", pill: "#FAEEDA", text: "#854F0B" },
+  BACKGROUND_CHECK:   { label: "Background Check",     dot: "#534AB7", pill: "#EEEDFE", text: "#3C3489" },
+  OFFER_STAGE:        { label: "Offer Stage",          dot: "#639922", pill: "#EAF3DE", text: "#3B6D11" },
+  ONBOARDING:         { label: "Onboarding",           dot: "#0F6E56", pill: "#E1F5EE", text: "#085041" },
+  HIRED:              { label: "Hired",                dot: "#3B6D11", pill: "#EAF3DE", text: "#27500A" },
+  REJECTED:           { label: "Rejected",             dot: "#E24B4A", pill: "#FCEBEB", text: "#A32D2D" },
+  DECLINED_OFFER:     { label: "Declined Offer",       dot: "#D85A30", pill: "#FAECE7", text: "#993C1D" },
+  WITHDRAWN_INACTIVE: { label: "Withdrawn / Inactive", dot: "#888780", pill: "#F1EFE8", text: "#5F5E5A" },
+  CLOSED:             { label: "Closed",               dot: "#5F5E5A", pill: "#F1EFE8", text: "#444441" },
+}
+
+const STATUS_GROUPS = [
+  {
+    label: "Initial",
+    keys: ["NEW_APPLICANT", "SHORTLISTED"],
+  },
+  {
+    label: "In Progress",
+    keys: [
+      "INTERVIEWED",
+      "ASSESSMENT",
+      "FOR_APPROVAL",
+      "BACKGROUND_CHECK",
+      "OFFER_STAGE",
+    ],
+  },
+  {
+    label: "Outcome",
+    keys: [
+      "ONBOARDING",
+      "HIRED",
+      "DECLINED_OFFER",
+      "REJECTED",
+      "WITHDRAWN_INACTIVE",
+      "CLOSED",
+    ],
+  },
+]
+
+/* ─── StatusDropdown component ───────────────────────────────────────────── */
+
+interface StatusDropdownProps {
+  value: string
+  onChange: (next: string) => void
+  disabled?: boolean
+}
+
+const StatusDropdown: React.FC<StatusDropdownProps> = ({
+  value,
+  onChange,
+  disabled,
+}) => {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const meta = STATUS_META[value]
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const handleSelect = (key: string) => {
+    if (key !== value) onChange(key)
+    setOpen(false)
+  }
+
+  return (
+    <div ref={ref} className="relative inline-flex items-center gap-3">
+      {/* Trigger button */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`
+          flex items-center gap-2 px-3 py-2 min-w-[190px] rounded-xl text-sm font-semibold
+          border transition-all duration-150 select-none bg-white border-gray-200 shadow-sm
+          ${disabled
+            ? "opacity-50 cursor-not-allowed"
+            : "cursor-pointer hover:border-gray-300 hover:shadow-md active:scale-[0.98]"
+          }
+        `}
+        style={{ color: meta?.text ?? "#374151" }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span
+          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+          style={{ backgroundColor: meta?.dot ?? "#9CA3AF" }}
+        />
+        <span className="flex-1 text-left truncate">
+          {meta?.label ?? value}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* Active pill badge */}
+      {meta && (
+        <span
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border"
+          style={{
+            backgroundColor: meta.pill,
+            color: meta.text,
+            borderColor: meta.dot + "55",
+          }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: meta.dot }}
+          />
+          {meta.label}
+        </span>
+      )}
+
+      {/* Dropdown menu */}
+      {open && (
+        <div
+          className="absolute top-[calc(100%+6px)] left-0 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl py-2 min-w-[220px]"
+          role="listbox"
+        >
+          {STATUS_GROUPS.map((group, gi) => (
+            <React.Fragment key={group.label}>
+              {gi > 0 && (
+                <div className="my-1.5 border-t border-gray-100" />
+              )}
+              <p className="px-3 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {group.label}
+              </p>
+              {group.keys.map((key) => {
+                const m = STATUS_META[key]
+                if (!m) return null
+                const isSelected = key === value
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => handleSelect(key)}
+                    className={`
+                      w-[calc(100%-8px)] mx-1 flex items-center gap-2.5 px-3 py-2 text-sm text-left
+                      rounded-xl transition-colors duration-100 hover:bg-gray-50
+                      ${isSelected ? "font-semibold" : "font-normal text-gray-700"}
+                    `}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: m.dot }}
+                    />
+                    <span className="flex-1">{m.label}</span>
+                    {isSelected && (
+                      <Check
+                        className="w-3.5 h-3.5 flex-shrink-0"
+                        style={{ color: m.dot }}
+                      />
+                    )}
+                  </button>
+                )
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Main page ──────────────────────────────────────────────────────────── */
+
 const ApplicantsEmail = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { id } = useParams();
-  const queryClient = useQueryClient();
-  
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  const queryClient = useQueryClient()
+
   const {
     userInfo: authUserInfo,
     setSnackBarMessage,
     setSnackBarOpen,
     setSnackBarType,
-  } = userAuth();
+  } = userAuth()
 
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [dialogMessage, setDialogMessage] = useState<string>("");
-  const [dialogTitle, setDialogTitle] = useState<string>("");
-  const [actionType, setActionType] = useState<string>("");
-  const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
-  const [isImageZoomed, setIsImageZoomed] = useState<boolean>(false);
-
-  // Backwards-compat alias: some JSX/logic may still reference `dataValue`
-  // (e.g. copied from Applicants.tsx). Keep this to avoid runtime ReferenceError.
-  const dataValue = actionType;
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMessage, setDialogMessage] = useState("")
+  const [dialogTitle, setDialogTitle] = useState("")
+  const [actionType, setActionType] = useState("")
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [isImageZoomed, setIsImageZoomed] = useState(false)
 
   const [formData, setFormData] = useState<ApplicantFormProps>({
     id: 0,
     full_name: "",
     email: "",
-    phone: "", 
+    phone: "",
     position: "",
     job_number: "",
-    status: "", 
+    status: "",
     attachment_url: "",
     portfolio: "",
     portfolio_link: "",
     remarks: "",
-  }); 
+  })
 
-  // Fetch data only when id exists
   const { data: applicantInfoResponse, isLoading } = useQuery({
     queryKey: ["applicant-detail", id],
     queryFn: () => getInformationApplicant(String(id)),
     enabled: !!id,
-  });
-
-  const { mutateAsync: shortListed } = useMutation({
-    mutationFn: shortList
-  });
-
-  const { mutateAsync: closedApplicant } = useMutation({
-    mutationFn: closedApplicants
-  });
-
-  const { mutateAsync: rejectApplicant } = useMutation({
-    mutationFn: rejectedApplicants
-  });
-
-  const { mutateAsync: deleteApplicant } = useMutation({
-    mutationFn: deleteApplicants
-  });
-
-  const { mutateAsync: sendInterviewInvitations } = useMutation({
-    mutationFn: sendInterviewInvitation
   })
 
-  const applicantDetails = applicantInfoResponse?.data;
-  
-  // Load data when fetched
+  const { mutateAsync: deleteApplicant, isPending: isDeleting } = useMutation({
+    mutationFn: deleteApplicants,
+  })
+
+  const { mutateAsync: sendInterviewInvitations } = useMutation({
+    mutationFn: sendInterviewInvitation,
+  })
+
+  const { mutateAsync: updateApplicantStatus, isPending: isUpdatingStatus } =
+    useMutation({ mutationFn: applicantUpdateStatus })
+
+  const applicantDetails = applicantInfoResponse?.data
+
+  const { data: preScreeningData } = useQuery({
+    queryKey: ['pre-screening-list'],
+    queryFn: preScreenList,
+    enabled: !!id,
+  })
+  const preScreeningQuestions = preScreeningData?.data || []
+
+  const getEmbeddedQuestion = (item: any) => {
+    if (item.pre_screening_question) return item.pre_screening_question
+    if (item.preScreeningQuestion) return item.preScreeningQuestion
+    if (typeof item.question === 'object' && item.question !== null) return item.question
+    return undefined
+  }
+
+  const getEmbeddedQuestionText = (item: any) => {
+    if (typeof item.question === 'string') return item.question
+    if (typeof item.question_text === 'string') return item.question_text
+    return getEmbeddedQuestion(item)?.question || ''
+  }
+
+  const getBlankValue = (item: any) =>
+    item.blank_value === null || item.blank_value === undefined ? '' : String(item.blank_value)
+
+  const resolveApplicantQuestionText = (item: any, question: any) => {
+    const questionText =
+      getEmbeddedQuestionText(item) || question?.question || `Question #${item.question_id}`
+    return fillBlank(questionText, getBlankValue(item))
+  }
+
+  const resolvedApplicantPreScreening = useMemo(() => {
+    const answers = applicantDetails?.pre_screening
+    if (!Array.isArray(answers) || answers.length === 0) return []
+
+    return answers.map((item: any) => {
+      const question = preScreeningQuestions.find(
+        (questionItem: any) => Number(questionItem.id) === Number(item.question_id)
+      )
+
+      const questionText = resolveApplicantQuestionText(item, question)
+
+      const answerText = question?.choices?.find(
+        (choice: any) => String(choice.value) === String(item.answer)
+      )?.choice_text || String(item.answer ?? '')
+
+      return {
+        questionText,
+        answerText,
+        deal_breaker_expected_value:
+          item.deal_breaker_expected_value === null || item.deal_breaker_expected_value === undefined
+            ? ''
+            : String(item.deal_breaker_expected_value),
+      }
+    })
+  }, [applicantDetails?.pre_screening, preScreeningQuestions])
+
   useEffect(() => {
-    if (applicantDetails) { 
+    if (applicantDetails) {
       setFormData({
         id: applicantDetails.id || 0,
         full_name: applicantDetails.full_name || "",
@@ -131,224 +361,197 @@ const ApplicantsEmail = () => {
         attachment_url: applicantDetails.attachment_url || "",
         portfolio: applicantDetails.portfolio || "",
         portfolio_link: applicantDetails.portfolio_link,
-        remarks: applicantDetails?.remarks || ""
-      });
+        remarks: applicantDetails?.remarks || "",
+      })
     }
-  }, [applicantDetails]);
+  }, [applicantDetails])
 
-  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleImageZoomToggle = () => {
-    setIsImageZoomed(!isImageZoomed);
+  const handleChangeInput = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleBack = () => {
-    const backTo = location.state?.backTo;
-    navigate(backTo || -1);
+    const backTo = location.state?.backTo
+    navigate(backTo || -1)
   }
 
   const handleDownload = (attachment_url: any) => {
     if (!attachment_url) {
-      setSnackBarMessage("No file available to download");
-      setSnackBarType("error");
-      setSnackBarOpen(true);
-      return;
+      setSnackBarMessage("No file available to download")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+      return
     }
-
     downloadFileDesktop(attachment_url, {
       filename:
-       attachment_url.split("/").pop() ||
-        `${formData.full_name}.pdf`,
-      onSuccess: () => { 
-        // setSnackBarMessage("File downloaded successfully");
-        // setSnackBarType("success");
-        // setSnackBarOpen(true);
-      },
+        attachment_url.split("/").pop() || `${formData.full_name}.pdf`,
       onError: () => {
-        setSnackBarMessage("Failed to download file. Please try again.");
-        setSnackBarType("error");
-        setSnackBarOpen(true);
-      }
-    });
-  };
+        setSnackBarMessage("Failed to download file. Please try again.")
+        setSnackBarType("error")
+        setSnackBarOpen(true)
+      },
+    })
+  }
 
-  const handleOpenEmailDialog = () => { 
-    setEmailDialogOpen(true);
-  }; 
-
-  const handleEmailSubmit = async(emailData: { 
-    location: string;
-    time: string;
-    date: string;
-    schedule: string;
-    format: string;
+  const handleEmailSubmit = async (emailData: {
+    location: string
+    time: string
+    date: string
+    schedule: string
+    format: string
   }) => {
     const payload = {
       id: formData.id,
       name: formData.full_name,
-      position:formData.position,
-      email: formData.email,  
+      position: formData.position,
+      email: formData.email,
       location: emailData.location,
       time: emailData.time,
       date: emailData.date,
       schedule_details: emailData.schedule,
       format: emailData.format,
       duration: "60",
-      user_id: authUserInfo?.id
-    };
-
-   try {
-     const response = await sendInterviewInvitations(payload)
-
-    if (response?.success) {
-      setSnackBarMessage("Interview invitation sent successfully!");
-      setSnackBarType("success");
-      setSnackBarOpen(true);
-      queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] })
+      user_id: authUserInfo?.id,
     }
-    // TODO: Replace with actual API call
-    // const response = await sendInterviewInvitation(payload);
-    
-   } catch (error: any) {
-      const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
-      const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
-      setSnackBarMessage(cleanMessage);
+    try {
+      const response = await sendInterviewInvitations(payload)
+      if (response?.success) {
+        setSnackBarMessage("Interview invitation sent successfully!")
+        setSnackBarType("success")
+        setSnackBarOpen(true)
+        queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] })
+      }
+    } catch (error: any) {
+      const raw =
+        error?.response?.data?.message ||
+        "Failed to update position. Please try again."
+      setSnackBarMessage(String(raw).replace(/^error:\s*/i, ""))
       setSnackBarType("error")
-      setSnackBarOpen(true);
-   }
-    
-  };
-
-  const handleShortlist = () => {
-    setActionType('shortlist');
-    setDialogTitle("Confirm Shortlist");
-    setDialogMessage("Are you sure you want to shortlist this applicant?");
-    setDialogOpen(true);
-  };
-
-  const handleReject = () => {
-    setActionType('rejected');
-    setDialogTitle("Confirm Reject");
-    setDialogMessage("Are you sure you want to reject this applicant?");
-    setDialogOpen(true);
-  };
+      setSnackBarOpen(true)
+    }
+  }
 
   const handleDelete = () => {
-    setActionType('delete');
-    setDialogTitle("Confirm Delete");
-    setDialogMessage("Are you sure you want to delete this applicant? This action cannot be undone.");
-    setDialogOpen(true);
-  };
+    setActionType("delete")
+    setDialogTitle("Confirm Delete")
+    setDialogMessage(
+      "Are you sure you want to delete this applicant? This action cannot be undone."
+    )
+    setDialogOpen(true)
+  }
 
-  const handleClose = () => {
-    setActionType('close');
-    setDialogTitle("Confirm Close");
-    setDialogMessage("Are you sure you want to close this applicant? This action cannot be undone.");
-    setDialogOpen(true);
+  const updateStatus = async (status: string, remarks?: string) => {
+    try {
+      const response = await updateApplicantStatus({
+        id: Number(formData.id),
+        status,
+        remarks: remarks?.trim() || undefined,
+        user_id: authUserInfo?.id,
+      })
+      if (response?.success) {
+        setFormData((prev) => ({
+          ...prev,
+          status,
+          remarks:
+            status === "REJECTED" ? remarks?.trim() || prev.remarks : "",
+        }))
+        setDialogOpen(false)
+        setActionType("")
+        setSnackBarMessage("Applicant status updated successfully")
+        setSnackBarType("success")
+        setSnackBarOpen(true)
+        const keys = [
+          "applicant-detail", "all-applicant", "short-listed", "rejected",
+          "new-applicant", "hired", "closed", "applicant-mode", "interview-list",
+        ]
+        keys.forEach((key) =>
+          queryClient.invalidateQueries({ queryKey: [key] })
+        )
+      }
+    } catch (error: any) {
+      const raw =
+        error?.response?.data?.message || "Failed to update applicant status."
+      setSnackBarMessage(String(raw).replace(/^error:\s*/i, ""))
+      setSnackBarType("error")
+      setSnackBarOpen(true)
+    }
+  }
+
+  const handleStatusChange = (nextStatus: string) => {
+    if (!nextStatus || nextStatus === formData.status) return
+    if (nextStatus === "REJECTED") {
+      setActionType("status-rejected")
+      setDialogTitle("Reject Applicant")
+      setDialogMessage(
+        "Please provide a remark before marking this applicant as rejected."
+      )
+      setDialogOpen(true)
+      return
+    }
+    updateStatus(nextStatus)
   }
 
   const handleConfirmAction = async (remarks?: string) => {
     try {
-      let response;
-      
-      if (actionType === 'shortlist') {
-        response = await shortListed({ id: [Number(formData.id)], user_id: authUserInfo?.id });
-      } else if (actionType === 'rejected') {
-        response = await rejectApplicant({ id: [Number(formData.id)], user_id: authUserInfo?.id, remarks: remarks?.trim() });
-      } else if (actionType === 'delete') {
-        response = await deleteApplicant({ ids: [formData.id], user_id: authUserInfo?.id });
-      } else if (actionType === 'close') {
-        response = await closedApplicant({ id: [Number(formData.id)], user_id: authUserInfo?.id });
+      if (actionType === "status-rejected") {
+        await updateStatus("REJECTED", remarks)
+        return
       }
-
-      if (response?.success) {
-        setDialogOpen(false);
-        
-        if (actionType === 'shortlist') {
-          setSnackBarMessage("Applicant shortlisted successfully");
-        } else if (actionType === 'rejected') {
-          setSnackBarMessage("Applicant rejected successfully");
-        } else if (actionType === 'delete') {
-          setSnackBarMessage("Applicant deleted successfully"); 
-          navigate(-1); 
-        } else if (actionType === 'close') {  
-          setSnackBarMessage("Applicant closed successfully"); 
-          navigate(-1); 
+      if (actionType === "delete") {
+        const response = await deleteApplicant({
+          ids: [formData.id],
+          user_id: authUserInfo?.id,
+        })
+        if (response?.success) {
+          setDialogOpen(false)
+          setSnackBarMessage("Applicant deleted successfully")
+          setSnackBarType("success")
+          setSnackBarOpen(true)
+          navigate(-1)
         }
-        
-        setSnackBarType("success");
-        setSnackBarOpen(true);
-
-        queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] });
       }
-    } catch (error) {
-      setSnackBarMessage("Action failed. Please try again.");
-      setSnackBarType("error");
-      setSnackBarOpen(true);
+    } catch {
+      setSnackBarMessage("Action failed. Please try again.")
+      setSnackBarType("error")
+      setSnackBarOpen(true)
     }
-  };
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'NEW_APPLICANT':
-        return 'bg-gray-100 text-gray-800 border-gray-400';
-      case 'SHORTLISTED':
-        return 'bg-green-100 text-green-800 border-green-400';
-      case 'REJECTED':
-        return 'bg-red-100 text-red-800 border-red-400';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-400';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'NEW_APPLICANT':
-        return 'New Applicant';
-      case 'SHORTLISTED':
-        return 'Shortlisted';
-      case 'REJECTED':
-        return 'Rejected';
-      default:
-        return status;
-    }
-  };
-
+  /* ── Loading ────────────────────────────────────────────────────────── */
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading applicant details...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-b-4 border-yellow-400 mx-auto" />
+          <p className="mt-4 text-gray-500 font-medium text-sm">
+            Loading applicant details…
+          </p>
         </div>
       </div>
-    );
+    )
   }
 
+  /* ── Render ─────────────────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Alert Dialog */}
-        <AlertDialogRejected 
+        {/* Dialogs */}
+        <AlertDialogRejected
           open={dialogOpen}
           title={dialogTitle}
           message={dialogMessage}
-          onClose={() => setDialogOpen(false)}
+          onClose={() => { setDialogOpen(false); setActionType("") }}
           onSubmit={handleConfirmAction}
-          showRemarks={actionType === 'rejected'}
-          remarksRequired={actionType === 'rejected'}
+          isLoading={isDeleting || isUpdatingStatus}
+          showRemarks={actionType === "status-rejected"}
+          remarksRequired={actionType === "status-rejected"}
           remarksLabel="Rejection Note"
           remarksPlaceholder="Why is this applicant rejected?"
         />
-
-        {/* Email Dialog */}
         <ApplicantsDialog
           open={emailDialogOpen}
           onClose={() => setEmailDialogOpen(false)}
@@ -357,423 +560,434 @@ const ApplicantsEmail = () => {
           applicantEmail={formData.email}
         />
 
-        {/* Breadcrumbs */}
+        {/* Breadcrumb */}
         <div className="mb-6">
-          <Breadcrumb 
-            items={[ 
-              { label: "Careers", href: "/beesee/job-posting", icon: <User2 className="w-4 h-4"/> },
-              { label: "Applicant Details", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
+          <Breadcrumb
+            items={[
+              {
+                label: "Careers",
+                href: "/beesee/job-posting",
+                icon: <User2 className="w-4 h-4" />,
+              },
+              {
+                label: "Applicant Details",
+                isActive: true,
+                icon: <FilePenLine className="w-4 h-4" />,
+              },
             ]}
           />
         </div>
 
-        {/* Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-4 mb-3">
-                <h1 className="text-4xl font-bold text-gray-900">
+        {/* ── Header card ─────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+
+            {/* Name + meta */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap mb-3">
+                <h1 className="text-3xl font-bold text-gray-900 truncate">
                   {formData.full_name}
                 </h1>
-                <span className={`px-4 py-2 rounded-full border-2 font-bold text-sm ${getStatusColor(formData.status)}`}>
-                  {getStatusText(formData.status)}
-                </span>
-
                 {applicantDetails?.applicants_interview_status && (
-                  <button title="Already Sended">
-                    <CalendarCheck className="text-green-700"/>
-                  </button>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                    <CalendarCheck className="w-3.5 h-3.5" />
+                    Scheduled
+                  </span>
                 )}
               </div>
-              <p className="text-lg text-gray-600 mb-2">
-                <span className="font-semibold">Position:</span> {formData.position}
+
+              <p className="text-sm text-gray-500 mb-0.5">
+                <span className="font-semibold text-gray-700">Position:</span>{" "}
+                {formData.position}
               </p>
               <p className="text-sm text-gray-500">
-                <span className="font-semibold">Job Reference:</span> {formData.job_number}
+                <span className="font-semibold text-gray-700">
+                  Job Reference:
+                </span>{" "}
+                {formData.job_number}
               </p>
-              {applicantDetails?.scheduled_by && (
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Scheduled Interview By: </span> {applicantDetails?.scheduled_by}
-                </p>
-              )}
-              {applicantDetails?.schedule_date && (
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Interview Date: </span> {applicantDetails?.schedule_date}
-                </p>
-              )}
-              {applicantDetails?.time && (
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Interview Date: </span> {applicantDetails?.time}
-                </p>
+
+              {/* Interview info bar */}
+              {(applicantDetails?.scheduled_by ||
+                applicantDetails?.schedule_date ||
+                applicantDetails?.time) && (
+                <div className="mt-3 inline-flex flex-wrap items-center gap-x-4 gap-y-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-600">
+                  {applicantDetails?.scheduled_by && (
+                    <span>
+                      <span className="font-semibold text-gray-800">
+                        Scheduled by:
+                      </span>{" "}
+                      {applicantDetails.scheduled_by}
+                    </span>
+                  )}
+                  {applicantDetails?.schedule_date && (
+                    <span>
+                      <span className="font-semibold text-gray-800">
+                        Date:
+                      </span>{" "}
+                      {applicantDetails.schedule_date}
+                    </span>
+                  )}
+                  {applicantDetails?.time && (
+                    <span>
+                      <span className="font-semibold text-gray-800">
+                        Time:
+                      </span>{" "}
+                      {applicantDetails.time}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
-            
-            <div className="flex flex-wrap gap-3"> 
-              {/* Send Email Button */} 
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                title="Send Schedule"
+                onClick={() => setEmailDialogOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-[#FCD000] hover:bg-[#f0c400] text-gray-900 transition-all duration-150 shadow-sm hover:shadow-md active:scale-[0.97]"
+              >
+                <CalendarClock className="w-4 h-4" />
+                Schedule
+              </button>
+
+              {formData.status === "REJECTED" && (
                 <button
-                  title="Send Schedule"
-                  onClick={handleOpenEmailDialog} 
-                  className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
-                    'bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105' 
-                  }`}
+                  onClick={handleDelete}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-all duration-150 active:scale-[0.97]"
                 >
-                  <CalendarClock className="w-6 h-6" /> 
-                </button> 
-
-              {/* Action Buttons based on status */}
-              {formData.status === 'NEW_APPLICANT' && (
-                <>
-                  <button
-                    title="Shortlist"
-                    onClick={handleShortlist}
-                    className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                  <button
-                    title="Reject"
-                    onClick={handleReject}
-                    className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <X className="w-5 h-5" /> 
-                  </button>
-                </>
-              )}
-
-              {formData.status === 'SHORTLISTED' && (
-                <button
-                  title="Reject"
-                  onClick={handleReject}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  <X className="w-5 h-5" /> 
-                </button>
-              )}
-
-              {formData.status === 'REJECTED' && (
-                <>
-                  <button
-                    onClick={handleShortlist}
-                    className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Shortlist</span>
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    <span>Delete</span>
-                  </button>
-                </>
-              )}
-
-              {formData.status !== 'CLOSED' && (
-                <button 
-                  title="Close Applicant" 
-                  onClick={ handleClose } 
-                  aria-label="Close"
-                  className="px-6 py-3 border-2 text-white rounded-xl transition-all duration-200 font-semibold bg-[#0f766e]"
-                >
-                  <Ban className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4" />
+                  Delete
                 </button>
               )}
 
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
+                className="px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 transition-all duration-150 active:scale-[0.97]"
               >
                 Back
               </button>
             </div>
           </div>
+
+          {/* ── Status row ──────────────────────────────────────────────── */}
+          <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              Status
+            </span>
+            <StatusDropdown
+              value={formData.status}
+              onChange={handleStatusChange}
+              disabled={isUpdatingStatus}
+            />
+            {isUpdatingStatus && (
+              <span className="text-xs text-gray-400 animate-pulse">
+                Updating…
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
-          {/* Contact Information Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <div className="flex items-center mb-6"> 
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Contact Information</h2>
-                <p className="text-gray-600">Personal details</p>
-              </div>
-            </div>
+        {/* ── Body grid ───────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-5">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <CustomTextField 
+          {/* Contact card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-0.5">
+              Contact Information
+            </h2>
+            <p className="text-sm text-gray-500 mb-5">Personal details</p>
+
+            <div className="space-y-4">
+              <Field label="Full Name">
+                <CustomTextField
                   name="full_name"
                   placeholder="Full name"
                   value={formData.full_name}
                   onChange={handleChangeInput}
-                  disabled={true}
+                  disabled
                   rows={1}
                   multiline={false}
                   type="text"
                   icon={<User2 className="w-4 h-4" />}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <CustomTextField 
+              <Field label="Email Address">
+                <CustomTextField
                   name="email"
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleChangeInput}
-                  disabled={true}
+                  disabled
                   rows={1}
                   multiline={false}
                   type="email"
                   icon={<Email className="w-4 h-4" />}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <CustomTextField 
+              <Field label="Phone Number">
+                <CustomTextField
                   name="phone"
                   placeholder="Phone"
                   value={formData.phone}
                   onChange={handleChangeInput}
-                  disabled={true}
+                  disabled
                   rows={1}
                   multiline={false}
                   type="text"
                   icon={<Phone className="w-4 h-4" />}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Position Applied
-                </label>
-                <CustomTextField 
+              <Field label="Position Applied">
+                <CustomTextField
                   name="position"
                   placeholder="Position"
                   value={formData.position}
                   onChange={handleChangeInput}
-                  disabled={true}
+                  disabled
                   rows={1}
                   multiline={false}
                   type="text"
                   icon={<UserRoundCog className="w-4 h-4" />}
                 />
-              </div>
+              </Field>
 
               {formData.portfolio_link && (
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Portfolio Link
-                  </label>
-                  <CustomTextField 
+                <Field label="Portfolio Link">
+                  <CustomTextField
                     name="portfolio_link"
                     placeholder="Portfolio Link"
                     value={formData.portfolio_link}
                     onChange={handleChangeInput}
-                    disabled={true}
+                    disabled
                     rows={1}
                     multiline={false}
                     type="text"
                     icon={<Link className="w-4 h-4" />}
                   />
-                </div>
-              )}
-
-              {formData.remarks && (
-                <div
-                  className="rounded-2xl border border-red-200 bg-red-50/60 p-5 shadow-sm"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
-                        <FileText className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold uppercase tracking-wide text-red-700">
-                          Rejection Remarks
-                        </p>
-                        <p className="mt-1 text-sm text-gray-600">
-                          Review note recorded for this applicant.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700">
-                      Rejected
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-[140px_1fr]">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Rejected By
-                    </div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {applicantDetails?.rejected_by || 'Not specified'}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 rounded-xl border border-red-100 bg-white p-4">
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800">
-                      {formData.remarks}
-                    </p>
-                  </div>
-                </div>
+                </Field>
               )}
             </div>
-          </div>
 
-          {/* Resume Card */}  
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center"> 
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Resume/CV</h2>
-                  <p className="text-gray-600">Applicant's resume</p>
+            {/* Rejection remarks */}
+            {formData.remarks && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50/60 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wide text-red-700">
+                        Rejection Remarks
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Review note recorded for this applicant.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-red-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-red-700">
+                    Rejected
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-[120px_1fr] gap-y-1 text-xs">
+                  <span className="font-semibold uppercase tracking-wide text-gray-400">
+                    Rejected By
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {applicantDetails?.rejected_by || "Not specified"}
+                  </span>
+                </div>
+
+                <div className="mt-3 rounded-lg border border-red-100 bg-white p-3">
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800">
+                    {formData.remarks}
+                  </p>
                 </div>
               </div>
-              <button
-                onClick={() => {handleDownload(formData.attachment_url)}}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                <Download className="w-5 h-5" />
-                <span>Download</span>
-              </button>
-            </div>
-            
-            {formData.attachment_url ? (
-              <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
-                {/* Check if file is an image */}
-                {applicantDetails?.file_type?.startsWith('image/') ? (
-                  <div 
-                    className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
-                    onClick={handleImageZoomToggle}
-                  >
-                    <img
-                      src={formData.attachment_url}
-                      alt="Resume"
-                      className={`transition-all duration-300 ${
-                        isImageZoomed 
-                          ? 'max-w-none w-full cursor-zoom-out' 
-                          : 'max-w-full max-h-full object-contain cursor-zoom-in'
-                      }`}
-                    />
-                    
-                    {/* Zoom Indicator Icon */}
-                    <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {isImageZoomed ? (
-                        <>
-                          <ZoomOut className="w-5 h-5" />
-                          <span className="text-sm font-medium">Click to zoom out</span>
-                        </>
-                      ) : (
-                        <>
-                          <ZoomIn className="w-5 h-5" />
-                          <span className="text-sm font-medium">Click to zoom in</span>
-                        </>
+            )}
+
+            {resolvedApplicantPreScreening.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Pre-screening Answers</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Applicant responses matched against the latest pre-screening questions.
+                </p>
+                <div className="space-y-3">
+                  {resolvedApplicantPreScreening.map((item, index) => (
+                    <div
+                      key={`${item.questionText}-${index}`}
+                      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition"
+                    >
+                      {/* Question */}
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                        Question
+                      </p>
+                      <p className="mt-1 text-base font-semibold text-gray-900">
+                        {item.questionText}
+                      </p>
+
+                      {/* Answer */}
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Answer</p>
+                        <p className="mt-1 text-sm text-gray-800">
+                          {item.answerText || (
+                            <span className="italic text-gray-400">No answer provided</span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Expected Answer */}
+                      {item.deal_breaker_expected_value != null && item.deal_breaker_expected_value != "" && item.deal_breaker_expected_value != item.answerText && formData.status == "REJECTED" &&(
+                        <div className="mt-4 border-t pt-3">
+                          <p className="text-sm font-medium text-gray-500">
+                            Expected Answer
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-blue-600">
+                            {item.deal_breaker_expected_value}
+                          </p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ) : (
-                <iframe
-                  src={ formData.attachment_url }
-                  className="w-full h-[600px]"
-                  title="Resume Preview"
-                />  
-                )}
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">No resume uploaded</p>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Portfolio link */}
-          {formData.portfolio && (
-                      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center"> 
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Portfolio</h2>
-                  <p className="text-gray-600">Applicant's portfolio</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {handleDownload(formData.portfolio)}}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                <Download className="w-5 h-5" />
-                <span>Download</span>
-              </button>
-            </div>
-            
-            {formData.portfolio ? (
-              <div className="border-2 border-gray-300 rounded-xl overflow-hidden bg-gray-50">
-                  {/* Check if file is an image */}
-                  {applicantDetails?.file_type?.startsWith('image/') ? (
-                    <div 
-                      className={`relative w-full ${isImageZoomed ? 'h-auto' : 'h-[600px]'} flex items-center justify-center p-4 bg-white transition-all duration-300 cursor-pointer group`}
-                      onClick={handleImageZoomToggle}
-                    >
-                      <img
-                        src={formData.portfolio}
-                        alt="Portfolio"
-                        className={`transition-all duration-300 ${
-                          isImageZoomed 
-                            ? 'max-w-none w-full cursor-zoom-out' 
-                            : 'max-w-full max-h-full object-contain cursor-zoom-in'
-                        }`}
-                      />
-                      
-                      {/* Zoom Indicator Icon */}
-                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {isImageZoomed ? (
-                          <>
-                            <ZoomOut className="w-5 h-5" />
-                            <span className="text-sm font-medium">Click to zoom out</span>
-                          </>
-                        ) : (
-                          <>
-                            <ZoomIn className="w-5 h-5" />
-                            <span className="text-sm font-medium">Click to zoom in</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <iframe
-                     src={ formData.attachment_url }
-                      className="w-full h-[600px]"
-                      title="Resume Preview"
-                    />
+          {/* Resume + Portfolio */}
+          <div className="space-y-6">
+            <FileCard
+              title="Resume / CV"
+              subtitle="Applicant's resume"
+              onDownload={() => handleDownload(formData.attachment_url)}
+              url={formData.attachment_url}
+              isImage={applicantDetails?.file_type?.startsWith("image/")}
+              isImageZoomed={isImageZoomed}
+              onZoomToggle={() => setIsImageZoomed((z) => !z)}
+              previewTitle="Resume Preview"
+              emptyLabel="No resume uploaded"
+            />
 
-                  )}
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 font-medium">No portfolio upload</p>
-                </div>
-              )}
-            </div>
-          )}
+            {formData.portfolio && (
+              <FileCard
+                title="Portfolio"
+                subtitle="Applicant's portfolio"
+                onDownload={() => handleDownload(formData.portfolio)}
+                url={formData.portfolio}
+                isImage={applicantDetails?.file_type?.startsWith("image/")}
+                isImageZoomed={isImageZoomed}
+                onZoomToggle={() => setIsImageZoomed((z) => !z)}
+                previewTitle="Portfolio Preview"
+                emptyLabel="No portfolio uploaded"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ApplicantsEmail;
+/* ─── Field helper ───────────────────────────────────────────────────────── */
 
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({
+  label,
+  children,
+}) => (
+  <div>
+    <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 mb-1.5">
+      {label}
+    </label>
+    {children}
+  </div>
+)
 
+/* ─── FileCard helper ────────────────────────────────────────────────────── */
+
+interface FileCardProps {
+  title: string
+  subtitle: string
+  onDownload: () => void
+  url?: string
+  isImage?: boolean
+  isImageZoomed: boolean
+  onZoomToggle: () => void
+  previewTitle: string
+  emptyLabel: string
+}
+
+const FileCard: React.FC<FileCardProps> = ({
+  title,
+  subtitle,
+  onDownload,
+  url,
+  isImage,
+  isImageZoomed,
+  onZoomToggle,
+  previewTitle,
+  emptyLabel,
+}) => (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div className="flex items-start justify-between mb-5">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-0.5">{title}</h2>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+      <button
+        onClick={onDownload}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all duration-150 shadow-sm hover:shadow-md active:scale-[0.97]"
+      >
+        <Download className="w-4 h-4" />
+        Download
+      </button>
+    </div>
+
+    {url ? (
+      <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+        {isImage ? (
+          <div
+            className={`relative w-full flex items-center justify-center p-4 bg-white cursor-pointer group transition-all duration-300 ${
+              isImageZoomed ? "h-auto" : "h-[500px]"
+            }`}
+            onClick={onZoomToggle}
+          >
+            <img
+              src={url}
+              alt={previewTitle}
+              className={`transition-all duration-300 ${
+                isImageZoomed
+                  ? "w-full cursor-zoom-out"
+                  : "max-w-full max-h-full object-contain cursor-zoom-in"
+              }`}
+            />
+            <div className="absolute top-3 right-3 bg-black/60 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium">
+              {isImageZoomed ? (
+                <><ZoomOut className="w-3.5 h-3.5" /> Zoom out</>
+              ) : (
+                <><ZoomIn className="w-3.5 h-3.5" /> Zoom in</>
+              )}
+            </div>
+          </div>
+        ) : (
+          <iframe
+            src={url}
+            className="w-full h-[500px]"
+            title={previewTitle}
+          />
+        )}
+      </div>
+    ) : (
+      <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center bg-gray-50">
+        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+        <p className="text-sm text-gray-400 font-medium">{emptyLabel}</p>
+      </div>
+    )}
+  </div>
+)
+
+export default ApplicantsEmail

@@ -143,7 +143,7 @@ export default function TableJobPosting({
   const [page, setPage] = useState(0);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<string>('job_reference_number');
+  const [orderBy, setOrderBy] = useState<string>('');
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const rowsPerPage = 20;
 
