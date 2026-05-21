@@ -5,6 +5,7 @@ import {
   fetchApplicantsRejected,
   fetchApplicantsClosed,
   fetchApplicantsNewApplicants,
+  fetchApplicantsHired,
   shortList,
   deleteApplicants,
   rejectedApplicants,
@@ -22,6 +23,7 @@ import {
   MailX,
   ArrowLeftToLine
 } from 'lucide-react'; 
+import { useSearchParams } from 'react-router-dom';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query' 
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs'
@@ -55,16 +57,24 @@ const Applicants = () => {
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>("");
-  const [shortListedId, setShortListedId] = useState('');
+  const [shortListedId, setShortListedId] = useState<number[]>([]);
   const [deleteIds, setDeleteIds] = useState<number[]>([])
-  const [rejectedId, setRejectedId] = useState('') 
+  const [rejectedId, setRejectedId] = useState<number[]>([])
+  const [closedId, setClosedId] = useState<number[]>([])
   const [undoId, setUndoId] = useState('')
   const [dataValue, setDataValue] = useState<string>('')
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
-  
+  const [checkedRowIds, setCheckedRowIds] = useState<number[]>([])
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(""); 
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = Number(searchParams.get("page") || 0);
+  const [applicantsPage, setApplicantsPage] = useState<number>(
+    Number.isFinite(initialPage) && initialPage >= 0 ? initialPage : 0
+  );
+  const [statusFilter, setStatusFilterState] = useState<string>(
+    searchParams.get("tab") || "all"
+  );
 
   const { id } = useParams()
 
@@ -122,6 +132,15 @@ const Applicants = () => {
     enabled: !!id,
   });
 
+  const {
+    data: hiredApplicantsResponse,
+    isLoading: isHiredLoading
+  } = useQuery ({
+    queryKey: ['hired', id],
+    queryFn: () => fetchApplicantsHired(String(id)),
+    enabled: !!id,
+  })
+
   const { mutateAsync: shortListed, isPending: isShortListing } = useMutation({
     mutationFn: shortList
   });
@@ -153,6 +172,7 @@ const Applicants = () => {
     if (statusFilter === 'new_applicants') baseRows = applicantsNewApplicantResponse?.data || [];
     if (statusFilter === "short_listed") baseRows = applicantShortListedResponse?.data || [];
     if (statusFilter === 'rejected') baseRows = applicantsRejectedResponse?.data || [];
+    if (statusFilter === 'hired') baseRows = hiredApplicantsResponse?.data || [];
     if (statusFilter === 'closed') baseRows = closedApplicantsResponse?.data || [];
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
@@ -167,10 +187,22 @@ const Applicants = () => {
     applicantsNewApplicantResponse, 
     applicantShortListedResponse, 
     applicantsRejectedResponse, 
+    hiredApplicantsResponse,
     closedApplicantsResponse
   ])
 
   const selectedRow = rows.find((r: any) => r.id === selectedRowId);
+  const getActionIds = () => (
+    checkedRowIds.length > 0
+      ? checkedRowIds
+      : selectedRowId
+        ? [selectedRowId]
+        : []
+  );
+  const getActionRows = () => {
+    const ids = getActionIds();
+    return rows.filter((row: any) => ids.includes(row.id));
+  };
 
   // Handle View
   const handleView = () => {
@@ -188,21 +220,24 @@ const Applicants = () => {
 
   // Handle Add/Shortlist
   const handleAdd = () => {
+    const ids = getActionIds();
+    const actionRows = getActionRows();
+
     if (!selectedRowId) {
       setSnackBarMessage("Please select an applicant first")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
-    }
+    }actionRows.some((row: any) => row.status === 'REJECTED')
 
-    if (selectedRow?.status !== 'NEW_APPLICANT') {
+    if (actionRows.some((row: any) => row.status !== 'NEW_APPLICANT')) {
       setSnackBarMessage("This action is only available for new applicants")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
 
-    setShortListedId(String(selectedRowId))
+    setShortListedId(ids)
     setDataValue('short-listed')
     setDialogTitle("Confirm Short Listed");
     setDialogOpen(true);
@@ -234,41 +269,54 @@ const Applicants = () => {
 
   // Handle Reject (X)
   const handleReject = () => {
-    if (!selectedRowId) {
-      setSnackBarMessage("Please select an applicant first")
+    const ids = getActionIds();
+    const actionRows = getActionRows();
+
+    if (ids.length === 0) {
+      setSnackBarMessage("Please select at least one applicant")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
 
-    if (selectedRow?.status === 'REJECTED') {
-      setSnackBarMessage("This applicant is already rejected")
+    if (actionRows.some((row: any) => row.status === 'REJECTED')) {
+      setSnackBarMessage("One or more selected applicants are already rejected")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
 
-    setRejectedId(String(selectedRowId));
+    if (actionRows.some((row: any) => row.status === 'CLOSED')) {
+      setSnackBarMessage("Closed applicants cannot be rejected")
+      setSnackBarType("warning")
+      setSnackBarOpen(true)
+      return
+    }
+
+    setRejectedId(ids);
     setDataValue('rejected')
     setDialogTitle("Confirm Rejected");
     setDialogOpen(true);
-    setDialogMessage("Are you sure you want to reject this applicant?");
+    setDialogMessage(`Are you sure you want to reject ${ids.length} applicant${ids.length > 1 ? 's' : ''}?`);
   }
 
   const handleClosed = () => {
-    if (!selectedRowId) {
-      setSnackBarMessage("Please select an applicant first")
+    const ids = getActionIds();
+    const actionRows = getActionRows();
+
+    if (ids.length === 0) {
+      setSnackBarMessage("Please select at least one applicant")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
-    if (selectedRow?.status !== 'REJECTED') {
+    if (actionRows.some((row: any) => row.status !== 'REJECTED')) {
       setSnackBarMessage("This action is only available for rejected applicants")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
-    setRejectedId(String(selectedRowId));
+    setClosedId(ids);
     setDataValue('closed')
     setDialogTitle("Confirm Closed");
     setDialogOpen(true);
@@ -277,25 +325,27 @@ const Applicants = () => {
 
   // Handle Delete (Trash)
   const handleDelete = () => {
-    if (!selectedRowId) {
-      setSnackBarMessage("Please select an applicant first")
+    const ids = getActionIds();
+    const actionRows = getActionRows();
+
+    if (ids.length === 0) {
+      setSnackBarMessage("Please select at least one applicant")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
 
-    if (selectedRow?.status !== 'REJECTED') {
+    if (actionRows.some((row: any) => row.status !== 'REJECTED')) {
       setSnackBarMessage("This action is only available for rejected applicants")
       setSnackBarType("warning")
       setSnackBarOpen(true)
       return
     }
-
-    setDeleteIds([selectedRowId])
+    setDeleteIds(ids)
     setDataValue('delete')
     setDialogTitle("Confirm Delete")
     setDialogOpen(true)
-    setDialogMessage(`Are you sure you want to delete this applicant?`)
+    setDialogMessage(`Are you sure you want to delete ${ids.length} applicant${ids.length > 1 ? 's' : ''}?`)
   }
 
   const handleRowClick = (row: any) => {
@@ -306,20 +356,19 @@ const Applicants = () => {
     navigate(`/beesee/job-posting`)
   }
 
-  const handleRowDoubleClick = (row: any) => {  
-    // if (row.status === 'REJECTED') {
-    //   setSnackBarMessage("Cannot view details of rejected applicants. Please shortlist this applicant first or delete permanently.");
-    //   setSnackBarType("info");
-    //   setSnackBarOpen(true);
-    //   return;
-    // } 
-    navigate(`/beesee/job-posting/applicant/email/${row.pid}`)  
+  const handleRowDoubleClick = (row: any) => {
+    navigate(`/beesee/job-posting/applicant/email/${row.pid}`, {
+      state: {
+        backTo: `/beesee/job-posting/applicants/${id}?tab=${statusFilter}&page=${applicantsPage}&selected=${row.id}`
+      }
+    })
   }
 
   const clearFormat = () => {
     setDataValue("")
     setDeleteIds([])
-    setRejectedId("")
+    setRejectedId([])
+    setClosedId([])
     setUndoId("")
     setShortListedId("")
   }
@@ -344,7 +393,7 @@ const Applicants = () => {
         response = await rejectApplicants({ id: rejectedId, user_id: userInfo?.id, remarks: remarks?.trim() });
       } else if (dataValue === 'closed') {
         // For closed, we will also use the rejectApplicants mutation but with a different status
-        response = await closedApplicant({ id: rejectedId, user_id: userInfo?.id });
+        response = await closedApplicant({ id: closedId, user_id: userInfo?.id });
       }
 
       if (response?.success) {
@@ -352,6 +401,7 @@ const Applicants = () => {
         setDialogMessage('')
         setDialogTitle("")
         setSelectedRowId(null)
+        setCheckedRowIds([])
 
         if (dataValue === 'delete') {
           setSnackBarMessage("Applicant deleted successfully");
@@ -373,6 +423,8 @@ const Applicants = () => {
         queryClient.invalidateQueries({ queryKey: ["short-listed"]});
         queryClient.invalidateQueries({ queryKey: ['rejected']});
         queryClient.invalidateQueries({ queryKey: ['new-applicant']});
+        queryClient.invalidateQueries({ queryKey: ['hired']});
+        queryClient.invalidateQueries({ queryKey: ['closed']});
         clearFormat()
       }
     } catch (error) {
@@ -390,6 +442,41 @@ const Applicants = () => {
       setSnackBarOpen(true);
     }
   }
+
+  const setStatusFilter = (tab: string) => {
+    setStatusFilterState(tab);
+    setApplicantsPage(0);
+    setSelectedRowId(null);
+    setCheckedRowIds([]);
+    setSearchParams({ tab, page: '0' }, { replace: true})
+  }
+
+  const handleApplicantsPageChange = (page: number) => {
+    setApplicantsPage(page);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', statusFilter);
+    nextParams.set('page', String(page));
+
+    if (selectedRowId) {
+      nextParams.set('selected', String(selectedRowId));
+    } else {
+      nextParams.delete('selected');
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  }
+
+  useEffect(() => {
+    const selected = searchParams.get("selected");
+    const pageParam = Number(searchParams.get("page") || 0);
+
+    if (selected) {
+      setSelectedRowId(Number(selected));
+    }
+
+    setApplicantsPage(Number.isFinite(pageParam) && pageParam >= 0 ? pageParam : 0);
+  }, [searchParams])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -415,12 +502,20 @@ const Applicants = () => {
   
   // Check if buttons should be enabled based on selected row status
   const isSelectedClosed = selectedRow?.status === 'CLOSED';
+  const checkedRows = rows.filter((row: any) => checkedRowIds.includes(row.id));
+  const hasCheckedRows = checkedRowIds.length > 0;
   const isViewEnabled = !!selectedRowId;
   const isAddEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'NEW_APPLICANT';
   const isUndoEnabled = !isSelectedClosed && !!selectedRowId && (selectedRow?.status === 'SHORTLISTED' || selectedRow?.status === 'REJECTED');
-  const isRejectEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status !== 'REJECTED';
-  const isDeleteEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
-  const isClosedEnabled = !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
+  const isRejectEnabled = hasCheckedRows
+    ? checkedRows.length > 0 && checkedRows.every((row: any) => row.status !== 'REJECTED' && row.status !== 'CLOSED')
+    : !isSelectedClosed && !!selectedRowId && selectedRow?.status !== 'REJECTED';
+  const isDeleteEnabled = hasCheckedRows
+    ? checkedRows.length > 0 && checkedRows.every((row: any) => row.status === 'REJECTED')
+    : !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
+  const isClosedEnabled = hasCheckedRows
+    ? checkedRows.length > 0 && checkedRows.every((row: any) => row.status === 'REJECTED')
+    : !isSelectedClosed && !!selectedRowId && selectedRow?.status === 'REJECTED';
 
   if (isLoading) return <SpinningRingLoader />
 
@@ -576,25 +671,17 @@ const Applicants = () => {
         </div> 
       </div>
 
-      {/* Selected Applicant Info */}
-      {/* {selectedRow && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm font-medium text-blue-900">
-            Selected: <span className="font-bold">{selectedRow.full_name}</span> - Status: <span className="font-bold">{selectedRow.status}</span>
-          </p>
-          <p className="text-xs text-blue-700 mt-1">
-            Click a row to select • Available actions depend on applicant status
-          </p>
-        </div>
-      )} */}
-
       {/* Table */}
       <TableApplicants 
         columns={columns}
         rows={filteredInquiries}
         selectedRowId={selectedRowId}
+        checkedRowIds={checkedRowIds}
+        setCheckedRowIds={setCheckedRowIds}
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
+        page={applicantsPage}
+        onPageChange={handleApplicantsPageChange}
         isLoading={isLoading}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}

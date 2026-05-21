@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom" 
+import { useNavigate, useParams, useLocation } from "react-router-dom"
 import CustomTextField from "../../../components/Fields/CustomTextField"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"   
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query" 
@@ -47,10 +47,12 @@ interface ApplicantFormProps {
   portfolio_link?: string;
   portfolio?: string;
   remarks?: string;
+
 }
 
 const ApplicantsEmail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const queryClient = useQueryClient();
   
@@ -146,6 +148,11 @@ const ApplicantsEmail = () => {
     setIsImageZoomed(!isImageZoomed);
   }
 
+  const handleBack = () => {
+    const backTo = location.state?.backTo;
+    navigate(backTo || -1);
+  }
+
   const handleDownload = (attachment_url: any) => {
     if (!attachment_url) {
       setSnackBarMessage("No file available to download");
@@ -171,13 +178,7 @@ const ApplicantsEmail = () => {
     });
   };
 
-  const handleOpenEmailDialog = () => {
-    if (formData.status !== 'SHORTLISTED') {
-      setSnackBarMessage("Please shortlist this applicant before sending an interview invitation");
-      setSnackBarType("warning");
-      setSnackBarOpen(true);
-      return;
-    }
+  const handleOpenEmailDialog = () => { 
     setEmailDialogOpen(true);
   }; 
 
@@ -192,7 +193,7 @@ const ApplicantsEmail = () => {
       id: formData.id,
       name: formData.full_name,
       position:formData.position,
-      email: formData.email, 
+      email: formData.email,  
       location: emailData.location,
       time: emailData.time,
       date: emailData.date,
@@ -257,13 +258,13 @@ const ApplicantsEmail = () => {
       let response;
       
       if (actionType === 'shortlist') {
-        response = await shortListed({ id: String(formData.id), user_id: authUserInfo?.id });
+        response = await shortListed({ id: [Number(formData.id)], user_id: authUserInfo?.id });
       } else if (actionType === 'rejected') {
-        response = await rejectApplicant({ id: String(formData.id), user_id: authUserInfo?.id, remarks: remarks?.trim() });
+        response = await rejectApplicant({ id: [Number(formData.id)], user_id: authUserInfo?.id, remarks: remarks?.trim() });
       } else if (actionType === 'delete') {
         response = await deleteApplicant({ ids: [formData.id], user_id: authUserInfo?.id });
       } else if (actionType === 'close') {
-        response = await closedApplicant({ id: String(formData.id), user_id: authUserInfo?.id });
+        response = await closedApplicant({ id: [Number(formData.id)], user_id: authUserInfo?.id });
       }
 
       if (response?.success) {
@@ -408,21 +409,16 @@ const ApplicantsEmail = () => {
             </div>
             
             <div className="flex flex-wrap gap-3"> 
-              {/* Send Email Button */}
-              {formData.status !== "CLOSED" && (
+              {/* Send Email Button */} 
                 <button
                   title="Send Schedule"
-                  onClick={handleOpenEmailDialog}
-                  disabled={formData.status !== 'SHORTLISTED'}
+                  onClick={handleOpenEmailDialog} 
                   className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg ${
-                    formData.status === 'SHORTLISTED'
-                      ? 'bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    'bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 hover:shadow-xl hover:scale-105' 
                   }`}
                 >
                   <CalendarClock className="w-6 h-6" /> 
-                </button>
-              )}
+                </button> 
 
               {/* Action Buttons based on status */}
               {formData.status === 'NEW_APPLICANT' && (
@@ -485,7 +481,7 @@ const ApplicantsEmail = () => {
               )}
 
               <button
-                onClick={() => navigate(-1)}
+                onClick={handleBack}
                 className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
               >
                 Back
@@ -594,21 +590,43 @@ const ApplicantsEmail = () => {
               )}
 
               {formData.remarks && (
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Remarks
-                  </label>
-                  <CustomTextField 
-                    name="remarks"
-                    placeholder="Remarks"
-                    value={formData.remarks}
-                    onChange={handleChangeInput}
-                    disabled={true}
-                    rows={4}
-                    multiline={true}
-                    type="text"
-                    icon={<FileText className="w-4 h-4" />}
-                  />
+                <div
+                  className="rounded-2xl border border-red-200 bg-red-50/60 p-5 shadow-sm"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold uppercase tracking-wide text-red-700">
+                          Rejection Remarks
+                        </p>
+                        <p className="mt-1 text-sm text-gray-600">
+                          Review note recorded for this applicant.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700">
+                      Rejected
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-[140px_1fr]">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Rejected By
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {applicantDetails?.rejected_by || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-xl border border-red-100 bg-white p-4">
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800">
+                      {formData.remarks}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -666,11 +684,11 @@ const ApplicantsEmail = () => {
                     </div>
                   </div>
                 ) : (
-                  <iframe
-                    src={formData.attachment_url}
-                    className="w-full h-[600px]"
-                    title="Resume Preview"
-                  />
+                <iframe
+                  src={ formData.attachment_url }
+                  className="w-full h-[600px]"
+                  title="Resume Preview"
+                />  
                 )}
               </div>
             ) : (
@@ -735,10 +753,11 @@ const ApplicantsEmail = () => {
                     </div>
                   ) : (
                     <iframe
-                      src={formData.attachment_url}
+                     src={ formData.attachment_url }
                       className="w-full h-[600px]"
                       title="Resume Preview"
                     />
+
                   )}
                 </div>
               ) : (

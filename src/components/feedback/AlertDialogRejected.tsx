@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -6,8 +6,23 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
-import CustomTextField from '../Fields/CustomTextField';
+import { useQuery } from '@tanstack/react-query';
+import  { fetchAllRejectedNotes } from "../../services/Technician/rejectedNotedService"
+  
+const commonRejectionOptions = [
+  { value: 'Does not meet the required qualifications', label: 'Does not meet the required qualifications' },
+  { value: 'Experience does not match the role requirements', label: 'Experience does not match the role requirements' },
+  { value: 'Skills do not match the position requirements', label: 'Skills do not match the position requirements' },
+  { value: 'Application is incomplete or missing documents', label: 'Application is incomplete or missing documents' },
+  { value: 'Unable to contact applicant', label: 'Unable to contact applicant' },
+  { value: 'Salary expectations do not match the role', label: 'Salary expectations do not match the role' },
+  { value: 'Position has already been filled', label: 'Position has already been filled' },
+  { value: 'Not selected after interview evaluation', label: 'Not selected after interview evaluation' },
+];
+
 
 interface AlertDialogProps {
   open: boolean;
@@ -21,6 +36,7 @@ interface AlertDialogProps {
   remarksPlaceholder?: string;
   remarksRequired?: boolean;
   initialRemarks?: string;
+  remarksOptions?: { value: string; label: string }[];
 }
 
 const AlertDialogRejected: React.FC<AlertDialogProps> = ({
@@ -35,9 +51,30 @@ const AlertDialogRejected: React.FC<AlertDialogProps> = ({
   remarksPlaceholder = 'Enter remarks',
   remarksRequired = false,
   initialRemarks = '',
+  remarksOptions = commonRejectionOptions,
 }) => {
   const [remarks, setRemarks] = useState<string>(initialRemarks);
   const [remarksError, setRemarksError] = useState(false);
+
+  const { data: rejectedNotesResponse } = useQuery({
+    queryKey: ['rejected-notes'],
+    queryFn: fetchAllRejectedNotes,
+    enabled: open && showRemarks,
+  });
+
+  const dataRejectedNotes = rejectedNotesResponse?.data?.data || rejectedNotesResponse?.data || []
+ 
+  const rejectedNoteOptions = useMemo(() => {
+    const apiOptions = Array.isArray(dataRejectedNotes)
+      ? dataRejectedNotes.map((note: any) => String(note.message || '').trim()).filter(Boolean)
+      : [];
+
+    const fallbackOptions = (remarksOptions.length > 0 ? remarksOptions : commonRejectionOptions)
+      .map((option) => String(option.label || option.value || '').trim())
+      .filter(Boolean);
+
+    return Array.from(new Set([...apiOptions, ...fallbackOptions]));
+  }, [dataRejectedNotes, remarksOptions])
 
   useEffect(() => {
     if (!open) return;
@@ -72,23 +109,54 @@ const AlertDialogRejected: React.FC<AlertDialogProps> = ({
 
         {showRemarks && (
           <div>
-            <label htmlFor="rejection-remarks">{remarksLabel}</label>
-            <CustomTextField
-              name="remarks"
-              placeholder={remarksPlaceholder}
-              value={remarks}
-              onChange={(e) => {
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              {remarksLabel}
+            </label>
+            <Autocomplete
+              freeSolo
+              options={rejectedNoteOptions}
+              inputValue={remarks}
+              onInputChange={(_, value) => {
                 setRemarksError(false);
-                setRemarks(String(e.target.value));
+                setRemarks(value.slice(0, 250));
+              }}
+              onChange={(_, value) => {
+                setRemarksError(false);
+                setRemarks(String(value || '').slice(0, 250));
               }}
               disabled={isLoading}
-              rows={3}
-              multiline={true}
-              type="text"
-              maxLength={250}
-              error={remarksError}
-              helperText={remarksError ? 'Remarks is required.' : ''}
+              noOptionsText="Type a custom rejection note"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={remarksPlaceholder}
+                  size="small"
+                  error={remarksError}
+                  sx={{
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '6px',
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '14px',
+                      '& fieldset': {
+                        borderColor: remarksError ? 'red' : '#d1d5db',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: remarksError ? 'red' : '#9ca3af',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: remarksError ? 'red' : '#FCD000',
+                      },
+                    },
+                  }}
+                />
+              )}
             />
+            <div className="mt-1 flex justify-between gap-3 text-xs">
+              <span className={remarksError ? 'text-red-500' : 'text-gray-500'}>
+                {remarksError ? 'Remarks is required.' : 'Choose an option or type a custom note.'}
+              </span>
+              <span className="text-gray-400">{remarks.length}/250</span>
+            </div>
           </div>
         )}
       </DialogContent>

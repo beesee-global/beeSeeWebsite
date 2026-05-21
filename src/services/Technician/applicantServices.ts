@@ -1,6 +1,8 @@
 import axiosClient from "../../axiosClient";
 
 const API_URL = `/applicants`
+type ApplicantId = string | number | number[];
+ 
 
 export const fetchApplicants = async (id: string) => {
   try {
@@ -22,6 +24,21 @@ export const fetchApplicantsClosed = async (id: string) => {
       }
     });
     return response.data;
+  } catch (error) {
+    throw error
+  }
+}
+
+export const fetchApplicantsHired = async (id: string) => {
+  try {
+    const response = await axiosClient.get(`${API_URL}/hired`, {
+      params: {
+        status: 'HIRED',
+        job_applicant: id
+      }
+    });
+
+    return response.data
   } catch (error) {
     throw error
   }
@@ -71,10 +88,11 @@ export const fetchApplicantsNewApplicants = async (id: string) => {
   }
 }
  
-export const shortList = async (payload: { id: string; user_id?: string | number }) => {
+export const shortList = async (payload: { id: number[]; user_id?: string | number }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${payload.id}`, {
+    const response = await axiosClient.put(`${API_URL}/shortlisted  `, {
       user_id: payload.user_id,
+      ids: payload.id
     });
     return response.data
   } catch (error) {
@@ -82,10 +100,11 @@ export const shortList = async (payload: { id: string; user_id?: string | number
   }
 }
 
-export const rejectedApplicants = async (payload: { id: string; user_id?: string | number; remarks?: string }) => {
+export const rejectedApplicants = async (payload: { id: number[]; user_id?: string | number; remarks?: string }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${payload.id}/rejected`, {
+    const response = await axiosClient.put(`${API_URL}/rejected`, {
       user_id: payload.user_id,
+      ids:  payload.id,
       remarks: payload.remarks,
     })
     return response.data
@@ -94,10 +113,11 @@ export const rejectedApplicants = async (payload: { id: string; user_id?: string
   }
 };
 
-export const closedApplicants = async (payload: { id: string; user_id?: string | number }) => {
+export const closedApplicants = async (payload: { id: number[]; user_id?: string | number }) => {
   try {
-    const response = await axiosClient.put(`${API_URL}/${payload.id}/closed`, {
+    const response = await axiosClient.put(`${API_URL}/closed`, {
       user_id: payload.user_id,
+      ids:  payload.id 
     })
     return response.data
   } catch (error) {
@@ -191,6 +211,18 @@ export const applicantUpdateStatus = async (data: any) => {
   try {
     const response = await axiosClient.put(
       `${API_URL}/update-status`, data
+    );
+
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
+export const applicantAttendanceStatus = async(data: any) => {
+  try {
+    const response = await axiosClient.put(
+      `${API_URL}/update-attendance`, data
     );
 
     return response

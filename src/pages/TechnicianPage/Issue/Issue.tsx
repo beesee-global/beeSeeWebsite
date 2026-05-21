@@ -835,7 +835,7 @@ const Issue = () => {
             <CustomSearchField
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder='Search issues...'
+              placeholder='Search...'
               className="w-full"
             />
           </div>

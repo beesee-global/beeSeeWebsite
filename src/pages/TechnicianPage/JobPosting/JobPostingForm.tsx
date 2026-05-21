@@ -109,10 +109,11 @@ const JobPostingForm: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    const nextValue = name === "title" ? value.replace(/\d/g, "") : value;
 
     setJobData((prev: FormJobData) => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
 
     // clear error when typing
@@ -134,6 +135,7 @@ const JobPostingForm: React.FC = () => {
     const careers_job_details = String(formJobData.careers_job_details || '');
 
     if (!title.trim()) errors.title = "Job title is required.";
+    else if (/\d/.test(title)) errors.title = "Job title must not contain numbers.";
     if (!description.trim()) errors.description = "Job description is required."; 
     if (!location.trim()) errors.location = "Location is required.";
     if (!workLocation.trim()) errors.work_location = "Work location is required.";
@@ -343,23 +345,30 @@ const JobPostingForm: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm  text-black mb-2">
-                    Job Title *
-                  </label>
-                  <CustomTextField 
-                    name="title"
-                    placeholder="e.g., Sales and Marketing"
-                    value={formJobData.title}
-                    multiline={false}
-                    rows={1}
-                    type="text"
-                    maxLength={100} 
-                    onChange={handleInputChange}  
-                    error={!!formError.title}
-                    helperText={formError.title}
-                    icon={<Briefcase className="w-4 h-4" />}
-                  /> 
-                </div>
+                <label className="block text-sm text-black mb-2">
+                  Job Title *
+                </label>
+                <CustomTextField 
+                  name="title"
+                  placeholder="e.g., Sales and Marketing"
+                  value={formJobData.title}
+                  multiline={false}
+                  rows={1}
+                  type="text"
+                  maxLength={100} 
+                  onChange={handleInputChange}  
+                  error={!!formError.title}
+                  helperText={formError.title}
+                  icon={<Briefcase className="w-4 h-4" />}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key.length === 1 && /[0-9]/.test(e.key)) e.preventDefault();
+                  }}
+                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                    const pasted = e.clipboardData.getData('text');
+                    if (/[0-9]/.test(pasted)) e.preventDefault();
+                  }}
+                /> 
+              </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm  text-black dark:text-black mb-2">

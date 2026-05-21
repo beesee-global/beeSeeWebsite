@@ -1,6 +1,9 @@
 import React from 'react';
 import { Video, Phone, Users } from 'lucide-react';
 
+export const VIDEO_INTERVIEW_FORMAT = 'In-video interview';
+export const VIDEO_INTERVIEW_LINK = 'https://meet.google.com/gog-oeia-spm';
+
 interface CustomFormatProps {
   value?: string;
   onChange?: (format: string) => void;
@@ -16,7 +19,7 @@ const CustomFormat: React.FC<CustomFormatProps> = ({
 }) => {
   // Format options
   const formatOptions = [
-    { value: 'In-video interview', label: 'Video', icon: <Video className="w-5 h-5" /> },
+    { value: VIDEO_INTERVIEW_FORMAT, label: 'Video', icon: <Video className="w-5 h-5" /> },
     { value: 'In-phone interview', label: 'Phone', icon: <Phone className="w-5 h-5" /> },
     { value: 'In-person interview', label: 'In Person', icon: <Users className="w-5 h-5" /> }
   ];

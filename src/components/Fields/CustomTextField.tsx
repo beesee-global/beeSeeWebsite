@@ -14,6 +14,8 @@ interface CustomTextFieldProps {
   icon?: React.ReactNode;
   error?: boolean;
   helperText?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
 }
 
 const CustomTextField: React.FC<CustomTextFieldProps> = ({
@@ -29,16 +31,18 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   icon,
   error = false,
   helperText = "",
+  onKeyDown,
+  onPaste,
 }) => {
   const textFieldSx = {
     backgroundColor: '#ffffff',
     borderRadius: '6px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
-        borderColor: error ? 'red' : '#d1d5db', // gray-300 by default
+        borderColor: error ? 'red' : '#d1d5db',
       },
       '&:hover fieldset': {
-        borderColor: error ? 'red' : '#9ca3af', // darker gray on hover
+        borderColor: error ? 'red' : '#9ca3af',
       },
       '&.Mui-focused fieldset': {
         borderColor: error ? 'red' : '#FCD000',
@@ -111,7 +115,11 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
         sx={textFieldSx}
         value={value}
         onChange={handleChange}
-        inputProps={{ maxLength }}
+        inputProps={{ 
+          maxLength,
+          onKeyDown,
+          onPaste,
+        }}
         error={error} 
         InputProps={{
           endAdornment:

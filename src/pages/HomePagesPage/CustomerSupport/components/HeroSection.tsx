@@ -210,8 +210,7 @@ const HeroSection: React.FC = () => {
         } else {
             if (!formData?.item_name?.trim()) errors.item_name = 'Item name is required';
         }
-        if (!formData?.questions.trim()) errors.questions = 'Please provide details about your issue.';
-        if (uploadedImages.length === 0) errors.file_upload = 'Please upload at least one image.';
+        if (!formData?.questions.trim()) errors.questions = 'Please provide details about your issue.'; 
         return errors;
     };
 

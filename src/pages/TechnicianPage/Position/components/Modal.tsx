@@ -219,6 +219,13 @@ const permissionTree = [
         hasActions: true,
         allowedActions: ["view", "add", "edit", "delete"],
       },
+      {
+        id: "rejected-note",
+        name: "Rejected Note",
+        url: "/beesee/rejected-note",
+        hasActions: true,
+        allowedActions: ["view", "add", "edit", "delete"],
+      },
     ],
   },
 ];
