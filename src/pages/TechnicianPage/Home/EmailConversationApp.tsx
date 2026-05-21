@@ -971,7 +971,7 @@ export default function EmailConversationApp() {
                           ? 'bg-white border border-gray-200'
                           : 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
                       // Highlight the message currently selected as the reply target.
-                      } ${repliedMessage?.id === msg.id ? 'ring-2 ring-[#FCD000] ring-offset-2 shadow-md' : ''}`} 
+                      } ${repliedMessage?.id === msg.id ? 'border-yellow-400 shadow-md' : ''}`} 
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-4 h-4" />

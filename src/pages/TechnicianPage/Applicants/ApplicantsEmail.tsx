@@ -842,7 +842,7 @@ const ApplicantsEmail = () => {
                       </div>
 
                       {/* Expected Answer */}
-                      {item.deal_breaker_expected_value != null && item.deal_breaker_expected_value != "" && item.deal_breaker_expected_value != item.answerText && (
+                      {item.deal_breaker_expected_value != null && item.deal_breaker_expected_value != "" && item.deal_breaker_expected_value != item.answerText && formData.status == "REJECTED" &&(
                         <div className="mt-4 border-t pt-3">
                           <p className="text-sm font-medium text-gray-500">
                             Expected Answer

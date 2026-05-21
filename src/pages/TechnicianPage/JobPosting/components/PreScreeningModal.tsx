@@ -181,9 +181,9 @@ export default function PreScreeningModal({
                           {buildDisplay(question.question, sel.blank_value, jobLocation)}
                         </p>
                         {/* Show row id when editing existing — useful for debugging */}
-                        {sel.id !== undefined && (
+                        {/* {sel.id !== undefined && (
                           <p className="text-xs text-gray-400 mt-0.5">Row ID: {sel.id}</p>
-                        )}
+                        )} */}
                       </div>
                       <button
                         onClick={() => onRemove(sel.instance_id)}
