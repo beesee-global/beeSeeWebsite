@@ -340,7 +340,7 @@ const HeaderHomePage = () => {
   const navRight = [
     { label: 'INQUIRIES', to: '/inquiries' },
     { label: 'FAQS', to: '/faqs' },
-    { label: 'SUPPORT', to: '/customer-support' },
+    { label: 'SUPPORT', to: '/support' },
   ];
 
   const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];

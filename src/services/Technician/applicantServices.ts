@@ -2,6 +2,19 @@ import axiosClient from "../../axiosClient";
 
 const API_URL = `/applicants`
 type ApplicantId = string | number | number[];
+
+export const APPLICANT_MODE_STATUSES = [
+  'INTERVIEWED',
+  'ASSESSMENT',
+  'FOR_APPROVAL',
+  'BACKGROUND_CHECK',
+  'OFFER_STAGE',
+  'ONBOARDING',
+  'DECLINED_OFFER',
+  'WITHDRAWN_INACTIVE',
+] as const;
+
+export type ApplicantModeStatus = typeof APPLICANT_MODE_STATUSES[number];
  
 
 export const fetchApplicants = async (id: string) => {
@@ -218,3 +231,38 @@ export const applicantUpdateStatus = async (data: any) => {
     throw error
   }
 }
+
+export const applicantAttendanceStatus = async(data: any) => {
+  try {
+    const response = await axiosClient.put(
+      `${API_URL}/update-attendance`, data
+    );
+
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
+export const applicantMode = async (data: {
+  job_applicant: string;
+  status?: ApplicantModeStatus | ApplicantModeStatus[] | string | string[];
+}) => {
+  try {
+    const response = await axiosClient.get(
+      `${API_URL}/modes`,
+      {
+        params: {
+          ...data,
+          status: Array.isArray(data.status)
+            ? data.status.join(",")
+            : data.status,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

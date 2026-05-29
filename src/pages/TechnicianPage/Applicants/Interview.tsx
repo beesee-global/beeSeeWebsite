@@ -110,9 +110,12 @@ const Interview = () => {
     { id: 'position', label: 'Job Position', sortable: true, align: 'left' as const },
     { id: 'schedule_date', label: 'Interview Date', sortable: true, align: 'left' as const },
     { id: 'status', label: 'Confirmation', sortable: true, align: 'center' as const },
+    { id: 'is_attended', label: 'Attendance', sortable: true, align: 'left' as const },
     { id: 'status_applicant', label: 'Status', sortable: true, align: 'left' as const },
     { id: 'user_full_name', label: 'Scheduled By', sortable: true, align: 'left' as const },
     { id: 'created_at', label: 'Date Created', sortable: true, align: 'left' as const },
+
+    
   ]
 
   return (

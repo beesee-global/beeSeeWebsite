@@ -11,7 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { Send, MapPin, Clock, CalendarClock } from 'lucide-react';
 import CustomTimePicker from '../../../../components/Fields/CustomTimePicker';
-import CustomFormat from '../../../../components/Fields/CustomFormat';
+import CustomFormat, { VIDEO_INTERVIEW_FORMAT, VIDEO_INTERVIEW_LINK } from '../../../../components/Fields/CustomFormat';
 
 interface ApplicantsDialogProps {
   open: boolean;
@@ -280,8 +280,17 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
                 <CustomFormat 
                   value={formData.format}
                   onChange={(format) => {
-                    setFormData(prev => ({ ...prev, format }));
-                    setFormError(prev => ({ ...prev, format: '' }));
+                    setFormData(prev => ({
+                      ...prev,
+                      format,
+                      location:
+                        format === VIDEO_INTERVIEW_FORMAT
+                          ? VIDEO_INTERVIEW_LINK
+                          : prev.location === VIDEO_INTERVIEW_LINK
+                            ? ''
+                            : prev.location,
+                    }));
+                    setFormError(prev => ({ ...prev, format: '', location: '' }));
                   }}
                   error={!!formError.format}
                   helperText={formError.format}
@@ -291,7 +300,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
               {/* Location */}
               <div>
                 <label className="block text-sm font-bold text-gray-700">
-                  Interview Address *
+                  {formData.format === VIDEO_INTERVIEW_FORMAT ? 'Video Link' : 'Interview Address'} *
                 </label>
                 <CustomTextField
                   name="location"

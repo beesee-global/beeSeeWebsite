@@ -1,13 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { sendInterviewInvitation } from '../../../../services/Technician/applicantServices'
+import {
+    APPLICANT_MODE_STATUSES,
+    applicantUpdateStatus,
+    sendInterviewInvitation
+} from '../../../../services/Technician/applicantServices'
 import ApplicantsDialog from './ApplicantsDialog';
+import AlertDialogRejected from '../../../../components/feedback/AlertDialogRejected';
+import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userAuth } from '../../../../hooks/userAuth';
 import {
     ChevronLeft,
     ChevronRight,
     Mail,
-    CalendarClock
+    CalendarClock,
+    ChevronDown
 } from 'lucide-react';
 
 // ============================================
@@ -65,6 +72,46 @@ const STATUS_CONFIG: Record<
     label: 'Rejected',
     classes: 'bg-red-100 text-red-800 border border-red-200',
   },
+  HIRED: {
+    label: 'Hired',
+    classes: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+  },
+  CLOSED: {
+    label: 'Closed',
+    classes: 'bg-gray-100 text-gray-700 border border-gray-200',
+  },
+  INTERVIEWED: {
+    label: 'Interviewed',
+    classes: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+  },
+  ASSESSMENT: {
+    label: 'Assessment',
+    classes: 'bg-purple-100 text-purple-800 border border-purple-200',
+  },
+  FOR_APPROVAL: {
+    label: 'For Approval',
+    classes: 'bg-amber-100 text-amber-800 border border-amber-200',
+  },
+  BACKGROUND_CHECK: {
+    label: 'Background Check',
+    classes: 'bg-cyan-100 text-cyan-800 border border-cyan-200',
+  },
+  OFFER_STAGE: {
+    label: 'Offer Stage',
+    classes: 'bg-teal-100 text-teal-800 border border-teal-200',
+  },
+  ONBOARDING: {
+    label: 'Onboarding',
+    classes: 'bg-green-100 text-green-800 border border-green-200',
+  },
+  DECLINED_OFFER: {
+    label: 'Declined Offer',
+    classes: 'bg-orange-100 text-orange-800 border border-orange-200',
+  },
+  WITHDRAWN_INACTIVE: {
+    label: 'Withdrawn / Inactive',
+    classes: 'bg-slate-100 text-slate-700 border border-slate-200',
+  },
 };
 
 const getStatusConfig = (status: string) =>
@@ -72,6 +119,34 @@ const getStatusConfig = (status: string) =>
     label: status,
     classes: 'bg-gray-100 text-gray-700 border border-gray-200',
   };
+
+const BASE_FILTER_TABS = [
+    { value: 'all', label: 'ALL' },
+    { value: 'new_applicants', label: 'New Applicant' },
+    { value: 'short_listed', label: 'Short Listed' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'hired', label: 'Hired' },
+    { value: 'closed', label: 'Closed' },
+];
+
+const APPLICANT_MODE_FILTER_TABS = APPLICANT_MODE_STATUSES.map((status) => ({
+    value: status,
+    label: getStatusConfig(status).label,
+}));
+
+const FILTER_TABS = [...BASE_FILTER_TABS, ...APPLICANT_MODE_FILTER_TABS];
+
+const APPLICANT_STATUS_OPTIONS = [
+    'NEW_APPLICANT',
+    'SHORTLISTED',
+    'REJECTED',
+    'HIRED',
+    'CLOSED',
+    ...APPLICANT_MODE_STATUSES,
+].map((status) => ({
+    value: status,
+    label: getStatusConfig(status).label,
+}));
 
 
 // ============================================
@@ -129,6 +204,12 @@ interface ColumnConfig {
     align?: string;
 }
 
+interface StatusUpdatePayload {
+    id: number;
+    status: string;
+    remarks?: string;
+}
+
 interface TableApplicantsProps {
     rows: RowData[];
     columns?: ColumnConfig[];
@@ -182,6 +263,11 @@ export default function TableApplicants({
         applicantPosition: "",
         applicantId: "",
     });
+    const [updatingRowId, setUpdatingRowId] = useState<number | null>(null);
+    const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+    const [pendingRejectPayload, setPendingRejectPayload] = useState<StatusUpdatePayload | null>(null);
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
+    const [statusDropdownPosition, setStatusDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
     const rowsPerPage = 15;
     const page = controlledPage ?? internalPage;
@@ -272,6 +358,70 @@ export default function TableApplicants({
         mutationFn: sendInterviewInvitation
     });
 
+    const updateStatusApplicantMutate = useMutation({
+        mutationFn: applicantUpdateStatus,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['all-applicant'] });
+            queryClient.invalidateQueries({ queryKey: ['short-listed'] });
+            queryClient.invalidateQueries({ queryKey: ['rejected'] });
+            queryClient.invalidateQueries({ queryKey: ['new-applicant'] });
+            queryClient.invalidateQueries({ queryKey: ['hired'] });
+            queryClient.invalidateQueries({ queryKey: ['closed'] });
+            queryClient.invalidateQueries({ queryKey: ['applicant-mode'] });
+            queryClient.invalidateQueries({ queryKey: ['interview-list'] });
+            setSnackBarMessage('Applicant status updated successfully.');
+            setSnackBarType('success');
+            setSnackBarOpen(true);
+        },
+        onError: (error: any) => {
+            const rawMessage = error?.response?.data?.message || 'Failed to update applicant status.';
+            const cleanMessage = String(rawMessage).replace(/^error:\s*/i, '');
+
+            setSnackBarMessage(cleanMessage);
+            setSnackBarType('error');
+            setSnackBarOpen(true);
+        },
+        onSettled: () => {
+            setUpdatingRowId(null);
+            setRejectDialogOpen(false);
+            setPendingRejectPayload(null);
+        },
+    });
+
+    const submitStatusUpdate = (payload: StatusUpdatePayload) => {
+        setUpdatingRowId(payload.id);
+        updateStatusApplicantMutate.mutate(payload);
+    };
+
+    const handleStatusApplicantChange = ({
+        id,
+        status,
+        currentStatus,
+    }: {
+        id: number;
+        status: string;
+        currentStatus?: string;
+    }) => {
+        if (!status || status === currentStatus) return;
+
+        if (status === 'REJECTED') {
+            setPendingRejectPayload({ id, status });
+            setRejectDialogOpen(true);
+            return;
+        }
+
+        submitStatusUpdate({ id, status });
+    };
+
+    const handleRejectedSubmit = (remarks?: string) => {
+        if (!pendingRejectPayload) return;
+
+        submitStatusUpdate({
+            ...pendingRejectPayload,
+            remarks: remarks?.trim() || '',
+        });
+    };
+
     const handleEmailSubmit = async(emailData: {
         location: string;
         time: string[];
@@ -341,6 +491,22 @@ export default function TableApplicants({
                 applicantName={emailDialogFormData.applicantName}
                 applicantEmail={emailDialogFormData.applicantEmail}
             />
+            <AlertDialogRejected
+                open={rejectDialogOpen}
+                title="Reject Applicant"
+                message="Please provide a remark before marking this applicant as rejected."
+                onClose={() => {
+                    if (updateStatusApplicantMutate.isPending) return;
+                    setRejectDialogOpen(false);
+                    setPendingRejectPayload(null);
+                }}
+                onSubmit={handleRejectedSubmit}
+                isLoading={updateStatusApplicantMutate.isPending}
+                showRemarks={true}
+                remarksRequired={true}
+                remarksLabel="Rejection Note"
+                remarksPlaceholder="Why is this applicant rejected?"
+            />
 
 
             <div
@@ -349,64 +515,19 @@ export default function TableApplicants({
             >
                 {/* Filter Section */}
                 <div className="border-b" >
-                    <div className="flex">
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium 
-                                ${statusFilter === 'all' 
-                                    ? 'text-yellow-500 border-yellow-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
-                                `}
-                        >
-                            ALL
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('new_applicants')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium 
-                                ${statusFilter === 'new_applicants' 
-                                    ? 'text-yellow-500  border-yellow-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            New Applicant
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('short_listed')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium 
-                                ${statusFilter === 'short_listed' 
-                                    ? 'text-yellow-500 border-yellow-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Short Listed
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('rejected')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium 
-                                ${statusFilter === 'rejected' 
-                                    ? 'text-yellow-500 border-yellow-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Rejected
-                        </button>
-
-                        <button
-                            onClick={() => setStatusFilter('hired')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium
-                                ${statusFilter === 'hired'
-                                    ? 'text-yellow-500 border-yellow-500'
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Hired
-                        </button>
-
-                        <button
-                            onClick={() => setStatusFilter('closed')}
-                            className={`py-2 px-4 border-b transition text-sm font-medium 
-                                ${statusFilter === 'closed' 
-                                    ? 'text-yellow-500 border-yellow-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            Closed
-                        </button>
+                    <div className="flex flex-wrap">
+                        {FILTER_TABS.map((tab) => (
+                            <button
+                                key={tab.value}
+                                onClick={() => setStatusFilter(tab.value)}
+                                className={`py-2 px-4 border-b transition text-sm font-medium whitespace-nowrap
+                                    ${statusFilter === tab.value
+                                        ? 'text-yellow-500 border-yellow-500'
+                                        : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -423,7 +544,7 @@ export default function TableApplicants({
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-white sticky top-0">
                                 <tr>
-                                    <th className="px-4 py-3">
+                                    {/* <th className="px-4 py-3">
                                         <input
                                             type='checkbox'
                                             checked={visibleRows.length > 0 && visibleRows.every(row => checkedRowIds.includes(row.id))}
@@ -439,7 +560,7 @@ export default function TableApplicants({
                                                 }
                                             }}
                                         />
-                                    </th>
+                                    </th> */}
                                     {effectiveColumns.map((col) => (
                                         <th
                                             key={col.id}
@@ -471,7 +592,7 @@ export default function TableApplicants({
                                                 background: isChecked ? COLORS.selected  : isSelected ? COLORS.selected : isHovered ? COLORS.surfaceHover : 'transparent',
                                             }}
                                         >
-                                            <td className="px-4 py-3">
+                                            {/* <td className="px-4 py-3">
                                                 <input
                                                     type="checkbox"
                                                     checked={checkedRowIds.includes(row.id)}
@@ -484,20 +605,86 @@ export default function TableApplicants({
                                                     }
                                                     }}
                                                 />
-                                            </td>
+                                            </td> */}
                                             {effectiveColumns.map((col) => (
                                                 <td key={col.id} className={`px-4 py-3 align-middle ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
                                                     {col.id === 'status' ? (
-                                                        (() => {
-                                                            const { label, classes } = getStatusConfig(row.status);
-                                                            return (
-                                                            <span
-                                                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${classes}`}
-                                                            >
-                                                                {label}
-                                                            </span>
-                                                            );
-                                                        })()
+                                                        <div
+                                                            className="relative min-w-[190px] status-dropdown"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            onDoubleClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {(() => {
+                                                                const currentStatus = getStatusConfig(row.status);
+                                                                const isOpen = statusDropdownOpen === row.id;
+
+                                                                return (
+                                                                    <>
+                                                                        <button
+                                                                            type="button"
+                                                                            className={`w-full px-3 py-1.5 text-xs font-medium rounded-full flex items-center justify-between transition-colors ${currentStatus.classes}`}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                                                if (isOpen) {
+                                                                                    setStatusDropdownOpen(null);
+                                                                                    setStatusDropdownPosition(null);
+                                                                                } else {
+                                                                                    setStatusDropdownPosition({
+                                                                                        top: rect.bottom + 4,
+                                                                                        left: rect.left,
+                                                                                        width: Math.max(rect.width, 230),
+                                                                                    });
+                                                                                    setStatusDropdownOpen(row.id);
+                                                                                }
+                                                                            }}
+                                                                            disabled={updatingRowId === row.id}
+                                                                        >
+                                                                            <span className="truncate">{currentStatus.label || 'Select Status'}</span>
+                                                                            <ChevronDown
+                                                                                className={`w-3 h-3 ml-2 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                                                                            />
+                                                                        </button>
+                                                                        {isOpen && statusDropdownPosition && (
+                                                                            <div
+                                                                                className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto status-dropdown"
+                                                                                style={{
+                                                                                    top: statusDropdownPosition.top,
+                                                                                    left: statusDropdownPosition.left,
+                                                                                    width: statusDropdownPosition.width,
+                                                                                }}
+                                                                            >
+                                                                                {APPLICANT_STATUS_OPTIONS.map((option) => {
+                                                                                    const isSelected = option.value === row.status;
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={option.value}
+                                                                                            type="button"
+                                                                                            className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                handleStatusApplicantChange({
+                                                                                                    id: row.id,
+                                                                                                    status: option.value,
+                                                                                                    currentStatus: row.status,
+                                                                                                });
+                                                                                                setStatusDropdownOpen(null);
+                                                                                                setStatusDropdownPosition(null);
+                                                                                            }}
+                                                                                        >
+                                                                                            {option.label}
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                            {updatingRowId === row.id && (
+                                                                <p className="mt-1 text-xs text-slate-500">Updating...</p>
+                                                            )}
+                                                        </div>
                                                     ) : col.id === 'full_name' ? (
                                                         <div className="flex items-center gap-3 min-w-0">
                                                             {row?.schedule_date ? (

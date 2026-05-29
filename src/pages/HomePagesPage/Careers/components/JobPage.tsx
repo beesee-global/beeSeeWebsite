@@ -26,8 +26,29 @@ interface JobPosting {
   created_at: string;
   description: string;
   careers_job_details: string; 
+  work_location?: string;
   workLocation?: string;
+  'pre-screening'?: JobPreScreening[];
+  pre_screening?: JobPreScreening[];
+  preScreening?: JobPreScreening[];
 } 
+
+interface JobPreScreening {
+  id?: number;
+  careers_id?: number;
+  question_id: number | string;
+  is_deal_breaker: number | string | boolean;
+  deal_breaker_expected_value?: string | number | null;
+  blank_value?: string | null;
+}
+
+const getJobFromResponse = (response: any): JobPosting | null =>
+  response?.data?.data || response?.data || response || null;
+
+const getJobPreScreening = (job: JobPosting | null): JobPreScreening[] => {
+  const preScreening = job?.['pre-screening'] || job?.pre_screening || job?.preScreening || [];
+  return Array.isArray(preScreening) ? preScreening : [];
+};
 
 const JobPage: React.FC = () => {
   const { id } = useParams();
@@ -54,13 +75,13 @@ const JobPage: React.FC = () => {
     });
   };
 
-  const { data: jobResponse, isLoading } = useQuery<JobPosting>({
+  const { data: jobResponse, isLoading } = useQuery<any>({
     queryKey: ['job', id],
     queryFn: () => getSpecificJobPublic(String(id)),
     enabled: !!id
   })
 
-  const job: JobPosting | null = jobResponse?.data ?? null;
+  const job = getJobFromResponse(jobResponse);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -142,7 +163,7 @@ const JobPage: React.FC = () => {
       
       {/* HERO SECTION - Mobile optimized with proper top spacing */}
       <div 
-        className="relative min-h-[100vh] h-auto md:h-[80vh] md:overflow-hidden flex items-center justify-center pb-10 md:pb-0"
+        className="relative min-h-[20vh] h-auto md:h-[60vh] md:overflow-hidden flex items-center justify-center pb-10 md:pb-0"
         style={{
           background: isMobile 
             ? 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerMobile.jpg")'
@@ -191,7 +212,7 @@ const JobPage: React.FC = () => {
                 label: "Location"
               },{
                 icon: <Briefcase size={isMobile ? 20 : 20} />,
-                text: `Work Location: ${job.workLocation || 'Onsite'}`,
+                text: `Work Location: ${job.work_location || job.workLocation || 'Onsite'}`,
                 label: "Type"
               },{
                 icon: <Clock size={isMobile ? 20 : 20} />,
@@ -270,24 +291,14 @@ const JobPage: React.FC = () => {
               </div>
             </div>
 
-            {/* QR Code - VISIBLE ON ALL SCREENS */}
-            <div className='flex items-center justify-center gap-4 mt-8 md:mt-12 mb-8 md:mb-0 animate-in fade-in zoom-in duration-700 delay-300'>
-              <div className={`p-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 ${isMobile ? 'w-full max-w-md mx-auto' : ''}`}>
-                <QrWithLogo 
-                  value={`${import.meta.env.VITE_API_URL_FRONTEND}/bsg/career/${job.job_reference_number}`} 
-                  logoUrl={beeseelogo} 
-                  size={isMobile ? 180 : 180}
-                />
-                <p className="text-center text-white/40 text-xs mt-3 uppercase tracking-widest"></p>
-              </div>
-            </div>
+             
 
           </div>
         </div>
       </div>
 
       {/* MAIN CONTENT - Mobile optimized readability */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-20">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-10">
 
         {/* ABOUT */}
         <section className="mb-12 md:mb-20 fade-up-init text-left">
@@ -384,6 +395,7 @@ const JobPage: React.FC = () => {
         onClose={() => setShowApplicationForm(false)}
         jobTitle={job.title}
         jobId={job.job_reference_number}
+        preScreening={getJobPreScreening(job)}
       />
     </div>
   );

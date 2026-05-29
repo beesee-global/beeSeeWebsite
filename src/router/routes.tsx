@@ -132,7 +132,7 @@ const routes = [
                 element: <TermsAndConditions />
             }, 
             {
-                path: 'customer-support',
+                path: 'support',
                 element: <CostumerSupport /> ,   
             },
             {
