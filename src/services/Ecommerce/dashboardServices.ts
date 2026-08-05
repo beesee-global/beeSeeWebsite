@@ -10,3 +10,8 @@ export const fetchGraph = async () => {
         throw error
     }
 }
+
+export const fetchDashboardUsers = async () => {
+    const response = await axiosClient.get('/users', { params: { id: 0 } });
+    return response.data?.data ?? [];
+};

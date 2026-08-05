@@ -79,11 +79,13 @@ const CategoryForm: React.FC = () => {
     }))
   };
   
-  // Fetch data only when id exists
+  const isEditMode = !!id && id !== 'undefined';
+
+  // Fetch data only when id exists and is valid
   const { data: categoryInfo } = useQuery({
     queryKey: ["category", id],
     queryFn: () => fetchEmployeeByPid(String(id)),
-    enabled: !!id // only fetch when id is defined
+    enabled: isEditMode
   })
 
   // ✅ Mutation for creating category
@@ -114,30 +116,36 @@ const CategoryForm: React.FC = () => {
         return
       };
 
-      const formDataToSend = new FormData();
-      Object.entries(formCategoryData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formDataToSend.append(key, value)
-        }
-      })  
+      const dataToSend = {
+        name: formCategoryData.name,
+        icon: formCategoryData.icon
+      };
 
-      if (id) {  
-        // pass one object with both id and formData
-        await updateCategoryAsync({ id: categoryInfo?.id, categoryData: formDataToSend})
+      if (isEditMode) {  
+        // pass one object with both id and categoryData
+        await updateCategoryAsync({ id: categoryInfo?.id, categoryData: dataToSend})
       } else {
-        await createCategoryAsync(formDataToSend)
+        await createCategoryAsync(dataToSend)
       }
       setSnackBarType('success');
-      setSnackBarMessage(id ? 'Category updated successfully!' : 'Category created successfully!');
+      setSnackBarMessage(isEditMode ? 'Category updated successfully!' : 'Category created successfully!');
       navigate('/beesee/ecommerce/category'); 
     } catch (error: any) {
       console.error('❌ Error creating category:', error); 
+      const responseData = error?.response?.data;
+      const message = responseData?.message
+        || responseData?.error
+        || "Failed to save category. Please try again.";
+      console.error('Category save failed:', {
+        status: error?.response?.status,
+        message,
+        response: responseData,
+      });
       setSnackBarType("error");
-      setSnackBarMessage("Failed to create category. Please try again.");
+      setSnackBarMessage(message);
 
       if (error.response?.status === 400) {
-        const message = error.response.data?.message;
-        if (message === "Category name already exists") {
+        if (/category.*same name|category name already exists/i.test(message)) {
           setFormError((prev) => ({
             ...prev,
             name: message
@@ -185,7 +193,7 @@ const CategoryForm: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                { id ? "Update Category" : "Create New Category"}
+                { isEditMode ? "Update Category" : "Create New Category"}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
                 Add a new category to organize your products
@@ -193,7 +201,7 @@ const CategoryForm: React.FC = () => {
             </div>
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => navigate('/beesee/category')} 
+                onClick={() => navigate('/beesee/ecommerce/category')} 
                 disabled={isCreating || isUpdating}
                 className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
               >
@@ -206,12 +214,12 @@ const CategoryForm: React.FC = () => {
               >
                 {isCreating || isUpdating ? (
                   <span>
-                    { id ? "Updating..." : "Creating..." }
+                    { isEditMode ? "Updating..." : "Creating..." }
                   </span>
                 ) : (
                   <>
                     <Save className="w-5 h-5 mr-2" />
-                    { id ? "Update Category" : "Create Category" }
+                    { isEditMode ? "Update Category" : "Create Category" }
                   </>
                 )}
               </button>

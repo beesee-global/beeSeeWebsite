@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { 
@@ -19,6 +20,8 @@ import Modal from './components/Modal'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 import CustomSearchField from '../../../components/Fields/CustomSearchField';
 import WorkIcon from '@mui/icons-material/Work';
+import { createEcomPosition, deleteEcomPositions, fetchEcomPositions, updateEcomPosition } from '../../../services/Ecommerce/ecomPositionsServices';
+import { createWebsiteConfigurationPosition, deleteWebsiteConfigurationPositions, fetchWebsiteConfigurationPositions, updateWebsiteConfigurationPosition } from '../../../services/WebsiteConfiguration/websiteConfigurationPositionsServices';
 
 /* ================= TYPES ================= */
 interface Permission {
@@ -30,6 +33,14 @@ interface Permission {
 }
 
 const Position = () => {
+    const location = useLocation();
+    const isEcommerce = location.pathname.startsWith('/beesee/ecommerce');
+    const isWebsiteConfiguration = location.pathname.startsWith('/beesee/website-configuration');
+    const positionServices = isWebsiteConfiguration
+      ? { fetch: fetchWebsiteConfigurationPositions, create: createWebsiteConfigurationPosition, remove: deleteWebsiteConfigurationPositions, update: updateWebsiteConfigurationPosition }
+      : isEcommerce
+        ? { fetch: fetchEcomPositions, create: createEcomPosition, remove: deleteEcomPositions, update: updateEcomPosition }
+        : { fetch: fetchPositions, create: createPositions, remove: deletePositions, update: updatePositions };
     const [searchValue, setSearchValue] = useState<string>("");
     const [debouncedSearch, setDebouncedSearch] = useState<string>("")
     const [dialogOpen , setDialogOpen] = useState<boolean>(false);
@@ -47,31 +58,41 @@ const Position = () => {
       setSnackBarMessage, 
       setSnackBarOpen, 
       setSnackBarType, 
+      updateUserSession,
     } = userAuth()
 
     const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'position');
+    // Super admin is an explicit full-access role. Keep this fallback so an
+    // older cached session without the newly-added permission array does not
+    // hide position management controls from a full-access account.
+    const isFullAccess = ['superadmin', 'super admin'].includes(String(userInfo?.role || '').toLowerCase());
+    const canManagePosition = (action: string) => isFullAccess || Boolean(Permission?.actions?.includes(action));
   
     const { data: positionResponse, isLoading } = useQuery({
-      queryKey: ['positions'],
-      queryFn: fetchPositions
+      queryKey: [isWebsiteConfiguration ? 'website-positions' : isEcommerce ? 'ecom-positions' : 'positions'],
+      queryFn: positionServices.fetch
     }); 
   
-    const positions = positionResponse?.data || [];
+    const positions = Array.isArray(positionResponse) ? positionResponse : [];
 
     const { mutateAsync: createPosition } = useMutation({
-      mutationFn: createPositions
+      mutationFn: positionServices.create
     });
   
     const { mutateAsync: deletePosition} = useMutation({
-      mutationFn: deletePositions
+      mutationFn: positionServices.remove
     });
   
     const { mutateAsync: updatePosition } = useMutation({
       mutationFn: ({ id, payload }: { id: number; payload: any }) =>
-        updatePositions(id, payload),
+        positionServices.update(id, payload),
     });
   
     const queryClient = useQueryClient();
+    const positionQueryKey = [isWebsiteConfiguration ? 'website-positions' : isEcommerce ? 'ecom-positions' : 'positions'];
+    const responseSucceeded = (response: any) => Boolean(
+      response?.success || response?.data?.success || response?.data?.data?.success
+    );
   
     // Custom columns
     const customColumns = [
@@ -108,7 +129,7 @@ const Position = () => {
         return;
       }
 
-      if (!Permission?.actions.includes('delete')) {
+      if (!canManagePosition('delete')) {
         setSnackBarMessage("You do not have permission to delete position.");
         setSnackBarType("error");
         setSnackBarOpen(true);
@@ -130,7 +151,7 @@ const Position = () => {
 
         const response = await deletePosition(formData);
   
-        if (response?.success) {
+        if (responseSucceeded(response)) {
           setDialogOpen(false)
           setDialogMessage('')
           setDialogTitle("")
@@ -138,7 +159,7 @@ const Position = () => {
           setSnackBarType("success");
           setSnackBarOpen(true);
   
-          queryClient.invalidateQueries({ queryKey: ['positions'] });
+          await queryClient.refetchQueries({ queryKey: positionQueryKey });
         }
       } catch (error:any) {
         setDialogOpen(false)
@@ -168,7 +189,7 @@ const Position = () => {
         return;
       }
 
-      if (!Permission?.actions.includes('edit')) {
+      if (!canManagePosition('edit')) {
         setSnackBarMessage("You do not have permission to edit position.");
         setSnackBarType("error");
         setSnackBarOpen(true);
@@ -190,7 +211,7 @@ const Position = () => {
 
     // Handle Row Double Click (Edit)
     const handleRowDoubleClick = (row: any) => {
-      if (!Permission?.actions.includes('edit')) {
+      if (!canManagePosition('edit')) {
         setSnackBarMessage("You do not have permission to edit position.");
         setSnackBarType("error");
         setSnackBarOpen(true);
@@ -219,13 +240,13 @@ const Position = () => {
 
         const response = await createPosition(payload)
   
-        if (response?.success) {
+        if (responseSucceeded(response)) {
           setSnackBarMessage("Position created successfully")
           setSnackBarType('success')
           setSnackBarOpen(true)
           setModalOpen(false);
   
-          queryClient.invalidateQueries({ queryKey: ['positions'] });
+          await queryClient.refetchQueries({ queryKey: positionQueryKey });
         }
       } catch (error: any) {
         console.error("Create Position Error:", error);
@@ -237,17 +258,6 @@ const Position = () => {
   
     const handleUpdatePosition = async (formDataPosition: Record<string, any>) => {
       try {
-        // Check if position is protected
-        if (selectedPosition.is_protected === 1 || selectedPosition.is_protected === true) {
-          // Compare permissions to ensure they haven't changed
-          if (!permissionsEqual(selectedPosition.permissions || [], formDataPosition.permissions)) {
-            setSnackBarMessage("The permissions cannot be modified for this protected role")
-            setSnackBarType("warning")
-            setSnackBarOpen(true)
-            return
-          }
-        }
-        
         // Create the exact payload format
         const payload = {
           name: formDataPosition.name,
@@ -262,12 +272,20 @@ const Position = () => {
           payload
         });
   
-        if (response?.success) {
+        if (responseSucceeded(response)) {
           setSnackBarMessage("Position updated successfully");
           setSnackBarType("success");
           setSnackBarOpen(true);
   
-          queryClient.invalidateQueries({ queryKey: ["positions"] });
+          await queryClient.refetchQueries({ queryKey: positionQueryKey });
+
+          // If the edited position belongs to the active account, refresh its
+          // cached permissions immediately so the sidebar reflects the new
+          // access without requiring logout/login.
+          const currentPositionId = (userInfo as any)?.positions_id ?? (userInfo as any)?.position;
+          if (String(selectedPosition.id) === String(currentPositionId)) {
+            updateUserSession({ permissions: formDataPosition.permissions });
+          }
           setModalOpen(false);
         }
       } catch (error: any) {
@@ -369,7 +387,7 @@ const Position = () => {
           </div>
           
           {/* Add Button */}
-          {Permission?.actions.includes('add') &&
+          {canManagePosition('add') &&
             <div className="w-full sm:w-auto">
               <button 
                 onClick={() => {
@@ -387,7 +405,7 @@ const Position = () => {
           }
 
           {/* Update Button */}
-          {Permission?.actions.includes('edit') && (
+          {canManagePosition('edit') && (
             <button
               onClick={handleUpdate}
               disabled={!isUpdateEnabled}
@@ -402,7 +420,7 @@ const Position = () => {
           )}
 
           {/* Delete Button */}
-          {Permission?.actions.includes('delete') && (
+          {canManagePosition('delete') && (
             <button
               onClick={handleDeleteClick}
               disabled={!isDeleteEnabled}

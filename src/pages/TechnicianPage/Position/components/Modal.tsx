@@ -1,5 +1,6 @@
 // Import React hooks for state management and side effects
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 // Import Material-UI Dialog components for modal functionality
 import Dialog from "@mui/material/Dialog";
@@ -46,7 +47,7 @@ interface ModalProps {
   title: string; // Modal header title
   description?: string; // Optional description text below title
   fields: FieldConfig[]; // Array of form fields to render
-  onSubmit: (formData: Record<string, any>) => void; // Callback function when form is submitted
+  onSubmit: (formData: Record<string, any>) => void | Promise<void>; // Callback function when form is submitted
   submitLabel?: string; // Text for submit button (defaults to "Submit")
   cancelLabel?: string; // Text for cancel button (defaults to "Cancel")
   initialPermissions?: Permission[]; // Pre-selected permissions (for edit mode)
@@ -105,7 +106,7 @@ const BootstrapDialog = styled(Dialog)({
 /* ================= PERMISSION TREE ================= */
 
 // Define the complete permission structure/hierarchy for the application
-const permissionTree = [
+const technicianPermissionTree = [
   {
     id: "dashboard", // Unique identifier for this module
     name: "Dashboard", // Display name shown to user
@@ -245,6 +246,51 @@ const Modal: React.FC<ModalProps> = ({
   initialPermissions = [], // Pre-selected permissions (default: empty array)
   isPermissionLocked = false, // Lock permission checkboxes (default: false)
 }) => {
+  const location = useLocation();
+  const ecommerceModules = [
+    {
+      id: "category",
+      name: "Category",
+      url: "/beesee/ecommerce/category",
+      parent: null,
+      hasActions: true,
+      allowedActions: ["view", "add", "edit", "delete"],
+    },
+    {
+      id: "product",
+      name: "Product",
+      url: "/beesee/ecommerce/product",
+      parent: null,
+      hasActions: true,
+      allowedActions: ["view", "add", "edit", "delete"],
+    },
+  ];
+  const permissionTree = location.pathname.startsWith('/beesee/ecommerce')
+    ? [...ecommerceModules, ...technicianPermissionTree
+        .filter((module: any) => ['dashboard', 'users'].includes(module.id))]
+        .map((module: any) => ({
+          ...module,
+          url: module.url?.replace('/beesee', '/beesee/ecommerce'),
+          children: module.children?.map((child: any) => ({ ...child, url: child.url?.replace('/beesee', '/beesee/ecommerce') })),
+        }))
+    : location.pathname.startsWith('/beesee/website-configuration')
+      ? [
+          {
+            id: "featured-product",
+            name: "Featured Products",
+            url: "/beesee/website-configuration/featured-product",
+            parent: null,
+            hasActions: true,
+            allowedActions: ["view", "add", "edit", "delete"],
+          },
+          ...technicianPermissionTree.filter((module: any) => ['dashboard', 'users'].includes(module.id)),
+        ]
+          .map((module: any) => ({
+            ...module,
+            url: module.url?.replace('/beesee', '/beesee/website-configuration'),
+            children: module.children?.map((child: any) => ({ ...child, url: child.url?.replace('/beesee', '/beesee/website-configuration') })),
+          }))
+      : technicianPermissionTree;
   // State to store form field values (key: field name, value: field value)
   const [formData, setFormData] = useState<Record<string, string>>({});
   
@@ -406,7 +452,7 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission (page reload)
 
     // Validate all form fields using their validator functions
@@ -471,12 +517,10 @@ const Modal: React.FC<ModalProps> = ({
     console.log("Formatted permissions to submit:", formattedPermissions);
 
     // Call parent component's onSubmit with form data and formatted permissions
-    onSubmit({
+    await onSubmit({
       ...formData, // Spread form field values
       permissions: formattedPermissions, // Add formatted permissions
     });
-
-    onClose(); // Close the modal
   };
 
   // Render permission checkboxes for a single module
@@ -960,7 +1004,7 @@ const Modal: React.FC<ModalProps> = ({
             </Box>
 
             {/* Careers Section - Collapsible */}
-            <Box
+            {permissionTree.some((item) => item.id === "careers") && <Box
               sx={{
                 mt: 3, // Margin top
                 p: 2.5, // Padding
@@ -1019,7 +1063,7 @@ const Modal: React.FC<ModalProps> = ({
                     )}
                 </Box>
               </Collapse>
-            </Box>
+            </Box>}
 
             {/* Users Section - Collapsible */}
             <Box
@@ -1084,7 +1128,7 @@ const Modal: React.FC<ModalProps> = ({
             </Box>
 
             {/* Settings Section - Collapsible */}
-            <Box
+            {permissionTree.some((item) => item.id === "settings") && <Box
               sx={{
                 mt: 3, // Margin top
                 p: 2.5, // Padding
@@ -1143,7 +1187,7 @@ const Modal: React.FC<ModalProps> = ({
                     )}
                 </Box>
               </Collapse>
-            </Box>
+            </Box>}
 
             {/* Permission Error Message - shows when no permissions selected */}
             {permissionError && (

@@ -38,6 +38,7 @@ import {
 } from "lucide-react" 
 import { userAuth } from '../../hooks/userAuth';
 import AlertDialog from '../feedback/AlertDialog';
+import { asArray } from '../../utils/apiCollections';
 
 interface formData {
   categories_id: number | string;
@@ -139,7 +140,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     ],
     queryFn: fetchCategoriesSortedByName,
     select: (res) =>
-      res.data.map((item: any) => ({
+      asArray(res).map((item: any) => ({
         value: item.id,
         label: item.name,
         is_active: item.is_active,
@@ -151,7 +152,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     queryFn: () => fetchProducts(Number(formData.categories_id)),
     enabled: !!formData?.categories_id,
     select: (res) => 
-      res.data.map((item: any) => ({
+      asArray(res).map((item: any) => ({
         value: item.id,
         label: item.product_name
       }))
@@ -178,7 +179,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
     queryFn: () => fetchIssueById(Number(formData.product_id)),
     enabled: !!formData?.product_id,
     select: (res) => 
-      res.data.map((item: any) => ({
+      asArray(res).map((item: any) => ({
         value: item.id,
         label: item.name
       }))
@@ -247,7 +248,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         city: userTicketInformation.city,
         phone: userTicketInformation.phone,
         email: userTicketInformation.email,
-        location: formData.location || null,
+        location: formData.location || '',
         device_type: selectedDeviceType,
         issue_type: formData.item_name || selectedModelType,
         serial_number: formData.serial_number,
@@ -333,7 +334,7 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
         city: userTicketInformation.city,
         phone: userTicketInformation.phone,
         email: userTicketInformation.email,
-        location: formData.location || null,
+        location: formData.location || '',
         device_type: selectedDeviceType,
         issue_type: formData.item_name || selectedModelType,
         serial_number: formData.serial_number,
@@ -840,9 +841,11 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                           <CustomTextField 
                             onChange={handleChangeInput}
                             name='item_name'
+                            placeholder='Item name'
+                            type='text'
                             rows={1}
                             multiline={false}
-                            value={formData?.item_name} 
+                            value={formData?.item_name ?? ''}
                           />
                         </div>
                     </>
@@ -884,6 +887,8 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     <CustomTextField 
                       onChange={handleChangeInput}
                       name='serial_number'
+                      placeholder='Serial number'
+                      type='text'
                       rows={1}
                       multiline={false}
                       value={formData.serial_number}
@@ -897,9 +902,11 @@ const ConversationsDetails: React.FC<ConversationsDetailsProps> = ({
                     <CustomTextField 
                       onChange={handleChangeInput}
                       name='location'
+                      placeholder='Location'
+                      type='text'
                       rows={1}
                       multiline={false}
-                      value={formData.location}
+                      value={formData.location ?? ''}
                     />
                   </div>
                 </div> 

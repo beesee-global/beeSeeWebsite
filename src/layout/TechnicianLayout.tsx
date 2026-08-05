@@ -14,29 +14,44 @@ const TechnicianLayout = () => {
     snackBarMessage,
     snackBarOpen,
     snackBarType,
-    setSnackBarOpen
+    setSnackBarOpen,
+    activeArea,
+    activateSession
   } = userAuth() 
   const navigate = useNavigate(); 
   const [isChecking, setIsChecking] = useState(true); 
+
+  useEffect(() => {
+    activateSession('technician');
+  }, [activateSession]);
   
   useEffect(() => {
-    // if we don't have a token, go back to home
+    // Keep all ticketing-admin authentication failures on the technician
+    // sign-in page. Redirecting to `/` made a transient auth-state restore
+    // appear as an unexplained jump to the public homepage.
+    if (activeArea !== 'technician') return;
     if (!token) {
-      navigate("/", { replace: true });
-      localStorage.clear();
+      navigate("/beesee/login", { replace: true });
       return;
     }
 
-    // if user is admin, redirect to admin dashboard
-    if (userInfo?.url_permission !== "technician_url") {
-      setIsChecking(false)
-      navigate("/tech/sign-in", { replace: true });
-      localStorage.clear();
+    // AuthContext restores the saved profile immediately after the token. Do
+    // not reject the route during that short transition.
+    if (!userInfo) return;
+
+    const hasTechnicianAccess =
+      userInfo.url_permission === "technician_url" ||
+      userInfo.url_permission === "technician" ||
+      userInfo.url?.startsWith("/beesee/dashboard");
+
+    if (!hasTechnicianAccess) {
+      setIsChecking(false);
+      navigate("/beesee/login", { replace: true });
       return;
     } 
     // Done checking
     setIsChecking(false);
-  }, [token, userInfo]);
+  }, [activeArea, token, userInfo, navigate]);
 
   /* automatic close on wider screens */
   useEffect(() => {

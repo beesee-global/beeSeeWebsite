@@ -6,7 +6,9 @@ const API_URL = '/users'
 export const fetchUserById = async (id: string | number) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}`);
-        return response.data;
+        const payload = response.data;
+        const user = payload?.data?.data ?? payload?.data ?? payload;
+        return { data: user };
     }  catch (error) { 
         throw error; 
     }

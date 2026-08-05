@@ -40,6 +40,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { fetchFaqsAllPublic, fetchAllDevicesPublic } from '../../../services/Technician/faqsServices';
 import { useQuery } from '@tanstack/react-query';
+import { asArray } from '../../../utils/apiCollections';
 // import { useTawkTo } from '../../../hooks/useTawkTo';
 
 interface FaqItem {
@@ -74,6 +75,9 @@ const FAQs = () => {
     queryFn: () => fetchAllDevicesPublic(),
   });
 
+  const faqItems = useMemo(() => asArray<FaqItem>(mockFaqs), [mockFaqs]);
+  const deviceItems = useMemo(() => asArray<{ name?: string }>(devicesData), [devicesData]);
+
   const deviceNameMap: Record<string, string> = {
     'SmartTV': 'Interactive Smart TVs',
     'Laptop': 'Laptops',
@@ -83,12 +87,10 @@ const FAQs = () => {
 
   const devices = [
     'All',
-    ...(devicesData.data
-      ? devicesData.data.map((device: any) => {
-          // Apply name mapping - if exists in map, use mapped name, otherwise use original
-          return deviceNameMap[device.name] || device.name;
-        })
-      : []),
+    ...deviceItems.map((device) => {
+      // Apply name mapping - if exists in map, use mapped name, otherwise use original
+      return deviceNameMap[device.name || ''] || device.name || '';
+    }).filter(Boolean),
   ];
 
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
@@ -179,9 +181,8 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   const currentFaqs = filteredFaqs.slice(startIndex, endIndex);
 
   useEffect(() => {
-    if (mockFaqs.data) setFaqs(mockFaqs.data);
-    console.log(mockFaqs.data)
-  }, [mockFaqs.data]);
+    setFaqs(faqItems);
+  }, [faqItems]);
 
   useEffect(() => {
     document.title = 'Faqs - Beesee Global Technology Inc;';
@@ -654,7 +655,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
               Can't find the answer? Our support team is here for you.
             </p>
             <button
-              onClick={() => navigate('/customer-support')}
+              onClick={() => navigate('/support')}
               className="beesee-button"
             >
               <PlusCircle size={18} />

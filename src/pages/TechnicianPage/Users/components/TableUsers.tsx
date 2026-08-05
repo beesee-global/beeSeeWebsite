@@ -72,7 +72,7 @@ const formatDate = (dateString: string) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-function ascendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+function ascendingComparator<T extends object>(a: T, b: T, orderBy: keyof T) {
     const aValue = a[orderBy];
     const bValue = b[orderBy];
 
@@ -280,11 +280,20 @@ export default function TableUsers({
                                                     >
                                                         {column.id === 'full_name' ? (
                                                             <div className="flex items-center gap-3">
-                                                                <img
-                                                                    src={row.image_url || 'https://via.placeholder.com/40'}
-                                                                    alt=""
-                                                                    className="h-10 w-10 rounded-full border bg-gray-50 object-cover"
-                                                                />
+                                                                {row.image_url ? (
+                                                                    <img
+                                                                        src={row.image_url}
+                                                                        alt=""
+                                                                        className="h-10 w-10 rounded-full border bg-gray-50 object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div
+                                                                        aria-hidden="true"
+                                                                        className="flex h-10 w-10 items-center justify-center rounded-full border bg-gray-100 text-sm font-semibold text-gray-500"
+                                                                    >
+                                                                        {`${row.first_name?.[0] ?? ''}${row.last_name?.[0] ?? ''}` || '?'}
+                                                                    </div>
+                                                                )}
                                                                 <div className="min-w-0 flex flex-col leading-tight">
                                                                     <span className="truncate font-medium text-gray-900">
                                                                         {row.first_name} {row.last_name}

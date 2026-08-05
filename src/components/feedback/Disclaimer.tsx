@@ -17,11 +17,12 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ open, onCancel, onProceed }) =>
   return (
     <Dialog
       open={open}
-      onClose={() => {}}
       aria-labelledby="disclaimer-dialog-title"
       aria-describedby="disclaimer-dialog-description"
       disableEscapeKeyDown  // prevent closing with ESC
-      disableBackdropClick   // prevent closing by clicking outside
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') onCancel();
+      }}
     >
       <DialogTitle id="disclaimer-dialog-title" sx={{ color: 'black' }}>
         Data Privacy Act of 2012 (RA 10173)

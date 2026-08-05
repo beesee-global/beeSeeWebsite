@@ -75,7 +75,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
   }, [preview, user.image]);
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-[#000000] w-full border-b border-gray-300">
+    <header className="flex min-h-16 items-center justify-between px-3 py-2 md:px-6 bg-[#080808] w-full border-b border-white/10 shadow-sm">
       <div className="flex gap-2 items-center">
         <button
           onClick={() => setShowSidebar(true)}
@@ -88,7 +88,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
         <img
           src={beeseeGoldLogo}
           alt="BeeSee Logo"
-          className="w-[150px] h-auto cursor-pointer"
+          className="w-[132px] sm:w-[150px] h-auto cursor-pointer"
         />
       </div>
 
@@ -98,7 +98,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             e.stopPropagation();
             setUserNav((prev) => !prev);
           }}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white transition-colors"
+          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 text-white transition-colors"
           aria-label="User menu"
           aria-expanded={userNav}
         >
@@ -140,7 +140,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
               className="flex items-center gap-2 w-full px-3 py-2 text-red-600 hover:bg-gray-100 rounded-b-lg transition-colors"
               onClick={() => {
                 logout();
-                navigate("/sign-in", { replace: true });
+                navigate("/beesee/ecommerce/login", { replace: true });
               }}
             >
               <LogOut size={18} />
@@ -149,7 +149,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
           </div>
         )}
       </div>
-    </div>
+    </header>
   );
 };
 

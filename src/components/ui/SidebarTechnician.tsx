@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, type ReactNode } from 'react';
-import { ChevronDown, Logs, ChevronLeft, Menu, User2, LayoutDashboard, MessageCircleQuestionMark, Settings, Wrench, Briefcase, MailQuestionMarkIcon, X } from 'lucide-react';
+import { ChevronDown, Logs, ChevronLeft, Menu, User2, LayoutDashboard, MessageCircleQuestionMark, Settings, Wrench, Briefcase, MailQuestionMarkIcon, X, Home } from 'lucide-react';
 import { userAuth } from '../../hooks/userAuth';
 
 interface ChildItem {
@@ -31,6 +31,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
 
     const sidebarLayout: MenuItem[] = [
         { id: 'dashboard', name: 'Dashboard', path: '/beesee/dashboard', icon: <LayoutDashboard size={20} /> },
+        { id: 'website-configuration', name: 'Website Configuration', path: '/beesee/website-configuration/login', icon: <Settings size={20} /> },
         { id: 'job-order', name: 'Job Order', path: '/beesee/job-order', icon: <Wrench size={20} /> },
         {
             id: 'users',
@@ -104,19 +105,30 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     useEffect(() => {
         if (!userInfo) return;
 
+        const permissions = userInfo.permissions ?? [];
+
+        // Technician accounts created before menu permissions existed have an
+        // empty permissions array. Keep the operational sidebar visible rather
+        // than rendering an unusable blank rail.
+        if (permissions.length === 0) {
+            setMenuItems(sidebarLayout);
+            return;
+        }
+
         const filteredMenu = sidebarLayout
             .filter((item) => {
-                // if (item.id === 'dashboard') return true;
-                if (!userInfo.permissions) return false;
+                // These are technician essentials. Homepage controls must not
+                // disappear merely because a legacy account lacks menu rows.
+                if (item.id === 'dashboard' || item.id === 'website-configuration') return true;
                 if (item.children) {
-                    return item.children.some((child) => userInfo.permissions.some((p) => p.parent_id === item.id && p.children_id === child.id));
+                    return item.children.some((child) => permissions.some((p) => p.parent_id === item.id && p.children_id === child.id));
                 } else {
-                    return userInfo.permissions.some((p) => p.parent_id === item.id && p.children_id === '');
+                    return permissions.some((p) => p.parent_id === item.id && p.children_id === '');
                 }
             })
             .map((item) => {
                 if (item.children) {
-                    const filteredChildren = item.children.filter((child) => userInfo.permissions.some((p) => p.parent_id === item.id && p.children_id === child.id));
+                    const filteredChildren = item.children.filter((child) => permissions.some((p) => p.parent_id === item.id && p.children_id === child.id));
                     if (filteredChildren.length > 0) {
                         return { ...item, children: filteredChildren };
                     } else {
@@ -202,7 +214,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                         onClick={() => toggleMenu(item.id)}
                                         style={{
                                             background: hasActiveChild ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : openMenus[item.id] ? 'rgba(31, 41, 55, 0.6)' : 'transparent',
-                                            color: hasActiveChild ? '#ffffff' : openMenus[item.id] ? '#ffffff' : '',
+                                            color: hasActiveChild ? '#111827' : openMenus[item.id] ? '#ffffff' : '',
                                         }}
                                         className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3.5 w-full rounded-xl transition-all duration-300 ease-out backdrop-blur-sm border border-transparent ${
                                             hasActiveChild
@@ -215,7 +227,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                     >
                                         <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'} transition-all duration-300`}>
                                             <span
-                                                style={{ color: hasActiveChild ? '#ffffff' : openMenus[item.id] ? '#fbbf24' : '' }}
+                                                style={{ color: hasActiveChild ? '#111827' : openMenus[item.id] ? '#fbbf24' : '' }}
                                                 className={`transition-all duration-300 ${!hasActiveChild && !openMenus[item.id] ? 'text-yellow-500 group-hover:text-yellow-400' : ''}`}
                                             >
                                                 {item.icon}
@@ -225,7 +237,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                         {!isCollapsed && (
                                             <ChevronDown
                                                 size={18}
-                                                style={{ color: hasActiveChild ? '#ffffff' : openMenus[item.id] ? '#fbbf24' : '' }}
+                                                style={{ color: hasActiveChild ? '#111827' : openMenus[item.id] ? '#fbbf24' : '' }}
                                                 className={`transition-all duration-300 ${openMenus[item.id] ? 'rotate-180' : !hasActiveChild ? 'text-gray-500 group-hover:text-yellow-400' : ''}`}
                                             />
                                         )}
@@ -250,7 +262,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                                 to={child.path}
                                                                 style={{
                                                                     background: childActive ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'transparent',
-                                                                    color: childActive ? '#ffffff' : '',
+                                                                    color: childActive ? '#111827' : '',
                                                                 }}
                                                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 ease-out border border-transparent ${
                                                                     childActive
@@ -263,12 +275,12 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                                                 }}
                                                             >
                                                                 <span
-                                                                    style={{ color: childActive ? '#ffffff' : '' }}
+                                                                    style={{ color: childActive ? '#111827' : '' }}
                                                                     className={`transition-all duration-300 ${!childActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}
                                                                 >
                                                                     {child.icon}
                                                                 </span>
-                                                                <span className="font-semibold tracking-wide">{child.name}</span>
+                                                                <span className="font-semibold tracking-wide" style={{ color: childActive ? '#111827' : '' }}>{child.name}</span>
                                                             </NavLink>
                                                         </li>
                                                     );
@@ -282,7 +294,7 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                     to={item.path || '#'}
                                     style={{
                                         background: isActive ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'transparent',
-                                        color: isActive ? '#ffffff' : '',
+                                        color: isActive ? '#111827' : '',
                                     }}
                                     className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3.5 rounded-xl transition-all duration-300 ease-out backdrop-blur-sm border border-transparent ${
                                         isActive
@@ -292,10 +304,10 @@ const SidebarTechnician: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                                     onClick={closeMobileSidebar}
                                     title={isCollapsed ? item.name : ''}
                                 >
-                                    <span style={{ color: isActive ? '#ffffff' : '' }} className={`transition-all duration-300 ${!isActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
+                                    <span style={{ color: isActive ? '#111827' : '' }} className={`transition-all duration-300 ${!isActive ? 'text-yellow-500 hover:text-yellow-400' : ''}`}>
                                         {item.icon}
                                     </span>
-                                    {!isCollapsed && <span className="font-semibold tracking-wide">{item.name}</span>}
+                                    {!isCollapsed && <span className="font-semibold tracking-wide" style={{ color: isActive ? '#111827' : '' }}>{item.name}</span>}
                                 </NavLink>
                             )}
                         </li>
