@@ -37,7 +37,6 @@ import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { userAuth } from "../../../hooks/userAuth"
 import AlertDialogRejected from '../../../components/feedback/AlertDialogRejected'; 
 import { useParams, useNavigate } from 'react-router-dom';
-import { asArray } from '../../../utils/apiCollections';
 
 const isApplicantModeStatus = (status: string): status is ApplicantModeStatus =>
   APPLICANT_MODE_STATUSES.includes(status as ApplicantModeStatus);
@@ -182,18 +181,18 @@ const Applicants = () => {
 
   const isDialogLoading = dialogOpen && ((dataValue === 'delete' && isDeleting) || (dataValue === 'short-listed' && isShortListing) || (dataValue === 'undo' && isUndoing) || (dataValue === 'rejected' && isRejecting) || (dataValue === 'closed' && isClosing));
 
-  const jobDetailed = asArray(jobDetailsResponse)
+  const jobDetailed = jobDetailsResponse?.data || []
   
   const rows = useMemo(() => {
     let baseRows = [];
 
-    if (statusFilter === "all") baseRows = asArray(applicantPendingResponse);
-    if (statusFilter === 'new_applicants') baseRows = asArray(applicantsNewApplicantResponse);
-    if (statusFilter === "short_listed") baseRows = asArray(applicantShortListedResponse);
-    if (statusFilter === 'rejected') baseRows = asArray(applicantsRejectedResponse);
-    if (statusFilter === 'hired') baseRows = asArray(hiredApplicantsResponse);
-    if (statusFilter === 'closed') baseRows = asArray(closedApplicantsResponse);
-    if (isApplicantModeStatus(statusFilter)) baseRows = asArray(applicantModeResponse);
+    if (statusFilter === "all") baseRows = applicantPendingResponse?.data || [];
+    if (statusFilter === 'new_applicants') baseRows = applicantsNewApplicantResponse?.data || [];
+    if (statusFilter === "short_listed") baseRows = applicantShortListedResponse?.data || [];
+    if (statusFilter === 'rejected') baseRows = applicantsRejectedResponse?.data || [];
+    if (statusFilter === 'hired') baseRows = hiredApplicantsResponse?.data || [];
+    if (statusFilter === 'closed') baseRows = closedApplicantsResponse?.data || [];
+    if (isApplicantModeStatus(statusFilter)) baseRows = applicantModeResponse?.data || [];
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
     const uniqueRows = Array.from(
@@ -578,12 +577,10 @@ const Applicants = () => {
             ]}
           />
           
-          <div className='mt-5 text-[20px] font-bold'>
-            {jobDetailed[0]?.title || 'Applicants'}
-            <div className='text-[16px] text-gray-600'>
-              {jobDetailed[0]?.job_reference_number || ''}
-            </div>
-          </div>
+          <p className='mt-5 text-[20px] font-bold'>
+            {`${jobDetailed.title}`}
+            <p className='text-[16px] text-gray-600'>{`${jobDetailed.job_reference_number}`}</p>
+          </p>
         </div>
 
         <div className='flex flex-col justify-end sm:flex-row items-stretch lg:col-span-2 sm:items-center gap-3 w-full'>

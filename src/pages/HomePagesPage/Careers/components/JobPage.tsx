@@ -165,7 +165,7 @@ const JobPage: React.FC = () => {
       <div 
         className="relative min-h-[20vh] h-auto md:h-[60vh] md:overflow-hidden flex items-center justify-center pb-10 md:pb-0"
         style={{
-          backgroundImage: isMobile
+          background: isMobile 
             ? 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerMobile.jpg")'
             : 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerSamp.jpg")',
           backgroundSize: 'cover',
@@ -364,7 +364,7 @@ const JobPage: React.FC = () => {
 
         {/* FINAL CTA - Mobile optimized */}
         <section 
-          className="fade-up-init text-center py-8 md:py-10 rounded-xl"
+          className="fade-up-init text-center py-8 md:py-10 rounded-xl md:rounded-none"
           style={{
             background: isMobile 
               ? 'linear-gradient(180deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.8) 100%)' 

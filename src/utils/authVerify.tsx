@@ -8,6 +8,8 @@ interface AuthVerifyProps {
 const AuthVerify = ({ children }: AuthVerifyProps) => {
     useEffect(() => {
         const storedToken = localStorage.getItem('beesee-user');
+        const currentPath = window.location.pathname;
+
         if (storedToken) {
             try {
                 const token = JSON.parse(storedToken);
@@ -17,16 +19,19 @@ const AuthVerify = ({ children }: AuthVerifyProps) => {
                 if (decoded.exp && decoded.exp < currentTime) {
                     // Token is expired
                     localStorage.removeItem('beesee-user');
-                    // Admin panels now own their login routes. Do not force a
-                    // generic legacy route that can redirect an active panel
-                    // session away from its designated dashboard.
+                    if (currentPath !== 'auth/login') {
+                        window.location.href = 'auth/login';
+                    }
                 }
             } catch (error) {
                 console.error('Failed to decode token or JSON parse error:', error);
                 localStorage.removeItem('beesee-user');
-                // See the note above: route-specific layouts decide whether a
-                // user must sign in again.
+                if (currentPath !== '/login') {
+                    window.location.href = '/login';
+                }
             }
+        } else {
+            window.location.href = 'auth/login';
         }
     }, []);
 

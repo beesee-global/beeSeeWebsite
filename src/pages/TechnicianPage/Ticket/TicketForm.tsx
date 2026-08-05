@@ -22,7 +22,6 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query"
 import WorkIcon from '@mui/icons-material/Work';
 import ImageUploadModal from "../../HomePagesPage/CustomerSupport/components/ImageUploadModal"
-import { asArray } from '../../../utils/apiCollections';
 
 interface CustomerIssue {
   full_name: string; 
@@ -92,7 +91,7 @@ const TicketForm = () => {
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategory,
-    select: (res) => asArray(res).map((item: any) => ({
+    select: (res) => res.data.map((item: any) => ({
       value: String(item.id),
       label: item.name,
       is_active: item.is_active
@@ -104,7 +103,7 @@ const TicketForm = () => {
     queryFn: () => fetchDevices(Number (formData?.category_id)),
     enabled: !!formData?.category_id,
     select: (res) => {
-      const mapped = asArray(res).map((item: any) => ({
+      const mapped = res.data.map((item: any) => ({
         value: String(item.id),
         label: item.product_name
       })); 
@@ -118,7 +117,7 @@ const TicketForm = () => {
     queryFn: () => fetchIssue(Number (formData?.device_id)),
     enabled: !!formData?.device_id,
     select: (res) => {
-      const mapped = asArray(res).map((item: any) => ({
+      const mapped = res.data.map((item: any) => ({
         value: String(item.id),
         label: item.name
       }));

@@ -90,7 +90,7 @@ const Employee = () => {
     // fetch all count Data
     const {
         data: countData
-    } = useQuery<any>({
+    } = useQuery<Employee[]>({
         queryKey: ["count"],
         queryFn: () => countEmployee()
     }); 
@@ -108,7 +108,7 @@ const Employee = () => {
             setMessage("The Employee has been disable successfully.");
 
             // ✅ triggers refetch
-            queryClient.invalidateQueries({ queryKey: ["employee"] })
+            queryClient.invalidateQueries(["employee"])
         } catch (error) {
             setSnackBarType("error");
             setMessage("Failed to delete the Employee. Please try again.");

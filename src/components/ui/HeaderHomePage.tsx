@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Toolbar, Button, Box, IconButton, Drawer, List, ListItemButton, ListItemText } from '@mui/material';
+import { Toolbar, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -7,14 +7,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import logo2 from '../../../public/logo2.png';
 import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png';
-import { fetchHomepageSettings } from '../../services/WebsiteConfiguration/websiteConfigurationServices';
 
 const HeaderHomePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isInitialMount = useRef(true);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const drawerAnimationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const drawerAnimationRef = useRef<NodeJS.Timeout | null>(null);
   const savedScrollPosition = useRef<number>(0);
   
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -27,32 +26,6 @@ const HeaderHomePage = () => {
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [navigationSettings, setNavigationSettings] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    let mounted = true;
-    const loadNavigationSettings = async () => {
-      try {
-        const settings = await fetchHomepageSettings();
-        if (mounted) setNavigationSettings(settings || {});
-      } catch {
-        try {
-          if (mounted) setNavigationSettings(JSON.parse(localStorage.getItem('beesee-homepage-navigation') || '{}'));
-        } catch {
-          if (mounted) setNavigationSettings({});
-        }
-      }
-    };
-    loadNavigationSettings();
-    const handleStorage = () => loadNavigationSettings();
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('beesee-homepage-navigation-change', loadNavigationSettings);
-    return () => {
-      mounted = false;
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('beesee-homepage-navigation-change', loadNavigationSettings);
-    };
-  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -148,7 +121,7 @@ const HeaderHomePage = () => {
       requestAnimationFrame(() => {
         window.scrollTo({
           top: savedScrollPosition.current,
-          behavior: 'auto'
+          behavior: 'instant'
         });
       });
     }
@@ -359,21 +332,18 @@ const HeaderHomePage = () => {
 
   /* Navigation Items */
   const navLeft = [
-    { id: 'about', label: 'ABOUT', to: '/about-beesee' },
-    { id: 'products', label: 'PRODUCTS', to: '/products' },
-    { id: 'services', label: 'SERVICES', to: '/solution' },
+    { label: 'ABOUT', to: '/about-beesee' },
+    { label: 'PRODUCTS', to: '/products' },
+    { label: 'SERVICES', to: '/solution' },
   ];
 
   const navRight = [
-    { id: 'inquiries', label: 'INQUIRIES', to: '/inquiries' },
-    { id: 'faqs', label: 'FAQS', to: '/faqs' },
-    { id: 'support', label: 'SUPPORT', to: '/support' },
+    { label: 'INQUIRIES', to: '/inquiries' },
+    { label: 'FAQS', to: '/faqs' },
+    { label: 'SUPPORT', to: '/support' },
   ];
 
-  const visibleNavLeft = navLeft.filter((item) => navigationSettings[item.id] !== false);
-  const visibleNavRight = navRight.filter((item) => navigationSettings[item.id] !== false);
-
-  const mobileNavItems = [{ id: 'home', label: 'HOME', to: '/' }, ...visibleNavLeft, ...visibleNavRight];
+  const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];
 
   return (
     <>
@@ -381,7 +351,7 @@ const HeaderHomePage = () => {
       {!isMobile && (
         <header 
           id="main-header" 
-          className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out bg-black/20 backdrop-blur-2xl border-b border-white/10"
+          className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out bg-transparent backdrop-blur-2xl"
           role="banner"
         >
           <Toolbar 
@@ -392,7 +362,7 @@ const HeaderHomePage = () => {
             {/* LEFT NAV */}
             <Box className="flex flex-1 justify-end">
               <nav className="flex items-center gap-8 lg:gap-16 mr-8 lg:mr-20">
-                {visibleNavLeft.map((item) => {
+                {navLeft.map((item) => {
                   const active = location.pathname.startsWith(item.to);
                   return (
                     <Button
@@ -400,16 +370,11 @@ const HeaderHomePage = () => {
                       disableRipple
                       onClick={() => handleNavClick(item.to)}
                       aria-label={`Navigate to ${item.label}`}
-                      className={`!font-bold font-segoe !normal-case relative group !transition-all !duration-300 px-2 py-1 rounded-full ${
+                      className={`!font-bold font-segoe !normal-case relative group !transition-all !duration-300 ${
                         active ? '!text-[#FFD700]' : '!text-white'
                       } ${isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'}`}
                     >
                       {item.label}
-                      <span
-                        className={`absolute inset-0 rounded-full transition-all duration-300 ${
-                          active ? 'bg-[#FFD700]/12' : 'bg-transparent group-hover:bg-white/10'
-                        }`}
-                      />
                       <span
                         className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
                           active ? 'w-full' : 'w-0 group-hover:w-full'
@@ -440,7 +405,7 @@ const HeaderHomePage = () => {
             {/* RIGHT NAV */}
             <Box className="flex flex-1 justify-start">
               <nav className="flex items-center gap-8 lg:gap-20 ml-8 lg:ml-20">
-                {visibleNavRight.map((item) => {
+                {navRight.map((item) => {
                   const active = location.pathname === item.to;
                   return (
                     <Button
@@ -448,11 +413,11 @@ const HeaderHomePage = () => {
                       disableRipple
                       onClick={() => handleNavClick(item.to)}
                       aria-label={`Navigate to ${item.label}`}
-                      className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 px-2 py-1 rounded-full ${
+                      className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 ${
                         active ? '!text-[#FFD700]' : '!text-white'
                       } ${isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'}`}
                     >
-                      <span className={`absolute inset-0 transition-all duration-300 rounded-full ${active ? 'bg-[#FFD700]/12' : 'bg-transparent group-hover:bg-white/10'}`} />
+                      <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full" />
                       {item.label}
                       <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
                         active ? 'w-full' : 'w-0 group-hover:w-full'
@@ -517,7 +482,7 @@ const HeaderHomePage = () => {
             <Drawer
               anchor="left"
               open={drawerOpen}
-              onClose={() => handleCloseDrawer()}
+              onClose={handleCloseDrawer}
               variant="temporary"
               PaperProps={{
                 sx: {
@@ -608,7 +573,7 @@ const HeaderHomePage = () => {
                           ease: 'easeOut',
                         }}
                       >
-                        <ListItemButton
+                        <ListItem
                           onClick={() => handleNavClick(item.to)}
                           className={`
                             hover:!bg-[#2A2A2A] transition-all duration-200
@@ -633,6 +598,7 @@ const HeaderHomePage = () => {
                             userSelect: 'none',
                             WebkitTapHighlightColor: 'transparent',
                           }}
+                          button
                           disabled={isDrawerAnimating}
                         >
                           <ListItemText
@@ -652,7 +618,7 @@ const HeaderHomePage = () => {
                               },
                             }}
                           />
-                        </ListItemButton>
+                        </ListItem>
                       </motion.div>
                     );
                   })}

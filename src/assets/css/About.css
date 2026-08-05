@@ -146,13 +146,9 @@
 /* Glass cards */
 .about-glass-card {
   background:
-    linear-gradient(rgba(253, 204, 0, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(253, 204, 0, 0.055) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(253, 204, 0, 0.05), transparent 42%),
-    #10100f;
-  background-size: 24px 24px, 24px 24px, auto, auto;
-  backdrop-filter: none;
-  border-left: 4px solid rgba(253, 204, 0, 0.70);
+    radial-gradient(circle at 0 0, rgba(253, 204, 0, 0.06), transparent 55%),
+    rgba(10, 10, 10, 0.96);
+  backdrop-filter: blur(18px);
 }
 
 /* Icon badge for mission/vision etc. */

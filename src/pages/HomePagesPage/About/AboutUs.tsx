@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import HeroSection from "./components/HeroSection";
+import CompanyStory from "./components/CompanyStory";
 import StepperSectionDesktop from "./components/StepperSectionDesktop";
 import StepperSectionMobile from "./components/StepperSectionMobile";
+import PhilippineHeritage from "./components/PhilippineHeritage";
 import "../../../assets/css/About.css";
 
 const AboutUs: React.FC = () => {

@@ -19,14 +19,6 @@ import { useState, useMemo, useEffect } from "react"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import AlertDialog from '../../../components/feedback/AlertDialog';
 
-const normalizeCareerRows = (payload: any): any[] => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.data?.data)) return payload.data.data;
-  if (Array.isArray(payload?.result)) return payload.result;
-  return [];
-};
-
 const JobPosting = () => {
   const navigate = useNavigate();
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
@@ -160,9 +152,7 @@ const JobPosting = () => {
     navigate(`/beesee/job-posting/applicants/${row.job_reference_number}`)
   }
 
-  // The API returns { data: { success, message, data: [...] } }.
-  // Normalize it here so the table always receives the actual row array.
-  const job = normalizeCareerRows(jobResponse);
+  const job = jobResponse?.data || [];
 
   useEffect(() => {
     const timer = setTimeout(() => {

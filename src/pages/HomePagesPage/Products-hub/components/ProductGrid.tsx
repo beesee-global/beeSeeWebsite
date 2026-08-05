@@ -1,20 +1,21 @@
 import React from "react";
 import ProductCard, { Product } from "./ProductCard";
 export type { Product } from "./ProductCard";
+import { useNavigate, useNavigation } from "react-router-dom";
 
 // Mobile detection hook for ProductGrid
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = React.useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
-  );
+  const navigate = useNavigate ();
+  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const mobileViewport = window.matchMedia("(max-width: 767px)");
-    const checkMobile = (event: MediaQueryListEvent | MediaQueryList) => setIsMobile(event.matches);
-
-    checkMobile(mobileViewport);
-    mobileViewport.addEventListener("change", checkMobile);
-    return () => mobileViewport.removeEventListener("change", checkMobile);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   return isMobile;
@@ -40,10 +41,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div className={gridClasses}>
       {products.map((product, index) => (
         <ProductCard
-          key={product.pid}
+          key={product.id}
           product={product}
           index={index}
-          isMobile={isMobile}
          /*  onClick={() => onProductClick?.(product)} */
         />
       ))}

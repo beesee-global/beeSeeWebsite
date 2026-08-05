@@ -60,7 +60,7 @@ const OurJourney = () => {
             setMessage("The journey milestone has been deleted successfully.");
 
             // ✅ triggers refetch
-            queryClient.invalidateQueries({ queryKey: ["journeys"] })
+            queryClient.invalidateQueries(["journeys"])
         } catch (error) {
             setSnackBarType("error");
             setMessage("Failed to delete the journey milestone. Please try again.");

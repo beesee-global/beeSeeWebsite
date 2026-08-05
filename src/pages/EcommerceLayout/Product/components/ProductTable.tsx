@@ -118,8 +118,7 @@ interface ColumnConfig {
   label: string;
   sortable?: boolean;
   width?: string;
-  align?: React.CSSProperties['textAlign'];
-  render?: (row: RowData) => React.ReactNode;
+  align?: string;
 }
 
 interface ProductTableProps {
@@ -317,7 +316,7 @@ export default function ProductTable({
                                 position: 'relative'
                               }}
                             >
-                              {column.render ? column.render(row) : column.id === 'status' ? (
+                              {column.id === 'status' ? (
                                (() => {
                                 const { label,classes } = getStatusConfig(row.status);
                                 return (

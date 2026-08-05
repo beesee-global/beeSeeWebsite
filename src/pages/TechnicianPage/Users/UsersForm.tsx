@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react"
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom" 
 import CustomTextField from "../../../components/Fields/CustomTextField"
 import CustomSelectField from "../../../components/Fields/CustomSelectField"
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"   
@@ -22,27 +22,11 @@ import {
   Image as ImageIcon, 
   Upload,
   Phone,
-  MapPin,
   CheckCircle, 
 } from "lucide-react"
 import { Email } from "@mui/icons-material" 
 import { userAuth } from "../../../hooks/userAuth"
 import ReusableTextFieldModal from "../../../components/feedback/ReusableTextFieldModal"
-import { asArray } from '../../../utils/apiCollections';
-import {
-  createEcomUser,
-  fetchEcomUserByPid,
-  updateEcomUser,
-  verifyEcomPassword,
-} from '../../../services/Ecommerce/ecomUserServices';
-import { fetchEcomPositions } from '../../../services/Ecommerce/ecomPositionsServices';
-import { fetchWebsiteConfigurationPositions } from '../../../services/WebsiteConfiguration/websiteConfigurationPositionsServices';
-import {
-  createWebsiteConfigurationUser,
-  fetchWebsiteConfigurationUserByPid,
-  updateWebsiteConfigurationUser,
-  verifyWebsiteConfigurationPassword,
-} from '../../../services/WebsiteConfiguration/websiteConfigurationUserServices';
 
 interface EmployeeFormProps {
   first_name: string,
@@ -51,9 +35,7 @@ interface EmployeeFormProps {
   password: string;
   confirm_password: string; 
   contact_number: string;
-  address: string;
   role: string;
-  positions_id?: number | string | null;
   status: string;
   image?: File | string | null
 }
@@ -71,16 +53,7 @@ interface FormError {
 
 const UsersForm = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { id } = useParams();
-  const isEcommerceUsers = location.pathname.startsWith('/beesee/ecommerce/team-members');
-  const isWebsiteConfigurationUsers = location.pathname.startsWith('/beesee/website-configuration/users');
-  const usesEcommerceUsers = isEcommerceUsers || isWebsiteConfigurationUsers;
-  const usersPath = isWebsiteConfigurationUsers
-    ? '/beesee/website-configuration/users'
-    : isEcommerceUsers
-      ? '/beesee/ecommerce/team-members'
-      : '/beesee/users';
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const {
     userInfo,
@@ -102,9 +75,7 @@ const UsersForm = () => {
     password: "",
     confirm_password: "",
     contact_number: "",
-    address: "",
     role: "", 
-    positions_id: "",
     status: "Active", 
   }); 
 
@@ -152,7 +123,7 @@ const UsersForm = () => {
 
     if (formData.confirm_password !== formData.password) errors.confirm_password = "Confirm passwords do not match"; 
     if (!formData.role) errors.role = "Position is required." 
-    if (!usesEcommerceUsers && !formData.image) {
+    if (!formData.image) { 
       errors.image = "Please upload an image"
     } else {
       if (formData.image instanceof File) {
@@ -170,43 +141,16 @@ const UsersForm = () => {
   const { data: positions = [] } = useQuery({
     queryKey: ['positions'],
     queryFn: fetchPositions,
-    enabled: !usesEcommerceUsers,
-    select: (res) =>asArray(res).map((item: any) => ({
+    select: (res) =>res.data.map((item: any) => ({
         value: item.id,
         label: item.name
     }))
   })
 
-  const { data: ecommercePositions = [] } = useQuery({
-    queryKey: ['ecom-positions-for-users'],
-    queryFn: fetchEcomPositions,
-    enabled: isEcommerceUsers,
-    select: (res) => asArray(res).map((item: any) => ({ value: item.id, label: item.name })),
-  });
-
-  const { data: websitePositions = [] } = useQuery({
-    queryKey: ['website-positions-for-users'],
-    queryFn: fetchWebsiteConfigurationPositions,
-    enabled: isWebsiteConfigurationUsers,
-    select: (res) => asArray(res).map((item: any) => ({ value: item.id, label: item.name })),
-  });
-
-  const roleOptions = usesEcommerceUsers
-    ? [
-        { value: 'regular', label: 'Regular user' },
-        { value: 'admin', label: 'Admin' },
-        { value: 'superadmin', label: 'Super admin' },
-      ]
-    : positions;
-
   // ✅ 2. Fetch data only when id exists
   const { data: userInformation } = useQuery({
     queryKey: ["users", id],
-    queryFn: () => isWebsiteConfigurationUsers
-      ? fetchWebsiteConfigurationUserByPid(String(id))
-      : isEcommerceUsers
-        ? fetchEcomUserByPid(String(id))
-        : fetchUsersByPid(String(id)),
+    queryFn: () => fetchUsersByPid(String(id)),
     enabled: !!id, // ✅ only fetch when id is defined
   });
 
@@ -215,11 +159,7 @@ const UsersForm = () => {
     mutateAsync: createUserMutate,
     isPending: isCreating,
   } = useMutation({
-    mutationFn: (payload: any) => isWebsiteConfigurationUsers
-      ? createWebsiteConfigurationUser(payload)
-      : isEcommerceUsers
-        ? createEcomUser(payload)
-        : createUsers(payload),
+    mutationFn: createUsers,
   });
 
   /* inserting image */
@@ -236,29 +176,24 @@ const UsersForm = () => {
     mutateAsync: updateUserMutate,
     isPending: isUpdating,
   } = useMutation({
-    mutationFn: ({ id, payload} : { id: number | string; payload: any }) =>
-      isWebsiteConfigurationUsers
-        ? updateWebsiteConfigurationUser({ id, userData: payload })
-        : isEcommerceUsers
-          ? updateEcomUser({ id, userData: payload })
-          : updateUsers(id, payload),
+    mutationFn: ({ id, payload} : { id: number | string; payload: any }) => 
+      updateUsers(id, payload),
   });
  
   // Verify password
   const {
     mutateAsync: verifyPasswords
   } = useMutation({
-    mutationFn: (data: any) => isWebsiteConfigurationUsers
-      ? verifyWebsiteConfigurationPassword(data)
-      : isEcommerceUsers
-        ? verifyEcomPassword(data)
-        : verifyPassword(data),
+    mutationFn: verifyPassword
   });
 
   const handleVerifyPassword = async (formData: Record<string, string>) => {
     try {
-      const passwordPayload = { email: userInfo?.email ?? '', password: formData.password };
-      const response = await verifyPasswords(passwordPayload)
+      const formDataPassword = new FormData();
+      formDataPassword.append('email', userInfo?.email);
+      formDataPassword.append('password', formData.password)
+
+      const response = await verifyPasswords(formDataPassword)
 
       if (response.success) { 
         setModalOpen(false);
@@ -287,30 +222,30 @@ const UsersForm = () => {
         return;
       }
 
-      const payload: any = usesEcommerceUsers
-        ? {
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            email: formData.email,
-            phone: formData.contact_number || null,
-            address: formData.address || null,
-            role: formData.role,
-            positions_id: isEcommerceUsers ? (formData.positions_id || null) : undefined,
-            ...(isWebsiteConfigurationUsers ? { positions_id: formData.positions_id || null } : {}),
-            status: formData.status || "Active",
-          }
-        : {
-            user_id: userInfo?.id ?? "",
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            email: formData.email,
-            contact_number: formData.contact_number,
-            details: {
-              employment_status: formData.status,
-              positions_id: formData.role,
-              url_permission: "technician_url",
-            },
-          };
+      const payload: {
+        user_id: string | number;
+        first_name: string;
+        last_name: string;
+        email: string;
+        contact_number: string;
+        details: {
+          employment_status: string;
+          positions_id: string;
+          url_permission: string;
+        };
+        password?: string;
+      } = {
+        user_id: userInfo?.id ?? "",
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        contact_number: formData.contact_number,
+        details: {
+          employment_status: formData.status,
+          positions_id: formData.role,
+          url_permission: "technician_url",
+        },
+      };
 
       // include password if provided
       if (formData.password.trim() !== "") {
@@ -324,9 +259,8 @@ const UsersForm = () => {
           payload,
         });
 
-        // Ecommerce users use the ecommerce users table and do not write to
-        // ticketing-system.users_images.
-        if (!usesEcommerceUsers && formData.image instanceof File) {
+        // Upload image only if new image File selected
+        if (formData.image instanceof File) {
           const payloadImage = new FormData();
           payloadImage.append("image", formData.image);
           payloadImage.append("status", "update");
@@ -341,7 +275,7 @@ const UsersForm = () => {
         // CREATE USER
         const response = await createUserMutate(payload);
 
-        if (!usesEcommerceUsers && formData.image instanceof File) {
+        if (formData.image instanceof File) {
           const payloadImage = new FormData();
           payloadImage.append("image", formData.image);
 
@@ -355,7 +289,7 @@ const UsersForm = () => {
 
       setSnackBarType("success");
       setSnackBarMessage(id ? "User updated successfully" : "User created successfully");
-      navigate(usersPath);
+      navigate("/beesee/users");
 
     } catch (error: any) {
       if (error.response?.status === 400) { 
@@ -438,13 +372,11 @@ const UsersForm = () => {
         last_name: u.last_name || "",
         email: u.email || "",  
         contact_number: u.contact_number || "",
-        address: usesEcommerceUsers ? u.address || "" : "",
-        role: usesEcommerceUsers ? u.role || "" : u.details?.position || "",
-        positions_id: (isEcommerceUsers || isWebsiteConfigurationUsers) ? u.positions_id || "" : "",
-        status: usesEcommerceUsers ? u.status || "Active" : u.details?.employment_status || "Active",
+        role: u.details?.position || "",             // ✅ correct
+        status: u.details?.employment_status || "Active", // ✅ correct 
         password: "",
         confirm_password: "",
-        image: u.image_url || "",
+        image: u.image_url || "",                    // ✅ correct user image URL
       });
     }
   }, [userInformation]);
@@ -490,7 +422,7 @@ const UsersForm = () => {
           {/* Breadcrumbs */}
           <Breadcrumb 
             items={[ 
-              { label: "Users",  href: usersPath, icon: <User2 className="w-4 h-4"/> },
+              { label: "Users",  href: "/beesee/users", icon: <User2 className="w-4 h-4"/> },
               { label: "Users Form", isActive: true, icon: <FilePenLine className="w-4 h-4"/> }
             ]}
           />
@@ -509,7 +441,7 @@ const UsersForm = () => {
             </div>
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => navigate(usersPath)}
+                onClick={() => navigate('/beesee/users')} 
                 disabled={isCreating || isUpdating || isCreatingImage}
                 className="px-6 py-3 border border-var(--bo-border-gold) dark:border-var(--bo-border-gold) text-gray-black dark:text-black rounded-lg hover:bg-[#ff7676] dark:hover:bg-[#ff7676] transition-colors font-medium"
               >
@@ -558,14 +490,14 @@ const UsersForm = () => {
                        {/* Role */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {usesEcommerceUsers ? 'Role' : 'Position'} *
+                        Position *
                       </label>
                       <CustomSelectField
                         name="role"
                         placeholder="Select Position"
                         value={formData.role}
                         onChange={handleChangeInput}
-                        options={roleOptions}
+                        options={positions}
                         error={!!formError.role}
                         helperText={formError.role}
                       />
@@ -620,7 +552,7 @@ const UsersForm = () => {
                         name="email" 
                         placeholder="Enter email"
                         value={formData.email}
-                        disabled={!usesEcommerceUsers && !Permission?.actions.includes('edit')}
+                        disabled={!Permission?.actions.includes('edit')}
                         onChange={handleChangeInput}
                         maxLength={100}
                         rows={1}
@@ -652,41 +584,6 @@ const UsersForm = () => {
                         icon={<Phone className="w-4 h-4" />}
                       />
                     </div>
-
-                    {(isEcommerceUsers || isWebsiteConfigurationUsers) && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Position
-                        </label>
-                        <CustomSelectField
-                          name="positions_id"
-                          placeholder="Select Position"
-                          value={String(formData.positions_id || "")}
-                          onChange={handleChangeInput}
-                          options={isWebsiteConfigurationUsers ? websitePositions : ecommercePositions}
-                          error={false}
-                        />
-                      </div>
-                    )}
-
-                    {usesEcommerceUsers && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Address
-                        </label>
-                        <CustomTextField
-                          name="address"
-                          placeholder="Enter address"
-                          value={formData.address}
-                          onChange={handleChangeInput}
-                          maxLength={500}
-                          rows={3}
-                          multiline={true}
-                          type="text"
-                          icon={<MapPin className="w-4 h-4" />}
-                        />
-                      </div>
-                    )}
 
                     {/* Password */}
                     <div>
@@ -739,20 +636,15 @@ const UsersForm = () => {
                           placeholder="Select Status"
                           value={formData.status}
                           onChange={handleChangeInput}
-                          options={usesEcommerceUsers
-                            ? [
-                                { value: '', label: 'Select Status' },
-                                { value: 'Active', label: 'Active' },
-                                { value: 'Inactive', label: 'Inactive' },
-                              ]
-                            : [
-                                { value: '', label: 'Select Status' },
-                                { value: 'Active', label: 'Active' },
-                                { value: 'Resigned', label: 'Resigned' },
-                                { value: 'Terminated', label: 'Terminated' },
-                                { value: 'On-leave', label: 'On-leave' },
-                              ]}
-                          error={false}
+                          options={[
+                            { value: '', label: 'Select Position' },
+                            { value: 'Active', label: 'Active' }, 
+                            { value: 'Resigned', label: 'Resigned' }, 
+                            { value: 'Terminated', label: 'Terminated' }, 
+                            { value: 'On-leave', label: 'On-leave' }, 
+                          ]}
+                          error={!!formError.role}
+                          helperText={formError.role}
                         />
                       </div>
                     )}

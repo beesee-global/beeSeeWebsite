@@ -207,51 +207,49 @@ const HeroSection = () => {
               >
                 <div
                   className={`
-                    relative h-full overflow-hidden
-                    bg-[#10100f]
-                    border border-[#FDCC00]/30
+                    relative h-full 
+                    bg-gradient-to-br from-white/10 to-white/5
+                    backdrop-blur-md 
+                    border border-[#FDCC00]/20
                     rounded-xl sm:rounded-2xl
-                    p-5 sm:p-6 md:p-7 lg:p-8
-                    shadow-[0_16px_32px_rgba(0,0,0,0.35)]
-                    ${isMobile ? '' : 'hover:shadow-[0_22px_45px_rgba(253,204,0,0.16)] hover:border-[#FDCC00]/70 transition-all duration-500 hover:-translate-y-2'}
-                    flex flex-col items-start text-left
+                    p-4 sm:p-5 md:p-6 lg:p-8
+                    shadow-lg shadow-black/20
+                    ${isMobile ? '' : 'hover:shadow-2xl hover:shadow-[#FDCC00]/30 transition-all duration-500 hover:border-[#FDCC00]/50 hover:-translate-y-2'}
+                    flex flex-col items-center text-center 
                     min-h-[280px] xs:min-h-[300px] sm:min-h-[320px] md:min-h-[340px] lg:min-h-[360px]
                   `}
                 >
-                  {/* Structured editorial details */}
-                  <div className="absolute left-0 top-0 h-full w-1 bg-[#FDCC00]/55 group-hover:bg-[#FDCC00] transition-colors duration-500" />
-                  <div className="absolute inset-0 opacity-35 pointer-events-none bg-[linear-gradient(rgba(253,204,0,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(253,204,0,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
-                  <div className="absolute -right-1 -top-8 bee-title-lg text-[#FDCC00]/[0.08] select-none leading-none" aria-hidden="true">
-                    {String(index + 1).padStart(2, '0')}
-                  </div>
+                  {!isMobile && (
+                    <div className="
+                      absolute inset-0 rounded-2xl opacity-0
+                      group-hover:opacity-100 transition-opacity duration-500
+                      bg-gradient-to-br from-[#FDCC00]/10 via-transparent to-[#FFD700]/10
+                    " />
+                  )}
 
-                  <div className="relative z-10 flex w-full items-start justify-between border-b border-[#FDCC00]/20 pb-4 sm:pb-5">
-                    <span className="bee-body-sm tracking-[0.2em] text-[#FDCC00]">SERVICE {String(index + 1).padStart(2, '0')}</span>
-                    <div className={`
-                      flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center
-                      rounded-lg border border-[#FDCC00]/45 text-[#FDCC00]
-                      ${isMobile ? '' : 'group-hover:bg-[#FDCC00] group-hover:text-black group-hover:rotate-3 transition-all duration-500'}
-                    `}>
-                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative z-10 flex flex-grow flex-col pt-5 sm:pt-6">
-                    <div className="h-px w-10 bg-[#FDCC00] mb-4 sm:mb-5 group-hover:w-16 transition-all duration-500" />
-
+                  {/* Icon */}
                   <div
-                    className="relative"
+                    className={`
+                      relative mb-4 sm:mb-5 md:mb-6 lg:mb-8
+                      p-3 sm:p-4 
+                      rounded-full
+                      bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/10
+                      border-2 border-[#FDCC00]/30
+                      ${isMobile ? '' : 'group-hover:scale-110 group-hover:rotate-6 transition-all duration-500'}
+                    `}
                   >
-                    <h3 className={`bee-title-sm text-white leading-tight mb-3 sm:mb-4 ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'}`}>
-                      {service.title}
-                    </h3>
+                    <IconComponent className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-12 lg:h-12 text-[#FDCC00]" />
+                  </div>
 
-                    <p className="bee-body-sm text-[#C7B897]/85 leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
-                  </div>
+                  {/* Title */}
+                  <h3 className={`bee-title-sm text-white mb-2 sm:mb-3 md:mb-4 ${isMobile ? '' : 'group-hover:text-[#FDCC00] transition-colors duration-300'} px-1`}>
+                    {service.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className={`bee-body-sm text-[#C7B897]/80 leading-relaxed ${isMobile ? '' : 'group-hover:text-[#C7B897]/100 transition-colors duration-300'} flex-grow px-1 sm:px-0`}>
+                    {service.description}
+                  </p>
                 </div>
               </ServiceCardWrapper>
             );

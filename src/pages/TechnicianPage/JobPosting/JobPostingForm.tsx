@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs";
 import { useParams } from "react-router-dom";
 import { Plus, Pencil, Briefcase, MapPin, FileText } from "lucide-react";
@@ -153,12 +153,7 @@ const JobPostingForm: React.FC = () => {
     queryKey: ['pre-screening-list'],
     queryFn: preScreenList,
   });
-  // Keep the fallback reference stable. A new [] on every render changes the
-  // initialization effect dependency and causes repeated form state updates.
-  const preScreeningQuestions = useMemo(
-    () => Array.isArray(preScreeningData?.data) ? preScreeningData.data : [],
-    [preScreeningData]
-  );
+  const preScreeningQuestions = preScreeningData?.data || [];
 
   // ── Pre-screening handlers ─────────────────────────────────────────────────
 

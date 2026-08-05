@@ -69,7 +69,7 @@ const BannerManager = () => {
         setMessage("The banner has been deleted successfully.");
 
         // ✅ triggers refetch
-        queryClient.invalidateQueries({ queryKey: ["banners"] })
+        queryClient.invalidateQueries(["banners"])
     } catch (error) {
         setSnackBarType("error");
         setMessage("Failed to delete the banner. Please try again.");
@@ -184,7 +184,7 @@ const BannerManager = () => {
                           <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
-                            onClick={() => handleRowEdit((product as any).pid ?? (product as any).id)}
+                          onClick={() => handleRowEdit(product.pid)}
                           className="p-2 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-lg shadow-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors backdrop-blur-sm"
                           title="Edit product"
                           >
@@ -222,7 +222,7 @@ const BannerManager = () => {
                       {/* Footer Actions (Always Visible on Mobile) */}
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 sm:hidden">
                           <button
-                           onClick={() => handleRowEdit((product as any).pid ?? (product as any).id)}
+                          onClick={() => handleRowEdit(product.pid)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors text-sm font-medium"
                           >
                           <Edit3 className="w-3.5 h-3.5" />

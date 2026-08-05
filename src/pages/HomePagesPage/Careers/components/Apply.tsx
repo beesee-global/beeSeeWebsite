@@ -374,17 +374,8 @@ const Apply: React.FC<ApplyProps> = ({ isOpen, onClose, jobTitle, jobId, preScre
       }
 
       const response = await sentEmailCareers(submitData);
-      const result = response?.data ?? response;
-
-      if (result?.success) {
-        setSnackBarMessage('Application submitted successfully. Thank you for applying!');
-        setSnackBarOpen(true);
-        setSnackBarType('success');
+      if (response?.success) {
         setIsSubmitted(true);
-      } else {
-        setSnackBarMessage('Your application was not submitted. Please try again.');
-        setSnackBarOpen(true);
-        setSnackBarType('error');
       }
     } catch (error: any) {
       if (error.response?.status === 409) {

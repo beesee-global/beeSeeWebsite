@@ -185,7 +185,7 @@ const MyAccount = () => {
       setMessage("Account information updated successfully!");
  
       logout()
-      navigate("/beesee/ecommerce/login", {replace: true}) 
+      navigate("/ecom/sign-in", {replace: true}) 
     } catch (error) {
       console.error("❌ Error updating account:", error);
       setSnackBarType("error");
@@ -200,8 +200,9 @@ const MyAccount = () => {
   const { data: userInformation } = useQuery({
     queryKey: ['users', id],
     queryFn: () => fetchUserById(String(id)), 
-    enabled: id !== undefined && id !== null,
   });
+
+  console.log(userInformation)
 
   // --- close modal ---
   const handleCloseModal = () => {
@@ -223,10 +224,7 @@ const MyAccount = () => {
       setAccountData({
         first_name: userInformation?.data?.first_name || "",
         last_name: userInformation?.data?.last_name || "",
-        email: userInformation?.data?.email || "",
-        password: "",
-        confirm_password: "",
-        image: userInformation?.data?.image_url || null,
+        email: userInformation?.data?.email || "",  
       });
     }
     setFormError({});
@@ -248,12 +246,10 @@ const MyAccount = () => {
   useEffect(() => {  
     if (userInformation) {
       setAccountData({
-        first_name: userInformation?.data?.first_name || "",
-        last_name: userInformation?.data?.last_name || "",
-        email: userInformation?.data?.email || "",
-        password: "",
-        confirm_password: "",
-        image: userInformation?.data?.image_url || null,
+        first_name: userInformation?.data?.first_name ,
+        last_name: userInformation?.data?.last_name ,
+        email: userInformation?.data?.email,  
+        image: userInformation?.data?.image_url
       });
     }
   }, [userInformation]);
@@ -537,13 +533,13 @@ const MyAccount = () => {
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Account Status:</span>
                 <span className="ml-2 text-green-600 dark:text-green-400">
-                  {userInformation?.data?.details?.employment_status || 'Not specified'}
+                  {userInformation?.status}
                 </span>
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">User Role:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">
-                  {userInformation?.data?.details?.position || 'Not specified'}
+                  {userInformation?.role}
                 </span>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import FooterHomePage from "../components/ui/FooterHomePage";
+import FooterHomePageProducts from "../components/ui/FooterHomePageProducts";
 import HeaderHomePage from "../components/ui/HeaderHomePage";
 import { Outlet } from "react-router-dom"; 
 import { useEffect, useRef, useState } from "react";
@@ -17,25 +18,8 @@ const HomePageLayout = () => {
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
-  const hideLayoutRoutes: string[] = [];
-  const hideHeaderRoutes = [
-    "/sign-up/2046",
-    "/beesee/login",
-    "/beesee/ecommerce/login",
-    "/beesee/website-configuration/login",
-    "/ecom/sign-in",
-    "/ecom/login",
-    "/forget-password",
-    "/tech/sign-in",
-    "/bsg/user-form",
-    "/sign-in",
-    "/technician/login",
-    "/technician/sign-in",
-    "/website-configuration/sign-in",
-    "/website_configuration/login",
-    "/website_configuration/sign-in",
-    "/applicants/action",
-  ];
+  const hideLayoutRoutes = []; 
+  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form", "/sign-in", "/applicants/action"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
@@ -48,12 +32,13 @@ const HomePageLayout = () => {
   const isActivityDetailPage = /^\/activity\/[^/]+$/.test(location.pathname);
 
   const isProjectDetailPage = /^\/project\/[^/]+$/.test(location.pathname);
-
+  
   // Check if header should be hidden
   const hideHeader =
     hideHeaderRoutes.some((path) =>
       location.pathname.startsWith(path)
     ) ||
+    isProductDetailPage ||
     isActivityDetailPage ||
     isProjectDetailPage;
 
@@ -104,7 +89,13 @@ const HomePageLayout = () => {
 
       {/* Footer */}
       {!shouldHideLayout && (
-        (isProductDetailPage || !hideHeader) && <FooterHomePage />
+        <>
+          {isProductDetailPage ? (
+            <FooterHomePageProducts />
+          ) : (
+            !hideHeader && <FooterHomePage />
+          )}
+        </>
       )}
     </div>
   );

@@ -30,9 +30,7 @@ export const deleteCategory = async (id: number | string) => {
 export const fetchAllCategory = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
-        // The API wraps the category list as { data: [...] }. Return the list
-        // itself so every category consumer receives the same shape.
-        return Array.isArray(response.data?.data) ? response.data.data : response.data;
+        return response;
     } catch (error) {
         throw error
     }
@@ -42,7 +40,7 @@ export const fetchAllCategory = async () => {
 export const fetchAllCategoryPublic = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/public`);
-        return Array.isArray(response.data?.data) ? response.data.data : response.data;
+        return response.data;
     } catch (error) {
         throw error
     }
@@ -53,17 +51,14 @@ export const fetchAllCategoryPublic = async () => {
 export const fetchEmployeeByPid = async (id: number | string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}`);
-        // Return the category body, matching the shape expected by
-        // CategoryForm. The backend response contains the numeric `id` that
-        // must be used for the subsequent PUT request.
-        return response.data;
+        return response;
     } catch (error) {
         throw error
     }
 }
 
 // put update category 
-export const updateCategory = async (payload: { id: number | string, categoryData: any }) => {
+export const updateCategory = async (payload: { id: number | string, categoryData: FormData }) => {
     try {
         const { id, categoryData } = payload;
         const response = await axiosClient.put(`${API_URL}/${id}`, categoryData, {
@@ -80,7 +75,7 @@ export const updateCategory = async (payload: { id: number | string, categoryDat
 export const fetchCategoriesPublic = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/public`);
-        return Array.isArray(response.data?.data) ? response.data.data : response.data
+        return response.data
     } catch (error) {
         throw error
     }

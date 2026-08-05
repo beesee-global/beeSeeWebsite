@@ -190,41 +190,23 @@ export const jobDetails = async  (id: string) => {
   }
 }
 
-export const interviewAction = async (
-  type: string,
-  pid: string,
-  option?: string | null,
-  requestedDate?: string,
-  requestedTime?: string,
-) => {
+export const interviewAction = async (type: string, pid: string) => {
   try {
     const response = await axiosClient.get(
       `${API_URL}/interview/action`,
       {
         params: {
           type,
-          pid,
-          ...(option ? { option } : {})
-          ,...(requestedDate ? { requested_date: requestedDate } : {})
-          ,...(requestedTime ? { requested_time: requestedTime } : {})
+          pid
         }
       }
     );
 
-    return response.data;
+    return response;
   } catch (error) {
     throw error;
   }
 };
-
-export const reviewReschedule = async (payload: {
-  applicants_id: number | string
-  decision: "APPROVE" | "REJECT"
-  message?: string
-}) => {
-  const response = await axiosClient.put(`${API_URL}/interview/reschedule-review`, payload)
-  return response.data
-}
 
 export const interviewList = async () => {
   try { 

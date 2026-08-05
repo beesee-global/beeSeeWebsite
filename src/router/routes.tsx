@@ -35,13 +35,8 @@ import MainProductForm from '../pages/EcommerceLayout/Product/ProductForm';
 import MainCategory from '../pages/EcommerceLayout/Category/Category';
 import MainCategoryForm from '../pages/EcommerceLayout/Category/CategoryForm';
 import MainMyAccount from '../pages/EcommerceLayout/MyAccount/MyAccount';
-import WebsiteConfigurationLayout from '../layout/WebsiteConfigurationLayout';
-import WebsiteConfigurationLogin from '../pages/WebsiteConfiguration/Login';
-import WebsiteConfigurationAccount from '../pages/WebsiteConfiguration/Account';
-import WebsiteConfigurationHomepage from '../pages/WebsiteConfiguration/HomepageControls';
-import WebsiteConfigurationFeaturedProducts from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts';
-import WebsiteConfigurationFeaturedProductForm from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm';
-import LegacyTechnicianRouteRedirect from '../components/auth/LegacyTechnicianRouteRedirect';
+import FeaturedProduct from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts';
+import FeaturedProductForm from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm';
 
 /* Technician */
 import TechnicianLayout from '../layout/TechnicianLayout';
@@ -145,36 +140,12 @@ const routes = [
                 element: <ProductDetail  />,
             },
             {
-                path: "technician/sign-in",
-                element: <Navigate to="/beesee/login" replace />
-            },
-            {
                 path: "sign-in",
-                element: <Navigate to="/beesee/login" replace />
+                element: <LoginTechnician />
             },
-            {
-                path: "technician/login",
-                element: <Navigate to="/beesee/login" replace />
-            },
-            {
+            { 
                 path: "ecom/sign-in",
-                element: <Navigate to="/beesee/ecommerce/login" replace />
-            },
-            {
-                path: "ecom/login",
-                element: <Navigate to="/beesee/ecommerce/login" replace />
-            },
-            {
-                path: "website-configuration/sign-in",
-                element: <Navigate to="/beesee/website-configuration/login" replace />
-            },
-            {
-                path: "website_configuration/sign-in",
-                element: <Navigate to="/beesee/website-configuration/login" replace />
-            },
-            {
-                path: "website_configuration/login",
-                element: <Navigate to="/beesee/website-configuration/login" replace />
+                element: <Loggedin />
             },
             {
                 path: "sign-up/2046",
@@ -191,45 +162,12 @@ const routes = [
         ]
     },
 
-    /* Canonical admin login pages; protected layouts do not wrap these routes. */
-    {
-        // Compatibility for an older technician sign-in route. Keep it outside
-        // the protected layout to prevent a
-        // dashboard-to-login redirect loop.
-        path: '/beesee/sign-in',
-        element: <Navigate to="/beesee/login" replace />,
-        layout: 'blank',
-    },
-    {
-        path: '/beesee/login',
-        element: <LoginTechnician />,
-        layout: 'blank',
-    },
-    {
-        path: '/beesee/ecommerce/sign-in',
-        element: <Loggedin />,
-        layout: 'blank',
-    },
-    {
-        path: '/beesee/website-configuration/sign-in',
-        element: <Navigate to="/beesee/website-configuration/login" replace />,
-        layout: 'blank',
-    },
-    {
-        path: '/beesee/website-configuration/login',
-        element: <WebsiteConfigurationLogin />,
-        layout: 'blank',
-    },
     /* Main Admin */
     {
         path: '/beesee/ecommerce',
         element: <MainLayout />,
         layout: 'blank',
         children: [
-            {
-                path: 'login',
-                element: <Loggedin />,
-            },
             {
                 index:true,     
                 element:<Navigate to="dashboard" replace />,
@@ -259,16 +197,12 @@ const routes = [
                 element: <MainMyAccount />
             },
             {
-                path: 'team-members',
-                element: <TechnicianUsers />
+                path: 'feature-product',
+                element: <FeaturedProduct/>
             },
             {
-                path: 'team-members/form/:id?',
-                element: <TechnicianUsersForm />
-            },
-            {
-                path: 'position',
-                element: <TechnicianPosition />
+                path: 'feature-product/form/:id?',
+                element: <FeaturedProductForm />
             }
             // {
             //     path: 'employee',
@@ -304,8 +238,8 @@ const routes = [
         layout: 'blank',
         children: [
             {
-                index: true,
-                element:<Navigate to="dashboard" replace />,
+                path: '/beesee',     
+                element:<Navigate to="dashboard" />,
             },
             {
                 path: 'dashboard',
@@ -396,56 +330,6 @@ const routes = [
                 element: <TechnicianAuditLogs />
             }
         ]
-    },
-    /* Old /beesee/technician URLs stay usable, but always become canonical. */
-    {
-        path: '/beesee/technician/*',
-        element: <LegacyTechnicianRouteRedirect />,
-        layout: 'blank',
-    },
-    /* Website configuration - deliberately separate from ecommerce and technician routes. */
-    {
-        path: '/beesee/website-configuration',
-        element: <WebsiteConfigurationLayout />,
-        layout: 'blank',
-        children: [
-            {
-                index: true,
-                element: <Navigate to="dashboard" replace />,
-            },
-            {
-                path: 'dashboard',
-                element: <WebsiteConfigurationHomepage />,
-            },
-            {
-                path: 'account',
-                element: <WebsiteConfigurationAccount />,
-            },
-            {
-                path: 'homepage',
-                element: <WebsiteConfigurationHomepage />,
-            },
-            {
-                path: 'featured-product',
-                element: <WebsiteConfigurationFeaturedProducts />,
-            },
-            {
-                path: 'featured-product/form/:id?',
-                element: <WebsiteConfigurationFeaturedProductForm />,
-            },
-            {
-                path: 'users',
-                element: <TechnicianUsers />,
-            },
-            {
-                path: 'users/form/:id?',
-                element: <TechnicianUsersForm />,
-            },
-            {
-                path: 'position',
-                element: <TechnicianPosition />,
-            },
-        ],
     },
     /* conversation */
     {

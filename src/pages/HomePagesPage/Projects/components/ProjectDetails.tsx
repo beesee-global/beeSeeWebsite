@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import projects from './mockProjects.json';
+import projects from '../../../../public/data/projects.json';
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams();

@@ -5,8 +5,7 @@ const API_URL = "/ecom_featured_product"
 export const fetchSpecificDisplayPublic = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/public`);
-        // Return the display payload, not the Axios response wrapper.
-        return response.data;
+        return response
     } catch (error) {
         throw error
     }

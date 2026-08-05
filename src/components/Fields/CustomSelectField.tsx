@@ -40,20 +40,18 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
   maxLength
  }) => {
   const textFieldSx = {
-    backgroundColor: "rgba(255,255,255,0.94)",
-    borderRadius: "12px",
+    backgroundColor: "#f5f5f5",
+    borderRadius: "6px",
     "& .MuiOutlinedInput-root": {
-      minHeight: '48px',
       fontSize: "14px",
       '& fieldset': {
-        borderColor: error ? 'red' : 'rgba(255,255,255,0.24)',
+        borderColor: error ? 'red' : '#d1d5db', // gray-300 by default
       },
       '&:hover fieldset': {
-        borderColor: error ? 'red' : 'rgba(253,204,0,0.45)',
+        borderColor: error ? 'red' : '#9ca3af', // darker gray on hover
       },
       "&.Mui-focused fieldset": {
-        borderColor: error ? 'red' : "#FCD000",
-        boxShadow: '0 0 0 3px rgba(253, 204, 0, 0.16)'
+        borderColor: error ? 'red' : "#FCD000"
       },
       "&.Mui-focused .MuiSvgIcon-root": {
         color: "#FCD000"

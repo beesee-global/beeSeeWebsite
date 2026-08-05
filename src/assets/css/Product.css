@@ -51,8 +51,7 @@
 .product-image-container {
   position: relative;
   aspect-ratio: 1;
-  /* Transparent product artwork should blend into the products page. */
-  background: #000;
+  background: #000000;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -103,7 +102,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   min-height: 100px;
 }
 
@@ -117,20 +116,16 @@
 .spec-icon-enhanced {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #FFD54F 0%, #FDBA12 100%);
-  border-radius: 14px;
+  background: linear-gradient(135deg, #FDCC00 0%, #DE9F00 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 0.75rem;
   transition: all 0.3s ease;
-  color: #1b1b1b;
-  box-shadow: 0 10px 20px rgba(253, 204, 0, 0.2);
-  border: 1px solid rgba(255, 221, 100, 0.35);
 }
 
-.spec-item-enhanced:hover .spec-icon-enhanced,
-.spec-list-item:hover .spec-icon-enhanced {
+.spec-item-enhanced:hover .spec-icon-enhanced {
   transform: scale(1.1) rotate(5deg);
 }
 
@@ -156,7 +151,6 @@
   font-weight: 600;
   line-height: 1.3;
   text-align: center;
-  overflow-wrap: anywhere;
 }
 
 .product-info {
@@ -529,9 +523,6 @@
     width: 40px;
     height: 40px;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #FFD54F 0%, #FDBA12 100%);
-    box-shadow: 0 8px 16px rgba(253, 204, 0, 0.18);
-    border: 1px solid rgba(255, 221, 100, 0.35);
   }
   
   .spec-label-enhanced {
@@ -767,7 +758,7 @@ select:focus-visible {
 .product-card-glow-master {
   position: relative;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 3px;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   cursor: pointer;
@@ -782,7 +773,7 @@ select:focus-visible {
   background: linear-gradient(135deg, rgba(253, 204, 0, 0.05) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.4s ease;
-  border-radius: 16px;
+  border-radius: 24px;
   z-index: 1;
 }
 
@@ -878,7 +869,7 @@ select:focus-visible {
 .glow-pulse {
   position: absolute;
   inset: -8px;
-  border-radius: 16px;
+  border-radius: 32px;
   background: radial-gradient(
     circle at 50% 50%,
     rgba(253, 204, 0, 0.4) 0%,
@@ -1089,43 +1080,8 @@ select:focus-visible {
   position: relative;
   z-index: 5; /* Must be above glow */
   background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-  border-radius: 13px;
+  border-radius: 20px;
   overflow: hidden;
-}
-
-.product-card-detail-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-}
-
-.product-card-detail-link:focus-visible .card-content-glow {
-  outline: 2px solid var(--beesee-gold);
-  outline-offset: -5px;
-}
-
-.product-specs-overlay {
-  border-left: 4px solid var(--beesee-gold);
-  border-radius: 12px;
-}
-
-.product-specs-overlay .spec-list-item,
-.product-specs-overlay .spec-icon-enhanced,
-.product-specs-overlay .spec-icon-enhanced > div {
-  border-radius: 8px !important;
-}
-
-/* Legacy product-card glow rules appear earlier in this stylesheet. Keep the
-   public product experience aligned with the softly rounded panel system. */
-.product-card-glow-master,
-.product-card-glow-master::before,
-.product-card-glow-master .glow-container,
-.product-card-glow-master .card-content-glow {
-  border-radius: 16px !important;
-}
-
-.product-card-glow-master .card-content-glow {
-  border-radius: 13px !important;
 }
 
 
@@ -1161,43 +1117,6 @@ select:focus-visible {
 
 .product-card-glow-master:hover .product-name {
   color: #FDCC00;
-}
-
-/* Keep the hover card centered while making each configured value easy to scan. */
-.spec-content {
-  width: 100%;
-}
-
-.spec-content > .flex.flex-col {
-  width: fit-content;
-  max-width: 100%;
-  align-items: flex-start;
-  align-self: center;
-}
-
-.spec-content .spec-value-enhanced {
-  width: auto;
-  max-width: 100%;
-  text-align: left;
-  align-self: center;
-}
-
-.spec-variants-value {
-  align-self: center;
-}
-
-.spec-variants-value .spec-value-enhanced {
-  align-self: flex-start;
-}
-
-.spec-variants-label {
-  color: #a9a9a9;
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  text-align: left;
-  text-transform: uppercase;
 }
 
 

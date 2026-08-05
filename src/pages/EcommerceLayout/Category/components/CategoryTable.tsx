@@ -119,7 +119,7 @@ interface ColumnConfig {
   label: string;
   sortable?: boolean;
   width?: string;
-  align?: React.CSSProperties['textAlign'];
+  align?: string;
 }
 
 interface CategoryTableProps {

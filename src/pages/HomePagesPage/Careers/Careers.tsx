@@ -5,21 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import DOMPurify from 'dompurify'; 
 import { useNavigate } from 'react-router-dom';
 
-export interface Job {
-  title: string;
-  description: string;
-  work_location: string;
-  job_type: string;
-  location: string;
-  created_at: string;
-  job_reference_number: string;
-}
-interface JobCardProps {
-  job: Job;
-  index: number;
-}
-
-const JobCard = ({ job, index }: JobCardProps) => {
+const JobCard = ({ job, index }) => {
 
   // Sanitize HTML function
   const sanitizeHTML = (html: string) => {
@@ -33,11 +19,10 @@ const JobCard = ({ job, index }: JobCardProps) => {
   const navigate = useNavigate();
 
   // Calculate time ago from created_at
-const getTimeAgo = (dateString: string) => {
+  const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime()); //previously const diffTime = Math.abs(now - date);
-
+    const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) return 'Today';
@@ -178,14 +163,13 @@ const getTimeAgo = (dateString: string) => {
 
 const CareerPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  // const [showFilters, setShowFilters] = useState(false);
-  // const [showApplicationForm, setShowApplicationForm] = useState(false);
-  
-const { data: careerResponse } = useQuery<{ data: Job[] }>({
-  queryKey: ['careers'],
-  queryFn: careersList,
-});
+  const [showFilters, setShowFilters] = useState(false);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
+  const { data: careerResponse  } = useQuery({
+    queryKey: ['careers'],
+    queryFn: () => careersList()
+  })
 
   const jobData = careerResponse?.data ?? []
 

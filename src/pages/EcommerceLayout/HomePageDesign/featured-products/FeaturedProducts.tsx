@@ -8,9 +8,8 @@ import CustomSearchField from '../../../../components/Fields/CustomSearchField';
 import { userAuth } from '../../../../hooks/userAuth';
 import AlertDialog from '../../../../components/feedback/AlertDialog';
 import SnackbarTechnician from '../../../../components/feedback/SnackbarTechnician';
-import { fetchFeaturedProducts, deleteWebsiteFeaturedProduct } from '../../../../services/WebsiteConfiguration/websiteConfigurationServices'
+import { fetchAll, deleteFeatured } from '../../../../services/Ecommerce/featureProduct'
 import TableDefault from '../../../../components/DataDisplay/TableDefault'
-import NoPermission from '../../../../components/auth/NoPermission';
 
 const FeaturedProducts = () => {
     const navigate = useNavigate();
@@ -22,11 +21,7 @@ const FeaturedProducts = () => {
     const [debouncedSearch, setDebouncedSearch] = useState<string>('');
     const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
-    const { userInfo, snackBarMessage, snackBarType, snackBarOpen, setSnackBarMessage, setSnackBarOpen, setSnackBarType } = userAuth();
-    const permissionDataLoaded = Array.isArray(userInfo?.permissions);
-    const hasFeaturedPermission = !permissionDataLoaded || Boolean(
-        userInfo?.permissions?.some((permission) => permission.parent_id === 'featured-product' && !permission.children_id)
-    );
+    const { snackBarMessage, snackBarType, snackBarOpen, setSnackBarMessage, setSnackBarOpen, setSnackBarType } = userAuth();
     
     // refetch the category list when deleted
     const queryClient = useQueryClient();
@@ -36,18 +31,14 @@ const FeaturedProducts = () => {
         isLoading
     } = useQuery({
         queryKey: ["featured"],
-        queryFn: () => fetchFeaturedProducts(),
-        enabled: hasFeaturedPermission,
+        queryFn: () => fetchAll()
     });
 
     // --- pass data on api ---
-    const {
-        mutateAsync: deleteFeatures,
+    const { 
+        mutateAsync: deleteFeatures,  
     } = useMutation({
-        mutationFn: deleteWebsiteFeaturedProduct,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['featured'] });
-        }
+        mutationFn: deleteFeatured,
     });
     
 
@@ -58,11 +49,10 @@ const FeaturedProducts = () => {
 
     
     const filteredProduct= useMemo(() => {
-        const data = FeaturedData?.data || FeaturedData || [];
-        if (!debouncedSearch?.trim()) return data
-            return data.filter((u: any) =>
-            String(u.name || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-            String(u.title || '').toLowerCase().includes(debouncedSearch.toLowerCase())
+        if (!debouncedSearch?.trim()) return FeaturedData 
+            return FeaturedData.filter((u: any) => 
+            u.name.toLowerCase().includes(debouncedSearch?.toLowerCase()) || 
+            u.icon.toLowerCase().includes(debouncedSearch?.toLowerCase())
         )
     }, [FeaturedData, debouncedSearch]);
 
@@ -71,7 +61,7 @@ const FeaturedProducts = () => {
     }
 
     const handleRowDoubleClick = (row:any) => {
-            navigate(`/beesee/website-configuration/featured-product/form/${row.pid}`)
+        navigate(`/beesee/ecommerce/feature-product/form/${row.pid}`)
     }
 
     const handleUpdate = () => {
@@ -82,10 +72,9 @@ const FeaturedProducts = () => {
             return
         }
 
-        const data = FeaturedData?.data || FeaturedData || [];
-        const selectedCategory = data.find((j: any) => j.id === selectedRowId);
+        const selectedCategory = FeaturedData.find((j: any) => j.id === selectedRowId);
         if (selectedCategory) {
-            navigate(`/beesee/website-configuration/featured-product/form/${selectedCategory.pid}`)
+            navigate(`/beesee/ecommerce/feature-product/form/${selectedCategory.pid}`)
         }
     }
 
@@ -105,24 +94,29 @@ const FeaturedProducts = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            await deleteFeatures(Number(deleteIds[0]));
+            const response = await deleteFeatures(Number(deleteIds));
 
-            setDialogOpen(false)
-            setDialogMessage('')
-            setDialogTitle("")
-            setSelectedRowId(null)
-            setSnackBarMessage("Featured deleted successfully");
-            setSnackBarType("success");
-            setSnackBarOpen(true);
-        } catch (error: any) {
-            console.error("Delete error:", error);
+            if (response?.success) {
+                setDialogOpen(false)
+                setDialogMessage('')
+                setDialogTitle("")
+                setSelectedRowId(null)
+                setSnackBarMessage("Featured deleted successfully");
+                setSnackBarType("success");
+                setSnackBarOpen(true);
+
+                // Refetch jobs
+                queryClient.invalidateQueries({ queryKey: ['featured'] });
+            }
+        } catch (error) {
             if (error?.response?.status === 409) {
                 setSnackBarMessage(error?.response?.data.message)
                 setDialogOpen(false)
                 setDialogMessage('')
                 setDialogTitle("")
                 setSelectedRowId(null)
-            } else {
+            }   else {
+                
                 setSnackBarMessage("Failed to delete featured. Please try again.");
             }
             setSnackBarType("error");
@@ -137,8 +131,6 @@ const FeaturedProducts = () => {
         },  1000);
         return () => clearTimeout(timer)
     }, [searchValue])
-
-    if (!hasFeaturedPermission) return <NoPermission />;
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -184,7 +176,7 @@ const FeaturedProducts = () => {
 
                         <div className="flex gap-2">
                             <button
-                                onClick={() => navigate('/beesee/website-configuration/featured-product/form')}
+                                onClick={() => navigate('/beesee/ecommerce/feature-product/form')}
                                 className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90
                                 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                             >

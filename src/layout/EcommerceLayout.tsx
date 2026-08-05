@@ -1,22 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Navigation from "../components/ui/NavigationEcommerce";
 import Sidebar from "../components/ui/SidebarEcommerce";
 import { userAuth } from "../hooks/userAuth";
-import SnackbarTechnician from "../components/feedback/SnackbarTechnician";
 
 const MainLayout = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { token, userInfo, userNav, setUserNav, activeArea, activateSession, snackBarOpen, snackBarMessage, snackBarType, setSnackBarOpen } = userAuth();
+  const { token, userInfo, userNav, setUserNav } = userAuth();
   const [showSidebar, setShowSidebar] = useState(false);
   const [checked, setChecked] = useState(false);
-  const isLoginRoute = location.pathname === "/beesee/ecommerce/login";
-
-  useEffect(() => {
-    if (isLoginRoute) return;
-    activateSession('ecommerce');
-  }, [activateSession, isLoginRoute]);
 
   // Mark as checked when token/userInfo ready
   useEffect(() => {
@@ -27,20 +19,15 @@ const MainLayout = () => {
 
   // Handle redirects
   useEffect(() => {
-    if (isLoginRoute || !checked || activeArea !== 'ecommerce') return;
+    if (!checked) return;
     if (!token) {
-      navigate("/beesee/ecommerce/login", { replace: true });
-      return;
+      navigate("/", { replace: true });
+      localStorage.clear();
+    } else if (userInfo?.url_permission !== "ecommerce") {
+      navigate("/ecommerce/sign-in", { replace: true });
+      localStorage.clear();
     }
-    const hasEcommerceAccess =
-      userInfo?.url_permission === "ecommerce" ||
-      userInfo?.url_permission === "ecommerce_url" ||
-      userInfo?.url?.startsWith("/beesee/ecommerce");
-
-    if (!hasEcommerceAccess) {
-      navigate("/beesee/ecommerce/login", { replace: true });
-    }
-  }, [isLoginRoute, checked, activeArea, token, userInfo, navigate]);
+  }, [checked, token, userInfo, navigate]);
 
   // Close sidebar when route changes
   useEffect(() => {
@@ -105,10 +92,8 @@ const MainLayout = () => {
     );
   }
 
-  if (isLoginRoute) return <Outlet />;
-
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="hidden md:block w-64 overflow-y-auto">
         <Sidebar />
       </div>
@@ -134,16 +119,10 @@ const MainLayout = () => {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <Navigation setShowSidebar={setShowSidebar} />
-        <main className="flex-1 overflow-y-auto bg-slate-50">
+        <main className="flex-1 overflow-y-auto bg-white">
           <Outlet />
         </main>
       </div>
-      <SnackbarTechnician
-        open={snackBarOpen}
-        type={snackBarType}
-        message={snackBarMessage}
-        onClose={() => setSnackBarOpen(false)}
-      />
     </div>
   );
 };

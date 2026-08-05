@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client'
-import { getSocketServerUrl } from '../../../utils/socketServerUrl'
 import {
   Send, 
   User, 
@@ -168,11 +167,10 @@ export default function EmailConversationApp() {
 
   // Initialize socket connection per ticket
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!userTicketInformation?.ticket_id || !token) return;
+    if (!userTicketInformation?.ticket_id) return;
 
-    const s = io(getSocketServerUrl(), {
-      auth: { token },
+    const s = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+      auth: { ticket_id: userTicketInformation.ticket_id },
       path: "/socket.io/",
       transports: ["polling", "websocket"], // try polling first, then upgrade
       reconnection: true,

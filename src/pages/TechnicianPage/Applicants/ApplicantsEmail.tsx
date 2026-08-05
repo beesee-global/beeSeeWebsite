@@ -8,7 +8,6 @@ import {
   deleteApplicants,
   sendInterviewInvitation,
   applicantUpdateStatus,
-  reviewReschedule as reviewRescheduleRequest,
   APPLICANT_MODE_STATUSES,
 } from "../../../services/Technician/applicantServices"
 import { downloadFileDesktop } from "../../../utils/downloadFile"
@@ -260,7 +259,6 @@ const ApplicantsEmail = () => {
   const [actionType, setActionType] = useState("")
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [isImageZoomed, setIsImageZoomed] = useState(false)
-  const [rescheduleMessage, setRescheduleMessage] = useState("")
 
   const [formData, setFormData] = useState<ApplicantFormProps>({
     id: 0,
@@ -293,14 +291,7 @@ const ApplicantsEmail = () => {
   const { mutateAsync: updateApplicantStatus, isPending: isUpdatingStatus } =
     useMutation({ mutationFn: applicantUpdateStatus })
 
-  const { mutateAsync: reviewReschedule, isPending: isReviewingReschedule } =
-    useMutation({ mutationFn: reviewRescheduleRequest })
-
-  const applicantDetails = Array.isArray(applicantInfoResponse?.data?.data)
-    ? applicantInfoResponse.data.data[0]
-    : Array.isArray(applicantInfoResponse?.data)
-      ? applicantInfoResponse.data[0]
-      : applicantInfoResponse?.data
+  const applicantDetails = applicantInfoResponse?.data
 
   const { data: preScreeningData } = useQuery({
     queryKey: ['pre-screening-list'],
@@ -407,7 +398,7 @@ const ApplicantsEmail = () => {
 
   const handleEmailSubmit = async (emailData: {
     location: string
-    time: string[]
+    time: string
     date: string
     schedule: string
     format: string
@@ -427,43 +418,17 @@ const ApplicantsEmail = () => {
     }
     try {
       const response = await sendInterviewInvitations(payload)
-      const result = response?.data ?? response
-
-      if (result?.success) {
+      if (response?.success) {
         setSnackBarMessage("Interview invitation sent successfully!")
         setSnackBarType("success")
         setSnackBarOpen(true)
         queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] })
-      } else {
-        setSnackBarMessage("Interview invitation was not sent. Please try again.")
-        setSnackBarType("error")
-        setSnackBarOpen(true)
       }
     } catch (error: any) {
       const raw =
         error?.response?.data?.message ||
-        "Interview invitation was not sent. Please try again."
+        "Failed to update position. Please try again."
       setSnackBarMessage(String(raw).replace(/^error:\s*/i, ""))
-      setSnackBarType("error")
-      setSnackBarOpen(true)
-    }
-  }
-
-  const handleRescheduleReview = async (decision: "APPROVE" | "REJECT") => {
-    try {
-      const result = await reviewReschedule({
-        applicants_id: formData.id,
-        decision,
-        message: rescheduleMessage.trim() || undefined,
-      })
-      if (!result?.success) throw new Error("Review failed")
-      setSnackBarMessage(decision === "APPROVE" ? "Reschedule approved and interview updated." : "Reschedule request rejected.")
-      setSnackBarType("success")
-      setSnackBarOpen(true)
-      queryClient.invalidateQueries({ queryKey: ["applicant-detail", id] })
-      setRescheduleMessage("")
-    } catch (error: any) {
-      setSnackBarMessage(error?.response?.data?.message || "Unable to review reschedule request.")
       setSnackBarType("error")
       setSnackBarOpen(true)
     }
@@ -724,36 +689,6 @@ const ApplicantsEmail = () => {
         </div>
 
         {/* ── Body grid ───────────────────────────────────────────────── */}
-        {applicantDetails?.reschedule_requested && (
-          <div className="bg-blue-50 rounded-2xl shadow-sm border border-blue-200 p-6 mb-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Applicant reschedule request</h2>
-                <p className="mt-1 text-sm text-gray-600">Review the requested date and time before changing the interview schedule.</p>
-                <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-800">
-                  <span className="rounded-lg bg-white border border-blue-100 px-3 py-2"><strong>Requested date:</strong> {applicantDetails.reschedule_requested_date || "Not provided"}</span>
-                  <span className="rounded-lg bg-white border border-blue-100 px-3 py-2"><strong>Requested time:</strong> {applicantDetails.reschedule_requested_time || "Not provided"}</span>
-                  <span className="rounded-lg bg-white border border-blue-100 px-3 py-2"><strong>Status:</strong> {applicantDetails.reschedule_status || "Pending approval"}</span>
-                </div>
-                <label className="mt-4 block text-sm font-semibold text-gray-700">
-                  Message to applicant
-                  <textarea
-                    value={rescheduleMessage}
-                    onChange={(event) => setRescheduleMessage(event.target.value)}
-                    placeholder="Add an optional message for the applicant..."
-                    rows={3}
-                    className="mt-2 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-normal text-gray-800 outline-none focus:border-blue-500"
-                  />
-                </label>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <button type="button" disabled={isReviewingReschedule} onClick={() => handleRescheduleReview("APPROVE")} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Approve</button>
-                <button type="button" disabled={isReviewingReschedule} onClick={() => handleRescheduleReview("REJECT")} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Reject</button>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
 
           {/* Contact card */}

@@ -192,7 +192,7 @@ const EnhancedTable: React.FC<EnhancedTableProps> = ({
                       <div>
                         {row.images && (
                         <img
-                          src={typeof row.images === 'string' ? row.images : (row.images as any)?.[0]?.image_url}
+                          src={row.images[0].image_url}
                           alt="Profile"
                           className="w-12 h-12 rounded-full object-cover border border-gray-300"
                         />

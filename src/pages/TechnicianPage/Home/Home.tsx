@@ -20,9 +20,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import WorkIcon from '@mui/icons-material/Work';
 import { io } from 'socket.io-client' 
-import { getSocketServerUrl } from '../../../utils/socketServerUrl'
 import { Send } from 'lucide-react'
-import { asArray } from '../../../utils/apiCollections';
 
 const Home = () => { 
   const navigate = useNavigate();
@@ -102,7 +100,7 @@ const Home = () => {
     queryFn: fetchDeviceType,
     select: (res) => [
       { value: 'all', label: 'All' }, // first element
-      ...asArray(res).map((item: any) => ({
+      ...res.data.map((item: any) => ({
         value: item.name,
         label: item.name
       }))
@@ -117,7 +115,7 @@ const Home = () => {
   const listTicketNumber = useMemo(() => {
     return Array.from(
       new Set(
-        asArray(listOfTicket)
+        (listOfTicket?.data || [])
           .map((item: any) => String(item?.reference_number || ""))
           .filter(Boolean)
       )
@@ -129,7 +127,7 @@ const Home = () => {
     setSearchValue(referenceNumber);
     setDebouncedSearch(referenceNumber);
 
-    const selectedTicket = asArray(listOfTicket).find(
+    const selectedTicket = (listOfTicket?.data || []).find(
       (item: any) => String(item?.reference_number) === referenceNumber
     );
 
@@ -142,10 +140,10 @@ const Home = () => {
   // ⭐ SELECT WHICH ROWS TO USE - Filter by status
   const rows = useMemo(() => {
     let baseRows = [];
-    if (statusFilter === "Pending") baseRows = asArray(openTicketResponse);
-    if (statusFilter === "Ongoing") baseRows = asArray(ongoingTicketResponse);
-    if (statusFilter === "Completed") baseRows = asArray(resolvedTicketResponse);
-    if (statusFilter === "Closed") baseRows = asArray(closedTicketResponse);
+    if (statusFilter === "Pending") baseRows = openTicketResponse?.data || [];
+    if (statusFilter === "Ongoing") baseRows = ongoingTicketResponse?.data || [];
+    if (statusFilter === "Completed") baseRows = resolvedTicketResponse?.data || [];
+    if (statusFilter === "Closed") baseRows = closedTicketResponse?.data || [];
     
     // Filter by organization/company if selected (not "all")
     if (organization && organization !== "all") {
@@ -164,10 +162,10 @@ const Home = () => {
 
   // listing job orders by status for easy access when user selects a search suggestion (instead of filtering the entire list again, we can just show the relevant list based on status)
   const listOfJobOrder = {
-    "Pending": asArray(openTicketResponse),
-    "Ongoing": asArray(ongoingTicketResponse),
-    "Completed": asArray(resolvedTicketResponse),
-    "Closed": asArray(closedTicketResponse)
+    "Pending": openTicketResponse?.data || [],
+    "Ongoing": ongoingTicketResponse?.data || [],
+    "Completed": resolvedTicketResponse?.data || [],
+    "Closed": closedTicketResponse?.data || []
   }
  
   const handleEdit = (pid: number) => { 
@@ -225,13 +223,9 @@ const Home = () => {
   }, [searchValue])
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const socket = io(getSocketServerUrl(), {
+    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
       path: "/socket.io/",
       transports: ["polling", "websocket"], // try polling first, then upgrade
-      auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5,

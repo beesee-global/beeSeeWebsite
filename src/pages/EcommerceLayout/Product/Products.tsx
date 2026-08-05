@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertColor } from '@mui/material/Alert';
-import { Switch } from '@mui/material';
 import {    
     Box, 
     Plus,  
@@ -10,8 +9,6 @@ import {
     Pencil,
     TrendingUp,
     Package, 
-    Eye,
-    EyeOff,
 } from 'lucide-react';
 
 import Breadcrumb from '../../../components/Navigation/Breadcrumbs';
@@ -24,8 +21,7 @@ import {
     deleteProduct, 
     fetchAllProduct, 
     fetchCategory,
-    countProduct,
-    updateProductVisibility,
+    countProduct
 } from '../../../services/Ecommerce/productServices';
 
 const Products = () => {
@@ -38,7 +34,6 @@ const Products = () => {
     const [deleteIds, setDeleteIds] = useState<number[]>([]) 
     const [debouncedSearch, setDebouncedSearch] = useState<string>("")
     const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
-    const [visibilityUpdatingId, setVisibilityUpdatingId] = useState<number | null>(null);
 
     const {
         setSnackBarMessage,
@@ -85,53 +80,10 @@ const Products = () => {
         }
     }) 
     
-    const handleProductVisibility = async (product: any, enabled: boolean) => {
-        setVisibilityUpdatingId(product.id);
-        try {
-            await updateProductVisibility(product.id, { product_enabled: enabled });
-            setSnackBarMessage(`${product.name} is now ${enabled ? 'visible' : 'hidden'} on the public website.`);
-            setSnackBarType('success');
-            setSnackBarOpen(true);
-            queryClient.invalidateQueries({ queryKey: ['product'] });
-        } catch (error: any) {
-            setSnackBarMessage(error?.response?.data?.message || 'Unable to update product visibility.');
-            setSnackBarType('error');
-            setSnackBarOpen(true);
-        } finally {
-            setVisibilityUpdatingId(null);
-        }
-    };
-
     const columns = [
         { id: 'name', label: 'Product Name', numeric: false, disablePadding: false },
         { id: 'tagline', label: 'Tagline', numeric: false, disablePadding: false },
-        { id: 'category_name', label: 'Category', numeric: false, disablePadding: false },
-        {
-            id: 'visibility',
-            label: 'Public visibility',
-            sortable: false,
-            width: 'w-44',
-            render: (product: any) => {
-                const enabled = product.product_enabled !== 0 && product.product_enabled !== false;
-                const isUpdating = visibilityUpdatingId === product.id;
-                return (
-                    <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold ${enabled ? 'text-emerald-700' : 'text-red-600'}`}>
-                            {enabled ? <Eye size={14} /> : <EyeOff size={14} />}
-                            {enabled ? 'Shown' : 'Hidden'}
-                        </span>
-                        <Switch
-                            size="small"
-                            checked={enabled}
-                            disabled={isUpdating}
-                            onChange={(_, checked) => handleProductVisibility(product, checked)}
-                            inputProps={{ 'aria-label': `${enabled ? 'Hide' : 'Show'} ${product.name} from the public website` }}
-                            sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#10b981' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#10b981' } }}
-                        />
-                    </div>
-                );
-            },
-        },
+        { id: 'category_name', label: 'Category', numeric: false, disablePadding: false }, 
     ];  
 
     const filteredProducts = useMemo(() => {
@@ -185,7 +137,7 @@ const Products = () => {
         try {
             const response = await deleteProductAsync(Number(deleteIds));
 
-            if ((response as any)?.data?.success || (response as any)?.success) {
+            if (response?.success) {
                 setDialogOpen(false)
                 setDialogMessage('')
                 setDialogTitle("")
@@ -197,7 +149,7 @@ const Products = () => {
                 // Refetch jobs
                 queryClient.invalidateQueries({ queryKey: ['product'] });
             }
-        } catch (error: any) {
+        } catch (error) {
             if (error?.response?.status === 409) {
                 setSnackBarMessage(error?.response?.data.message)
                 setDialogOpen(false)
@@ -221,7 +173,7 @@ const Products = () => {
     }, [searchValue])
 
     return (
-        <div className="min-h-full bg-slate-50 py-6 sm:py-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
 
                 {/* Snackbar */}
@@ -242,7 +194,7 @@ const Products = () => {
                 />
 
                 {/* Breadcrumb */}
-                <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="mb-6 flex flex-co; md:flex-row md:items-center md: justify-between gap-4">
                     <div>
                         <Breadcrumb
                             items={[ 
@@ -262,21 +214,21 @@ const Products = () => {
                 </div>
 
                 {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 mb-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                                 Products
                             </h1>
-                            <p className="text-slate-500">
+                            <p className="text-gray-600 dark:text-gray-400">
                                 Manage your product inventory and catalog
                             </p>
                         </div>
                         
-                        <div className='flex flex-wrap gap-2'>
+                        <div className='flex gap-2'>
                             <button
                                 onClick={() => navigate('/beesee/ecommerce/product/form')}
-                                className="flex items-center px-5 py-2.5 bg-[#FCD000] hover:bg-[#e9c000] text-gray-950 rounded-lg font-semibold transition-colors shadow-sm"
+                                className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Add Product

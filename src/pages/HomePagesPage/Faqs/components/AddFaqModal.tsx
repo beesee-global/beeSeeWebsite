@@ -3,7 +3,7 @@ import CustomTextField from "../../../../components/Fields/CustomTextField";
 import CustomSelectField from "../../../../components/Fields/CustomSelectField";
 import { AlertColor } from '@mui/material/Alert'; 
 import { useMutation } from '@tanstack/react-query' 
-import { createFaqs } from '../../../../services/Technician/faqsServices'
+import { createFaqs } from '../../../../services/Ecommerce/faqsServices'
 import { 
   Dialog,
   DialogTitle,

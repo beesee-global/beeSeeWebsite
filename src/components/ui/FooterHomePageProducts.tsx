@@ -71,7 +71,7 @@ const FooterHomePage = () => {
                   { name: "About Us", to: "/about-beesee" },
                   { name: "Products", to: "/products" },
                   { name: "Solutions", to: "/solution" },
-                  { name: "Customer Support", to: "/support" },
+                  { name: "Customer Support", to: "/customer-support" },
                   { name: "FAQs", to: "/faqs" },
                 ].map((item, i) => (
                   <Link

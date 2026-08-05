@@ -13,6 +13,7 @@ import { fetchUserById } from '../../services/Technician/myAccountServices';
 import { useQuery } from '@tanstack/react-query';
 import beeseeGoldLogo from '../../../public/beeseeGoldLogo.png';
 import { Menu } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 interface UserData {
     first_name: string;
@@ -98,6 +99,20 @@ const NavigationTechnician = () => {
         }
         return undefined;
     }, [user.image]);
+
+    useEffect(() => {
+        const socket = io(import.meta.env.VITE_API_URL_BACKEND, {
+            transports: ['websocket'],
+        });
+        socket.on('notification', (message: any) => {
+            setNotification((prev) => [...prev, message]);
+            console.log('notification', message);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
 
     return (
         <div className="py-3 px-4 border-b border-gray-800" style={{ backgroundColor: '#000000' }}>
@@ -211,10 +226,7 @@ const NavigationTechnician = () => {
 
                                             <li
                                                 className="flex items-center gap-3 px-4 py-3 cursor-pointer text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
-                                                onClick={() => {
-                                                    logout();
-                                                    navigate('/beesee/login', { replace: true });
-                                                }}
+                                                onClick={logout}
                                             >
                                                 <LogoutIcon sx={{ fontSize: 20 }} className="text-gray-500 group-hover:text-red-600 transition-colors" />
                                                 <span className="font-medium">Sign Out</span>

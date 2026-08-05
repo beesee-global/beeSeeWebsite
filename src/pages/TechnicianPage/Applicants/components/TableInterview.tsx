@@ -315,7 +315,7 @@ export default function TableInterview({
     }
 
     if (column.id === 'schedule_date') {
-      const scheduleTime = row.selected_time || row.time || "—"
+      const scheduleTime = row.time || "—"
 
       return (
         <div className="flex flex-col">

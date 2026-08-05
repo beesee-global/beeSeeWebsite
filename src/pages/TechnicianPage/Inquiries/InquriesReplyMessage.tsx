@@ -27,14 +27,6 @@ import AlertDialog from '../../../components/feedback/AlertDialog';
 import { useNavigate } from 'react-router-dom';
 import { MinimalIconLoader } from '../../../components/ui/LoadingScreens' 
 
-const normalizeInquiryMessages = (payload: any): any[] => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.data?.data)) return payload.data.data;
-  if (Array.isArray(payload?.result)) return payload.result;
-  return [];
-};
-
 export default function InquriesReplyMessage() { 
   const navigate = useNavigate()
   const { 
@@ -65,15 +57,11 @@ export default function InquriesReplyMessage() {
     enabled: !!pid
   });
 
-  const userInquiriesInfo = inquiriesInfo?.data?.data
-    || inquiriesInfo?.data
-    || inquiriesInfo
-    || {};
+  const userInquiriesInfo = inquiriesInfo?.data || [];
 
   const { data: inquiriesMessage, } = useQuery ({
     queryKey: ["inquiries-reply", userInquiriesInfo?.id],
     queryFn: () => fetchInquiriesById(Number(userInquiriesInfo?.id)),
-    enabled: Boolean(userInquiriesInfo?.id),
     retry: true
   });
 
@@ -90,7 +78,7 @@ export default function InquriesReplyMessage() {
   })
 
   useEffect(() => {
-    setMessages(normalizeInquiryMessages(inquiriesMessage));
+    if (inquiriesMessage?.data) setMessages(inquiriesMessage?.data) 
   }, [inquiriesMessage]);
 
   useEffect(() => {
@@ -148,7 +136,7 @@ export default function InquriesReplyMessage() {
         const formData = new FormData();
         formData.append('message_body', replyText);
         formData.append("user_id", String(userInfo?.id));
-        formData.append("subject", String(messages[0]?.subject || "Inquiry reply"));
+        formData.append("subject",inquiriesMessage?.data[0]?.subject)
         formData.append('sender_email', userInquiriesInfo?.email); 
         formData.append("inquiries_id", userInquiriesInfo?.id);
         formData.append("sender_name", userInfo?.full_name);
@@ -161,7 +149,7 @@ export default function InquriesReplyMessage() {
         
         const response = await sentInquiries(formData)
         
-        if (response?.success || response?.data?.success) {
+        if (response?.success) {
             // Mock adding message
             const newMessage = {
               id: messages.length + 1, 
@@ -372,16 +360,9 @@ export default function InquriesReplyMessage() {
                                 : 'bg-green-100 text-green-700'
                             } ${!msg.is_inbound && 'bg-opacity-30 text-white'}`}
                           >
-                            {msg.is_inbound 
-                              ? [userInquiriesInfo?.position, userInquiriesInfo?.company].filter(Boolean).join(' at ') || msg.user_role 
-                              : msg.user_role}
+                            {msg.user_role}
                           </span>
                         </div>
-                        {msg.is_inbound && msg.subject && (
-                          <div className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2 bg-blue-50 dark:bg-blue-900/10 p-2 rounded border border-blue-100 dark:border-blue-900/20">
-                            {msg.subject}
-                          </div>
-                        )}
                         <p className="text-sm whitespace-pre-wrap break-words" style={msg.is_inbound ? {color: '#111827'} : {color: '#ffffff'}}>{msg.message_body}</p>
                         
                         {/* Attachments Display */}

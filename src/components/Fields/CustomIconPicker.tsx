@@ -1,15 +1,134 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { icons, Search, X, LucideIcon } from "lucide-react";
+import React, { useState, useEffect } from "react"; 
+import * as LucideIcons from "lucide-react";
 
 interface CustomIconPickerProps {
   value?: string; // currently selected icon name
   onChange: (iconName: string) => void;
   label?: string;
   error?: string;
-}
+} 
 
-// Dynamically extract all available icon names directly from lucide-react
-const ALL_LUCIDE_ICONS = Object.keys(icons);
+const iconList = [
+  // ⭐ General / Common
+  "Home", "Tag", "Save", "SquarePen", "Star", "Settings", "Bell", "User", "Users",
+  "Box", "ShoppingCart", "Package", "ClipboardList", "CheckCircle", "AlertCircle",
+  "Search", "Filter", "PlusCircle", "Trash2", "Edit3", "HeartPulse",
+
+  // 🖥️ Devices / Tech
+  "Monitor", "Laptop", "Tablet", "Smartphone", "Watch", "Keyboard", "MousePointer",
+  "Cpu", "Server", "PlugZap", "BatteryCharging", "Usb", "HardDrive", "Router",
+  "Bluetooth", "Wifi", "Camera", "Video", "Tv", "Headphones", "Mic",
+  "Speaker", "Gamepad", "Printer", "Projector", "Chip",
+  "BatteryFull", "BatteryLow", "BatteryMedium", "BatteryWarning",
+  "SdCard", "SimCard", "Microchip",
+
+  // ☁️ Cloud / Network / Dev
+  "Cloud", "CloudUpload", "CloudDownload", "CloudOff",
+  "CloudRain", "CloudSnow", "CloudLightning",
+  "Database", "Network", "Activity", "Radar",
+  "GitBranch", "GitCommit", "GitMerge", "GitPullRequest",
+  "Bug", "BugOff", "Webhook", "Workflow",
+
+  // 🧾 Files / Folders / Media
+  "File", "FileText", "FileImage", "FileVideo", "FileAudio",
+  "FilePlus", "FileMinus", "FileX", "FileCheck",
+  "FileCode", "FileArchive", "FileStack",
+  "Folder", "FolderOpen", "FolderPlus", "FolderMinus", "FolderSync",
+  "Image", "Images", "Music", "Film",
+
+  // ▶️ Media Controls
+  "Play", "Pause", "Stop", "SkipForward", "SkipBack",
+  "Volume", "Volume1", "Volume2", "VolumeX",
+  "PlayCircle", "PauseCircle", "StopCircle",
+
+  // 🧭 Navigation / Direction
+  "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+  "ArrowUpRight", "ArrowUpLeft", "ArrowDownRight", "ArrowDownLeft",
+  "ChevronUp", "ChevronDown", "ChevronLeft", "ChevronRight",
+  "ChevronsUp", "ChevronsDown", "ChevronsLeft", "ChevronsRight",
+  "CornerUpLeft", "CornerUpRight", "CornerDownLeft", "CornerDownRight",
+  "Move", "MoveDiagonal", "MoveHorizontal", "MoveVertical",
+  "Expand", "Shrink", "Maximize", "Minimize",
+
+  // 🏗️ Layout / UI
+  "Layout", "LayoutGrid", "LayoutList", "LayoutDashboard",
+  "Columns", "Rows", "Sidebar",
+  "PanelLeft", "PanelRight", "PanelTop", "PanelBottom",
+  "AlignLeft", "AlignCenter", "AlignRight", "AlignJustify",
+  "Grid", "List", "ListOrdered", "ListChecks",
+
+  // 🧰 Tools / Actions
+  "Wrench", "Hammer", "Screwdriver",
+  "RefreshCcw", "RotateCcw", "RotateCw",
+  "Download", "Upload", "Share2", "ExternalLink", "Link",
+
+  // 📊 Business / Finance
+  "CreditCard", "Globe", "Briefcase",
+  "BarChart3", "LineChart", "PieChart",
+  "TrendingUp", "TrendingDown",
+  "DollarSign", "Percent",
+  "Calendar", "Clock", "Timer",
+  "Receipt", "Wallet", "Banknote",
+
+  // 🔐 Security / Status
+  "Shield", "ShieldCheck", "Lock", "Unlock", "Key",
+  "Eye", "EyeOff",
+  "AlertTriangle", "AlertOctagon", "Info",
+  "Check", "X", "Minus", "Plus",
+  "Circle", "Square", "Octagon",
+  "Loader", "Loader2", "LoaderCircle",
+  "HelpCircle",
+
+  // 🚚 Ecommerce / Logistics
+  "Truck", "Store", "Warehouse",
+  "PackageCheck", "PackageOpen",
+  "MapPin", "MapPinOff", "Map",
+  "Navigation", "Navigation2", "Compass",
+  "Barcode", "QrCode", "ShoppingBag", "ShoppingBasket",
+
+  // 🧠 Education / Science / AI
+  "Brain", "FlaskConical", "GraduationCap",
+  "Book", "BookOpen", "Library",
+  "Lightbulb", "Atom", "Beaker", "Microscope",
+  "Sigma", "FunctionSquare", "Infinity", "Calculator",
+
+  // 🌍 Travel / Time / Weather
+  "Plane", "Car", "Bus", "Train", "Ship",
+  "Hotel", "Bed", "Coffee",
+  "Sun", "Moon", "Sunrise", "Sunset",
+  "CloudSun", "CloudMoon",
+  "Clock3", "Clock12",
+
+  // 🎉 UX / Fun / Extras
+  "Sparkles", "Flame", "Rocket",
+  "Gift", "PartyPopper",
+  "Medal", "Trophy", "Crown",
+  "Puzzle", "Feather",
+  "Palette", "Paintbrush",
+  "Smile", "Frown", "Meh",
+  "ThumbsUp", "ThumbsDown",
+  "MessageCircle", "MessagesSquare",
+  "Mail", "Send", "Phone", "PhoneCall",
+
+  "Server",
+  "LaptopMinimal",
+  "Cpu",
+  "Monitor",
+  "SmartphoneCharging",
+  "TabletSmartphone",
+  "Watch",
+  "Tv",
+  "Camera",
+  "Speaker",
+  "Headphones",
+  "Gamepad2",
+  "Printer",
+  "Keyboard",
+  "Mouse",
+  "BatteryCharging",
+  "Router",
+  "HardDrive",
+];
 
 const CustomIconPicker: React.FC<CustomIconPickerProps> = ({
   value,
@@ -18,8 +137,7 @@ const CustomIconPicker: React.FC<CustomIconPickerProps> = ({
   error,
 }) => {
   const [selectedIcon, setSelectedIcon] = useState<string>(value || "");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
+""
   useEffect(() => {
     if (value !== undefined) {
       setSelectedIcon(value);
@@ -31,98 +149,51 @@ const CustomIconPicker: React.FC<CustomIconPickerProps> = ({
     onChange(iconName);
   };
 
-  // Filter all dynamic Lucide icons based on search query
-  const filteredIcons = useMemo(() => {
-    if (!searchQuery.trim()) return ALL_LUCIDE_ICONS;
-    const query = searchQuery.toLowerCase().trim();
-    return ALL_LUCIDE_ICONS.filter((iconName) =>
-      iconName.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
-
-  // Selected Icon Component lookup
-  const SelectedIconComponent = selectedIcon
-    ? (icons[selectedIcon as keyof typeof icons] as LucideIcon)
-    : null;
-
   return (
-    <div className="flex flex-col gap-2">
-      {label && (
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {label}
-        </label>
-      )}
-
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search all icons..."
-          className="w-full pl-9 pr-8 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+    <div className="flex flex-col">
+      {label && <label className="text-sm text-gray-700 dark:text-gray-300 mb-2">{label}</label>}
 
       {/* Icon Grid */}
-      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5 min-h-[10rem] max-h-64 overflow-y-auto p-2.5 rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
-        {filteredIcons.length > 0 ? (
-          filteredIcons.map((iconName) => {
-            const IconComponent = icons[iconName as keyof typeof icons] as LucideIcon;
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3 min-h-[10rem] max-h-64 overflow-y-auto p-2 rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700">
+        {iconList.map((iconName) => {
+          const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons];
 
-            if (!IconComponent) return null;
+          // ✅ Skip invalid icons to prevent runtime crash
+          if (!IconComponent) {
+            console.warn("❌ Missing Lucide icon:", iconName);
+            return null;
+          }
 
-            const isSelected = selectedIcon === iconName;
-
-            return (
-              <button
-                type="button"
-                key={iconName}
-                title={iconName}
-                onClick={() => handleSelect(iconName)}
-                className={`p-2 border rounded-lg flex flex-col items-center justify-center gap-1.5 transition text-left focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  isSelected
-                    ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 font-medium"
-                    : "border-gray-200 dark:border-gray-700 hover:bg-yellow-50/50 dark:hover:bg-yellow-900/20 text-gray-700 dark:text-gray-300"
-                }`}
-              >
-                <IconComponent className="w-6 h-6 flex-shrink-0" />
-                <span className="text-[10px] leading-tight text-center break-words w-full">
-                  {iconName}
-                </span>
-              </button>
-            );
-          })
-        ) : (
-          <div className="col-span-full py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            No icons found matching &quot;{searchQuery}&quot;
-          </div>
-        )}
+          return (
+            <div
+              key={iconName}
+              onClick={() => handleSelect(iconName)}
+              className={`p-3 border rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 cursor-pointer transition ${
+                selectedIcon === iconName
+                  ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"
+                  : "border-gray-200 dark:border-gray-600"
+              }`}
+            >
+              <IconComponent className="w-6 h-6 mx-auto text-gray-700 dark:text-gray-300" />
+              <p className="text-xs text-center mt-1 truncate text-gray-600 dark:text-gray-400">{iconName}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Error message */}
-      {error && (
-        <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500 dark:text-red-400 mt-1">{error}</p>}
 
       {/* Selected Icon Preview */}
       {selectedIcon && (
-        <div className="flex items-center gap-2 mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Selected:</p>
-          {SelectedIconComponent && (
-            <SelectedIconComponent size={18} className="text-amber-600 dark:text-amber-500" />
-          )}
-          <span className="text-xs font-semibold text-amber-600 dark:text-amber-500">
+        <div className="flex items-center gap-2 mt-3">
+          <p className="text-sm text-gray-700 dark:text-gray-300">Selected:</p>
+          {(() => {
+            const IconComponent =
+              LucideIcons[selectedIcon as keyof typeof LucideIcons];
+            return IconComponent ? <IconComponent size={20} className="text-gray-700 dark:text-gray-300" /> : null;
+          })()}
+          <span className="text-sm font-semibold text-amber-600 dark:text-amber-500">
             {selectedIcon}
           </span>
         </div>

@@ -105,9 +105,9 @@ const UnifiedHomeSections: React.FC = () => {
   return (
     <div className="relative bg-[#000000] overflow-x-hidden w-full">
       {/* ================= SECTION TWO ================= */}
-      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 w-full">
+      <section className="scroll-section section-two relative min-h-[85vh] flex items-center z-10 overflow-hidden py-8 md:py-10 w-full">
         <div className="section-two-wrapper w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
-          <div className="section-two-row grid lg:grid-cols-2 gap-10 lg:gap-14 items-center w-full">
+          <div className="section-two-row grid lg:grid-cols-2 gap-10 items-center w-full">
             
             {/* LEFT TEXT BLOCK - No animation on mobile */}
             <motion.div
@@ -118,13 +118,13 @@ const UnifiedHomeSections: React.FC = () => {
               variants={getTextVariants('left')}
               transition={transition}
             >
-              <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow leading-[0.95]">
+              <h2 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
                 BEESEE GLOBAL 
                 <br>
                 </br>TECHNOLOGIES INC.
               </h2>
 
-              <p className="bee-body text-[#e8e8e8] mt-5 leading-relaxed max-w-2xl">
+              <p className="bee-body text-[#e8e8e8] mt-4 leading-relaxed">
                  <i>BeeSee Global Technologies Inc.</i>, delivers scalable digital
                 solutions backed by a dedicated team. With a strong presence
                 and proven performance in Guam, USA, we provide strategic and
@@ -146,7 +146,7 @@ const UnifiedHomeSections: React.FC = () => {
               transition={{ duration: isMobile ? 0.6 : 1.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.div 
-                className="beesee-card-content section-two-card w-full rounded-[24px]"
+                className="beesee-card-content section-two-card w-full"
                 whileHover={{ 
                   scale: isMobile ? 1 : 1.03,
                   boxShadow: '0 0 40px rgba(253, 204, 0, 0.2)',
@@ -167,7 +167,7 @@ const UnifiedHomeSections: React.FC = () => {
       </section>
 
       {/* ================= SECTION THREE ================= */}
-      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 px-6 md:px-10 lg:px-12 w-full">
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 overflow-hidden py-10 md:py-12 px-6 md:px-10 lg:px-12 w-full">
         {/* Background with overlay */}
         <div 
           className="absolute inset-0 z-0"
@@ -224,13 +224,10 @@ const UnifiedHomeSections: React.FC = () => {
             transition={transition}
             className="text-center mb-12"
           >
-            <p className="bee-body-sm mb-3 tracking-[0.2em] text-[#FDCC00]">
-              OUR PEOPLE
-            </p>
-            <h3 className="bee-title-lg text-[var(--beesee-gold)] gold-glow">
+            <h3 className="bee-title-md text-[var(--beesee-gold)] gold-glow">
               SYSTEM TECHNOLOGY EXPERTS
             </h3>
-            <p className="bee-body max-w-3xl mx-auto mt-5 text-[#C7B897]">
+            <p className="bee-body max-w-3xl mx-auto mt-4 text-[#C7B897]">
               BeeSee Global Technologies is a trusted provider of digital
               solutions, training programs, and industry-aligned content built
               for long-term growth.
@@ -238,7 +235,7 @@ const UnifiedHomeSections: React.FC = () => {
           </motion.div>
 
           {/* CARDS - No animation on mobile */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8 w-full">
+          <div className="grid md:grid-cols-3 gap-8 w-full">
             {items.map((item, index) => {
               const cardRef = useRef<HTMLDivElement>(null);
               const inViewCard = useInView(cardRef, { once: isMobile, amount: 0.1 });
@@ -251,32 +248,17 @@ const UnifiedHomeSections: React.FC = () => {
                   animate={inViewCard ? "visible" : "hidden"}
                   variants={getTextVariants('up')}
                   transition={isMobile ? { duration: 0 } : { duration: 1.0, delay: index * 0.2, ease: "easeOut" }}
-                  className="group relative w-full"
+                  className="beesee-card-content card-glow p-6 w-full"
                   whileHover={{ 
                     y: isMobile ? 0 : -10,
+                    boxShadow: '0 20px 60px rgba(253, 204, 0, 0.15)',
                   }}
                 >
-                  <div className="relative flex min-h-[330px] h-full flex-col overflow-hidden rounded-[16px] border border-[#FDCC00]/30 bg-[#10100f] p-6 sm:p-7 shadow-[0_16px_32px_rgba(0,0,0,0.35)] transition-all duration-500 group-hover:border-[#FDCC00]/70 group-hover:shadow-[0_22px_45px_rgba(253,204,0,0.16)]">
-                    <div className="absolute left-0 top-0 h-full w-1 bg-[#FDCC00]/55 transition-colors duration-500 group-hover:bg-[#FDCC00]" />
-                    <div className="pointer-events-none absolute inset-0 opacity-35 bg-[linear-gradient(rgba(253,204,0,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(253,204,0,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
-                    <div className="bee-title-lg pointer-events-none absolute -right-1 -top-8 select-none leading-none text-[#FDCC00]/[0.08]" aria-hidden="true">
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-
-                    <div className="relative z-10 flex items-start justify-between border-b border-[#FDCC00]/20 pb-5">
-                      <span className="bee-title-sm leading-none text-white">
-                        {item.title}
-                      </span>
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[#FDCC00]/45 text-[#FDCC00] transition-all duration-500 group-hover:rotate-3 group-hover:bg-[#FDCC00] group-hover:text-black">
-                        {item.icon}
-                      </div>
-                    </div>
-
-                    <div className="relative z-10 flex flex-grow flex-col pt-6 text-left">
-                      <div className="mb-5 h-px w-10 bg-[#FDCC00] transition-all duration-500 group-hover:w-16" />
-                      <p className="bee-body-sm leading-relaxed text-[#C7B897]/85">{item.desc}</p>
-                    </div>
-                  </div>
+                  <div className="icon-wrap text-[var(--beesee-gold)] mb-3">{item.icon}</div>
+                  <h4 className="beesee-card-content-title bee-title-sm text-[var(--beesee-gold)] mb-2">
+                    {item.title}
+                  </h4>
+                  <p className="bee-body text-[#C7B897]/90">{item.desc}</p>
                 </motion.div>
               );
             })}
@@ -285,7 +267,7 @@ const UnifiedHomeSections: React.FC = () => {
       </section>
 
       {/* ================= DIGITAL CONNECTION SECTION ================= */}
-      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 w-full">
+      <section className="scroll-section relative min-h-[85vh] flex items-center z-10 bg-[#000] text-white overflow-hidden py-10 md:py-12 w-full">
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           
           {/* LEFT — CAROUSEL - Keep animation for images */}

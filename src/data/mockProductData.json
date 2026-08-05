@@ -13,7 +13,7 @@
       "hoverSpecs": ["display", "battery", "sensors", "connectivity"]
     },
     {
-      "id": "smart-tv",
+      "id": "smarttv",
       "name": "Smart TVs",
       "icon": "Tv",
       "hoverSpecs": ["display", "resolution", "refresh_rate", "panel_type"]
@@ -22,7 +22,7 @@
       "id": "tablet",
       "name": "Tablets",
       "icon": "Tablet",
-      "hoverSpecs": ["cpu", "gpu", "ram", "storage", "display", "smart_features"]
+      "hoverSpecs": ["cpu", "ram", "storage", "display"]
     }
   ],
   "products": [
@@ -50,7 +50,7 @@
       "detailedSpecs": {
         "Performance": {
           "Processor": "Intel Core i5",
-          "RAM": "16GB",
+          "RAM": "16GB DDR4",
           "Graphics": "Intel Iris Xe Graphics",
           "Storage": "512GB M.2 NVMe",
           "Thermal System": "Dual-fan cooling system"
@@ -117,7 +117,7 @@
       "detailedSpecs": {
         "Performance": {
           "Processor": "Intel Core i7",
-          "RAM": "16GB",
+          "RAM": "16GB DDR5",
           "Graphics": "NVIDIA GeForce MX450 2GB GDDR6",
           "Storage": "1TB M.2 NVMe",
           "Thermal System": "Dual-fan with heat pipes"
@@ -172,7 +172,7 @@
       "detailedSpecs": {
         "Performance": {
           "Processor": "Intel Core i9",
-          "RAM": "32GB",
+          "RAM": "32GB DDR5",
           "Graphics": "NVIDIA RTX 4060 8GB GDDR6",
           "Storage": "2TB M.2 NVMe",
           "Thermal System": "Vapor chamber cooling"
@@ -216,7 +216,7 @@
       "detailedSpecs": {
         "Performance": {
           "Processor": "Intel Core i9",
-          "RAM": "64GB",
+          "RAM": "64GB DDR5",
           "Graphics": "NVIDIA RTX 4070 8GB GDDR6",
           "Storage": "4TB M.2 NVMe",
           "Thermal System": "Triple-fan cooling with liquid metal"
@@ -291,7 +291,7 @@
           "Glass": "Corning Gorilla Glass"
         },
         "Health & Fitness": {
-          "Heart Rate": "Continuous monitoring",
+          "Heart Rate": "24/7 monitoring",
           "Blood Oxygen": "SpO2 tracking",
           "Sleep Tracking": "Advanced sleep analysis",
           "Sport Modes": "50+ activities",
@@ -421,7 +421,7 @@
         "Display": {
           "Size": "86 inches",
           "Resolution": "4K UHD",
-          "Panel Type": "LED backlit LCD",
+          "Panel Type": "LED-backlit LCD",
           "Brightness": "400 nits",
           "Contrast Ratio": "5000:1",
           "Viewing Angle": "178° H/V"
@@ -557,9 +557,9 @@
   "description": "The Beepad redefines tablet versatility with its revolutionary foldable design. Seamlessly transition from compact tablet to expansive workspace, delivering premium performance for creative professionals and digital nomads.",
   "keyFeatures": [
     "8.3-inch Foldable OLED Display",
-    "MediaTek MT8788",
-    "8GB | 16GB LPDDR5X RAM for fluid multitasking",
-    "128GB | 256GB UFS 4.0 Storage",
+    "Snapdragon 8 Gen 3 Processor",
+    "12GB LPDDR5X RAM for fluid multitasking",
+    "1TB UFS 4.0 Storage",
     "Dual-mode hinge for multiple viewing angles",
     "S-Pen Pro compatibility with 2.8ms latency"
   ],
@@ -573,14 +573,13 @@
       "Brightness": "1750 nits peak (HDR)",
       "HDR": "HDR10+, Dolby Vision",
       "Cover Display": "6.2-inch Super AMOLED"
-
     },
     "Performance": {
-      "Processor": "MediaTek MT8788",
-      "CPU": "1x 3.3GHz Cortex-X4 + 3x 3.2GHz Cortex-A720 + 4x 2.GHz Cortex-A520",
-      "GPU": "Mali-G72",
-      "RAM": "8GB, 16GB",
-      "Storage": "128GB,256GB",
+      "Processor": "Snapdragon",
+      "CPU": "1x 3.3GHz Cortex-X4 + 3x 3.2GHz Cortex-A720 + 4x 2.3GHz Cortex-A520",
+      "GPU": "Adreno 750 with hardware-accelerated ray tracing",
+      "RAM": "12GB LPDDR5X ",
+      "Storage": "1TB UFS 4.0",
       "Cooling": "Vapor chamber with graphene layer"
     },
     "Battery & Charging": {
@@ -614,7 +613,7 @@
       "Positioning": "GPS, GLONASS, Galileo, BeiDou"
     },
     "Software & Features": {
-      "Operating System": "Android 15",
+      "Operating System": "Android 14 with One UI 6.1",
       "Desktop Mode": "Samsung DeX support",
       "Multi-tasking": "Up to 3 apps simultaneously",
       "S-Pen": "Pro version with 2.8ms latency, 4096 pressure levels",

@@ -5,10 +5,9 @@ import { motion, useAnimation, useInView } from "framer-motion";
 import { BatteryCharging, Network, Layers, CheckCircle, PhoneCall, RotateCcw, Mail, Phone, MapPin } from "lucide-react";
 import { fetchAllSolutions } from "../../../../services/Ecommerce/solutionsOverviewServices";
 import { useQuery } from "@tanstack/react-query";
-import 'animate.css';
+
 import "../../../../assets/css/Solutions.css";
 import "../../../../assets/css/global.css";
-import { asArray } from '../../../../utils/apiCollections';
 
 /* Dummy image for SupportServices */
 import image from "../../../../../public/Bee14.jpg";
@@ -16,16 +15,7 @@ import image from "../../../../../public/Bee14.jpg";
 const UnifiedPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Define the Solution interface
-interface Solution {
-  id: string | number;
-  icon: string;
-  title: string;
-  description: string;
-  features: string[];
-  specs: Record<string, string | number>;
-  image_url: string;
-}
+
   // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -60,7 +50,7 @@ interface Solution {
     queryKey: ["solutions"],
     queryFn: () => fetchAllSolutions(),
   });
-  const solutions = asArray<Solution>(solutionsResponse);
+  const solutions = solutionsResponse || [];
 
   /** ==================== SUPPORT SECTION ==================== */
   const supportLeftRef = useRef<HTMLDivElement | null>(null);
@@ -279,7 +269,7 @@ interface Solution {
           variants={solutionsVariants}
           className="relative z-10 max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-24 w-full"
         >
-          {solutions.map((solution: Solution, index: number) => {
+          {solutions.map((solution, index) => {
             const IconComponent = iconMap[solution.icon] || Network;
 
             return (
@@ -305,7 +295,7 @@ interface Solution {
                   <div className="space-y-2 sm:space-y-3 w-full">
                     <h4 className="bee-body font-semibold text-white">Key Features</h4>
                     <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-                      {solution.features.map((feature, i: number) => (
+                      {solution.features.map((feature, i) => (
                         <div 
                           key={i} 
                           className="flex items-start gap-2"
@@ -317,7 +307,7 @@ interface Solution {
                     </div>
                   </div>
 
-                  <div className="beesee-editorial-panel rounded-lg p-4 sm:p-5">
+                  <div className="bg-white/10 backdrop-blur-md rounded-lg border border-[#FDCC00]/25 p-4 sm:p-5">
                     <h4 className="bee-body font-semibold text-white mb-2 sm:mb-3">Technical Specifications</h4>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       {Object.entries(solution.specs).map(([key, value]) => (
@@ -335,7 +325,7 @@ interface Solution {
                   variants={solutionsChildVariants}
                   className={`w-full ${index % 2 === 1 ? "lg:col-start-1" : ""}`}
                 >
-                  <div className="beesee-editorial-panel relative rounded-lg p-3 sm:p-4">
+                  <div className="relative backdrop-blur-md rounded-lg p-3 sm:p-4 border border-[#FDCC00]/25">
                     <img 
                       src={solution.image_url} 
                       className="w-full h-48 sm:h-56 md:h-64 lg:h-72 object-cover rounded" 
@@ -395,14 +385,14 @@ interface Solution {
             </p>
 
             {/* Feature Cards */}
-            <div className="space-y-4 sm:space-y-5 mb-10 animate__animated animate__backInLeft">
+            <div className="space-y-4 sm:space-y-5 mb-10">
               {supportFeatures.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
                   <motion.div
                     key={i}
                     variants={supportFeatureVariants}
-                    className="beesee-editorial-panel group relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg hover:-translate-y-1 transition-all duration-300"
+                    className="group relative flex items-start gap-3 sm:gap-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-[#FDCC00]/20 p-3 sm:p-4 rounded-lg hover:border-[#FDCC00]/50 hover:shadow-lg hover:shadow-[#FDCC00]/20 hover:-translate-y-1 transition-all duration-300"
                   >
                     <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#FDCC00]/5 via-transparent to-[#FFD700]/5 pointer-events-none"></div>
 
@@ -448,7 +438,7 @@ interface Solution {
           >
             <div className="relative group w-full max-w-md lg:max-w-none">
               <div className="absolute inset-0 bg-gradient-to-br from-[#FDCC00]/20 to-[#FFD700]/20 rounded-lg sm:rounded-2xl blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500 scale-105"></div>
-              <div className="relative rounded-lg sm:rounded-2xl overflow-hidden border-2s border-[#FDCC00]/30 shadow-2xl shadow-[#FDCC00]/20 group-hover:border-[#FDCC00]/50 transition-all duration-500 group-hover:scale-[1.02]">
+              <div className="relative rounded-lg sm:rounded-2xl overflow-hidden border-2 border-[#FDCC00]/30 shadow-2xl shadow-[#FDCC00]/20 group-hover:border-[#FDCC00]/50 transition-all duration-500 group-hover:scale-[1.02]">
                 <img src={image} alt="Customer Support" className="w-full h-auto object-cover min-h-64 sm:min-h-80 md:min-h-96" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000000]/60 via-transparent to-transparent pointer-events-none"></div>
               </div>

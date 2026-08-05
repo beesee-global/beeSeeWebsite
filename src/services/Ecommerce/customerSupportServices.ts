@@ -1,7 +1,6 @@
 import axiosClient from "../../axiosClient";
 
 const TICKETS_API_URL = "/tickets";
-const CATEGORIES_API_URL = "/categories";
 
 export const createCustomerSupport = async (ticketData: any) => {
   try {
@@ -18,10 +17,7 @@ export const createCustomerSupport = async (ticketData: any) => {
 
 export const fetchDevice = async () => {
   try {
-    // Device types are stored in the ticketing-system `categories` table.
-    // There is no `/tickets/devices` endpoint; that path is interpreted as a
-    // ticket id by the backend.
-    const response = await axiosClient.get(`${CATEGORIES_API_URL}/select-field`);
+    const response = await axiosClient.get(`${TICKETS_API_URL}/devices`);
     return response.data;
   } catch (error) {
     throw error

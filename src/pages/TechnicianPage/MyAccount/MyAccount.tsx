@@ -241,7 +241,7 @@ const MyAccount = () => {
             setSnackBarMessage('Account information updated successfully!');
 
             logout();
-            navigate('/beesee/login', { replace: true });
+            navigate('/sign-in', { replace: true });
         } catch (err: any) {
             console.error('❌ Error updating account:', err);
             setSnackBarType('error');

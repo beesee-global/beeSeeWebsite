@@ -22,11 +22,11 @@ import {
   insertConversationPublic,
   insertImageConversation,
   updateStatus
-} from '../../../services/Technician/ticketsServices';
+} from '../../services/ticketsServices';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import ConversationsDetails from '../../../components/ui/ConversationsDetails';
-import { userAuth } from '../../../hooks/userAuth';
-import Snackbar from '../../../components/feedback/Snackbar';
+import ConversationsDetails from '../../components/ui/ConversationsDetails';
+import { userAuth } from '../../hooks/userAuth';
+import Snackbar from '../../components/feedback/Snackbar';
 import { useNavigate } from 'react-router-dom';
 
 export default function EmailConversationApp() {
@@ -249,7 +249,7 @@ export default function EmailConversationApp() {
 
               <div className="pt-4">
                 <button
-                  onClick={(e) => navigate("/support")}
+                  onClick={(e) => navigate("/customer-support")}
                   className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
                 >
                   <Mail className="w-5 h-5" />
@@ -284,7 +284,7 @@ export default function EmailConversationApp() {
 
             <div className="pt-6">
               <button
-                  onClick={(e) => navigate("/support")}
+                onClick={(e) => navigate("/customer-support")}
                 className="w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-5 px-10 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
               >
                 <Send className="w-6 h-6" />

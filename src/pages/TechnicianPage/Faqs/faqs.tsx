@@ -17,7 +17,6 @@ import AlertDialog from "../../../components/feedback/AlertDialog";
 import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
-import { asArray } from '../../../utils/apiCollections';
 
 const Faqs = () => {
   const [searchValue, setSearchValue] = useState<string>("");
@@ -51,7 +50,7 @@ const Faqs = () => {
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchAllDevices,
-    select: (res) => asArray(res).map((item: any) => ({
+    select: (res) => res.data.map((item: any) => ({
       value: item.id.toString(),
       label: item.name
     }))
@@ -64,7 +63,7 @@ const Faqs = () => {
   });
 
   const productOptions = useMemo(() => {
-    const mapped = asArray(productResponse).map((item: any) => ({
+    const mapped = (productResponse?.data || []).map((item: any) => ({
       value: item.id.toString(),
       label: item.product_name,
       categories_id: item.categories_id,
@@ -72,7 +71,7 @@ const Faqs = () => {
     return mapped;
   }, [productResponse]);
 
-  const faqs = asArray(faqsResponse);
+  const faqs = faqsResponse?.data || [];
   const selectedFaq = faqs.find((f: any) => f.id === selectedRowId);
 
   const columns = [
