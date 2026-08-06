@@ -1,6 +1,5 @@
 import {
   Home,
-  Key,
 } from 'lucide-react'  
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
 import PieChart, { PieChartData } from "../../../components/charts/PieChart"
@@ -24,14 +23,16 @@ const Dashboard = () => {
     queryKey: ["dashboard"],
     queryFn: () => fetchGraph()
   }) 
- 
+
   // pie chart
-  const chartData: PieChartData[] = dashboardResponse
-    ? Object.entries(dashboardResponse.types).map(([key, value]) => ({
+  const inquiryTypes = dashboardResponse?.types && typeof dashboardResponse.types === "object"
+    ? dashboardResponse.types
+    : {};
+
+  const chartData: PieChartData[] = Object.entries(inquiryTypes).map(([key, value]) => ({
       name: key == "technical_support" ? "Technical Support" : "Request Repair",
       value: Number(value), // convert string to number
-    }))
-    : [];
+    }));
 
   // bar chart
   const categories = dashboardResponse?.categories || [];
@@ -40,7 +41,7 @@ const Dashboard = () => {
 
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Breadcrumb */}
@@ -49,14 +50,14 @@ const Dashboard = () => {
         </div>
 
         {/* header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
                 Dashboard
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Manage your dashboard
+              <p className="text-slate-500">
+                Overview of inquiries and project status
               </p>
             </div>
 
@@ -65,7 +66,7 @@ const Dashboard = () => {
 
         {/* Statistics card */}
         <div className="grid lg:grid-cols-2 mb-6 gap-6">
-          <div className='bg-white rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 py-5'>
+          <div className='bg-white rounded-2xl shadow-sm border border-slate-200 py-5'>
             <PieChart 
               title="Inquiries"
               data={chartData}
@@ -73,7 +74,7 @@ const Dashboard = () => {
               donut
             />
           </div>
-          <div className='bg-white rounded-xl shadown-sm border border-gray-200 dak:border-gray-700 py-5'>
+          <div className='bg-white rounded-2xl shadow-sm border border-slate-200 py-5'>
             <BarChart
               title="Project Status Overview"
               categories={categories}
@@ -82,6 +83,7 @@ const Dashboard = () => {
             />
           </div>
         </div>
+
       </div>
     </div>
   )

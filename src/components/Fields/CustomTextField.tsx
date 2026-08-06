@@ -16,6 +16,7 @@ interface CustomTextFieldProps {
   helperText?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+  autoComplete?: string;
 }
 
 const CustomTextField: React.FC<CustomTextFieldProps> = ({
@@ -33,19 +34,23 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   helperText = "",
   onKeyDown,
   onPaste,
+  autoComplete,
 }) => {
   const textFieldSx = {
-    backgroundColor: '#ffffff',
-    borderRadius: '6px',
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: '12px',
     '& .MuiOutlinedInput-root': {
+      minHeight: '48px',
       '& fieldset': {
-        borderColor: error ? 'red' : '#d1d5db',
+        borderColor: error ? 'red' : 'rgba(255,255,255,0.24)',
+        borderWidth: '1px',
       },
       '&:hover fieldset': {
-        borderColor: error ? 'red' : '#9ca3af',
+        borderColor: error ? 'red' : 'rgba(253,204,0,0.45)',
       },
       '&.Mui-focused fieldset': {
         borderColor: error ? 'red' : '#FCD000',
+        boxShadow: '0 0 0 3px rgba(253, 204, 0, 0.16)',
       },
     },
     '& .MuiInputBase-inputMultiline': {
@@ -117,6 +122,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
         onChange={handleChange}
         inputProps={{ 
           maxLength,
+          autoComplete,
           onKeyDown,
           onPaste,
         }}
@@ -130,7 +136,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
       />
 
       {helperText && (
-        <p className='text-red-500 text-sm mt-1   ml-2'>{helperText}</p>
+        <p className='text-red-500 text-sm mt-1 ml-2'>{helperText}</p>
       )}
 
       {/* ✅ Top-right icon for multiline fields */}

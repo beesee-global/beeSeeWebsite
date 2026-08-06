@@ -132,7 +132,13 @@ const EmployeeForm = () => {
   // ✅ 2. Fetch data only when id exists
   const { data: userInfo } = useQuery({
     queryKey: ["employee", id],
-    queryFn: () => fetchEmployeeByPid(id),
+    queryFn: () => {
+      if (!id) {
+        throw new Error("Employee ID is required to fetch employee details");
+      }
+
+      return fetchEmployeeByPid(id);
+    },
     enabled: !!id, // ✅ only fetch when id is defined
   });
 
@@ -430,7 +436,7 @@ const EmployeeForm = () => {
                       </label>
                       <CustomTextField 
                         name="email"
-                        disabled={id && true}
+                        disabled={Boolean(id)}
                         placeholder="Enter email"
                         value={formData.email}
                         onChange={handleChangeInput}
@@ -452,7 +458,7 @@ const EmployeeForm = () => {
                       <CustomTextField 
                         name="password"
                         placeholder="Enter password"
-                        value={formData.password}
+                        value={formData.password ?? ""}
                         onChange={handleChangeInput}
                         maxLength={100}
                         rows={1}
@@ -472,7 +478,7 @@ const EmployeeForm = () => {
                       <CustomTextField 
                         name="confirm_password"
                         placeholder="Enter confirm password"
-                        value={formData.confirm_password}
+                        value={formData.confirm_password ?? ""}
                         onChange={handleChangeInput}
                         maxLength={100}
                         rows={1}
@@ -589,7 +595,9 @@ const EmployeeForm = () => {
                         <div className="flex items-center">
                           <ImageIcon className="w-5 h-5 text-gray-500 mr-2" />
                           <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {formData.image.name}
+                            {formData.image instanceof File
+                              ? formData.image.name
+                              : "Existing image"}
                           </span>
                         </div>
                         {/* <span className="text-xs text-gray-500 dark:text-gray-400">
