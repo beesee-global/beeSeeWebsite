@@ -6,16 +6,18 @@
         "allowJs": false,
         "skipLibCheck": true,
         "esModuleInterop": false,
+        "ignoreDeprecations": "6.0",
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "ESNext",
-        "moduleResolution": "Node",
+        "moduleResolution": "node",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx"
     },
     "include": ["src"],
+    "exclude": ["backups", "node_modules"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }
