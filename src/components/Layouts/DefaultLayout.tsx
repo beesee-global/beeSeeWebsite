@@ -1,5 +1,6 @@
 import { PropsWithChildren, Suspense, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import App from '../../App';
 import { IRootState } from '../../store';
 import { toggleSidebar } from '../../store/themeConfigSlice'; 
@@ -8,6 +9,7 @@ import { setSidebar } from '../../store/themeConfigSlice';
 const DefaultLayout = ({ children }: PropsWithChildren) => {
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
     const dispatch = useDispatch();
+    const location = useLocation();
 
     const [showLoader, setShowLoader] = useState(true);
     const [showTopButton, setShowTopButton] = useState(false);
@@ -16,6 +18,14 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
     };
+
+    // Start each newly opened route at the top of the page.
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        setShowTopButton(false);
+    }, [location.pathname, location.search, location.hash]);
 
     const onScrollHandler = () => {
         if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {

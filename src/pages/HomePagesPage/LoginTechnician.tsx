@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import CustomTextField from '../../components/Fields/CustomTextField';
-import { motion } from 'framer-motion';
-import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Snackbar from '../../components/feedback/SnackbarTechnician';
 import { useMutation } from '@tanstack/react-query';
 import { loggedInUser } from '../../services/Technician/userServices';
 import { AlertColor } from '@mui/material/Alert';
-import { userAuth } from '../../hooks/userAuth'
+import { userAuth } from '../../hooks/userAuth';
+import AdminLoginLayout from '../../components/auth/AdminLoginLayout';
+
+const TECHNICIAN_DASHBOARD = '/beesee/dashboard';
 
 interface LoginForm {
   email: string;
@@ -21,7 +20,7 @@ interface FormError {
 
 const LoginTechnician = () => { 
   const navigate = useNavigate(); 
-  const { login, token, userInfo } = userAuth()
+  const { login, token, userInfo, activateSession } = userAuth()
   const [isChecking, setIsChecking] = useState(false); 
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -34,6 +33,10 @@ const LoginTechnician = () => {
     email: '',
     password: '',
   });
+
+  useEffect(() => {
+    activateSession('technician');
+  }, [activateSession]);
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -64,21 +67,27 @@ const LoginTechnician = () => {
       setFormError(errors);
       if (Object.keys(errors).length > 0) return;
 
-      const response = await loginMutate(formData); 
-      // response.data contains your API response
-      if (response?.success) {  
+      const response = await loginMutate(formData);
+      // Fastify wraps successful payloads in { data: ... }; Axios has already
+      // returned the HTTP response body here.
+      const result = response?.data ?? response;
+      if (result?.success && result.token && result.userInfo) {
         const userInfo = {
-          id: response.userInfo.id,
+          id: result.userInfo.id,
           email: formData.email, // Use the email from the form
-          full_name: response.userInfo.full_name,
-          role: response.userInfo.role,
-          permissions: response.userInfo.permissions,
-          url_permission: response.userInfo.url_permission, 
-          url: `${response.url}`
+          full_name: result.userInfo.full_name,
+          role: result.userInfo.role,
+          permissions: result.userInfo.permissions,
+          url_permission: 'technician',
+          // Technician administrators always land in the ticketing dashboard.
+          // Do not depend on a database module URL, which can be stale or lack
+          // the leading slash and fall through to the public catch-all route.
+          url: TECHNICIAN_DASHBOARD
         };  
-        // token is at response.data.token (root level of API response)
-        login({ token: response.token, userInfo });  
-        window.location.href = `${response.url}` 
+        login({ token: result.token, userInfo }, 'technician');
+        navigate(TECHNICIAN_DASHBOARD, { replace: true });
+      } else {
+        throw new Error("The login response did not include session credentials.");
       }
     } catch (err) {
       setSnackbarOpen(true);
@@ -100,15 +109,21 @@ const LoginTechnician = () => {
 
   useEffect(() => {
     // if we don't have a token, go back to home
-    if (token) { 
-      if (userInfo?.url_permission === 'technician_url')
-      window.location.href = `${userInfo.url}` 
+    if (token && userInfo) {
+      const hasTechnicianAccess =
+        userInfo.url_permission === 'technician_url' ||
+        userInfo.url_permission === 'technician' ||
+        userInfo.url?.startsWith(TECHNICIAN_DASHBOARD);
+
+      if (hasTechnicianAccess) {
+        navigate(TECHNICIAN_DASHBOARD, { replace: true });
+      }
       return;
     }  
 
     // Done checking
     setIsChecking(false);
-  }, [token, login]);
+  }, [token, userInfo, navigate]);
 
     // 👇 Prevent rendering layout until checks are done
   if (isChecking) {
@@ -119,121 +134,19 @@ const LoginTechnician = () => {
     );
   }
   
-  // Variants for parent (staggering children)
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2, // delay each child by 0.2s
-      },
-    },
-  };
-
-  // Variants for children
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  }; 
-
   return (
-    <div className='flex justify-center items-center bg-white min-h-screen p-4'>
-      {/* Notification */}
-      <Snackbar 
-        open={snackbarOpen}
-        message={snackbarMessage}
-        type={snackbarSeverity}
-        onClose={() => setSnackbarOpen(false)}
-      />
-
-      <div className='w-full max-w-md flex items-center justify-center p-4 sm:p-8'> 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="flex flex-col w-full"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="flex justify-center mb-6 sm:mb-8"
-          >
-            <img 
-              src="/beeSeeGold.png" 
-              alt="BeeSee Logo" 
-              className="h-20 sm:h-24 w-auto"
-            />
-          </motion.div> 
-
-        <motion.h2
-          variants={itemVariants}
-          className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
-        >
-          Login Your Account
-        </motion.h2>
-          <motion.p 
-            className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
-            variants={itemVariants}
-          >
-            Welcome back! Please enter your details
-          </motion.p>
-
-          <motion.form 
-            onSubmit={handleSubmit} 
-            className="space-y-5 sm:space-y-7"
-          >
-            {/* Email */}
-            <motion.div variants={itemVariants}>
-              <CustomTextField
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                multiline={false}
-                rows={1}
-                type="email"
-                onChange={handleChangeInput}
-                maxLength={100}
-                icon={<Mail className="w-4 h-4" />}
-                error={!!formError.email}
-                helperText={formError.email}
-              /> 
-            </motion.div>
-
-            {/* Password */}
-            <motion.div variants={itemVariants}>
-              <CustomTextField
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                multiline={false}
-                rows={1}
-                type="password"
-                onChange={handleChangeInput}
-                maxLength={100}
-                icon={<Lock className="w-4 h-4" />}
-                error={!!formError.password}
-                helperText={formError.password}
-              /> 
-            </motion.div>
-
-            <motion.p 
-              variants={itemVariants}
-              onClick={() => navigate("/forget-password")}
-              className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base">
-              Forget Password
-            </motion.p>
-
-            <motion.button
-              variants={itemVariants}
-              className="beesee-button w-full py-3 text-sm sm:text-base"
-              type="submit"
-              disabled={isPending}
-            >
-              Sign in
-            </motion.button>
-          </motion.form>
-        </motion.div>
-      </div>
-    </div>
+    <AdminLoginLayout
+      title="Technician Login"
+      formData={formData}
+      formError={formError}
+      isPending={isPending}
+      snackbarOpen={snackbarOpen}
+      snackbarMessage={snackbarMessage}
+      snackbarSeverity={snackbarSeverity}
+      onChange={handleChangeInput}
+      onSubmit={handleSubmit}
+      onCloseSnackbar={() => setSnackbarOpen(false)}
+    />
   );
 };
 

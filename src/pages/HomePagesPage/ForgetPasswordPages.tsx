@@ -190,7 +190,7 @@ const ForgetPasswordPages = () => {
           formPassword.confirm_password = ""
           formPassword.new_password = ""
 
-          navigate("/sign-in")
+          navigate("/technician/sign-in")
 
         }
       } 
@@ -341,7 +341,7 @@ const ForgetPasswordPages = () => {
           </motion.button>
 
           <motion.button
-            onClick={() => navigate("/sign-in")}
+            onClick={() => navigate("/technician/sign-in")}
             variants={itemVariants}
             className="py-3 px-4 border border-gray-300 rounded-md w-full font-semibold bg-gray-100 hover:bg-gray-200"
           >
@@ -441,7 +441,7 @@ const ForgetPasswordPages = () => {
               </button>
 
               <motion.button
-                onClick={() => navigate("/sign-in")}
+                onClick={() => navigate("/technician/sign-in")}
                 variants={itemVariants}
                 className="mt-3 w-full py-3 px-4 border border-gray-300 rounded-md font-semibold bg-gray-100 hover:bg-gray-200"
               >
@@ -505,7 +505,7 @@ const ForgetPasswordPages = () => {
             </motion.button>
 
             <motion.button
-              onClick={() => navigate("/sign-in")}
+              onClick={() => navigate("/technician/sign-in")}
               variants={itemVariants}
               className="mt-5 w-full py-4 px-5 border border-gray-300 rounded-xl font-semibold bg-gray-100 hover:bg-gray-200"
             >
