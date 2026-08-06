@@ -34,20 +34,50 @@ import ConversationsDetails from '../../components/ui/ConversationsDetails';
 import { userAuth } from '../../hooks/userAuth';
 import { handleDownloadAttachment } from '../../utils/downloadFile'
 
+interface ConversationAttachment {
+  attachment_url: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+interface ConversationActivityLog {
+  lines?: string[];
+}
+
+interface ConversationMessage {
+  id: string | number;
+  sender_name?: string;
+  sender_email?: string;
+  message_body?: string;
+  is_inbound: boolean | number;
+  attachments?: ConversationAttachment[];
+  activity_logs?: ConversationActivityLog[];
+  created_at: string;
+}
+
+interface PendingAttachment {
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+  preview: string | null;
+}
+
 export default function EmailConversationApp() {
   const { pid } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);  
   const queryClient = useQueryClient();
   const messageEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef(null);
-  const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | number>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState<string | number | null>(null);
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
   const [dialogMessage, setDialogMessage] = useState<string>("");
   const [dialogTitle, setDialogTitle] = useState<string>(""); 
 
   const message = "This Job Order is closed. If you need to follow up or require further assistance, please submit a new job order using the following link"
-  const url = `${import.meta.env.VITE_API_URL_FRONTEND}/customer-support`
+  const url = `${import.meta.env.VITE_API_URL_FRONTEND}/support`
 
   const {  
     setSnackBarMessage,
@@ -58,9 +88,9 @@ export default function EmailConversationApp() {
     snackBarType 
   } = userAuth();
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [replyText, setReplyText] = useState('');
-  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [attachedFiles, setAttachedFiles] = useState<PendingAttachment[]>([]);
   const MAX_FILE_SIZE_MB = 130; 
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const [socket, setSocket] = useState<any>(null);
@@ -68,7 +98,7 @@ export default function EmailConversationApp() {
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   
   // Stores the message user selected to reply to (Messenger-style reply target).
-  const [repliedMessage, setRepliedMessage] = useState<any | null>(null);
+  const [repliedMessage, setRepliedMessage] = useState<ConversationMessage | null>(null);
 
   const { data: ticketInfo, isLoading, isError, error } = useQuery({
     queryKey: ['ticketInformation', pid],
@@ -147,7 +177,7 @@ export default function EmailConversationApp() {
 
   // Set messages initially
   useEffect(() => {
-    if (conversationData?.data) setMessages(conversationData.data);
+    if (conversationData?.data) setMessages(conversationData.data as ConversationMessage[]);
   }, [conversationData]);
 
   const scrollToBottom = () => messageEndRef.current?.scrollIntoView({  }); // behavior: "smooth"
@@ -217,7 +247,7 @@ export default function EmailConversationApp() {
           queryKey: ['conversations', userTicketInformation.ticket_id]
         }); 
       }
-    } catch (error) {
+    } catch (error: any) {
       const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
       setSnackBarMessage(cleanMessage);
@@ -258,9 +288,9 @@ export default function EmailConversationApp() {
     setPendingMessageDeleteId(null);
   };
 
-  const handleFileSelect = (e: any) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles = files.filter((file: any) => file.size <= MAX_FILE_SIZE_BYTES);
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files: File[] = Array.from(e.target.files ?? []) as File[];
+    const validFiles = files.filter((file) => file.size <= MAX_FILE_SIZE_BYTES);
     const invalidCount = files.length - validFiles.length;
 
     if (invalidCount > 0) {
@@ -269,7 +299,7 @@ export default function EmailConversationApp() {
       setSnackBarOpen(true);
     }
 
-    const fileObjects = validFiles.map((file: any) => ({
+    const fileObjects: PendingAttachment[] = validFiles.map((file) => ({
       file,
       name: file.name,
       size: file.size,
@@ -428,7 +458,7 @@ export default function EmailConversationApp() {
 
               <div className="pt-4">
                 <button
-                  onClick={(e) => navigate("/customer-support")}
+                  onClick={(e) => navigate("/support")}
                   className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
                 >
                   <Mail className="w-5 h-5" />
@@ -463,7 +493,7 @@ export default function EmailConversationApp() {
 
             <div className="pt-6">
               <button
-                onClick={(e) => navigate("/customer-support")}
+                  onClick={(e) => navigate("/support")}
                 className="w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-5 px-10 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
               >
                 <Send className="w-6 h-6" />
@@ -551,7 +581,8 @@ export default function EmailConversationApp() {
             <div className="flex items-center justify-center h-full text-gray-500">No messages yet</div>
           ) : (
             messages.map(msg => {
-              const hasAttachments = Array.isArray(msg.attachments) && msg.attachments.length > 0; 
+              const attachments = msg.attachments ?? [];
+              const hasAttachments = attachments.length > 0;
 
               // Parse optional embedded reply metadata and remove it from visible message text.
               const { replyMeta, cleanBody } = parseReplyBody(msg.message_body || "");
@@ -633,9 +664,9 @@ export default function EmailConversationApp() {
                         )}
                         {/* Render only clean message body so [reply_meta] is never shown to users. */}
                         {cleanBody?.trim() && <p className="text-sm whitespace-pre-wrap">{cleanBody}</p>}
-                        {msg.attachments?.length > 0 && (
+                        {attachments.length > 0 && (
                           <div className="mt-3 space-y-2">
-                            {msg.attachments.map((file, idx) => (
+                            {attachments.map((file, idx) => (
                               file.type?.startsWith('image/') ? (
                                 // Display images automatically
                                 <div key={idx} className="mt-2">
@@ -813,7 +844,7 @@ export default function EmailConversationApp() {
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Type your reply..."
                 className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
-                rows="3"
+                rows={3}
                 style={{color: '#000000', caretColor: '#000000'}}
                 disabled={loading}
               />
@@ -866,7 +897,6 @@ export default function EmailConversationApp() {
                 setSelectedImage={setSelectedImage}
                 formatDate={formatDate}
                 getStatusColor={getStatusColor}
-                user={true}
                 setShowSidebar={setShowSidebar}
                 publicConversation={true}
               />
@@ -890,7 +920,6 @@ export default function EmailConversationApp() {
             userTicketInformation={userTicketInformation}
             setSelectedImage={setSelectedImage}
             formatDate={formatDate}
-            user={true}
             getStatusColor={getStatusColor}
             setShowSidebar={setShowSidebar}
             publicConversation={true}

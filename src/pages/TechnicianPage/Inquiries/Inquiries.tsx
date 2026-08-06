@@ -19,6 +19,8 @@ import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client' 
 import { userAuth } from '../../../hooks/userAuth';
+import { asArray } from '../../../utils/apiCollections';
+import { getSocketServerUrl } from '../../../utils/socketServerUrl';
 
 const Inquiries = () => { 
   const queryClient = useQueryClient();
@@ -39,6 +41,7 @@ const Inquiries = () => {
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(""); 
   const [statusFilter, setStatusFilter] = useState<string>("Unsettled");
+  const [organization, setOrganization] = useState<string>("");
 
   const { 
     data: inquiriesPendingResponse, 
@@ -69,11 +72,11 @@ const Inquiries = () => {
 
 
   const rows = useMemo(() => {
-    let baseRows = [];
+    let baseRows: any[] = [];
 
-    if (statusFilter === "Unsettled") baseRows = inquiriesPendingResponse?.data || [];
-    if (statusFilter === "Settled") baseRows = inquiriesCompletedResponse?.data || [];
-    if (statusFilter === "Closed") baseRows = inquiriesClosedResponse?.data || [];
+    if (statusFilter === "Unsettled") baseRows = asArray(inquiriesPendingResponse);
+    if (statusFilter === "Settled") baseRows = asArray(inquiriesCompletedResponse);
+    if (statusFilter === "Closed") baseRows = asArray(inquiriesClosedResponse);
 
     // Remove duplicates based on unique identifier (e.g., id or pid)
     const uniqueRows = Array.from(
@@ -81,10 +84,10 @@ const Inquiries = () => {
     );
 
     return uniqueRows;
-  }, [statusFilter, inquiriesPendingResponse, inquiriesCompletedResponse])
+  }, [statusFilter, inquiriesPendingResponse, inquiriesCompletedResponse, inquiriesClosedResponse])
 
   // Handle Edit/View Inquiry
-  const handleEdit = (pid: string) => {  
+  const handleEdit = (pid: string | number) => {  
     navigate(`/beesee/inquiries/reply/${pid}`)
   };
 
@@ -107,9 +110,13 @@ const Inquiries = () => {
   const isLoading = isPendingLoading || isCompletedLoading
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, { 
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const socket = io(getSocketServerUrl(), { 
       path: "/socket.io/",
       transports: ["polling", "websocket"], // try polling first, then upgrade
+      auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5,
@@ -176,6 +183,8 @@ const Inquiries = () => {
         isLoading={isLoading}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        organization={organization}
+        setOrganization={setOrganization}
       />
     </div>
   )
