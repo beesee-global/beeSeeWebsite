@@ -46,10 +46,13 @@ html, body, #root {
   --beesee-gold-soft: #FBD463;
   --muted: #C7B897;
   --text-light: #ffffff;
+  --white:#f6f6f6;
   --text-dark: #0a0a0a;
 
   --radius-xl: 20px;
   --radius-md: 12px;
+  --radius-card: 16px;
+  --radius-control: 8px;
 
   --shadow-heavy: 0 18px 60px rgba(0,0,0,0.9);
 
@@ -61,7 +64,11 @@ html, body, #root {
   --space-2xl: 48px;
 }
 
-
+:focus-visible {
+  outline: 2px solid var(--beesee-gold);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(253, 204, 0, 0.18);
+}
 
 /* ------------------------------
    TYPOGRAPHY SCALE — SIMPLIFIED & BROWSER-SAFE
@@ -904,6 +911,136 @@ div:has(h2:contains("Inquiries Reply")) div {
 }
 @media (min-width: 768px) { .bee-body1 { font-size: 17px; } }
 @media (min-width: 1024px) { .bee-body1 { font-size: 18px; } }
+
+/* =========================================================
+   EDITORIAL PANEL SYSTEM
+   Replaces the public site's shared glass-card treatment.
+   The service cards in Solution/HeroSection.tsx are the full
+   expression; these shared styles bring the same matte, technical
+   language to cards that use the common BeeSee card classes.
+========================================================= */
+.beesee-card-content,
+.beesee-card-content1 {
+  background-color: #10100f !important;
+  background-image:
+    linear-gradient(rgba(253, 204, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(253, 204, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(253, 204, 0, 0.05), transparent 42%) !important;
+  background-size: 24px 24px, 24px 24px, auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(253, 204, 0, 0.30) !important;
+  border-left: 4px solid rgba(253, 204, 0, 0.70) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35) !important;
+}
+
+.beesee-card-content::before,
+.beesee-card-content1::before {
+  inset: 0 auto 0 0;
+  width: 1px;
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+  background: #fdcc00;
+  opacity: 0.8;
+}
+
+.beesee-card-content::after,
+.beesee-card-content1::after {
+  display: none;
+}
+
+.beesee-card-content:hover,
+.beesee-card-content1:hover {
+  border-color: rgba(253, 204, 0, 0.72) !important;
+  border-left-color: #fdcc00 !important;
+  box-shadow: 0 22px 45px rgba(253, 204, 0, 0.16), 0 18px 40px rgba(0, 0, 0, 0.48) !important;
+}
+
+.beesee-card-content .icon-wrap,
+.beesee-card-content1 .icon-wrap {
+  border-radius: var(--radius-control);
+  background: transparent;
+  border: 1px solid rgba(253, 204, 0, 0.45);
+}
+
+.beesee-card-content:hover .icon-wrap,
+.beesee-card-content1:hover .icon-wrap {
+  background: #fdcc00;
+  color: #000;
+  border-color: #fdcc00;
+}
+
+/* Use for one-off content panels that previously used Tailwind glass utilities. */
+.beesee-editorial-panel {
+  background-color: #10100f;
+  background-image:
+    linear-gradient(rgba(253, 204, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(253, 204, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(253, 204, 0, 0.05), transparent 42%);
+  background-size: 24px 24px, 24px 24px, auto;
+  border: 1px solid rgba(253, 204, 0, 0.30);
+  border-left: 4px solid rgba(253, 204, 0, 0.70);
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+}
+
+.beesee-editorial-panel:hover {
+  border-color: rgba(253, 204, 0, 0.72);
+  border-left-color: #fdcc00;
+  box-shadow: 0 22px 45px rgba(253, 204, 0, 0.16), 0 18px 40px rgba(0, 0, 0, 0.48);
+}
+
+/* Support ticket fields use the editorial panel palette instead of white inputs. */
+.support-editorial-form .MuiTextField-root {
+  background: #0a0a0a;
+  border-radius: var(--radius-control);
+}
+
+/* Public form fields keep the technical palette with gently softened edges. */
+.beesee-card-content :is(input, textarea, select),
+.beesee-editorial-panel :is(input, textarea, select),
+.beesee-card-content .MuiOutlinedInput-root,
+.beesee-editorial-panel .MuiOutlinedInput-root {
+  border-radius: var(--radius-control) !important;
+}
+
+.support-editorial-form .MuiOutlinedInput-root {
+  color: #fff;
+}
+
+.support-editorial-form .MuiOutlinedInput-root fieldset {
+  border-color: rgba(253, 204, 0, 0.28) !important;
+}
+
+.support-editorial-form .MuiOutlinedInput-root:hover fieldset,
+.support-editorial-form .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #fdcc00 !important;
+}
+
+.support-editorial-form .MuiInputBase-input,
+.support-editorial-form .MuiSelect-select {
+  color: #fff !important;
+}
+
+.support-editorial-form .MuiInputBase-input::placeholder {
+  color: #c7b897 !important;
+  opacity: 0.78;
+}
+
+.support-editorial-form .MuiSvgIcon-root,
+.support-editorial-form .MuiInputAdornment-root {
+  color: #fdcc00;
+}
+
+/* Radius fallback for native controls that do not already choose a Tailwind
+   radius. Existing rounded-* utilities and circular controls remain untouched. */
+:where(button, a[role="button"]):not(.rounded):not([class*="rounded-"]):not(.MuiButtonBase-root) {
+  border-radius: var(--radius-control);
+}
+
+:where(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not(.rounded):not([class*="rounded-"]) {
+  border-radius: var(--radius-control);
+}
 
 .bee-body1-sm {
   font-family: "Segoe UI", sans-serif;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom'; 
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
 import CustomSelectField from '../../../../components/Fields/CustomSelectField';
 import CustomTextFieldAutoCamelCase from '../../../../components/Fields/CustomTextFieldAutoCamelCase';
@@ -90,7 +90,6 @@ const HeroSection: React.FC = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
     // === Queries ===
     const { data: categoryResponse = [] } = useQuery({
@@ -215,48 +214,6 @@ const HeroSection: React.FC = () => {
         return errors;
     };
 
-    const validateCurrentStage = (stage: 1 | 2): FormError => {
-        const errors: FormError = {};
-
-        if (stage === 1) {
-            if (!formData.full_name.trim()) errors.full_name = 'Full name is required.';
-            if (!formData.company.trim()) errors.company = 'Company / Institution Name is required.';
-            if (!formData.city.trim()) errors.city = 'City is required.';
-            if (!formData.email.trim()) errors.email = 'Email is required.';
-            else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid format.';
-            if (!formData.contact_number.trim()) errors.contact_number = 'Phone number is required.';
-            else if (!/^09\d{9}$/.test(formData.contact_number)) errors.contact_number = 'Phone number must start with 09 and be 11 digits long.';
-        }
-
-        if (stage === 2) {
-            if (!formData.category_id) errors.category_id = 'Device is required.';
-            if (!formData.location.trim()) errors.location = 'Location / room is required.';
-            if (formData.is_active === 'false') {
-                if (!formData.device_id) errors.device_id = 'Model is required.';
-                if (!formData.issue_id) errors.issue_id = 'Issue type is required.';
-            } else if (!formData.item_name?.trim()) {
-                errors.item_name = 'Item name is required.';
-            }
-            if (!formData.questions.trim()) errors.questions = 'Please provide details about your issue.';
-        }
-
-        return errors;
-    };
-
-    const goToStage = (stage: 1 | 2 | 3) => {
-        if (stage > currentStep) {
-            const errors = validateCurrentStage(currentStep as 1 | 2);
-            setFormError(errors);
-            if (Object.keys(errors).length > 0) {
-                setSnackBarMessage('Please complete the required fields before continuing.');
-                setSnackBarType('error');
-                setSnackBarOpen(true);
-                return;
-            }
-        }
-        setCurrentStep(stage);
-    };
-
     const handleSubmit = async () => {
         try {
             const ticketsDetails: any = {
@@ -311,7 +268,6 @@ const HeroSection: React.FC = () => {
             setUploadedImages([]);
             setCurrentImageIndex(0);
             setCaptchaValue(null);
-            setCurrentStep(1);
             setIsSubmitted(true);
         } catch (error) {
             setSnackBarMessage('Failed to submit, Please try again.');
@@ -559,33 +515,8 @@ const HeroSection: React.FC = () => {
                                 </div>
                             </motion.section>
                         ) : (
-                            <div className="support-editorial-form beesee-editorial-panel p-5 sm:p-7 md:p-9">
-                                <div className="mb-7 sm:mb-9 border-b border-[#FDCC00]/25 pb-5 sm:pb-6">
-                                    <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">SUPPORT REQUEST</span>
-                                    <h2 className="bee-title-sm text-white mt-2">LET&apos;S GET YOUR TICKET STARTED</h2>
-                                    <p className="bee-body-sm text-[#C7B897] mt-2">Share your contact details first, then we&apos;ll collect the device and issue information.</p>
-                                    <div className="grid grid-cols-3 gap-2 mt-5" aria-label="Support request stages">
-                                        {['Contact', 'Device', 'Submit'].map((step, index) => {
-                                            const stage = (index + 1) as 1 | 2 | 3;
-                                            const isActive = currentStep === stage;
-                                            const isComplete = currentStep > stage;
-                                            return (
-                                            <div key={step} className={`flex items-center gap-2 ${isActive || isComplete ? 'text-[var(--beesee-gold)]' : 'text-[#C7B897]'}`}>
-                                                <span className={`flex h-7 w-7 items-center justify-center border text-xs ${isActive || isComplete ? 'border-[#FDCC00] bg-[#FDCC00] text-black' : 'border-[#FDCC00]/50 text-[var(--beesee-gold)]'}`}>0{index + 1}</span>
-                                                <span className="hidden sm:inline bee-body-sm uppercase tracking-wider">{step}</span>
-                                            </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <AnimatePresence mode="wait">
-                                {currentStep === 1 && (
-                                <motion.div key="contact" initial={{ opacity: 0, x: -48 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -48 }} transition={{ duration: 0.32, ease: 'easeInOut' }} className="grid md:grid-cols-2 gap-4 sm:gap-5">
-                                    <div className="md:col-span-2 flex items-center gap-3 pb-1">
-                                        <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">01</span>
-                                        <h3 className="bee-title-sm text-white">CONTACT DETAILS</h3>
-                                    </div>
+                            <div className="beesee-card-content p-4 sm:p-6 md:p-8">
+                                <div className="space-y-4 sm:space-y-5">
                                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                                         <CustomTextFieldAutoCamelCase
                                             placeholder="Name"
@@ -666,32 +597,18 @@ const HeroSection: React.FC = () => {
                                         />
                                     </motion.div>
 
-                                    <div className="md:col-span-2 pt-2 flex justify-end">
-                                        <button type="button" onClick={() => goToStage(2)} className="beesee-button py-2.5 px-5 sm:px-7">
-                                            Continue to device details <ChevronRight size={18} className="ml-2" />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                                )}
-
-                                {currentStep === 2 && (
-                                <motion.div key="device" initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -48 }} transition={{ duration: 0.32, ease: 'easeInOut' }}>
-                                    <div className="flex items-center gap-3 pb-4">
-                                        <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">02</span>
-                                        <h3 className="bee-title-sm text-white">DEVICE &amp; ISSUE DETAILS</h3>
-                                    </div>
-                                    <CustomSelectField
-                                        name="category_id"
-                                        value={formData?.category_id}
-                                        options={categoryResponse}
-                                        onChange={handleChangeInput}
-                                        placeholder="Select a Device Type"
-                                        error={!!formError?.category_id}
-                                        helperText={formError?.category_id}
-                                    />
-                                    <button type="button" onClick={() => goToStage(1)} className="mt-4 flex items-center gap-2 py-2 text-[#C7B897] hover:text-[var(--beesee-gold)] transition-colors">
-                                        <ChevronLeft size={18} /> Back to contact details
-                                    </button>
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+                                        <CustomSelectField
+                                            name="category_id"
+                                            value={formData?.category_id}
+                                            options={categoryResponse}
+                                            onChange={handleChangeInput}
+                                            placeholder="Select a Device Type"
+                                            error={!!formError?.category_id}
+                                            helperText={formError?.category_id}
+                                        />
+                                    </motion.div>
+                                </div>
 
                                 {formData?.category_id !== '' && (
                                     <motion.div
@@ -699,12 +616,8 @@ const HeroSection: React.FC = () => {
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
                                         transition={{ duration: 0.5 }}
-                                        className="space-y-4 sm:space-y-5 mt-7 sm:mt-9 pt-6 border-t border-[#FDCC00]/25"
+                                        className="space-y-4 sm:space-y-5 mt-4 sm:mt-5"
                                     >
-                                        <div className="flex items-center gap-3 pb-1">
-                                            <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">02</span>
-                                            <h3 className="bee-title-sm text-white">DEVICE &amp; ISSUE DETAILS</h3>
-                                        </div>
                                         {formData?.is_active === 'false' ? (
                                             <div className='space-y-4'>
                                                 <CustomSelectField
@@ -785,10 +698,6 @@ const HeroSection: React.FC = () => {
                                             helperText={formError?.questions}
                                         />
 
-                                        <div className="flex items-center gap-3 pt-3 pb-1 border-t border-white/10">
-                                            <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">03</span>
-                                            <h3 className="bee-title-sm text-white">ATTACH &amp; SUBMIT</h3>
-                                        </div>
                                         <div className='text-left'>
                                             <p className='text-white'>Note Kindly attach a picture to help us provide a better solution.</p>
                                         </div>
@@ -888,43 +797,26 @@ const HeroSection: React.FC = () => {
                                             </motion.div>
                                         )}
 
-                                        <div className="flex justify-end pt-3">
-                                            <button type="button" onClick={() => goToStage(3)} className="beesee-button py-2.5 px-5 sm:px-7">
-                                                Review request <ChevronRight size={18} className="ml-2" />
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex justify-center scale-90 sm:scale-100">
+                                            <ReCAPTCHA 
+                                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string} 
+                                                onChange={setCaptchaValue} 
+                                            />
+                                        </motion.div>
+
+                                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                                            <button type="button" disabled={isCreating || isCreatingImage} onClick={handleBeforeSubmit} className="beesee-button w-full py-2 sm:py-3">
+                                                {isCreating || isCreatingImage ? (
+                                                    <span className="animate-pulse">Submitting...</span>
+                                                ) : (
+                                                    <>
+                                                        <Send size={18} className="mr-2" /> Submit
+                                                    </>
+                                                )}
                                             </button>
-                                        </div>
+                                        </motion.div>
                                     </motion.div>
                                 )}
-
-                                </motion.div>
-                                )}
-
-                                {currentStep === 3 && (
-                                <motion.div key="review" initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -48 }} transition={{ duration: 0.32, ease: 'easeInOut' }} className="space-y-5">
-                                    <div className="flex items-center gap-3 pb-1">
-                                        <span className="bee-body-sm tracking-[0.2em] text-[var(--beesee-gold)]">03</span>
-                                        <h3 className="bee-title-sm text-white">REVIEW &amp; SUBMIT</h3>
-                                    </div>
-                                    <div className="beesee-editorial-panel rounded-lg p-4 sm:p-5 space-y-2">
-                                        <p className="bee-body-sm text-[#C7B897]">Your request will be sent to the BeeSee support team.</p>
-                                        <p className="bee-body-sm text-white"><span className="text-[#C7B897]">Contact:</span> {formData.full_name} · {formData.email}</p>
-                                        <p className="bee-body-sm text-white"><span className="text-[#C7B897]">Device:</span> {selectedCategoryLabel || 'Not selected'}</p>
-                                        <p className="bee-body-sm text-white"><span className="text-[#C7B897]">Attachments:</span> {uploadedImages.length || 0}</p>
-                                    </div>
-                                    <div className="flex justify-center scale-90 sm:scale-100">
-                                        <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string} onChange={setCaptchaValue} />
-                                    </div>
-                                    <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
-                                        <button type="button" onClick={() => goToStage(2)} className="flex items-center justify-center gap-2 py-2.5 px-4 text-[#C7B897] hover:text-[var(--beesee-gold)] transition-colors">
-                                            <ChevronLeft size={18} /> Back
-                                        </button>
-                                        <button type="button" disabled={isCreating || isCreatingImage} onClick={handleBeforeSubmit} className="beesee-button py-2.5 px-5 sm:px-7">
-                                            {isCreating || isCreatingImage ? <span className="animate-pulse">Submitting...</span> : <><Send size={18} className="mr-2" /> Submit request</>}
-                                        </button>
-                                    </div>
-                                </motion.div>
-                                )}
-                                </AnimatePresence>
                             </div>
                         )}
                     </motion.div>
