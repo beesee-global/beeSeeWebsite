@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom"
 import { userAuth } from '../../../hooks/userAuth'
 import { io } from 'socket.io-client'
 import { useEffect } from "react"
+import { getSocketServerUrl } from '../../../utils/socketServerUrl'
 
 const Dashboard = () => {
   const queryClient = useQueryClient();
@@ -56,9 +57,13 @@ const Dashboard = () => {
 
   // fetch real-time updates
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL_BACKEND as string, {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const socket = io(getSocketServerUrl(), {
       path: "/socket.io/",
       transports: ["polling", "websocket"], // try polling first, then upgrade
+      auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5,

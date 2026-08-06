@@ -40,8 +40,6 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
   applicantName = '',
   applicantEmail = ''
 }) => {
-  const quickTimeOptions = ['11:00 AM', '2:00 PM'];
-
   const [formData, setFormData] = useState({ 
     location: '',
     time: [] as string[],
@@ -52,18 +50,15 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
 
   const [formError, setFormError] = useState<Record<string, string>>({});
 
-  const getSelectedQuickTimes = () =>
-    quickTimeOptions.filter((timeOption) => formData.time.includes(timeOption));
-
-  const handleQuickTimeToggle = (timeOption: string) => {
-     setFormData((prev) => ({
-      ...prev,
-      time: prev.time[0] === timeOption ? [] : [timeOption]
-     }))
-    setFormError((prev) => ({ ...prev, time: '' }));
-  };
-
   useEffect(() => {
+    if (open) {
+      const greetingName = applicantName || 'Applicant';
+      setFormData((prev) => ({
+        ...prev,
+        schedule: prev.schedule || `Dear ${greetingName},\n\nWe would like to invite you for an interview. Please choose one of the available time options above.\n\nWe look forward to speaking with you.`
+      }));
+    }
+
     if (!open) {
       // Reset form when dialog closes
       setFormData({ 
@@ -75,7 +70,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       });
       setFormError({});
     }
-  }, [open]);
+  }, [open, applicantName]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -103,14 +98,12 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       errors.location = "Location is required";
     }
     
-    if (formData.time.length === 0) {
-      errors.time = "Time is required";
-    } else if (formData.time.length === 2) {
-      const start = parseTimeToMinute(formData.time[0]);
-      const end = parseTimeToMinute(formData.time[1]);
-
-      if (start >= end) {
-        errors.time = "End time must be later than start time";
+    if (formData.time.length !== 2) {
+      errors.time = "Select exactly two interview time options";
+    } else {
+      const selectedMinutes = formData.time.map(parseTimeToMinute);
+      if (selectedMinutes[0] === selectedMinutes[1]) {
+        errors.time = "Choose two different interview times";
       }
     }
     
@@ -188,7 +181,7 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
       </IconButton>
       <DialogContent dividers>
         <DialogContentText sx={{ mb: 2, color: '#666' }}>
-          Send an interview invitation to the applicant with all the necessary details.
+          Send an interview invitation to {applicantName || 'the applicant'} with all the necessary details.
         </DialogContentText>
         <form onSubmit={handleSubmit} id="applicants-dialog-form" className="space-y-4"> 
           <div className='flex gap-4'>
@@ -214,42 +207,30 @@ const ApplicantsDialog: React.FC<ApplicantsDialogProps> = ({
               {/* Time */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Time *
+                  Time options *
                 </label>
-                <div className='mb-3 flex flex-wrap gap-2 w-full items-center justify-center'>
-                  {quickTimeOptions.map((timeOption) => {
-                    const isActive =  formData.time[0] === timeOption
-
-                    return (
-                      <button
-                        key={timeOption}
-                        type="button"
-                        onClick={() => handleQuickTimeToggle(timeOption)}
-                        className={`rounded-md w-44 border px-4 py-2 text-sm font-medium transition-colors ${
-                          isActive
-                            ? 'border-slate-900 bg-slate-900 text-white'
-                            : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900'
-                        }`}
-                      >
-                        {timeOption}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Or choose another time
-                  </label>
-                  <CustomTimePicker 
-                    value={formData.time.join(', ')}
-                    onChange={(time) => {
-                      setFormData(prev => ({ ...prev, time: time ? [time] : [] }));
-                      setFormError(prev => ({ ...prev, time: '' }));
-                    }}
-                    placeholder="Select start time"
-                    error={!!formError.time}
-                    helperText={formError.time}
-                  />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {[0, 1].map((index) => (
+                    <div key={index}>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {index === 0 ? '1st choice' : '2nd choice'} *
+                      </label>
+                      <CustomTimePicker
+                        value={formData.time[index] || ''}
+                        onChange={(time) => {
+                          setFormData((prev) => {
+                            const nextTime = [...prev.time];
+                            nextTime[index] = time;
+                            return { ...prev, time: nextTime };
+                          });
+                          setFormError((prev) => ({ ...prev, time: '' }));
+                        }}
+                        placeholder={`Select ${index === 0 ? '1st' : '2nd'} choice`}
+                        error={!!formError.time}
+                        helperText={index === 1 ? formError.time : undefined}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
 

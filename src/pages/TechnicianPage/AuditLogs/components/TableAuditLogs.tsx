@@ -109,7 +109,7 @@ interface ColumnConfig {
   label: string;
   sortable?: boolean;
   width?: string;
-  align?: string;
+  align?: React.CSSProperties['textAlign'];
 }
 
 interface TableAuditLogsProps {

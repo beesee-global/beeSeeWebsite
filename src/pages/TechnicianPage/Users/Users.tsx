@@ -3,7 +3,7 @@ import {
   fetchUsers,
   deleteUsers
 } from '../../../services/Technician/userServices'
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { 
   User2, 
   Plus,
@@ -18,9 +18,24 @@ import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import { useState, useMemo, useEffect } from "react" 
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import AlertDialog from "../../../components/feedback/AlertDialog"
+import { asArray } from "../../../utils/apiCollections"
+import { fetchEcomUsers, deleteEcomUsers } from "../../../services/Ecommerce/ecomUserServices"
+import {
+  fetchWebsiteConfigurationUsers,
+  deleteWebsiteConfigurationUsers,
+} from "../../../services/WebsiteConfiguration/websiteConfigurationUserServices"
 
 const Users = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEcommerceUsers = location.pathname.startsWith('/beesee/ecommerce/team-members');
+  const isWebsiteConfigurationUsers = location.pathname.startsWith('/beesee/website-configuration/users');
+  const usesDedicatedUsers = isEcommerceUsers || isWebsiteConfigurationUsers;
+  const usersPath = isWebsiteConfigurationUsers
+    ? '/beesee/website-configuration/users'
+    : isEcommerceUsers
+      ? '/beesee/ecommerce/team-members'
+      : '/beesee/users';
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("")
   const [dialogOpen , setDialogOpen] = useState<boolean>(false);
@@ -45,18 +60,31 @@ const Users = () => {
   ]
 
   const Permission = userInfo?.permissions?.find(p => p.parent_id === 'users' && p.children_id === 'list_user');
+  const canManage = (action: 'add' | 'edit' | 'delete') =>
+    usesDedicatedUsers || Boolean(Permission?.actions.includes(action));
+
+  const canFetchUsers = usesDedicatedUsers || (userInfo?.id !== undefined && userInfo?.id !== null);
 
   const { data: userResponse, isLoading } = useQuery({
-     queryKey: ['users', userInfo?.id],
-    queryFn: () => fetchUsers(Number(userInfo?.id)),
-    enabled: !!userInfo?.id  
+     queryKey: ['team-members', userInfo?.id ?? 0],
+    queryFn: () => isWebsiteConfigurationUsers
+      ? fetchWebsiteConfigurationUsers(userInfo?.id)
+      : isEcommerceUsers
+        ? fetchEcomUsers(userInfo?.id)
+        : fetchUsers(Number(userInfo?.id ?? 0)),
+    enabled: canFetchUsers
   });
 
   const { mutateAsync: deleteUser } = useMutation({
-    mutationFn: deleteUsers
+    mutationFn: (payload: FormData | number[] | string[]) =>
+      isWebsiteConfigurationUsers
+        ? deleteWebsiteConfigurationUsers(payload instanceof FormData ? [] : payload)
+        : isEcommerceUsers
+          ? deleteEcomUsers(payload instanceof FormData ? [] : payload)
+          : deleteUsers(payload)
   });
 
-  const users = userResponse?.data || [];
+  const users = asArray(userResponse);
   // const selectedUser = users.find((u: any) => u.id === selectedRowId);
 
   // Handle Row Click (Select)
@@ -66,13 +94,13 @@ const Users = () => {
 
   // Handle Row Double Click (Edit)
   const handleRowDoubleClick = (row: any) => {
-    if (!Permission?.actions.includes('edit')) {
+    if (!canManage('edit')) {
       setSnackBarMessage("You do not have permission to edit users.");
       setSnackBarType("error");
       setSnackBarOpen(true);
       return;
     }
-    navigate(`/beesee/users/form/${row.pid}`);
+    navigate(`${usersPath}/form/${row.pid}`);
   };
 
   // Handle Update Button Click
@@ -84,7 +112,7 @@ const Users = () => {
       return;
     }
 
-    if (!Permission?.actions.includes('edit')) {
+    if (!canManage('edit')) {
       setSnackBarMessage("You do not have permission to edit users.");
       setSnackBarType("error");
       setSnackBarOpen(true);
@@ -93,7 +121,7 @@ const Users = () => {
 
     const user = users.find((u: any) => u.id === selectedRowId);
     if (user) {
-      navigate(`/beesee/users/form/${user.pid}`);
+      navigate(`${usersPath}/form/${user.pid}`);
     }
   };
 
@@ -106,7 +134,7 @@ const Users = () => {
       return;
     }
 
-    if (!Permission?.actions.includes('delete')) {
+    if (!canManage('delete')) {
       setSnackBarMessage("You do not have permission to delete users.");
       setSnackBarType("error");
       setSnackBarOpen(true);
@@ -121,11 +149,16 @@ const Users = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const formData = new FormData();
-      formData.append("ids", JSON.stringify(deleteIds)); 
-      formData.append("user_id", String(userInfo?.id)); 
+      const payload = usesDedicatedUsers
+        ? deleteIds
+        : (() => {
+            const formData = new FormData();
+            formData.append("ids", JSON.stringify(deleteIds));
+            formData.append("user_id", String(userInfo?.id));
+            return formData;
+          })();
 
-      const response = await deleteUser(formData);
+      const response = await deleteUser(payload);
 
       if (response?.success) {
         setDialogOpen(false);
@@ -136,9 +169,9 @@ const Users = () => {
         setSnackBarType("success");
         setSnackBarOpen(true);
 
-        queryClient.invalidateQueries({ queryKey: ['users', userInfo?.id] });
+        queryClient.invalidateQueries({ queryKey: ['team-members', userInfo?.id] });
       }
-    } catch (error) {
+    } catch (error: any) {
       const rawMessage = error?.response?.data?.message || "Failed to update position. Please try again.";
       const cleanMessage = String(rawMessage).replace(/^error:\s*/i, "");
 
@@ -210,9 +243,9 @@ const Users = () => {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
             {/* Add User Button */}
-            {Permission?.actions.includes('add') && (
+            {canManage('add') && (
               <button 
-                onClick={() => navigate('/beesee/users/form')} 
+                onClick={() => navigate(`${usersPath}/form`)}
                 className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] text-sm"
               >
                 <Plus size={18} /> 
@@ -221,7 +254,7 @@ const Users = () => {
             )}
 
             {/* Update Button */}
-            {Permission?.actions.includes('edit') && (
+            {canManage('edit') && (
               <button
                 onClick={handleUpdate}
                 disabled={!isUpdateEnabled}
@@ -236,7 +269,7 @@ const Users = () => {
             )}
 
             {/* Delete Button */}
-            {Permission?.actions.includes('delete') && (
+            {canManage('delete') && (
               <button
                 onClick={handleDeleteClick}
                 disabled={!isDeleteEnabled}

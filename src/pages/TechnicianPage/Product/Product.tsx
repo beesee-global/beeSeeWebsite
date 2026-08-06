@@ -27,6 +27,7 @@ import { userAuth } from "../../../hooks/userAuth"
 import { SpinningRingLoader } from '../../../components/ui/LoadingScreens'
 import CustomSearchField from "../../../components/Fields/CustomSearchField"
 import TableCustomizableHeaders from '../../../components/DataDisplay/TableCustomizableHeaders'
+import { asArray } from '../../../utils/apiCollections';
 
 const Product = () => {
   const queryClient = useQueryClient();
@@ -59,7 +60,7 @@ const Product = () => {
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategoriesNoIsActive,
-    select: (res) => res.data.map((item: any) => ({
+    select: (res) => asArray(res).map((item: any) => ({
       value: item.id,
       label: item.name
     }))
@@ -80,7 +81,7 @@ const Product = () => {
     mutationFn: deleteProducts
   });
 
-  const products = productResponse?.data || null 
+  const products = asArray(productResponse)
 
   const columns = [
     {id: 'product_name', label: 'Model Type', sortable: true, align: 'left'},

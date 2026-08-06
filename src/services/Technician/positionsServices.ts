@@ -2,6 +2,11 @@ import axiosClient from "../../axiosClient";
 
 const API_URL = '/positions'
 
+// Fastify model responses are wrapped as { data: { success, data } }.
+// Keep this service responsible for returning the actual rows/result so the
+// Position page does not accidentally treat the wrapper as an empty table.
+const unwrapPositionResponse = (body: any) => body?.data?.data ?? body?.data ?? body;
+
 export const createPositions = async(positionsData: any) => {
     try {
         const response = await axiosClient.post(`${API_URL}`, positionsData, {
@@ -9,7 +14,7 @@ export const createPositions = async(positionsData: any) => {
                 "Content-Type": "application/json",
             }
         });
-        return response.data
+        return unwrapPositionResponse(response.data)
     } catch (error) {
         throw error
     }
@@ -18,7 +23,7 @@ export const createPositions = async(positionsData: any) => {
 export const fetchPositions = async() => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
-        return response.data
+        return unwrapPositionResponse(response.data)
     } catch (error) {
         throw error
     }
@@ -32,7 +37,7 @@ export const deleteUsers = async (payload: FormData | number[] | string[]) => {
         ? { "Content-Type": "multipart/form-data" }
         : { "Content-Type": "application/json" },
     });
-    return response.data;
+    return unwrapPositionResponse(response.data);
   } catch (error) {
     throw error;
   }
@@ -55,7 +60,7 @@ export const deletePositions = async (payload: FormData | number[] | string[]) =
 export const updatePositions = async (id: number, payload: any) => {
     try {
          const response = await axiosClient.put(`${API_URL}/${id}`, payload);
-         return response.data
+         return unwrapPositionResponse(response.data)
     } catch(error) {
         throw error;
     }

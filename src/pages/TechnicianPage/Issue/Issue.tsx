@@ -17,6 +17,7 @@ import { userAuth } from "../../../hooks/userAuth";
 import CustomSearchField from "../../../components/Fields/CustomSearchField";
 import IssuesModal from './components/IssuesModal';
 import { fetchCategoriesNoIsActive } from '../../../services/Technician/categoryServices'
+import { asArray } from '../../../utils/apiCollections';
 
 // Interfaces for type safety
 interface IssueFormValues {
@@ -93,13 +94,13 @@ const Issue = () => {
   const { data: categoryResponse = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategoriesNoIsActive,
-    select: (res) => res.data.map((item: any) => ({
+    select: (res) => asArray(res).map((item: any) => ({
       value: item.id,
       label: item.name
     }))
   })
 
-  const products = productResponse?.data ?? [];
+  const products = asArray(productResponse);
   const deviceTabs = ["ALL", ...categoryResponse.map((c: any) => c.label)];
 
   // Compute model tabs based on selected device
@@ -126,7 +127,7 @@ const Issue = () => {
   });
   const { mutateAsync: deleteIssue } = useMutation({ mutationFn: deleteIssues });
 
-  const issues = issuesResponse?.data || [];
+  const issues = asArray(issuesResponse);
 
   // Map for quick lookup of rows by ID
   const detailRowById = useMemo(() => {

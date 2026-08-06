@@ -177,9 +177,9 @@ const ReusableTextFieldModal: React.FC<ReusableModalProps> = ({
                 type={field.type}
                 value={formData[field.name]}
                 onChange={handleChangeInput}
-                multiline={field.multiline}
-                rows={field.rows}
-                maxLength={field.maxLength}
+                multiline={field.multiline ?? false}
+                rows={field.rows ?? 1}
+                maxLength={typeof field.maxLength === 'number' ? field.maxLength : undefined}
                 error={!!formError[field.name]}
                 helperText={formError[field.name]}
               />
