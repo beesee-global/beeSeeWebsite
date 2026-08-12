@@ -3,24 +3,28 @@ import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import {
   Home,
   Box,
-  Lightbulb,
   ChevronDown, 
+  Menu,
   Tag, 
-  User2,
-  BookHeart
+  Users,
+  Settings2,
 } from "lucide-react";
-import GroupsIcon from '@mui/icons-material/Groups';
 import React, { 
   useEffect, 
   useState, 
   type ReactNode,
-  useCallback
+  useCallback,
+  useMemo,
 } from "react";
+import { userAuth } from "../../hooks/userAuth";
+import { hasModulePermission } from "../../utils/modulePermissions";
 
 interface ChildItem {
   name: string;
   path: string;
   icon?: ReactNode;
+  permissionParent: string;
+  permissionChild?: string;
 }
 
 interface MenuItem {
@@ -28,16 +32,24 @@ interface MenuItem {
   path?: string;
   icon?: ReactNode;
   children?: ChildItem[];
+  permissionParent: string;
+  permissionChild?: string;
 }
 
 interface SidebarProps {
   setShowSidebar?: React.Dispatch<React.SetStateAction<boolean>>;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  setShowSidebar,
+  isCollapsed = false,
+  onToggleCollapse,
+}) => {
   const location = useLocation();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const { userInfo } = userAuth();
 
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({
@@ -46,25 +58,36 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
     }));
   };
 
-  const validating = () => {
-    setMenuItems([
-      { name: "Dashboard", path: "/beesee/ecommerce/dashboard", icon: <Home size={20} /> },
-      { name: "Category", path: "/beesee/ecommerce/category", icon: <Tag size={20} /> },
-      { name: "Product", path: "/beesee/ecommerce/product", icon: <Box size={20} /> },
-     /*  { name: "Employee", path: "/beesee/employee", icon: <User2 size={20} /> },  */
+  const menuItems = useMemo<MenuItem[]>(() => {
+    const allItems: MenuItem[] = [
+      { name: "Dashboard", path: "/beesee/ecommerce/dashboard", icon: <Home size={20} />, permissionParent: "dashboard" },
+      { name: "Category", path: "/beesee/ecommerce/category", icon: <Tag size={20} />, permissionParent: "category" },
+      { name: "Product", path: "/beesee/ecommerce/product", icon: <Box size={20} />, permissionParent: "product" },
+      { name: "Team Members", path: "/beesee/ecommerce/team-members", icon: <Users size={20} />, permissionParent: "users", permissionChild: "list_user" },
+      { name: "Position", path: "/beesee/ecommerce/position", icon: <Settings2 size={20} />, permissionParent: "users", permissionChild: "position" },
       {
         name: "Home display",
         icon: <Home size={20} />,
+        permissionParent: "featured-product",
         children: [
-          { name: "Featured Products", path: "/beesee/ecommerce/feature-product", }, 
+          { name: "Featured Products", path: "/beesee/ecommerce/feature-product", permissionParent: "featured-product" },
         ],
-      }, 
-    ]);
-  };
+      },
+    ];
 
-  useEffect(() => {
-    validating();
-  }, []);
+    if (!userInfo) return allItems;
+
+    return allItems
+      .map((item) => {
+        if (!item.children) return item;
+        const children = item.children.filter((child) =>
+          hasModulePermission(userInfo, child.permissionParent, child.permissionChild || ""),
+        );
+        return children.length ? { ...item, children } : null;
+      })
+      .filter((item): item is MenuItem => Boolean(item))
+      .filter((item) => item.children || hasModulePermission(userInfo, item.permissionParent, item.permissionChild || ""));
+  }, [userInfo]);
 
   // 🔥 Automatically expand dropdown if a child route is active
   useEffect(() => {
@@ -88,15 +111,40 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
   }, [setShowSidebar]);
 
   const handleMenuToggle = useCallback((name: string) => {
-    // Toggle menu without closing sidebar
+    if (isCollapsed) {
+      onToggleCollapse?.();
+      setOpenMenus((prev) => ({ ...prev, [name]: true }));
+      return;
+    }
+
     toggleMenu(name);
-  }, []);
+  }, [isCollapsed, onToggleCollapse]);
 
   return (
-    <div className="p-4 min-h-screen bg-[#000000] border-r border-gray-700 overflow-y-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold text-yellow-400">Menu</h2>
+    <div
+      className={`ecommerce-sidebar min-h-screen overflow-y-auto border-r border-gray-700 bg-[#000000] p-4 transition-[width] duration-300 ${
+        isCollapsed ? "w-20" : "w-full min-w-64 min-[2560px]:min-w-[32rem]"
+      }`}
+    >
+      <div className={`mb-5 flex items-center ${isCollapsed ? "justify-center" : "justify-end"}`}>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="hidden rounded-lg p-2 text-yellow-400 transition-colors hover:bg-yellow-400/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 md:inline-flex"
+          title={isCollapsed ? "Show sidebar labels" : "Hide sidebar labels"}
+          aria-label={isCollapsed ? "Show sidebar labels" : "Hide sidebar labels"}
+        >
+          <Menu size={24} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowSidebar?.(false)}
+          className="ml-auto inline-flex rounded-lg p-2 text-yellow-400 transition-colors hover:bg-yellow-400/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 md:hidden"
+          aria-label="Close sidebar"
+        >
+          <Menu size={24} />
+        </button>
       </div>
 
       {/* Menu Items */}
@@ -115,30 +163,37 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                 <div>
                   <button
                     onClick={() => handleMenuToggle(item.name)}
-                    className={`flex items-center justify-between gap-3 px-3 py-3 w-full rounded-md transition-all duration-200 ${
+                    className={`flex w-full items-center px-3 py-3 transition-colors duration-200 ${
+                      isCollapsed ? "justify-center rounded-lg" : "justify-between gap-3 rounded-md"
+                    } ${
                       openMenus[item.name]
                         ? "bg-yellow-500/20 text-yellow-400"
                         : "hover:bg-yellow-400/10 text-white"
                     }`}
+                    title={isCollapsed ? item.name : undefined}
+                    aria-label={isCollapsed ? item.name : undefined}
                   >
-                    <div className="flex items-center gap-3 flex-1">
+                    <div className={`flex items-center ${isCollapsed ? "" : "gap-3 flex-1"}`}>
                       <span className="text-yellow-400">{item.icon}</span>
-                      <span className="font-semibold">{item.name}</span>
+                      {!isCollapsed && <span className="font-semibold">{item.name}</span>}
                     </div>
-                    <ChevronDown
-                      size={18}
-                      className={`transition-transform duration-300 text-yellow-400 flex-shrink-0 ${
-                        openMenus[item.name] ? "rotate-180" : ""
-                      }`}
-                    />
+                    {!isCollapsed && (
+                      <ChevronDown
+                        size={18}
+                        className={`flex-shrink-0 text-yellow-400 transition-transform duration-300 ${
+                          openMenus[item.name] ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
                   </button>
 
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      openMenus[item.name] ? "max-h-96" : "max-h-0"
-                    }`}
-                  >
-                    <ul className="ml-6 mt-1 space-y-1">
+                  {!isCollapsed && (
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        openMenus[item.name] ? "max-h-96" : "max-h-0"
+                      }`}
+                    >
+                      <ul className="ml-6 mt-1 space-y-1">
                       {item.children.map((child) => {
                         const childActive = location.pathname.startsWith(child.path);
                         return (
@@ -164,24 +219,29 @@ const Sidebar: React.FC<SidebarProps> = ({ setShowSidebar }) => {
                           </li>
                         );
                       })}
-                    </ul>
-                  </div>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ) : (
                 // Regular link
                 <NavLink
                   to={item.path || "#"}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200 active:scale-95 ${
+                  className={`flex min-w-0 items-center px-3 py-3 leading-5 transition-colors duration-200 active:scale-95 ${
+                    isCollapsed ? "justify-center rounded-lg" : "gap-3 rounded-md"
+                  } ${
                     isActive
                       ? "bg-yellow-600 text-white"
                       : "text-white hover:bg-yellow-400/10"
                   }`}
                   onClick={handleMenuItemClick}
+                  title={isCollapsed ? item.name : undefined}
+                  aria-label={isCollapsed ? item.name : undefined}
                 >
-                  <span className={`${isActive ? "text-white" : "text-yellow-400"} flex-shrink-0`}>
+                  <span className={`${isActive ? "text-white" : "text-yellow-400"} inline-flex h-5 w-5 shrink-0 items-center justify-center`}>
                     {item.icon}
                   </span>
-                  <span className="font-semibold">{item.name}</span>
+                  {!isCollapsed && <span className="min-w-0 whitespace-nowrap font-semibold">{item.name}</span>}
                 </NavLink>
               )}
             </li>
