@@ -543,7 +543,7 @@ const ProductDetail: React.FC = () => {
     let dragStartX = 0;
     let dragStartScrollLeft = 0;
     let isDragging = false;
-    let suppressClick = false;
+    let hasPointerCapture = false;
     let isAutoTransitioning = false;
     let pendingLoopReset = false;
     let autoTransitionTimer: number | null = null;
@@ -622,7 +622,9 @@ const ProductDetail: React.FC = () => {
     };
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
+      // Let touch devices use the browser's native horizontal scroll-snap
+      // gesture. Custom pointer capture is only needed for mouse dragging.
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
       if (isAutoTransitioning) {
         isAutoTransitioning = false;
         pendingLoopReset = false;
@@ -633,14 +635,21 @@ const ProductDetail: React.FC = () => {
       dragStartX = event.clientX;
       dragStartScrollLeft = carousel.scrollLeft;
       isDragging = false;
+      hasPointerCapture = false;
       pauseForManualScroll();
-      carousel.setPointerCapture?.(event.pointerId);
+      carousel.classList.add("is-dragging");
     };
 
     const handlePointerMove = (event: PointerEvent) => {
       if (dragPointerId !== event.pointerId) return;
       const distance = event.clientX - dragStartX;
-      if (Math.abs(distance) > 6) isDragging = true;
+      if (Math.abs(distance) > 6 && !isDragging) {
+        isDragging = true;
+        // Preserve a normal link click until a real drag is detected. Pointer
+        // capture before this point retargets the release away from the card.
+        carousel.setPointerCapture?.(event.pointerId);
+        hasPointerCapture = true;
+      }
       if (!isDragging) return;
 
       event.preventDefault();
@@ -649,18 +658,16 @@ const ProductDetail: React.FC = () => {
 
     const handlePointerUp = (event: PointerEvent) => {
       if (dragPointerId !== event.pointerId) return;
-      if (isDragging) suppressClick = true;
-      carousel.releasePointerCapture?.(event.pointerId);
+      if (hasPointerCapture) carousel.releasePointerCapture?.(event.pointerId);
+      carousel.classList.remove("is-dragging");
       dragPointerId = null;
       isDragging = false;
+      hasPointerCapture = false;
     };
 
-    const preventDraggedClick = (event: MouseEvent) => {
-      if (!suppressClick) return;
-      event.preventDefault();
-      event.stopPropagation();
-      suppressClick = false;
-    };
+    // Product cards are links. Prevent the browser's native anchor drag so
+    // pointer movement can consistently drive the carousel on desktop.
+    const preventNativeDrag = (event: DragEvent) => event.preventDefault();
 
     const finishAutoTransition = () => {
       if (autoTransitionTimer !== null) window.clearTimeout(autoTransitionTimer);
@@ -727,7 +734,7 @@ const ProductDetail: React.FC = () => {
     carousel.addEventListener("pointermove", handlePointerMove, { passive: false });
     carousel.addEventListener("pointerup", handlePointerUp);
     carousel.addEventListener("pointercancel", handlePointerUp);
-    carousel.addEventListener("click", preventDraggedClick, true);
+    carousel.addEventListener("dragstart", preventNativeDrag);
     carousel.addEventListener("scrollend", handleScrollEnd);
 
     return () => {
@@ -742,8 +749,9 @@ const ProductDetail: React.FC = () => {
       carousel.removeEventListener("pointermove", handlePointerMove);
       carousel.removeEventListener("pointerup", handlePointerUp);
       carousel.removeEventListener("pointercancel", handlePointerUp);
-      carousel.removeEventListener("click", preventDraggedClick, true);
+      carousel.removeEventListener("dragstart", preventNativeDrag);
       carousel.removeEventListener("scrollend", handleScrollEnd);
+      carousel.classList.remove("is-dragging");
       if (autoTransitionTimer !== null) window.clearTimeout(autoTransitionTimer);
     };
   }, [prefersReducedMotion, relatedProducts.length]);
@@ -1361,7 +1369,7 @@ const ProductDetail: React.FC = () => {
                     tabIndex={index < relatedProducts.length || index >= relatedProducts.length * 2 ? -1 : undefined}
                   >
                     <div className="recommended-product-image">
-                      <img src={related.gallery?.[0]} alt={related.name} loading="lazy" />
+                      <img src={related.gallery?.[0]} alt={related.name} loading="lazy" draggable={false} />
                     </div>
                     <div className="recommended-product-copy">
                       <span>{related.category}</span>

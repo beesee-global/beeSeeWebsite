@@ -1,4 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
+// @ts-ignore: Vite resolves the PDF.js worker URL at build time.
+import * as pdfjsLib from "pdfjs-dist";
+// @ts-ignore: Vite resolves the PDF.js worker URL at build time.
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 // @ts-ignore: No type declarations available for sortablejs
 import Sortable from "sortablejs";
 import { useParams } from "react-router-dom";
@@ -41,6 +45,8 @@ import { AlertColor } from '@mui/material/Alert';
 import { userAuth } from "../../../hooks/userAuth";
 import Product from "../../TechnicianPage/Product/Product";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
 interface FormProductData {
   product_name: string;
   tagline: string;
@@ -70,7 +76,7 @@ type GalleryItem =
   | null;                                    // empty slot
 
 type MediaPreviewModal = {
-  type: "brochure" | "specification";
+  type: "brochure" | "specification" | "gallery";
   url: string;
 } | null;
 
@@ -207,14 +213,89 @@ const getYouTubeEmbedUrl = (value?: string) => {
   }
 };
 
-const getPdfPreviewUrl = (value?: string) => {
-  if (!value) return "";
-  return `${value}${value.includes("#") ? "&" : "#"}zoom=55&view=FitH&scrollbar=0&toolbar=0&navpanes=0`;
-};
+const PdfPagePreview: React.FC<{ url: string; title: string; className?: string }> = ({
+  url,
+  title,
+  className = "",
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [previewError, setPreviewError] = useState(false);
 
-const getPdfModalPreviewUrl = (value?: string) => {
-  if (!value) return "";
-  return `${value}${value.includes("#") ? "&" : "#"}zoom=page-width&toolbar=0&navpanes=0`;
+  useEffect(() => {
+    let cancelled = false;
+    let pdfDocument: { getPage: (pageNumber: number) => Promise<any>; destroy: () => Promise<void> } | null = null;
+    let renderTask: { promise: Promise<void>; cancel: () => void } | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
+    const renderPage = async () => {
+      const canvas = canvasRef.current;
+      const container = canvas?.parentElement;
+      if (!canvas || !container) return;
+
+      try {
+        setPreviewError(false);
+        pdfDocument = await pdfjsLib.getDocument({ url }).promise;
+        if (cancelled) return;
+
+        const page = await pdfDocument.getPage(1);
+        if (cancelled) return;
+
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(container.clientWidth - 16, 1);
+        const availableHeight = Math.max(container.clientHeight - 16, 1);
+        const scale = Math.min(
+          availableWidth / baseViewport.width,
+          availableHeight / baseViewport.height,
+        );
+        const viewport = page.getViewport({ scale });
+        const devicePixelRatio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.ceil(viewport.width * devicePixelRatio);
+        canvas.height = Math.ceil(viewport.height * devicePixelRatio);
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas rendering is unavailable.");
+
+        context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+        renderTask = page.render({ canvasContext: context, viewport });
+        await renderTask.promise;
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to render product brochure preview:", error);
+          setPreviewError(true);
+        }
+      }
+    };
+
+    const scheduleRender = () => requestAnimationFrame(() => void renderPage());
+    scheduleRender();
+
+    if (canvasRef.current?.parentElement && "ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(scheduleRender);
+      resizeObserver.observe(canvasRef.current.parentElement);
+    }
+
+    return () => {
+      cancelled = true;
+      resizeObserver?.disconnect();
+      renderTask?.cancel();
+      void pdfDocument?.destroy();
+    };
+  }, [url]);
+
+  return (
+    <div className={`flex h-full w-full items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 ${className}`}>
+      {previewError ? (
+        <span className="px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          Preview unavailable
+        </span>
+      ) : (
+        <canvas ref={canvasRef} aria-label={title} className="block max-h-full max-w-full object-contain" />
+      )}
+    </div>
+  );
 };
 
 const ProductForm: React.FC = () => {
@@ -510,18 +591,6 @@ const ProductForm: React.FC = () => {
       />
     </div>
   );
-
-  const handleGalleryChange = (index: number, file: File | null) => {
-    if (file) {
-      if (!registerFileUpload("image")) return;
-      setPendingGalleryFiles([]);
-      setImageToEdit({ index, file });
-      return;
-    }
-    const newGallery = [...gallery];
-    newGallery[index] = null;
-    setGallery(newGallery);
-  };
 
   const applyEditedImage = (file: File) => {
     if (!imageToEdit) return;
@@ -979,7 +1048,9 @@ const ProductForm: React.FC = () => {
       setSnackBarType("success");
       setSnackBarMessage(id ? "Product updated successfully!" : "Product created successfully!");
       setSnackBarOpen(true);
-      navigate("/beesee/ecommerce/product");
+      if (!id) {
+        navigate("/beesee/ecommerce/product");
+      }
 
     } catch (error: any) {
       console.error("❌ Error uploading product:", error);
@@ -1263,6 +1334,7 @@ const ProductForm: React.FC = () => {
                     value={formProductData.category}
                     onChange={handleInputChange}
                     options={category}
+                    fontSize="16px"
                     error={!!formError.category}
                     helperText={formError.category}
                   />
@@ -1326,8 +1398,8 @@ const ProductForm: React.FC = () => {
                 onClick={handleAddImage}
                 className="mb-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#FCD000] px-5 py-3 text-base font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#e9c000]"
               >
-                <Plus className="mr-2 h-4 w-4 min-[4000px]:h-6 min-[4000px]:w-6" />
-                Add Image
+                <Upload className="mr-2 h-4 w-4 min-[4000px]:h-6 min-[4000px]:w-6" />
+                Upload Image
               </button>
 
               {formError.gallery && (
@@ -1352,34 +1424,21 @@ const ProductForm: React.FC = () => {
                       key={index}
                       className="relative group overflow-hidden rounded-xl border-2 border-dashed border-[#FCD000] transition-colors hover:border-[#D4A900] dark:border-[#B8860B] dark:hover:border-[#FCD000]"
                     >
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        id={`gallery-input-${index}`}
-                        className="hidden"
-                        onChange={(e) => {
-                          handleGalleryChange(index, e.target.files?.[0] || null);
-                          // Allow the same file to be selected again after cancelling an edit.
-                          e.currentTarget.value = "";
-                        }}
-                      />
-
-                      <label 
-                        htmlFor={`gallery-input-${index}`}
-                        className="aspect-[4/3] cursor-pointer w-full flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => setMediaPreviewModal({ type: "gallery", url: preview })}
+                        aria-label={`Open full product image preview ${index + 1}`}
+                        className="aspect-[4/3] cursor-zoom-in w-full flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       >
                         <img 
                           src={preview} 
                           alt={`Preview ${index + 1}`} 
                           className="object-contain w-full h-full"
                         />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="text-white text-center">
-                            <Upload className="w-6 md:w-8 h-6 md:h-8 mx-auto mb-2" />
-                            <p className="text-xs md:text-sm font-medium">Click to upload</p>
-                          </div>
-                        </div>
-                      </label>
+                        <span className="pointer-events-none absolute left-2 top-2 z-20 rounded-md bg-black/65 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow transition-opacity group-hover:opacity-100">
+                          Open full preview
+                        </span>
+                      </button>
  
                       <button
                         type="button"
@@ -1550,17 +1609,9 @@ const ProductForm: React.FC = () => {
               <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-stretch">
                 {brochurePreviewUrl || existingBrochureUrl ? (
                   <div className="group relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                    <iframe
-                      src={getPdfPreviewUrl(brochurePreviewUrl || existingBrochureUrl)}
+                    <PdfPagePreview
+                      url={brochurePreviewUrl || existingBrochureUrl}
                       title="Product brochure preview"
-                      scrolling="no"
-                      className="h-full w-full max-w-none overflow-hidden"
-                      style={{
-                        width: "calc(100% + 24px)",
-                        height: "calc(100% + 24px)",
-                        marginRight: "-24px",
-                        marginBottom: "-24px",
-                      }}
                     />
                     <button
                       type="button"
@@ -2185,7 +2236,11 @@ const ProductForm: React.FC = () => {
             >
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700 md:px-6">
                 <h2 id="product-media-preview-title" className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {mediaPreviewModal.type === "brochure" ? "Product brochure preview" : "Specification image preview"}
+                  {mediaPreviewModal.type === "brochure"
+                    ? "Product brochure preview"
+                    : mediaPreviewModal.type === "gallery"
+                      ? "Product image preview"
+                      : "Specification image preview"}
                 </h2>
                 <button
                   type="button"
@@ -2196,17 +2251,19 @@ const ProductForm: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="min-h-0 flex-1 overflow-auto bg-gray-100 p-1.5 dark:bg-gray-950 sm:p-3 md:overflow-visible md:p-5">
+              <div className="min-h-0 flex-1 overflow-hidden bg-gray-100 p-1.5 dark:bg-gray-950 sm:p-3 md:p-5">
                 {mediaPreviewModal.type === "brochure" ? (
-                  <iframe
-                    src={getPdfModalPreviewUrl(mediaPreviewModal.url)}
+                  <PdfPagePreview
+                    url={mediaPreviewModal.url}
                     title="Full product brochure preview"
-                    className="h-[58dvh] w-full origin-top scale-[1.35] rounded-lg bg-white sm:h-[80dvh] sm:scale-100 md:h-[75vh]"
+                    className="h-[75dvh] max-h-[75vh] rounded-lg bg-white"
                   />
                 ) : (
                   <img
                     src={mediaPreviewModal.url}
-                    alt="Full product specification highlight preview"
+                    alt={mediaPreviewModal.type === "gallery"
+                      ? "Full product image preview"
+                      : "Full product specification highlight preview"}
                     className="mx-auto max-h-[75vh] max-w-full rounded-lg object-contain"
                   />
                 )}
