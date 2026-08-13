@@ -2415,6 +2415,18 @@
   color: #fff;
 }
 
+.product-detail-page .product-brochure-link {
+  background: var(--beesee-gold);
+  border-color: var(--beesee-gold);
+  color: #171300;
+}
+
+.product-detail-page .product-brochure-link:hover {
+  background: #e8b400;
+  border-color: #e8b400;
+  color: #171300;
+}
+
 @media (max-width: 800px) {
   .product-detail-page .top-nav {
     padding: 10px 0;

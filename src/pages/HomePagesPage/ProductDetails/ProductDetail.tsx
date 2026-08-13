@@ -138,13 +138,21 @@ const normalizeHoverSpecs = (value: unknown): DemoProduct["hoverSpecs"] => {
     }
   }
 
-  if (!Array.isArray(parsed)) return undefined;
-  return parsed
-    .map((item: any) => ({
-      key: String(item?.key || item?.key_name || "").trim(),
-      value: String(item?.value ?? item?.spec_value ?? "").trim(),
-      icon: item?.icon ? String(item.icon) : undefined,
-    }))
+  const normalized = Array.isArray(parsed)
+    ? parsed.map((item: any) => ({
+        key: String(item?.key || item?.key_name || "").trim(),
+        value: String(item?.value ?? item?.spec_value ?? "").trim(),
+        icon: item?.icon ? String(item.icon) : undefined,
+      }))
+    : parsed && typeof parsed === "object"
+      ? Object.entries(parsed as Record<string, unknown>).map(([key, item]: [string, any]) => ({
+          key: key.trim(),
+          value: String(item?.value ?? item?.spec_value ?? item ?? "").trim(),
+          icon: item && typeof item === "object" && item.icon ? String(item.icon) : undefined,
+        }))
+      : [];
+
+  return normalized
     .filter((item) => item.key && item.value);
 };
 
