@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 
 interface CustomTextFieldProps {
@@ -16,6 +16,8 @@ interface CustomTextFieldProps {
   helperText?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+  autoExpandOnFocus?: boolean;
+  compactRows?: number;
 }
 
 const CustomTextField: React.FC<CustomTextFieldProps> = ({
@@ -33,7 +35,43 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   helperText = "",
   onKeyDown,
   onPaste,
+  autoExpandOnFocus = false,
+  compactRows,
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const baseRows = compactRows ?? rows;
+
+  const resizeTextarea = () => {
+    const textarea = textareaRef.current;
+    if (!textarea || !autoExpandOnFocus || !multiline) return;
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+    textarea.style.overflowY = 'hidden';
+  };
+
+  useEffect(() => {
+    if (isFocused) resizeTextarea();
+  }, [value, isFocused]);
+
+  useEffect(() => {
+    if (!isFocused || !autoExpandOnFocus || !multiline || !window.visualViewport) return;
+
+    const viewport = window.visualViewport;
+    const initialHeight = viewport.height;
+    const handleViewportResize = () => {
+      if (viewport.height > initialHeight + 80 && textareaRef.current) {
+        textareaRef.current.style.height = '';
+        textareaRef.current.style.overflowY = '';
+        setIsFocused(false);
+      }
+    };
+
+    viewport.addEventListener('resize', handleViewportResize);
+    return () => viewport.removeEventListener('resize', handleViewportResize);
+  }, [isFocused, autoExpandOnFocus, multiline]);
+
   const textFieldSx = {
     backgroundColor: '#ffffff',
     borderRadius: '6px',
@@ -53,6 +91,8 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
       marginRight: '-10px',
       marginBottom: '15px',
       paddingRight: multiline && rows > 1 ? '30px' : '14px',
+      overflowX: 'hidden',
+      resize: 'none',
     },
   };
 
@@ -110,11 +150,23 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
         type={type}
         size="small"
         disabled={disabled}
-        rows={rows}
+        rows={baseRows}
         multiline={multiline}
         sx={textFieldSx}
         value={value}
         onChange={handleChange}
+        onFocus={() => {
+          setIsFocused(true);
+          requestAnimationFrame(resizeTextarea);
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+          if (textareaRef.current) {
+            textareaRef.current.style.height = '';
+            textareaRef.current.style.overflowY = '';
+          }
+        }}
+        inputRef={multiline ? textareaRef : undefined}
         inputProps={{ 
           maxLength,
           onKeyDown,

@@ -123,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div
       className={`ecommerce-sidebar min-h-screen overflow-y-auto border-r border-gray-700 bg-[#000000] p-4 transition-[width] duration-300 ${
-        isCollapsed ? "w-20" : "w-full min-w-64 min-[2560px]:min-w-[32rem]"
+        isCollapsed ? "w-20" : "w-full min-w-64"
       }`}
     >
       <div className={`mb-5 flex items-center ${isCollapsed ? "justify-center" : "justify-end"}`}>

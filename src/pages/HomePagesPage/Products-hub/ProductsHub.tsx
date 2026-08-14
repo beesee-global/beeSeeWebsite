@@ -519,8 +519,8 @@ const ProductsHub: React.FC = () => {
       <HeroProducts />
 
       {/* MAIN SECTION */}
-      <section className="py-16 px-4 md:px-8 lg:px-16 bg-[#000000]">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-[#000000] px-4 py-16 md:px-8 lg:px-16">
+        <div className="mx-auto w-full max-w-[1440px]">
           {isMobile ? (
             // MOBILE VERSION - No animations
             <div>

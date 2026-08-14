@@ -19,7 +19,9 @@ import {
   FileText,
   Settings,
   DollarSign,
-  GripVertical
+  GripVertical,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CustomTextField from "../../../components/Fields/CustomTextField";
@@ -67,6 +69,7 @@ interface FormError {
   video?: string;
   brochure?: string;
   specsHighlight?: string;
+  quickHighlights?: string;
   specs?: string;
 }
 
@@ -219,6 +222,7 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
   className = "",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const renderQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [previewError, setPreviewError] = useState(false);
 
   useEffect(() => {
@@ -226,6 +230,7 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
     let pdfDocument: { getPage: (pageNumber: number) => Promise<any>; destroy: () => Promise<void> } | null = null;
     let renderTask: { promise: Promise<void>; cancel: () => void } | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    let animationFrame: number | null = null;
 
     const renderPage = async () => {
       const canvas = canvasRef.current;
@@ -262,14 +267,33 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
         renderTask = page.render({ canvasContext: context, viewport });
         await renderTask.promise;
       } catch (error) {
-        if (!cancelled) {
+        const isCancellation = error instanceof Error && (
+          error.name === "RenderingCancelledException" ||
+          error.name === "AbortException"
+        );
+
+        if (!cancelled && !isCancellation) {
           console.error("Failed to render product brochure preview:", error);
           setPreviewError(true);
         }
       }
     };
 
-    const scheduleRender = () => requestAnimationFrame(() => void renderPage());
+    const scheduleRender = () => {
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+
+      animationFrame = requestAnimationFrame(() => {
+        animationFrame = null;
+        const queuedRender = renderQueueRef.current
+          .catch(() => undefined)
+          .then(() => {
+            if (!cancelled) return renderPage();
+          });
+
+        renderQueueRef.current = queuedRender.then(() => undefined);
+      });
+    };
+
     scheduleRender();
 
     if (canvasRef.current?.parentElement && "ResizeObserver" in window) {
@@ -279,6 +303,7 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
 
     return () => {
       cancelled = true;
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
       resizeObserver?.disconnect();
       renderTask?.cancel();
       void pdfDocument?.destroy();
@@ -338,7 +363,7 @@ const ProductForm: React.FC = () => {
     const updated = [...hoverSpecs];
     updated[index][field] = value;
     setHoverSpecs(updated);
-    setFormError((prev) => ({ ...prev, specs: undefined }));
+    setFormError((prev) => ({ ...prev, quickHighlights: undefined }));
   };
 
   // FlyonUI's drag-and-drop examples use SortableJS. Force its fallback mode so
@@ -367,7 +392,7 @@ const ProductForm: React.FC = () => {
           reordered.splice(newIndex, 0, movedHighlight);
           return reordered;
         });
-        setFormError((previous) => ({ ...previous, specs: undefined }));
+        setFormError((previous) => ({ ...previous, quickHighlights: undefined }));
       },
     });
 
@@ -391,6 +416,7 @@ const ProductForm: React.FC = () => {
 
   // --- Form Error ---
   const [formError, setFormError] = useState<FormError>({})
+  const [expandedSummarySections, setExpandedSummarySections] = useState<Record<string, boolean>>({});
 
   // --- Gallery Logic --- 
   const [gallery, setGallery] = useState<GalleryItem[]>([])
@@ -402,6 +428,7 @@ const ProductForm: React.FC = () => {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState("");
   const [videoSource, setVideoSource] = useState<"upload" | "youtube">("upload");
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const productVideoInputRef = useRef<HTMLInputElement>(null);
   const [isRemovingExistingVideo, setIsRemovingExistingVideo] = useState(false);
   const [productBrochure, setProductBrochure] = useState<File | null>(null);
   const [existingBrochureUrl, setExistingBrochureUrl] = useState("");
@@ -775,7 +802,7 @@ const ProductForm: React.FC = () => {
     }
 
     if (hoverSpecs.length !== QUICK_HIGHLIGHT_FIELDS.length) {
-      errors.specs = "Please complete all four quick product highlights.";
+      errors.quickHighlights = "Please complete all four quick product highlights.";
     }
 
     // Validate the four customer-facing product highlights.
@@ -784,7 +811,7 @@ const ProductForm: React.FC = () => {
       const k = String(hs.specs_key || "").trim();
       const v = String(hs.specs_value || "").trim();
       if (!k || !v) {
-        errors.specs = `Quick highlight ${h + 1} needs both a title and a value.`;
+        errors.quickHighlights = `Quick highlight ${h + 1} needs both a title and a value.`;
         break;
       }
     }
@@ -1209,6 +1236,16 @@ const ProductForm: React.FC = () => {
       );
     });
 
+  const isQuickHighlightError = (message?: string) =>
+    message?.startsWith("Quick highlight") ||
+    message === "Please complete all four quick product highlights.";
+  const quickHighlightError = isQuickHighlightError(formError.specs)
+    ? formError.specs
+    : formError.quickHighlights;
+  const specificationError = isQuickHighlightError(formError.specs)
+    ? undefined
+    : formError.specs;
+
   const calculateCompletion = () => {
     let completed = 0;
     const total = 8; // Includes the required four quick product highlights
@@ -1224,10 +1261,102 @@ const ProductForm: React.FC = () => {
 
     return Math.round((completed / total) * 100);
   };
+
+  const basicInformationComplete = Boolean(
+    formProductData.product_name.trim() &&
+    formProductData.tagline.trim() &&
+    formProductData.description.trim() &&
+    formProductData.category
+  );
+  const basicInformationErrors = [
+    !formProductData.product_name.trim() && "Product name: no text or value.",
+    !formProductData.tagline.trim() && "Tagline: no text or value.",
+    !formProductData.description.trim() && "Description: no text or value.",
+    !formProductData.category && "Category: no value selected.",
+  ].filter(Boolean) as string[];
+  const uniqueSummaryErrors = (errors: Array<string | false | undefined>) =>
+    [...new Set(errors.filter(Boolean) as string[])];
+  const mediaErrors = uniqueSummaryErrors([
+    gallery.filter((item) => item !== null).length === 0 && "Images: upload at least one image.",
+    formError.gallery,
+    formError.video,
+    formError.brochure,
+    formError.specsHighlight,
+  ]);
+  const quickHighlightErrors = uniqueSummaryErrors([
+    ...hoverSpecs.flatMap((highlight, index) => {
+      const errors: string[] = [];
+      if (!highlight.specs_key.trim()) errors.push(`Highlight ${index + 1}: title is required.`);
+      if (!highlight.specs_value.trim()) errors.push(`Highlight ${index + 1}: value is required.`);
+      return errors;
+    }),
+    quickHighlightError,
+  ]);
+  const specificationSummaryErrors = uniqueSummaryErrors([
+    specs.length === 0 && "Specifications: add at least one category.",
+    ...specs.flatMap((category, categoryIndex) => {
+      const errors: string[] = [];
+      const categoryTitle = String(category.title || "").trim();
+      if (!categoryTitle) errors.push(`Category ${categoryIndex + 1}: title is required.`);
+      if (!Array.isArray(category.fields) || category.fields.length === 0) {
+        errors.push(`Category ${categoryIndex + 1}: add at least one field.`);
+      }
+      category.fields?.forEach((field, fieldIndex) => {
+        const key = String(field.specs_key || "").trim();
+        const value = String(field.specs_value || "").trim();
+        if (!key && !value) return;
+        if (!key || !value) errors.push(`Category ${categoryIndex + 1}, field ${fieldIndex + 1}: key and value are both required.`);
+      });
+      return errors;
+    }),
+    specificationError,
+  ]);
+  const renderSummarySection = (
+    title: string,
+    summary: string,
+    complete: boolean,
+    errors: string[],
+    sectionKey: string
+  ) => {
+    const hasErrors = errors.length > 0;
+    const isExpanded = expandedSummarySections[sectionKey] ?? false;
+
+    return (
+      <div className="border-b border-gray-200 pb-3 last:border-b-0 dark:border-gray-700">
+        <div className="mb-1 flex items-center gap-2">
+          <div className={`h-2 w-2 shrink-0 rounded-full ${hasErrors || !complete ? "bg-red-500" : "bg-green-500"}`} />
+          <span className="min-w-0 flex-1 text-sm font-bold text-gray-600 dark:text-gray-400">{title}</span>
+          {hasErrors && (
+            <button
+              type="button"
+              onClick={() => setExpandedSummarySections((previous) => ({ ...previous, [sectionKey]: !isExpanded }))}
+              className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              aria-expanded={isExpanded}
+              aria-label={`${isExpanded ? "Hide" : "Show"} ${title} issues`}
+            >
+              {errors.length} issue{errors.length !== 1 ? "s" : ""}
+              {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
+        {hasErrors ? (
+          isExpanded ? (
+            <div className="ml-4 mt-2 space-y-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+              {errors.map((error) => <p key={error}>{error}</p>)}
+            </div>
+          ) : (
+            <span className="block pl-4 text-sm text-red-600 dark:text-red-400">Needs attention</span>
+          )
+        ) : (
+          <span className="block pl-4 text-sm text-gray-900 dark:text-white">{summary}</span>
+        )}
+      </div>
+    );
+  };
  
   return (
     <div className="ecommerce-product-form min-h-screen bg-gray-50 dark:bg-gray-900 py-4 md:py-8">
-      <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Notification */} 
         <Snackbar 
           open={snackBarOpen}
@@ -1248,9 +1377,9 @@ const ProductForm: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* Left Column - Basic Info */}
-          <div className="lg:col-span-2 space-y-4 md:space-y-8">
+          <div className="space-y-4 md:space-y-8">
             {/* Basic Information */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
@@ -1298,6 +1427,8 @@ const ProductForm: React.FC = () => {
                     rows={2}
                     type="text"
                     maxLength={200} 
+                    autoExpandOnFocus
+                    compactRows={1}
                     onChange={handleInputChange}  
                     error={!!formError.tagline}
                     helperText={formError.tagline}
@@ -1317,6 +1448,8 @@ const ProductForm: React.FC = () => {
                     rows={3}
                     type="text"
                     maxLength={500} 
+                    autoExpandOnFocus
+                    compactRows={1}
                     onChange={handleInputChange}  
                     error={!!formError.description}
                     helperText={formError.description}
@@ -1398,7 +1531,7 @@ const ProductForm: React.FC = () => {
                 onClick={handleAddImage}
                 className="mb-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#FCD000] px-5 py-3 text-base font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#e9c000]"
               >
-                <Upload className="mr-2 h-4 w-4 min-[4000px]:h-6 min-[4000px]:w-6" />
+                <Upload className="mr-2 h-4 w-4" />
                 Upload Image
               </button>
 
@@ -1473,25 +1606,37 @@ const ProductForm: React.FC = () => {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <label
-                  onClick={() => setVideoSource("upload")}
-                  className="inline-flex min-h-14 w-fit max-w-full cursor-pointer items-center gap-3 rounded-lg bg-[#FCD000] px-6 py-4 text-base font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#e9c000]"
-                >
-                  <input
-                    type="file"
-                    accept="video/mp4,video/webm,video/quicktime"
-                    className="hidden"
-                    onChange={(event) => {
+                <input
+                  ref={productVideoInputRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  className="hidden"
+                  onChange={(event) => {
+                    setVideoSource("upload");
+                    handleVideoChange(event.target.files?.[0] || null);
+                    event.currentTarget.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (videoSource === "youtube") {
                       setVideoSource("upload");
-                      handleVideoChange(event.target.files?.[0] || null);
-                      event.currentTarget.value = "";
-                    }}
-                  />
+                      return;
+                    }
+
+                    productVideoInputRef.current?.click();
+                  }}
+                  className={`inline-flex min-h-14 w-fit max-w-full cursor-pointer items-center gap-3 rounded-lg px-6 py-4 text-base font-semibold shadow-sm transition-colors ${videoSource === "upload"
+                    ? "bg-[#FCD000] text-gray-950 hover:bg-[#e9c000]"
+                    : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    }`}
+                >
                   <span className="inline-flex items-center gap-2">
-                    <Upload className="h-5 w-5 min-[4000px]:h-6 min-[4000px]:w-6" />
-                    <span>{productVideo ? productVideo.name : "Choose product video"}</span>
+                    <Upload className="h-5 w-5" />
+                    <span>{productVideo ? productVideo.name : "Upload product video"}</span>
                   </span>
-                </label>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -1601,8 +1746,8 @@ const ProductForm: React.FC = () => {
                   }}
                 />
                 <span className="inline-flex min-w-0 items-center gap-2">
-                  <FileText className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{productBrochure ? productBrochure.name : "Choose product brochure"}</span>
+               <Upload className="h-5 w-5" />
+                  <span className="truncate">{productBrochure ? productBrochure.name : "Upload product brochure"}</span>
                 </span>
               </label>
 
@@ -1686,8 +1831,8 @@ const ProductForm: React.FC = () => {
                   }}
                 />
                 <span className="inline-flex min-w-0 items-center gap-2">
-                  <ImageIcon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{productSpecsHighlight ? productSpecsHighlight.name : "Choose specification image"}</span>
+                   <Upload className="h-5 w-5" />
+                  <span className="truncate">{productSpecsHighlight ? productSpecsHighlight.name : "Upload specification image"}</span>
                 </span>
               </label>
 
@@ -1753,6 +1898,12 @@ const ProductForm: React.FC = () => {
                 </div>
                 {renderVisibilityToggle("quickProductHighlight", quickProductHighlightEnabled, "Show quick product highlights on the public product page")}
               </div>
+
+              {quickHighlightError && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                  <p className="text-sm text-red-600 dark:text-red-400">{quickHighlightError}</p>
+                </div>
+              )}
 
               <div ref={quickHighlightsRef} className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {hoverSpecs.map((h, idx) => (
@@ -1888,9 +2039,9 @@ const ProductForm: React.FC = () => {
                 Add Category
               </button>
 
-              {formError.specs && (
+              {specificationError && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-red-600 dark:text-red-400 text-sm">{formError.specs}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{specificationError}</p>
                 </div>
               )}
 
@@ -1992,7 +2143,7 @@ const ProductForm: React.FC = () => {
           </div>
 
           {/* Right Column - Summary (Desktop) */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-8">
               <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Form Summary</h3>
               
@@ -2011,120 +2162,41 @@ const ProductForm: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Product Name</span>
-                    {formProductData.product_name ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white break-words">
-                    {formProductData.product_name || 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Tagline</span>
-                    {formProductData.tagline ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span
-                    className="block min-w-0 truncate text-sm text-gray-900 dark:text-white"
-                    title={formProductData.tagline || 'Not specified'}
-                  >
-                    {formProductData.tagline || 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Description</span>
-                    {formProductData.description ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span
-                    className="block min-w-0 truncate text-sm text-gray-900 dark:text-white"
-                    title={formProductData.description || 'Not specified'}
-                  >
-                    {formProductData.description || 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Category</span>
-                    {formProductData.category ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white">
-                    {selectedCategoryLabel}
-                  </span>
-                </div>
-
-                {/* Quantity summary temporarily hidden. Keep this block for future reactivation.
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Quantity</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formProductData.quantity}
-                  </span>
-                </div>
-                */}
-
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Images</span>
-                    {gallery.filter(f => f !== null).length > 0 ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white">
-                    {gallery.filter(f => f !== null).length} uploaded
-                  </span>
-                </div>
-
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Hover Specs</span>
-                    {hasCompleteHoverSpecs ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white">
-                    {hoverSpecs.length} spec{hoverSpecs.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-
-                <div className="pb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Spec Categories</span>
-                    {hasCompleteDetailedSpecs ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white">
-                    {specs.length} categor{specs.length !== 1 ? 'ies' : 'y'}
-                  </span>
-                </div>
+                {renderSummarySection(
+                  "Basic Information",
+                  `${formProductData.product_name ? "Product name added" : "No basic information added"}`,
+                  basicInformationComplete,
+                  basicInformationErrors,
+                  "basic-information"
+                )}
+                {renderSummarySection(
+                  "Product Gallery",
+                  `${gallery.filter((item) => item !== null).length} image${gallery.filter((item) => item !== null).length !== 1 ? "s" : ""} uploaded`,
+                  gallery.filter((item) => item !== null).length > 0,
+                  mediaErrors,
+                  "media"
+                )}
+                {renderSummarySection(
+                  "Details",
+                  formProductData.details.trim() ? "Details added" : "No details added",
+                  true,
+                  [],
+                  "details"
+                )}
+                {renderSummarySection(
+                  "Quick Product Highlights",
+                  `${hoverSpecs.length} highlight${hoverSpecs.length !== 1 ? "s" : ""} added`,
+                  hasCompleteHoverSpecs,
+                  quickHighlightErrors,
+                  "quick-highlights"
+                )}
+                {renderSummarySection(
+                  "Specifications",
+                  `${specs.length} categor${specs.length !== 1 ? "ies" : "y"} added`,
+                  hasCompleteDetailedSpecs,
+                  specificationSummaryErrors,
+                  "specifications"
+                )}
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -2162,7 +2234,7 @@ const ProductForm: React.FC = () => {
                     <span>{id ? "Updating..." : "Creating..."}</span>
                   ) : (
                     <>
-                      <Save className="mr-2 h-[18px] w-[18px] min-[4000px]:h-6 min-[4000px]:w-6" />
+                      <Save className="mr-2 h-[18px] w-[18px]" />
                       <span>{id ? "Update Product" : "Create Product"}</span>
                     </>
                   )}
@@ -2183,21 +2255,25 @@ const ProductForm: React.FC = () => {
                 style={{ width: `${calculateCompletion()}%` }}
               ></div>
             </div>
-            <div className="mt-2 grid grid-cols-4 gap-2 text-xs text-center">
+            <div className="mt-2 grid grid-cols-5 gap-2 text-center text-xs">
               <div>
-                <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${formProductData.product_name ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span className="text-gray-600 dark:text-gray-400">Name</span>
+                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${basicInformationComplete ? "bg-green-500" : "bg-red-500"}`}></div>
+                <span className="text-gray-600 dark:text-gray-400">Basic</span>
               </div>
               <div>
-                <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${formProductData.category ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span className="text-gray-600 dark:text-gray-400">Category</span>
+                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${gallery.filter((item) => item !== null).length > 0 ? "bg-green-500" : "bg-red-500"}`}></div>
+                <span className="text-gray-600 dark:text-gray-400">Gallery</span>
               </div>
               <div>
-                <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${gallery.filter(f => f !== null).length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span className="text-gray-600 dark:text-gray-400">Images</span>
+                <div className="mx-auto mb-1 h-2 w-2 rounded-full bg-green-500"></div>
+                <span className="text-gray-600 dark:text-gray-400">Details</span>
               </div>
               <div>
-                <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${hasCompleteDetailedSpecs ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${hasCompleteHoverSpecs ? "bg-green-500" : "bg-red-500"}`}></div>
+                <span className="text-gray-600 dark:text-gray-400">Highlights</span>
+              </div>
+              <div>
+                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${hasCompleteDetailedSpecs ? "bg-green-500" : "bg-red-500"}`}></div>
                 <span className="text-gray-600 dark:text-gray-400">Specs</span>
               </div>
             </div>
@@ -2231,7 +2307,7 @@ const ProductForm: React.FC = () => {
             onClick={() => setMediaPreviewModal(null)}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900"
+              className="flex h-[90vh] max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700 md:px-6">
@@ -2256,7 +2332,7 @@ const ProductForm: React.FC = () => {
                   <PdfPagePreview
                     url={mediaPreviewModal.url}
                     title="Full product brochure preview"
-                    className="h-[75dvh] max-h-[75vh] rounded-lg bg-white"
+                    className="h-full min-h-0 rounded-lg bg-white"
                   />
                 ) : (
                   <img

@@ -18,7 +18,7 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
             </div>
 
             {/* MAIN CONTENT */}
-            <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-10 text-center text-white">
+            <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 text-center text-white sm:px-8 lg:px-10">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="flex flex-col items-center">
                     {/* LOGO */}
                     <motion.img
@@ -38,7 +38,7 @@ const Hero: React.FC<HeroProps> = ({ scrollYProgress }) => {
                         style={{
                             fontFamily: "'Bebas Neue', sans-serif",
                         }}
-                        className="font-normal leading-[0.9] text-center text-[#FDCC00] tracking-[0.08em] whitespace-nowrap text-[46px] sm:text-[64px] md:text-[84px] lg:text-[104px] max-sm:whitespace-normal max-sm:flex max-sm:flex-col max-sm:space-y-1"
+                        className="font-normal leading-[0.9] text-center text-[#FDCC00] tracking-[0.08em] whitespace-normal text-[clamp(4rem,7vw,6.5rem)] xl:whitespace-nowrap max-sm:flex max-sm:flex-col max-sm:space-y-1"
                     >
                         <span className="max-sm:text-[44px] max-sm:leading-[0.95]">INNOVATION</span> <span className="max-sm:text-[36px] max-sm:leading-[0.95]">BEGINS WITH US</span>
                     </motion.h1>
