@@ -59,7 +59,7 @@ export const fetchSpecificProduct = async (id: number | string) => {
     }
 }
 
-// put update product 
+// put
 export const updateProduct = async (payload: {id: number | string, productData: FormData}) => {
     try {
         const { id, productData } = payload;
@@ -79,6 +79,16 @@ export const deleteProductVideo = async (id: number | string) => {
 
 export const deleteProductBrochure = async (id: number | string) => {
     const response = await axiosClient.delete(`${API_URL}/${id}/brochure`);
+    return response.data;
+};
+
+export const deleteProductBrochureItem = async (productId: number | string, brochureId: number | string) => {
+    const response = await axiosClient.delete(`${API_URL}/${productId}/brochures/${brochureId}`);
+    return response.data;
+};
+
+export const fetchPublicProductBrochures = async (pid: string) => {
+    const response = await axiosClient.get(`${API_URL}/${encodeURIComponent(pid)}/brochures`);
     return response.data;
 };
 

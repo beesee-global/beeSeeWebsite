@@ -1,8 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-// @ts-ignore: Vite resolves the PDF.js worker URL at build time.
-import * as pdfjsLib from "pdfjs-dist";
-// @ts-ignore: Vite resolves the PDF.js worker URL at build time.
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 // @ts-ignore: No type declarations available for sortablejs
 import Sortable from "sortablejs";
 import { useParams } from "react-router-dom";
@@ -29,6 +25,8 @@ import CustomSelectField from "../../../components/Fields/CustomSelectField";
 import RichTextEditor from "../../../components/Fields/RichTextEditor";
 import ImageCropAdjustDialog from "../../../components/Fields/ImageCropAdjustDialog";
 import CustomIconPicker from "../../../components/Fields/CustomIconPicker";
+import PdfPagePreview from "../../../components/Fields/PdfPagePreview";
+import AlertDialog from "../../../components/feedback/AlertDialog";
 import { LucideIcon } from "../../../utils/lucideIconLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -38,16 +36,16 @@ import {
   updateProduct,
   deleteProductVideo,
   deleteProductBrochure,
+  deleteProductBrochureItem,
   deleteProductSpecsHighlight,
   updateProductVisibility,
 } from '../../../services/Ecommerce/productServices'
+import { createCategory } from '../../../services/Ecommerce/categoryServices';
 import Snackbar from '../../../components/feedback/Snackbar'; 
 import { Switch } from '@mui/material';
 import { AlertColor } from '@mui/material/Alert';
 import { userAuth } from "../../../hooks/userAuth";
 import Product from "../../TechnicianPage/Product/Product";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 interface FormProductData {
   product_name: string;
@@ -73,10 +71,36 @@ interface FormError {
   specs?: string;
 }
 
+type SummaryIssue = {
+  message: string;
+  targetId: string;
+  focusId?: string;
+  animationTargetId?: string;
+};
+
 type GalleryItem = 
   | { image_id: number; image_url: string }  // existing DB image
   | File                                     // new uploaded image
   | null;                                    // empty slot
+
+type BrochureRecord = {
+  id: number | null;
+  brochure_url: string;
+  original_filename: string;
+  display_order?: number;
+  legacy?: boolean;
+};
+
+type PendingDelete =
+  | { type: "gallery"; index: number; message: string }
+  | { type: "video-new"; message: string }
+  | { type: "video-existing"; message: string }
+  | { type: "brochure-existing"; brochure: BrochureRecord; message: string }
+  | { type: "brochure-new"; index: number; message: string }
+  | { type: "spec-highlight-new"; message: string }
+  | { type: "spec-highlight-existing"; message: string }
+  | { type: "spec-category"; catIndex: number; message: string }
+  | { type: "spec-field"; catIndex: number; fieldIndex: number; message: string };
 
 type MediaPreviewModal = {
   type: "brochure" | "specification" | "gallery";
@@ -216,113 +240,6 @@ const getYouTubeEmbedUrl = (value?: string) => {
   }
 };
 
-const PdfPagePreview: React.FC<{ url: string; title: string; className?: string }> = ({
-  url,
-  title,
-  className = "",
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const renderQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const [previewError, setPreviewError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    let pdfDocument: { getPage: (pageNumber: number) => Promise<any>; destroy: () => Promise<void> } | null = null;
-    let renderTask: { promise: Promise<void>; cancel: () => void } | null = null;
-    let resizeObserver: ResizeObserver | null = null;
-    let animationFrame: number | null = null;
-
-    const renderPage = async () => {
-      const canvas = canvasRef.current;
-      const container = canvas?.parentElement;
-      if (!canvas || !container) return;
-
-      try {
-        setPreviewError(false);
-        pdfDocument = await pdfjsLib.getDocument({ url }).promise;
-        if (cancelled) return;
-
-        const page = await pdfDocument.getPage(1);
-        if (cancelled) return;
-
-        const baseViewport = page.getViewport({ scale: 1 });
-        const availableWidth = Math.max(container.clientWidth - 16, 1);
-        const availableHeight = Math.max(container.clientHeight - 16, 1);
-        const scale = Math.min(
-          availableWidth / baseViewport.width,
-          availableHeight / baseViewport.height,
-        );
-        const viewport = page.getViewport({ scale });
-        const devicePixelRatio = window.devicePixelRatio || 1;
-
-        canvas.width = Math.ceil(viewport.width * devicePixelRatio);
-        canvas.height = Math.ceil(viewport.height * devicePixelRatio);
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
-
-        const context = canvas.getContext("2d");
-        if (!context) throw new Error("Canvas rendering is unavailable.");
-
-        context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-        renderTask = page.render({ canvasContext: context, viewport });
-        await renderTask.promise;
-      } catch (error) {
-        const isCancellation = error instanceof Error && (
-          error.name === "RenderingCancelledException" ||
-          error.name === "AbortException"
-        );
-
-        if (!cancelled && !isCancellation) {
-          console.error("Failed to render product brochure preview:", error);
-          setPreviewError(true);
-        }
-      }
-    };
-
-    const scheduleRender = () => {
-      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
-
-      animationFrame = requestAnimationFrame(() => {
-        animationFrame = null;
-        const queuedRender = renderQueueRef.current
-          .catch(() => undefined)
-          .then(() => {
-            if (!cancelled) return renderPage();
-          });
-
-        renderQueueRef.current = queuedRender.then(() => undefined);
-      });
-    };
-
-    scheduleRender();
-
-    if (canvasRef.current?.parentElement && "ResizeObserver" in window) {
-      resizeObserver = new ResizeObserver(scheduleRender);
-      resizeObserver.observe(canvasRef.current.parentElement);
-    }
-
-    return () => {
-      cancelled = true;
-      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
-      resizeObserver?.disconnect();
-      renderTask?.cancel();
-      void pdfDocument?.destroy();
-    };
-  }, [url]);
-
-  return (
-    <div className={`flex h-full w-full items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 ${className}`}>
-      {previewError ? (
-        <span className="px-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          Preview unavailable
-        </span>
-      ) : (
-        <canvas ref={canvasRef} aria-label={title} className="block max-h-full max-w-full object-contain" />
-      )}
-    </div>
-  );
-};
-
 const ProductForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -345,6 +262,25 @@ const ProductForm: React.FC = () => {
     category: "",
     quantity: "0"
   });
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isCategoryCreationPending, setIsCategoryCreationPending] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryCreationError, setCategoryCreationError] = useState("");
+
+  useEffect(() => {
+    if (!isCreatingCategory) return;
+
+    const handleCategoryModalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isCategoryCreationPending) {
+        setIsCreatingCategory(false);
+        setNewCategoryName("");
+        setCategoryCreationError("");
+      }
+    };
+
+    document.addEventListener("keydown", handleCategoryModalKeyDown);
+    return () => document.removeEventListener("keydown", handleCategoryModalKeyDown);
+  }, [isCreatingCategory, isCategoryCreationPending]);
 
   // Keep four easy-to-complete highlights, while allowing each product to name them.
   const [hoverSpecs, setHoverSpecs] = useState<{
@@ -354,12 +290,17 @@ const ProductForm: React.FC = () => {
   }[]>(createQuickHighlightSpecs);
   const [activeIconPicker, setActiveIconPicker] = useState<number | null>(null);
   const quickHighlightsRef = useRef<HTMLDivElement | null>(null);
+  const userValidationActiveRef = useRef(false);
+  const markValidationInteraction = () => {
+    userValidationActiveRef.current = true;
+  };
 
   const handleHoverSpecChange = (
     index: number,
     field: "specs_key" | "specs_value" | "icon",
     value: string
   ) => {
+    markValidationInteraction();
     const updated = [...hoverSpecs];
     updated[index][field] = value;
     setHoverSpecs(updated);
@@ -386,6 +327,7 @@ const ProductForm: React.FC = () => {
       onEnd: ({ oldIndex, newIndex }: { oldIndex: number | null; newIndex: number | null }) => {
         if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
 
+        markValidationInteraction();
         setHoverSpecs((previous) => {
           const reordered = [...previous];
           const [movedHighlight] = reordered.splice(oldIndex, 1);
@@ -416,6 +358,11 @@ const ProductForm: React.FC = () => {
 
   // --- Form Error ---
   const [formError, setFormError] = useState<FormError>({})
+  const [validationAttempt, setValidationAttempt] = useState(0);
+  const [hydrationVersion, setHydrationVersion] = useState(0);
+  const previousSummaryIssueSignatureRef = useRef<string | null>(null);
+  const previousValidationAttemptRef = useRef(0);
+  const previousHydrationVersionRef = useRef(0);
   const [expandedSummarySections, setExpandedSummarySections] = useState<Record<string, boolean>>({});
 
   // --- Gallery Logic --- 
@@ -428,17 +375,18 @@ const ProductForm: React.FC = () => {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState("");
   const [videoSource, setVideoSource] = useState<"upload" | "youtube">("upload");
   const [youtubeUrl, setYoutubeUrl] = useState("");
-  const productVideoInputRef = useRef<HTMLInputElement>(null);
   const [isRemovingExistingVideo, setIsRemovingExistingVideo] = useState(false);
-  const [productBrochure, setProductBrochure] = useState<File | null>(null);
-  const [existingBrochureUrl, setExistingBrochureUrl] = useState("");
-  const [brochurePreviewUrl, setBrochurePreviewUrl] = useState("");
+  const [productBrochures, setProductBrochures] = useState<File[]>([]);
+  const [existingBrochures, setExistingBrochures] = useState<BrochureRecord[]>([]);
+  const [brochurePreviewUrls, setBrochurePreviewUrls] = useState<string[]>([]);
   const [productSpecsHighlight, setProductSpecsHighlight] = useState<File | null>(null);
   const [existingProductSpecsHighlightUrl, setExistingProductSpecsHighlightUrl] = useState("");
   const [productSpecsHighlightPreviewUrl, setProductSpecsHighlightPreviewUrl] = useState("");
   const [mediaPreviewModal, setMediaPreviewModal] = useState<MediaPreviewModal>(null);
   const [isRemovingProductSpecsHighlight, setIsRemovingProductSpecsHighlight] = useState(false);
   const [isRemovingExistingBrochure, setIsRemovingExistingBrochure] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [isDeleteProcessing, setIsDeleteProcessing] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [brochureEnabled, setBrochureEnabled] = useState(true);
   const [productSpecsHighlightEnabled, setProductSpecsHighlightEnabled] = useState(true);
@@ -492,15 +440,10 @@ const ProductForm: React.FC = () => {
   }, [existingVideoUrl, productVideo]);
 
   useEffect(() => {
-    if (!productBrochure) {
-      setBrochurePreviewUrl("");
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(productBrochure);
-    setBrochurePreviewUrl(previewUrl);
-    return () => URL.revokeObjectURL(previewUrl);
-  }, [productBrochure]);
+    const previewUrls = productBrochures.map((file) => URL.createObjectURL(file));
+    setBrochurePreviewUrls(previewUrls);
+    return () => previewUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [productBrochures]);
 
   useEffect(() => {
     if (!productSpecsHighlight) {
@@ -515,6 +458,7 @@ const ProductForm: React.FC = () => {
 
   const handleVideoChange = (file: File | null) => {
     if (!file) return;
+    markValidationInteraction();
 
     if (!file.type.startsWith("video/")) {
       setFormError((prev) => ({ ...prev, video: "Please select a video file." }));
@@ -526,25 +470,35 @@ const ProductForm: React.FC = () => {
     setFormError((prev) => ({ ...prev, video: undefined }));
   };
 
-  const handleBrochureChange = (file: File | null) => {
-    if (!file) return;
-
-    if (file.type !== "application/pdf" || !/\.pdf$/i.test(file.name)) {
-      setFormError((prev) => ({ ...prev, brochure: "Please select a PDF brochure." }));
+  const handleBrochureChange = (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    markValidationInteraction();
+    const files = Array.from(fileList);
+    if (existingBrochures.length + productBrochures.length + files.length > 10) {
+      setFormError((prev) => ({ ...prev, brochure: "A product can have up to 10 brochures." }));
       return;
     }
-    if (file.size > 20 * 1024 * 1024) {
-      setFormError((prev) => ({ ...prev, brochure: "The brochure must be 20 MB or smaller." }));
+    const invalidFile = files.find((file) => file.type !== "application/pdf" || !/\.pdf$/i.test(file.name));
+    if (invalidFile) {
+      setFormError((prev) => ({ ...prev, brochure: "Please select PDF brochures only." }));
       return;
     }
-    if (!registerFileUpload("brochure")) return;
+    const oversizedFile = files.find((file) => file.size > 20 * 1024 * 1024);
+    if (oversizedFile) {
+      setFormError((prev) => ({ ...prev, brochure: "Each brochure must be 20 MB or smaller." }));
+      return;
+    }
+    for (const file of files) {
+      if (!registerFileUpload("brochure")) return;
+    }
 
-    setProductBrochure(file);
+    setProductBrochures((previous) => [...previous, ...files]);
     setFormError((prev) => ({ ...prev, brochure: undefined }));
   };
 
   const handleProductSpecsHighlightChange = (file: File | null) => {
     if (!file) return;
+    markValidationInteraction();
     if (!file.type.startsWith("image/")) {
       setFormError((prev) => ({ ...prev, specsHighlight: "Please select an image file." }));
       return;
@@ -621,6 +575,7 @@ const ProductForm: React.FC = () => {
 
   const applyEditedImage = (file: File) => {
     if (!imageToEdit) return;
+    markValidationInteraction();
     const nextGalleryIndex = imageToEdit.index + 1;
     setGallery((current) => {
       const next = [...current];
@@ -636,6 +591,7 @@ const ProductForm: React.FC = () => {
 
   const handleNewGalleryFiles = (fileList: FileList | null) => {
     if (!fileList?.length) return;
+    markValidationInteraction();
 
     const selectedFiles = Array.from(fileList).filter((file) => file.type.startsWith("image/"));
     const acceptedFiles = selectedFiles.filter(() => registerFileUpload("image"));
@@ -660,6 +616,7 @@ const ProductForm: React.FC = () => {
   };
 
   const handleAddImage = () => {
+    markValidationInteraction();
     setPendingGalleryFiles([]);
     setIsGalleryUploadOpen(true);
   };
@@ -667,6 +624,7 @@ const ProductForm: React.FC = () => {
   const [removedImages, setRemovedImages] = useState<number[]>([]);
 
   const handleRemoveImage = (index: number) => {
+    markValidationInteraction();
     const removedItem = gallery[index];
     
     // If it's an existing DB image (not a new File)
@@ -684,22 +642,26 @@ const ProductForm: React.FC = () => {
   >([]);
 
   const handleAddCategory = () => {
+    markValidationInteraction();
     setSpecs([...specs, { title: "", fields: [] }]);
   };
 
   const handleAddField = (catIndex: number) => {
+    markValidationInteraction();
     const updated = [...specs];
     updated[catIndex].fields.push({ specs_key: "", specs_value: "" });
     setSpecs(updated);
   };
 
   const handleRemoveField = (catIndex: number, fieldIndex: number) => {
+    markValidationInteraction();
     const updated = [...specs];
     updated[catIndex].fields.splice(fieldIndex, 1);
     setSpecs(updated);
   };
 
   const handleRemoveCategory = (catIndex: number) => {
+    markValidationInteraction();
     const updated = [...specs];
     updated.splice(catIndex, 1);
     setSpecs(updated);
@@ -712,6 +674,7 @@ const ProductForm: React.FC = () => {
     fieldName: "specs_key" | "specs_value",
     value: string
   ) => {
+    markValidationInteraction();
     const updated = [...specs];
     updated[catIndex].fields[fieldIndex][fieldName] = value;
     setSpecs(updated);
@@ -721,6 +684,7 @@ const ProductForm: React.FC = () => {
 
   // --- Category title ---
   const handleTitleChange = (catIndex: number, value: string) => {
+    markValidationInteraction();
     const updated = [...specs];
     updated[catIndex].title = value;
     setSpecs(updated);
@@ -729,7 +693,15 @@ const ProductForm: React.FC = () => {
   };
  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    markValidationInteraction();
     const { name, value } = e.target;
+
+    if (name === "category" && value === "__create_new_category__") {
+      setIsCreatingCategory(true);
+      setNewCategoryName("");
+      setCategoryCreationError("");
+      return;
+    }
 
     setProductData((prev: FormProductData) => ({
       ...prev,
@@ -891,12 +863,12 @@ const ProductForm: React.FC = () => {
 
   const handleRemoveExistingBrochure = async () => {
     const productDatabaseId = productInfo?.id;
-    if (!productDatabaseId || !existingBrochureUrl || isRemovingExistingBrochure) return;
+    if (!productDatabaseId || isRemovingExistingBrochure) return;
 
     setIsRemovingExistingBrochure(true);
     try {
       await removeProductBrochureMutation.mutateAsync(productDatabaseId);
-      setExistingBrochureUrl("");
+      setExistingBrochures([]);
       setSnackBarType("success");
       setSnackBarMessage("Current product brochure removed.");
       setSnackBarOpen(true);
@@ -938,10 +910,12 @@ const ProductForm: React.FC = () => {
   // --- save function ---
   const handleSubmit = async () => {
     try {
+      markValidationInteraction();
       // 1️⃣ Validate form
       const errors = validateForm();
       setFormError(errors);
       if (Object.keys(errors).length > 0) {
+        setValidationAttempt((previous) => previous + 1);
         setSnackBarType("error");
         setSnackBarMessage("Please fill in all required fields.");
         setSnackBarOpen(true);
@@ -1045,9 +1019,9 @@ const ProductForm: React.FC = () => {
         formData.append("video_type", "youtube");
         formData.append("video_url", youtubeEmbedUrl);
       }
-      if (productBrochure) {
-        formData.append("brochure", productBrochure);
-      }
+      productBrochures.forEach((brochure) => {
+        formData.append("brochures", brochure);
+      });
       if (productSpecsHighlight) {
         formData.append("product_specs_highlight", productSpecsHighlight);
       }
@@ -1104,7 +1078,8 @@ const ProductForm: React.FC = () => {
 
   // --- fetch all category ---
   const {
-    data: category = []
+    data: category = [],
+    refetch: refetchCategories,
   } = useQuery({
     queryKey: ['category'],
     queryFn: () => fetchCategory(),
@@ -1118,15 +1093,59 @@ const ProductForm: React.FC = () => {
       // add the "Select Category" option at the start
       return [
         { value: "", label: 'Select Category'},
+        {
+          value: "__create_new_category__",
+          label: "Create new category",
+          icon: <Plus className="h-4 w-4 text-[#c59b00]" aria-hidden="true" />,
+        },
         ...mapped
       ]
     }
   });
 
-  // Inside your render / summary section:
-  const selectedCategoryLabel =
-    category.find((cat) => cat.value === formProductData.category)?.label ||
-    "Not selected";
+  const handleCreateCategory = async () => {
+    const trimmedName = newCategoryName.trim();
+    if (!trimmedName) {
+      setCategoryCreationError("Category name is required.");
+      return;
+    }
+
+    setCategoryCreationError("");
+    setIsCategoryCreationPending(true);
+    try {
+      await createCategory({ name: trimmedName, icon: "Tag" });
+      const refreshedCategories = await refetchCategories();
+      const createdCategory = refreshedCategories.data?.find(
+        (option) => option.label.trim().toLowerCase() === trimmedName.toLowerCase()
+      );
+
+      if (!createdCategory) {
+        throw new Error("The category was created but could not be loaded.");
+      }
+
+      setProductData((prev) => ({ ...prev, category: createdCategory.value }));
+      setFormError((prev) => ({ ...prev, category: undefined }));
+      setIsCreatingCategory(false);
+      setNewCategoryName("");
+      setSnackBarType("success");
+      setSnackBarMessage(`Category "${createdCategory.label}" added successfully.`);
+      setSnackBarOpen(true);
+    } catch (error: any) {
+      const responseData = error?.response?.data;
+      setCategoryCreationError(
+        responseData?.message || responseData?.error || error?.message || "Failed to create category. Please try again."
+      );
+    } finally {
+      setIsCategoryCreationPending(false);
+    }
+  };
+
+  const handleCloseCategoryModal = () => {
+    if (isCategoryCreationPending) return;
+    setIsCreatingCategory(false);
+    setNewCategoryName("");
+    setCategoryCreationError("");
+  };
 
   // --- fetch specific product params id ---
   const { data: productInfo } = useQuery({
@@ -1168,7 +1187,7 @@ const ProductForm: React.FC = () => {
       );
       setProductVideo(null);
       setVideoEnabled(productInfo.video_enabled !== false && productInfo.video_enabled !== 0 && productInfo.video_enabled !== "0");
-      setProductBrochure(null);
+      setProductBrochures([]);
       setBrochureEnabled(productInfo.brochure_enabled !== false && productInfo.brochure_enabled !== 0 && productInfo.brochure_enabled !== "0");
       setProductSpecsHighlightEnabled(productInfo.product_specs_highlight_enabled !== false && productInfo.product_specs_highlight_enabled !== 0 && productInfo.product_specs_highlight_enabled !== "0");
       setBasicInformationEnabled(isVisibilityEnabled(productInfo.basic_information_enabled));
@@ -1176,9 +1195,16 @@ const ProductForm: React.FC = () => {
       setGalleryEnabled(isVisibilityEnabled(productInfo.gallery_enabled));
       setQuickProductHighlightEnabled(isVisibilityEnabled(productInfo.quick_product_highlight_enabled));
       setSpecificationsEnabled(isVisibilityEnabled(productInfo.specifications_enabled));
-      setExistingBrochureUrl(
-        [productInfo.brochure_url, productInfo.brochureUrl, productInfo.product_brochure]
-          .find((value): value is string => typeof value === "string" && value.length > 0) || ""
+      const savedBrochures = Array.isArray(productInfo.brochures)
+        ? productInfo.brochures
+        : [];
+      const legacyBrochureUrl = [productInfo.brochure_url, productInfo.brochureUrl, productInfo.product_brochure]
+        .find((value): value is string => typeof value === "string" && value.length > 0);
+      setExistingBrochures(savedBrochures.length
+        ? savedBrochures
+        : legacyBrochureUrl
+          ? [{ id: null, brochure_url: legacyBrochureUrl, original_filename: `${productInfo.name || "product"}-brochure.pdf`, legacy: true }]
+          : []
       );
 
       // Detailed Specs
@@ -1213,6 +1239,7 @@ const ProductForm: React.FC = () => {
           };
         })
       );
+      setHydrationVersion((previous) => previous + 1);
     }
   // `category` is an options array derived by React Query. Depending on it
   // here can re-run hydration after every state update and create a render loop.
@@ -1246,76 +1273,288 @@ const ProductForm: React.FC = () => {
     ? undefined
     : formError.specs;
 
-  const calculateCompletion = () => {
-    let completed = 0;
-    const total = 8; // Includes the required four quick product highlights
-
-    if (formProductData.product_name.trim()) completed++;
-    if (formProductData.tagline.trim()) completed++;
-    if (formProductData.description.trim()) completed++;
-    if (formProductData.category) completed++;
-    if (formProductData.quantity) completed++;
-    if (gallery.filter(f => f !== null).length > 0) completed++;
-    if (hasCompleteDetailedSpecs) completed++;
-    if (hasCompleteHoverSpecs) completed++;
-
-    return Math.round((completed / total) * 100);
-  };
-
   const basicInformationComplete = Boolean(
     formProductData.product_name.trim() &&
     formProductData.tagline.trim() &&
     formProductData.description.trim() &&
     formProductData.category
   );
-  const basicInformationErrors = [
-    !formProductData.product_name.trim() && "Product name: no text or value.",
-    !formProductData.tagline.trim() && "Tagline: no text or value.",
-    !formProductData.description.trim() && "Description: no text or value.",
-    !formProductData.category && "Category: no value selected.",
-  ].filter(Boolean) as string[];
-  const uniqueSummaryErrors = (errors: Array<string | false | undefined>) =>
-    [...new Set(errors.filter(Boolean) as string[])];
-  const mediaErrors = uniqueSummaryErrors([
-    gallery.filter((item) => item !== null).length === 0 && "Images: upload at least one image.",
-    formError.gallery,
-    formError.video,
-    formError.brochure,
-    formError.specsHighlight,
+  const uniqueSummaryIssues = (issues: SummaryIssue[]) =>
+    issues.filter((issue, index, all) => all.findIndex((candidate) => (
+      candidate.message === issue.message && candidate.targetId === issue.targetId
+    )) === index);
+  const basicInformationErrors: SummaryIssue[] = [
+    !formProductData.product_name.trim() && {
+      message: "Product name: no text or value.",
+      targetId: "basic-information-section",
+      focusId: "product-name-input",
+    },
+    !formProductData.tagline.trim() && {
+      message: "Tagline: no text or value.",
+      targetId: "basic-information-section",
+      focusId: "tagline-input",
+    },
+    !formProductData.description.trim() && {
+      message: "Description: no text or value.",
+      targetId: "basic-information-section",
+      focusId: "description-input",
+    },
+    !formProductData.category && {
+      message: "Category: no value selected.",
+      targetId: "basic-information-section",
+      focusId: "category-input",
+    },
+  ].filter(Boolean) as SummaryIssue[];
+  const mediaErrors = uniqueSummaryIssues([
+    ...(gallery.filter((item) => item !== null).length === 0
+      ? [{ message: "Images: upload at least one image.", targetId: "gallery-section", focusId: "gallery-upload-button" }]
+      : []),
+    ...(formError.gallery ? [{ message: formError.gallery, targetId: "gallery-section", focusId: "gallery-upload-button" }] : []),
+    ...(videoSource === "youtube" && !youtubeEmbedUrl
+      ? [{ message: "Enter a valid YouTube video link.", targetId: "product-video-section", focusId: "product-youtube-url" }]
+      : []),
+    ...(formError.video ? [{ message: formError.video, targetId: "product-video-section", focusId: "product-video-section" }] : []),
+    ...(formError.brochure ? [{ message: formError.brochure, targetId: "product-brochure-section", focusId: "product-brochure-section" }] : []),
+    ...(formError.specsHighlight ? [{ message: formError.specsHighlight, targetId: "specification-highlight-section", focusId: "specification-highlight-section" }] : []),
   ]);
-  const quickHighlightErrors = uniqueSummaryErrors([
+  const quickHighlightIssues: SummaryIssue[] = [
     ...hoverSpecs.flatMap((highlight, index) => {
-      const errors: string[] = [];
-      if (!highlight.specs_key.trim()) errors.push(`Highlight ${index + 1}: title is required.`);
-      if (!highlight.specs_value.trim()) errors.push(`Highlight ${index + 1}: value is required.`);
+      const errors: SummaryIssue[] = [];
+      if (!highlight.specs_key.trim()) errors.push({
+        message: `Highlight ${index + 1}: title is required.`,
+        targetId: "quick-highlights-section",
+        focusId: `quick-highlight-title-${index}`,
+        animationTargetId: `quick-highlight-card-${index}`,
+      });
+      if (!highlight.specs_value.trim()) errors.push({
+        message: `Highlight ${index + 1}: value is required.`,
+        targetId: "quick-highlights-section",
+        focusId: `quick-highlight-${index}`,
+        animationTargetId: `quick-highlight-card-${index}`,
+      });
       return errors;
     }),
-    quickHighlightError,
-  ]);
-  const specificationSummaryErrors = uniqueSummaryErrors([
-    specs.length === 0 && "Specifications: add at least one category.",
+    ...(quickHighlightError && !hoverSpecs.some((highlight) => !highlight.specs_key.trim() || !highlight.specs_value.trim())
+      ? [{ message: quickHighlightError, targetId: "quick-highlights-section", focusId: "quick-highlights-section" }]
+      : []),
+  ];
+  const quickHighlightErrors = uniqueSummaryIssues(quickHighlightIssues);
+  const specificationIssues: SummaryIssue[] = [
+    ...(specs.length === 0
+      ? [{ message: "Specifications: add at least one category.", targetId: "specifications-section", focusId: "add-specification-category-button" }]
+      : []),
     ...specs.flatMap((category, categoryIndex) => {
-      const errors: string[] = [];
+      const errors: SummaryIssue[] = [];
       const categoryTitle = String(category.title || "").trim();
-      if (!categoryTitle) errors.push(`Category ${categoryIndex + 1}: title is required.`);
+      if (!categoryTitle) errors.push({
+        message: `Category ${categoryIndex + 1}: title is required.`,
+        targetId: "specifications-section",
+        focusId: `spec-category-${categoryIndex}-title`,
+      });
       if (!Array.isArray(category.fields) || category.fields.length === 0) {
-        errors.push(`Category ${categoryIndex + 1}: add at least one field.`);
+        errors.push({
+          message: `Category ${categoryIndex + 1}: add at least one field.`,
+          targetId: "specifications-section",
+          focusId: `spec-category-${categoryIndex}-title`,
+        });
       }
       category.fields?.forEach((field, fieldIndex) => {
         const key = String(field.specs_key || "").trim();
         const value = String(field.specs_value || "").trim();
         if (!key && !value) return;
-        if (!key || !value) errors.push(`Category ${categoryIndex + 1}, field ${fieldIndex + 1}: key and value are both required.`);
+        if (!key || !value) errors.push({
+          message: `Category ${categoryIndex + 1}, field ${fieldIndex + 1}: key and value are both required.`,
+          targetId: "specifications-section",
+          focusId: `spec-category-${categoryIndex}-field-${fieldIndex}-${key ? "value" : "key"}`,
+        });
       });
       return errors;
     }),
-    specificationError,
-  ]);
+    ...(specificationError && specs.length === 0
+      ? [{ message: specificationError, targetId: "specifications-section", focusId: "add-specification-category-button" }]
+      : []),
+  ];
+  const specificationSummaryErrors = uniqueSummaryIssues(specificationIssues);
+
+  const shakeSummaryIssue = (issue: SummaryIssue) => {
+    const focusTarget = issue.focusId ? document.getElementById(issue.focusId) : null;
+    const animationTarget = document.getElementById(
+      issue.animationTargetId || issue.focusId || issue.targetId
+    );
+    const shakeTargets = [animationTarget, focusTarget]
+      .filter((element, index, elements): element is HTMLElement => (
+        element instanceof HTMLElement && elements.indexOf(element) === index
+      ));
+    shakeTargets.forEach((element) => {
+      element.classList.add("shake-error");
+      element.classList.remove("error");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          element.classList.add("error");
+          window.setTimeout(() => element.classList.remove("error"), 1000);
+        });
+      });
+    });
+  };
+
+  const scrollToSummaryIssue = (issue: SummaryIssue) => {
+    const target = document.getElementById(issue.targetId);
+    const focusTarget = issue.focusId ? document.getElementById(issue.focusId) : null;
+    // Field issues must scroll to the exact input. Scrolling the parent section
+    // first can leave the invalid specification field off-screen on mobile.
+    (focusTarget || target)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (focusTarget instanceof HTMLElement && "focus" in focusTarget) {
+      window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 250);
+    }
+    shakeSummaryIssue(issue);
+  };
+
+  const handleRemoveBrochure = async (brochure: BrochureRecord) => {
+    const productDatabaseId = productInfo?.id;
+    if (!productDatabaseId || isRemovingExistingBrochure) return;
+
+    setIsRemovingExistingBrochure(true);
+    try {
+      if (brochure.id) {
+        await deleteProductBrochureItem(productDatabaseId, brochure.id);
+      } else {
+        await removeProductBrochureMutation.mutateAsync(productDatabaseId);
+      }
+      setExistingBrochures((previous) => previous.filter((item) => item.id !== brochure.id));
+      setSnackBarType("success");
+      setSnackBarMessage("Product brochure removed.");
+      setSnackBarOpen(true);
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Failed to remove the product brochure.";
+      setFormError((prev) => ({ ...prev, brochure: message }));
+      setSnackBarType("error");
+      setSnackBarMessage(message);
+      setSnackBarOpen(true);
+    } finally {
+      setIsRemovingExistingBrochure(false);
+    }
+  };
+
+  const closeDeleteConfirmation = () => {
+    if (isDeleteProcessing) return;
+    setPendingDelete(null);
+  };
+
+  const confirmPendingDelete = async () => {
+    if (!pendingDelete || isDeleteProcessing) return;
+
+    setIsDeleteProcessing(true);
+    try {
+      switch (pendingDelete.type) {
+        case "gallery":
+          handleRemoveImage(pendingDelete.index);
+          break;
+        case "video-new":
+          setProductVideo(null);
+          setFormError((previous) => ({ ...previous, video: undefined }));
+          break;
+        case "video-existing":
+          await handleRemoveExistingVideo();
+          break;
+        case "brochure-existing":
+          await handleRemoveBrochure(pendingDelete.brochure);
+          break;
+        case "brochure-new":
+          setProductBrochures((previous) => previous.filter((_, index) => index !== pendingDelete.index));
+          break;
+        case "spec-highlight-new":
+          setProductSpecsHighlight(null);
+          setFormError((previous) => ({ ...previous, specsHighlight: undefined }));
+          break;
+        case "spec-highlight-existing":
+          await handleRemoveExistingProductSpecsHighlight();
+          break;
+        case "spec-category":
+          handleRemoveCategory(pendingDelete.catIndex);
+          break;
+        case "spec-field":
+          handleRemoveField(pendingDelete.catIndex, pendingDelete.fieldIndex);
+          break;
+      }
+    } finally {
+      setIsDeleteProcessing(false);
+      setPendingDelete(null);
+    }
+  };
+
+  const redirectToMobileProgressIssue = (
+    sectionKey: string,
+    issues: SummaryIssue[],
+    fallbackTargetId: string
+  ) => {
+    const issue = issues[0] || {
+      message: "",
+      targetId: fallbackTargetId,
+      focusId: fallbackTargetId,
+    };
+    setExpandedSummarySections((previous) => ({ ...previous, [sectionKey]: true }));
+    scrollToSummaryIssue(issue);
+  };
+
+  const renderMobileProgressStatus = (
+    complete: boolean,
+    sectionKey: string,
+    issues: SummaryIssue[],
+    fallbackTargetId: string
+  ) => complete ? (
+    <div className="mx-auto mb-1 h-2 w-2 rounded-full bg-green-500" />
+  ) : (
+    <button
+      type="button"
+      onClick={() => redirectToMobileProgressIssue(sectionKey, issues, fallbackTargetId)}
+      className="mx-auto mb-1 block !h-4 !min-h-4 !w-4 !min-w-4 rounded-full !p-1 transition-transform hover:scale-125 focus:outline-none focus:ring-2 focus:ring-[#FCD000] focus:ring-offset-1"
+      aria-label={`Go to ${sectionKey} error`}
+    >
+      <span className="block h-2 w-2 rounded-full bg-red-500" />
+    </button>
+  );
+
+  const allSummaryIssues = [
+    ...basicInformationErrors,
+    ...mediaErrors,
+    ...quickHighlightErrors,
+    ...specificationSummaryErrors,
+  ];
+  const summaryIssueKey = (issue: SummaryIssue) => (
+    `${issue.targetId}|${issue.focusId || ""}|${issue.animationTargetId || ""}|${issue.message}`
+  );
+  const summaryIssueSignature = allSummaryIssues
+    .map(summaryIssueKey)
+    .sort()
+    .join("||");
+
+  useEffect(() => {
+    const previousSignature = previousSummaryIssueSignatureRef.current;
+    const previousValidationAttempt = previousValidationAttemptRef.current;
+    const previousHydrationVersion = previousHydrationVersionRef.current;
+    previousSummaryIssueSignatureRef.current = summaryIssueSignature;
+    previousValidationAttemptRef.current = validationAttempt;
+    previousHydrationVersionRef.current = hydrationVersion;
+
+    // Initialize silently, then shake newly-invalid fields as soon as their
+    // live validation state appears. A submit attempt also replays all issues.
+    if (previousSignature === null) return;
+    if (hydrationVersion !== previousHydrationVersion) return;
+    if (!userValidationActiveRef.current && validationAttempt === 0) return;
+    const previousIssueKeys = new Set(
+      previousSignature ? previousSignature.split("||") : []
+    );
+    const replayAllIssues = validationAttempt !== previousValidationAttempt;
+    allSummaryIssues
+      .filter((issue) => replayAllIssues || !previousIssueKeys.has(summaryIssueKey(issue)))
+      .forEach(shakeSummaryIssue);
+  }, [summaryIssueSignature, validationAttempt, hydrationVersion]);
+
   const renderSummarySection = (
     title: string,
     summary: string,
     complete: boolean,
-    errors: string[],
+    errors: SummaryIssue[],
     sectionKey: string
   ) => {
     const hasErrors = errors.length > 0;
@@ -1342,7 +1581,16 @@ const ProductForm: React.FC = () => {
         {hasErrors ? (
           isExpanded ? (
             <div className="ml-4 mt-2 space-y-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-              {errors.map((error) => <p key={error}>{error}</p>)}
+              {errors.map((issue) => (
+                <button
+                  key={`${issue.targetId}-${issue.message}`}
+                  type="button"
+                  onClick={() => scrollToSummaryIssue(issue)}
+                  className="block w-full rounded px-1 text-left underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-red-400"
+                >
+                  {issue.message}
+                </button>
+              ))}
             </div>
           ) : (
             <span className="block pl-4 text-sm text-red-600 dark:text-red-400">Needs attention</span>
@@ -1353,10 +1601,26 @@ const ProductForm: React.FC = () => {
       </div>
     );
   };
+
+  const calculateCompletion = () => {
+    let completed = 0;
+    const total = 8; // Includes the required four quick product highlights
+
+    if (formProductData.product_name.trim()) completed++;
+    if (formProductData.tagline.trim()) completed++;
+    if (formProductData.description.trim()) completed++;
+    if (formProductData.category) completed++;
+    if (formProductData.quantity) completed++;
+    if (gallery.filter(f => f !== null).length > 0) completed++;
+    if (hasCompleteDetailedSpecs) completed++;
+    if (hasCompleteHoverSpecs) completed++;
+
+    return Math.round((completed / total) * 100);
+  };
  
   return (
     <div className="ecommerce-product-form min-h-screen bg-gray-50 dark:bg-gray-900 py-4 md:py-8">
-      <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 md:px-6 lg:px-8">
+      <div className="ecommerce-product-form__content w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Notification */} 
         <Snackbar 
           open={snackBarOpen}
@@ -1365,23 +1629,100 @@ const ProductForm: React.FC = () => {
           onClose={() => setSnackBarOpen(false)}
         />
 
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6 md:mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              { id ? "Update Product" : "Create New Product" }
-            </h1>
-            {/* <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-              Add a new product to your inventory with detailed specifications
-            </p> */}
-          </div>
-        </div>
+        <AlertDialog
+          open={Boolean(pendingDelete)}
+          title="Confirm removal"
+          message={pendingDelete?.message || "Are you sure you want to remove this item?"}
+          onClose={closeDeleteConfirmation}
+          onSubmit={() => void confirmPendingDelete()}
+          isLoading={isDeleteProcessing}
+        />
 
-        <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+        {isCreatingCategory && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-category-modal-title"
+              className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+                <h2
+                  id="create-category-modal-title"
+                  className="text-lg font-semibold text-gray-900 dark:text-white"
+                >
+                  Create new category
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleCloseCategoryModal}
+                  disabled={isCategoryCreationPending}
+                  aria-label="Close create category dialog"
+                  className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="p-5">
+                <label
+                  htmlFor="new-category-name"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Category name
+                </label>
+                <input
+                  id="new-category-name"
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(event) => {
+                    setNewCategoryName(event.target.value);
+                    setCategoryCreationError("");
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleCreateCategory();
+                    }
+                  }}
+                  placeholder="Enter category name"
+                  maxLength={100}
+                  autoFocus
+                  disabled={isCategoryCreationPending}
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-[#FCD000] focus:ring-2 focus:ring-[#FCD000]/30 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:disabled:bg-gray-700"
+                />
+                {categoryCreationError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                    {categoryCreationError}
+                  </p>
+                )}
+                <div className="mt-5 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCloseCategoryModal}
+                    disabled={isCategoryCreationPending}
+                    className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateCategory()}
+                    disabled={isCategoryCreationPending || !newCategoryName.trim()}
+                    className="rounded-md bg-[#FCD000] px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-[#e8bf00] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isCategoryCreationPending ? "Creating..." : "Create"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="ecommerce-product-form__layout grid gap-4 md:gap-8">
           {/* Left Column - Basic Info */}
-          <div className="space-y-4 md:space-y-8">
+          <div className="ecommerce-product-form__main space-y-4 md:space-y-8">
             {/* Basic Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="basic-information-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
                 <div className="flex min-w-0 items-center">
                   <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -1402,6 +1743,7 @@ const ProductForm: React.FC = () => {
                   </label>
                   <CustomTextField 
                     name="product_name"
+                    id="product-name-input"
                     placeholder="Enter product name"
                     value={formProductData.product_name}
                     multiline={false}
@@ -1409,7 +1751,7 @@ const ProductForm: React.FC = () => {
                     type="text"
                     maxLength={100} 
                     onChange={handleInputChange}  
-                    error={!!formError.product_name}
+                    error={!!formError.product_name || !formProductData.product_name.trim()}
                     helperText={formError.product_name}
                     icon={<Package className="w-4 h-4" />}
                   /> 
@@ -1421,16 +1763,15 @@ const ProductForm: React.FC = () => {
                   </label>
                   <CustomTextField 
                     name="tagline"
+                    id="tagline-input"
                     placeholder="Brief tagline of the product"
                     value={formProductData.tagline}
                     multiline={true}
                     rows={2}
                     type="text"
                     maxLength={200} 
-                    autoExpandOnFocus
-                    compactRows={1}
                     onChange={handleInputChange}  
-                    error={!!formError.tagline}
+                    error={!!formError.tagline || !formProductData.tagline.trim()}
                     helperText={formError.tagline}
                     icon={<Tag className="w-4 h-4" />}
                   /> 
@@ -1442,16 +1783,15 @@ const ProductForm: React.FC = () => {
                   </label>
                   <CustomTextField 
                     name="description"
+                    id="description-input"
                     placeholder="Detailed description of the product"
                     value={formProductData.description}
                     multiline={true}
                     rows={3}
                     type="text"
                     maxLength={500} 
-                    autoExpandOnFocus
-                    compactRows={1}
                     onChange={handleInputChange}  
-                    error={!!formError.description}
+                    error={!!formError.description || !formProductData.description.trim()}
                     helperText={formError.description}
                     icon={<Tag className="w-4 h-4" />}
                   /> 
@@ -1463,12 +1803,13 @@ const ProductForm: React.FC = () => {
                   </label>
                   <CustomSelectField
                     name="category"
+                    id="category-input"
                     placeholder="Select Category"
                     value={formProductData.category}
                     onChange={handleInputChange}
                     options={category}
                     fontSize="16px"
-                    error={!!formError.category}
+                    error={!!formError.category || !formProductData.category}
                     helperText={formError.category}
                   />
                 </div>
@@ -1510,7 +1851,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Gallery Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="gallery-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
                 <div className="flex min-w-0 items-center gap-3 md:gap-4">
                   <div className="shrink-0 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:p-3 dark:bg-[#5C4900]/30">
@@ -1529,10 +1870,11 @@ const ProductForm: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAddImage}
-                className="mb-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#FCD000] px-5 py-3 text-base font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#e9c000]"
+                id="gallery-upload-button"
+                className={`ecommerce-product-action mb-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-5 py-3 text-base font-semibold shadow-sm transition-colors ${gallery.filter((item) => item !== null).length === 0 || formError.gallery ? "border border-red-400 bg-red-50 text-red-700 hover:bg-red-100" : "bg-[#FCD000] text-gray-950 hover:bg-[#e9c000]"}`}
               >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
+                <Upload className="mr-2 h-4 w-4 min-[4000px]:h-6 min-[4000px]:w-6" />
+                Upload Product Image
               </button>
 
               {formError.gallery && (
@@ -1541,7 +1883,7 @@ const ProductForm: React.FC = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              <div className="ecommerce-product-media-grid grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {gallery.map((item, index) => {
                   if (!item) return null;
 
@@ -1575,7 +1917,11 @@ const ProductForm: React.FC = () => {
  
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(index)}
+                        onClick={() => setPendingDelete({
+                          type: "gallery",
+                          index,
+                          message: `Remove product image ${index + 1}?`,
+                        })}
                         aria-label={`Remove product image ${index + 1}`}
                         title="Remove image"
                         className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors z-10"
@@ -1589,7 +1935,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Product video */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="product-video-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center">
                   <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -1606,43 +1952,32 @@ const ProductForm: React.FC = () => {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <input
-                  ref={productVideoInputRef}
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  className="hidden"
-                  onChange={(event) => {
-                    setVideoSource("upload");
-                    handleVideoChange(event.target.files?.[0] || null);
-                    event.currentTarget.value = "";
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (videoSource === "youtube") {
-                      setVideoSource("upload");
-                      return;
-                    }
-
-                    productVideoInputRef.current?.click();
-                  }}
-                  className={`inline-flex min-h-14 w-fit max-w-full cursor-pointer items-center gap-3 rounded-lg px-6 py-4 text-base font-semibold shadow-sm transition-colors ${videoSource === "upload"
-                    ? "bg-[#FCD000] text-gray-950 hover:bg-[#e9c000]"
-                    : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                    }`}
+                <label
+                  onClick={() => setVideoSource("upload")}
+                  className="ecommerce-product-action inline-flex min-h-14 w-fit max-w-full cursor-pointer items-center gap-3 rounded-lg bg-[#FCD000] px-6 py-4 text-base font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#e9c000]"
                 >
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    className="hidden"
+                    onChange={(event) => {
+                      setVideoSource("upload");
+                      handleVideoChange(event.target.files?.[0] || null);
+                      event.currentTarget.value = "";
+                    }}
+                  />
                   <span className="inline-flex items-center gap-2">
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-5 w-5 min-[4000px]:h-6 min-[4000px]:w-6" />
                     <span>{productVideo ? productVideo.name : "Upload product video"}</span>
                   </span>
-                </button>
+                </label>
                 <button
                   type="button"
                   onClick={() => {
+                    markValidationInteraction();
                     setVideoSource("youtube");
                   }}
-                  className={`rounded-lg px-5 py-4 text-base font-semibold transition-colors ${videoSource === "youtube" ? "bg-[#FCD000] text-gray-950 hover:bg-[#e9c000]" : "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"}`}
+                  className={`ecommerce-product-action rounded-lg px-5 py-4 text-base font-semibold transition-colors ${videoSource === "youtube" ? "bg-[#FCD000] text-gray-950 hover:bg-[#e9c000]" : "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"}`}
                 >
                   Embed YouTube link
                 </button>
@@ -1651,7 +1986,7 @@ const ProductForm: React.FC = () => {
               {videoSource === "upload" ? (
               <>
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-black dark:border-gray-700">
+                  <div className="ecommerce-product-media-grid relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-black dark:border-gray-700">
                   {videoPreviewUrl ? (
                     <video className="h-full w-full object-contain" controls preload="metadata">
                       <source src={videoPreviewUrl} />
@@ -1665,10 +2000,12 @@ const ProductForm: React.FC = () => {
                   {(productVideo || existingVideoUrl) && (
                     <button
                       type="button"
-                      onClick={productVideo ? () => {
-                        setProductVideo(null);
-                        setFormError((prev) => ({ ...prev, video: undefined }));
-                      } : handleRemoveExistingVideo}
+                      onClick={() => setPendingDelete({
+                        type: productVideo ? "video-new" : "video-existing",
+                        message: productVideo
+                          ? `Remove selected product video "${productVideo.name}"?`
+                          : "Remove the current product video?",
+                      })}
                       disabled={isRemovingExistingVideo}
                       aria-label={productVideo ? "Clear selected product video" : "Remove current video"}
                       title={productVideo ? "Clear selected video" : "Remove current video"}
@@ -1681,7 +2018,7 @@ const ProductForm: React.FC = () => {
               </div>
               </>
               ) : (
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                <div className="ecommerce-product-media-grid mt-5 grid gap-4 lg:grid-cols-2">
                   <div className="aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-black dark:border-gray-700">
                     {youtubeEmbedUrl ? (
                       <iframe
@@ -1704,11 +2041,12 @@ const ProductForm: React.FC = () => {
                       type="url"
                       value={youtubeUrl}
                       onChange={(event) => {
+                        markValidationInteraction();
                         setYoutubeUrl(event.target.value);
                         setFormError((prev) => ({ ...prev, video: undefined }));
                       }}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                      className={`w-full rounded-lg border px-3 py-3 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:bg-gray-900 dark:text-white ${formError.video || (videoSource === "youtube" && !youtubeEmbedUrl) ? "border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/20" : "border-gray-300 dark:border-gray-600"}`}
                     />
                     <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">Only standard YouTube and youtu.be links are accepted.</p>
                   </div>
@@ -1719,7 +2057,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Product brochure */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="product-brochure-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center">
                   <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -1735,69 +2073,74 @@ const ProductForm: React.FC = () => {
                 </div>
               </div>
 
-                <label className="mt-4 inline-flex min-h-12 w-fit max-w-full cursor-pointer items-center gap-2 rounded-lg bg-[#FCD000] px-4 py-3 text-sm font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#E5BB00]">
+                <label className={`ecommerce-product-action mt-4 inline-flex min-h-12 w-fit max-w-full cursor-pointer items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition-colors ${formError.brochure ? "border border-red-400 bg-red-50 text-red-700 hover:bg-red-100" : "bg-[#FCD000] text-gray-950 hover:bg-[#E5BB00]"}`}>
                 <input
                   type="file"
                   accept="application/pdf,.pdf"
+                  multiple
                   className="hidden"
                   onChange={(event) => {
-                    handleBrochureChange(event.target.files?.[0] || null);
+                    handleBrochureChange(event.target.files);
                     event.currentTarget.value = "";
                   }}
                 />
                 <span className="inline-flex min-w-0 items-center gap-2">
-               <Upload className="h-5 w-5" />
-                  <span className="truncate">{productBrochure ? productBrochure.name : "Upload product brochure"}</span>
+               <Upload className="h-5 w-5 min-[4000px]:h-6 min-[4000px]:w-6" />
+                  <span className="truncate">Upload product brochure{productBrochures.length ? ` (${productBrochures.length} selected)` : ""}</span>
                 </span>
               </label>
 
-              <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-stretch">
-                {brochurePreviewUrl || existingBrochureUrl ? (
-                  <div className="group relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                    <PdfPagePreview
-                      url={brochurePreviewUrl || existingBrochureUrl}
-                      title="Product brochure preview"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Open full product brochure preview"
-                      onClick={() => setMediaPreviewModal({
-                        type: "brochure",
-                        url: brochurePreviewUrl || existingBrochureUrl,
-                      })}
-                      className="absolute inset-0 z-10 cursor-zoom-in bg-transparent"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setMediaPreviewModal({
-                        type: "brochure",
-                        url: brochurePreviewUrl || existingBrochureUrl,
-                      })}
-                      aria-label="Open full product brochure preview"
-                      className="absolute left-2 top-2 z-20 rounded-md bg-black/65 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow transition-opacity hover:bg-black/80 focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100"
-                    >
-                      Open full preview
-                    </button>
-                    {(productBrochure || existingBrochureUrl) && (
+              <div className="ecommerce-product-media-grid mt-4 grid gap-4 lg:grid-cols-2 lg:items-stretch">
+                {existingBrochures.length === 0 && productBrochures.length === 0 ? (
+                  <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-5 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                    Brochure preview will appear here
+                  </div>
+                ) : (
+                  [...existingBrochures.map((brochure) => ({
+                    key: `existing-${brochure.id ?? "legacy"}`,
+                    url: brochure.brochure_url,
+                    filename: brochure.original_filename,
+                    existing: true,
+                    brochure,
+                  })), ...productBrochures.map((file, index) => ({
+                    key: `new-${index}`,
+                    url: brochurePreviewUrls[index],
+                    filename: file.name,
+                    existing: false,
+                    brochure: null,
+                  }))].map((brochure) => (
+                    <div key={brochure.key} className="group relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                      {brochure.url && <PdfPagePreview url={brochure.url} title={brochure.filename} />}
                       <button
                         type="button"
-                        onClick={productBrochure ? () => {
-                          setProductBrochure(null);
-                          setFormError((prev) => ({ ...prev, brochure: undefined }));
-                        } : handleRemoveExistingBrochure}
+                        aria-label={`Open preview for ${brochure.filename}`}
+                        onClick={() => setMediaPreviewModal({ type: "brochure", url: brochure.url })}
+                        className="absolute inset-0 z-10 cursor-zoom-in bg-transparent"
+                      />
+                      <span className="absolute bottom-2 left-2 right-2 z-20 truncate rounded bg-black/65 px-2 py-1 text-xs font-semibold text-white">
+                        {brochure.filename}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => brochure.existing && brochure.brochure
+                          ? setPendingDelete({
+                              type: "brochure-existing",
+                              brochure: brochure.brochure,
+                              message: `Remove brochure "${brochure.filename}"?`,
+                            })
+                          : setPendingDelete({
+                              type: "brochure-new",
+                              index: Number(brochure.key.replace("new-", "")),
+                              message: `Remove selected brochure "${brochure.filename}"?`,
+                            })}
                         disabled={isRemovingExistingBrochure}
-                        aria-label={productBrochure ? "Clear selected brochure" : "Remove current brochure"}
-                        title={productBrochure ? "Clear selected brochure" : "Remove current brochure"}
+                        aria-label={`Remove ${brochure.filename}`}
                         className="absolute right-2 top-2 z-30 inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <X className="h-4 w-4" />
                       </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-5 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-                    Brochure preview will appear here
-                  </div>
+                    </div>
+                  ))
                 )}
 
               </div>
@@ -1806,7 +2149,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Long product specification highlight image */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="specification-highlight-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center">
                   <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -1820,7 +2163,7 @@ const ProductForm: React.FC = () => {
                 {renderVisibilityToggle("specsHighlight", productSpecsHighlightEnabled, "Show product specification highlight image on the public product page")}
               </div>
 
-                <label className="mt-4 inline-flex min-h-12 w-fit max-w-full cursor-pointer items-center gap-2 rounded-lg bg-[#FCD000] px-4 py-3 text-sm font-semibold text-gray-950 shadow-sm transition-colors hover:bg-[#E5BB00]">
+                <label className={`ecommerce-product-action mt-4 inline-flex min-h-12 w-fit max-w-full cursor-pointer items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition-colors ${formError.specsHighlight ? "border border-red-400 bg-red-50 text-red-700 hover:bg-red-100" : "bg-[#FCD000] text-gray-950 hover:bg-[#E5BB00]"}`}>
                 <input
                   type="file"
                   accept="image/*"
@@ -1831,7 +2174,7 @@ const ProductForm: React.FC = () => {
                   }}
                 />
                 <span className="inline-flex min-w-0 items-center gap-2">
-                   <Upload className="h-5 w-5" />
+                   <Upload className="h-5 w-5 min-[4000px]:h-6 min-[4000px]:w-6" />
                   <span className="truncate">{productSpecsHighlight ? productSpecsHighlight.name : "Upload specification image"}</span>
                 </span>
               </label>
@@ -1860,10 +2203,12 @@ const ProductForm: React.FC = () => {
                     {(productSpecsHighlight || existingProductSpecsHighlightUrl) && (
                       <button
                         type="button"
-                        onClick={productSpecsHighlight ? () => {
-                          setProductSpecsHighlight(null);
-                          setFormError((prev) => ({ ...prev, specsHighlight: undefined }));
-                        } : handleRemoveExistingProductSpecsHighlight}
+                        onClick={() => setPendingDelete({
+                          type: productSpecsHighlight ? "spec-highlight-new" : "spec-highlight-existing",
+                          message: productSpecsHighlight
+                            ? `Remove selected specification highlight image "${productSpecsHighlight.name}"?`
+                            : "Remove the current specification highlight image?",
+                        })}
                         disabled={isRemovingProductSpecsHighlight}
                         aria-label={productSpecsHighlight ? "Clear selected specification highlight image" : "Remove current specification highlight image"}
                         title={productSpecsHighlight ? "Clear selected image" : "Remove current image"}
@@ -1885,7 +2230,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Quick product highlights shown on the public product-card hover */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="quick-highlights-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
                 <div className="flex min-w-0 items-center">
                   <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -1909,7 +2254,8 @@ const ProductForm: React.FC = () => {
                 {hoverSpecs.map((h, idx) => (
                   <div
                     key={idx}
-                    className="quick-highlight-card group relative rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 dark:border-indigo-900/50 dark:bg-indigo-900/10"
+                    id={`quick-highlight-card-${idx}`}
+                    className={`quick-highlight-card group relative rounded-lg border p-4 ${!h.specs_key.trim() || !h.specs_value.trim() ? "border-red-300 bg-red-100/80 shadow-[0_4px_14px_rgba(239,68,68,0.22)] dark:border-red-700 dark:bg-red-900/30 dark:shadow-[0_4px_14px_rgba(248,113,113,0.18)]" : "border-indigo-100 bg-indigo-50/50 dark:border-indigo-900/50 dark:bg-indigo-900/10"}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2">
@@ -1939,7 +2285,7 @@ const ProductForm: React.FC = () => {
                       id={`quick-highlight-title-${idx}`}
                       type="text"
                       placeholder={`e.g., ${QUICK_HIGHLIGHT_FIELDS[idx].key}`}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-normal text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm font-normal text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:bg-gray-800 dark:text-white ${!h.specs_key.trim() ? "border-red-500 bg-red-100 dark:border-red-400 dark:bg-red-900/30" : "border-gray-300 dark:border-gray-600"}`}
                       value={h.specs_key}
                       onChange={(e) => handleHoverSpecChange(idx, "specs_key", e.target.value)}
                     />
@@ -1950,7 +2296,7 @@ const ProductForm: React.FC = () => {
                       id={`quick-highlight-${idx}`}
                       type="text"
                       placeholder={QUICK_HIGHLIGHT_FIELDS[idx].placeholder}
-                      className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:ring-[#FCD000] dark:bg-gray-800 dark:text-white ${!h.specs_value.trim() ? "border-red-500 bg-red-100 dark:border-red-400 dark:bg-red-900/30" : "border-gray-300 dark:border-gray-600"}`}
                       value={h.specs_value}
                       onChange={(e) => handleHoverSpecChange(idx, "specs_value", e.target.value)}
                     />
@@ -1989,7 +2335,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Details */}
-            <div className="product-details-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div className="ecommerce-product-section product-details-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center">
                     <div className="mr-3 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:mr-4 md:p-3 dark:bg-[#5C4900]/30">
@@ -2016,7 +2362,7 @@ const ProductForm: React.FC = () => {
             </div>
 
             {/* Specifications Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+            <div id="specifications-section" className="ecommerce-product-section bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
               <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
                 <div className="flex min-w-0 items-center gap-3 md:gap-4">
                     <div className="shrink-0 rounded-lg bg-[#FFF3C4] p-2 scale-125 origin-left md:p-3 dark:bg-[#5C4900]/30">
@@ -2033,6 +2379,7 @@ const ProductForm: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAddCategory}
+                id="add-specification-category-button"
                 className="mb-4 inline-flex items-center justify-center rounded-lg bg-[#FCD000] px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors hover:bg-[#D4A900] md:px-4 md:text-base"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -2058,16 +2405,21 @@ const ProductForm: React.FC = () => {
                           Category Title
                         </label>
                         <input
+                          id={`spec-category-${catIndex}-title`}
                           type="text"
                           placeholder="e.g., Performance, Design, Features"
-                          className="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
+                          className={`w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border rounded-lg text-gray-900 focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors dark:text-white ${!String(cat.title || "").trim() ? "border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/20" : "border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800"}`}
                           value={cat.title}
                           onChange={(e) => handleTitleChange(catIndex, e.target.value)}
                         />
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleRemoveCategory(catIndex)}
+                        onClick={() => setPendingDelete({
+                          type: "spec-category",
+                          catIndex,
+                          message: `Remove ${cat.title.trim() ? `specification category "${cat.title}"` : "this specification category"}?`,
+                        })}
                         aria-label={`Remove ${cat.title || "specification category"}`}
                         className="inline-flex !h-10 !min-h-10 !w-10 !min-w-10 shrink-0 items-center justify-center overflow-visible rounded-lg bg-red-500 !p-0 text-white transition-colors hover:bg-red-600 self-end sm:self-auto"
                       >
@@ -2093,9 +2445,10 @@ const ProductForm: React.FC = () => {
                               Key
                             </label>
                             <input
+                              id={`spec-category-${catIndex}-field-${fieldIndex}-key`}
                               type="text"
                               placeholder="e.g., Processor, RAM, Storage"
-                              className="w-full px-3 py-2 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
+                              className={`w-full px-3 py-2 text-sm md:text-base border rounded-lg text-gray-900 focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors dark:text-white ${String(field.specs_value || "").trim() && !String(field.specs_key || "").trim() ? "border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/20" : "border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800"}`}
                               value={field.specs_key}
                               onChange={(e) =>
                                 handleChange(catIndex, fieldIndex, "specs_key", e.target.value)
@@ -2108,9 +2461,10 @@ const ProductForm: React.FC = () => {
                               Value
                             </label>
                             <input
+                              id={`spec-category-${catIndex}-field-${fieldIndex}-value`}
                               type="text"
                               placeholder="e.g., Intel Core i7, 16GB, 512GB SSD"
-                              className="w-full px-3 py-2 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors"
+                              className={`w-full px-3 py-2 text-sm md:text-base border rounded-lg text-gray-900 focus:ring-2 focus:ring-[#FCD000] focus:border-transparent transition-colors dark:text-white ${String(field.specs_key || "").trim() && !String(field.specs_value || "").trim() ? "border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/20" : "border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800"}`}
                               value={field.specs_value}
                               onChange={(e) =>
                                 handleChange(catIndex, fieldIndex, "specs_value", e.target.value)
@@ -2120,7 +2474,12 @@ const ProductForm: React.FC = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleRemoveField(catIndex, fieldIndex)}
+                            onClick={() => setPendingDelete({
+                              type: "spec-field",
+                              catIndex,
+                              fieldIndex,
+                              message: `Remove ${field.specs_key.trim() ? `specification field "${field.specs_key}"` : "this specification field"}?`,
+                            })}
                             aria-label={`Remove ${field.specs_key || "specification field"}`}
                             className="inline-flex !h-10 !min-h-10 !w-10 !min-w-10 shrink-0 self-end items-center justify-center overflow-visible rounded-lg bg-red-500 !p-0 text-white transition-colors hover:bg-red-600 sm:self-auto"
                           >
@@ -2143,12 +2502,12 @@ const ProductForm: React.FC = () => {
           </div>
 
           {/* Right Column - Summary (Desktop) */}
-          <div className="hidden lg:block">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-8">
+          <div className="ecommerce-product-summary-column">
+            <div className="ecommerce-product-summary sticky top-4 flex max-h-[calc(100vh-9rem)] flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Form Summary</h3>
               
               {/* Progress Bar */}
-              <div className="mb-6">
+              <div className="ecommerce-product-summary__progress mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Completion</span>
                   <span className="text-sm text-gray-900 dark:text-white">{calculateCompletion()}%</span>
@@ -2161,7 +2520,7 @@ const ProductForm: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="ecommerce-product-summary__sections min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
                 {renderSummarySection(
                   "Basic Information",
                   `${formProductData.product_name ? "Product name added" : "No basic information added"}`,
@@ -2199,7 +2558,7 @@ const ProductForm: React.FC = () => {
                 )}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="ecommerce-product-summary__status mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
                 <div className="flex items-center text-sm">
                   {calculateCompletion() === 100 ? (
                     <>
@@ -2215,12 +2574,12 @@ const ProductForm: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-5 flex gap-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+              <div className="ecommerce-product-summary__actions mt-5 flex gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={() => navigate('/beesee/ecommerce/product')}
                   disabled={isCreating || isUpdating}
-                className="flex min-h-14 flex-1 items-center justify-center rounded-lg border border-gray-300 px-6 py-4 text-base font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="flex min-h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -2228,13 +2587,13 @@ const ProductForm: React.FC = () => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isCreating || isUpdating}
-                  className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-[#FCD000] px-6 py-4 text-base font-semibold text-gray-900 shadow-sm transition-colors hover:bg-[#e9c000] disabled:opacity-50"
+                  className="flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#FCD000] px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-[#e9c000] disabled:opacity-50"
                 >
                   {isCreating || isUpdating ? (
                     <span>{id ? "Updating..." : "Creating..."}</span>
                   ) : (
                     <>
-                      <Save className="mr-2 h-[18px] w-[18px]" />
+                      {/* <Save className="mr-2 h-[18px] w-[18px] min-[4000px]:h-6 min-[4000px]:w-6" /> */}
                       <span>{id ? "Update Product" : "Create Product"}</span>
                     </>
                   )}
@@ -2257,11 +2616,16 @@ const ProductForm: React.FC = () => {
             </div>
             <div className="mt-2 grid grid-cols-5 gap-2 text-center text-xs">
               <div>
-                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${basicInformationComplete ? "bg-green-500" : "bg-red-500"}`}></div>
+                {renderMobileProgressStatus(basicInformationComplete, "Basic Information", basicInformationErrors, "basic-information-section")}
                 <span className="text-gray-600 dark:text-gray-400">Basic</span>
               </div>
               <div>
-                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${gallery.filter((item) => item !== null).length > 0 ? "bg-green-500" : "bg-red-500"}`}></div>
+                {renderMobileProgressStatus(
+                  gallery.filter((item) => item !== null).length > 0,
+                  "Product Gallery",
+                  mediaErrors,
+                  "gallery-section"
+                )}
                 <span className="text-gray-600 dark:text-gray-400">Gallery</span>
               </div>
               <div>
@@ -2269,11 +2633,11 @@ const ProductForm: React.FC = () => {
                 <span className="text-gray-600 dark:text-gray-400">Details</span>
               </div>
               <div>
-                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${hasCompleteHoverSpecs ? "bg-green-500" : "bg-red-500"}`}></div>
+                {renderMobileProgressStatus(hasCompleteHoverSpecs, "Quick Product Highlights", quickHighlightErrors, "quick-highlights-section")}
                 <span className="text-gray-600 dark:text-gray-400">Highlights</span>
               </div>
               <div>
-                <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${hasCompleteDetailedSpecs ? "bg-green-500" : "bg-red-500"}`}></div>
+                {renderMobileProgressStatus(hasCompleteDetailedSpecs, "Specifications", specificationSummaryErrors, "specifications-section")}
                 <span className="text-gray-600 dark:text-gray-400">Specs</span>
               </div>
             </div>
@@ -2307,7 +2671,7 @@ const ProductForm: React.FC = () => {
             onClick={() => setMediaPreviewModal(null)}
           >
             <div
-              className="flex h-[90vh] max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900"
+              className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700 md:px-6">
@@ -2327,12 +2691,12 @@ const ProductForm: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="min-h-0 flex-1 overflow-hidden bg-gray-100 p-1.5 dark:bg-gray-950 sm:p-3 md:p-5">
+              <div className="h-[75dvh] min-h-[360px] overflow-hidden bg-gray-100 p-1.5 dark:bg-gray-950 sm:p-3 md:p-5">
                 {mediaPreviewModal.type === "brochure" ? (
                   <PdfPagePreview
                     url={mediaPreviewModal.url}
                     title="Full product brochure preview"
-                    className="h-full min-h-0 rounded-lg bg-white"
+                    className="h-full min-h-[328px] rounded-lg bg-white"
                   />
                 ) : (
                   <img

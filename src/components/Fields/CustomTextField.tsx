@@ -1,12 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 
 interface CustomTextFieldProps {
   name: string;
+  id?: string;
   placeholder: string;
   value: string | number;
   rows: number;
   type: string;
+  autoComplete?: string;
   maxLength?: number;
   disabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -16,12 +18,11 @@ interface CustomTextFieldProps {
   helperText?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
-  autoExpandOnFocus?: boolean;
-  compactRows?: number;
 }
 
 const CustomTextField: React.FC<CustomTextFieldProps> = ({
   name,
+  id,
   placeholder,
   value,
   onChange,
@@ -29,51 +30,16 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   maxLength,
   disabled,
   type,
+  autoComplete,
   rows,
   icon,
   error = false,
   helperText = "",
   onKeyDown,
   onPaste,
-  autoExpandOnFocus = false,
-  compactRows,
 }) => {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const baseRows = compactRows ?? rows;
-
-  const resizeTextarea = () => {
-    const textarea = textareaRef.current;
-    if (!textarea || !autoExpandOnFocus || !multiline) return;
-
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
-    textarea.style.overflowY = 'hidden';
-  };
-
-  useEffect(() => {
-    if (isFocused) resizeTextarea();
-  }, [value, isFocused]);
-
-  useEffect(() => {
-    if (!isFocused || !autoExpandOnFocus || !multiline || !window.visualViewport) return;
-
-    const viewport = window.visualViewport;
-    const initialHeight = viewport.height;
-    const handleViewportResize = () => {
-      if (viewport.height > initialHeight + 80 && textareaRef.current) {
-        textareaRef.current.style.height = '';
-        textareaRef.current.style.overflowY = '';
-        setIsFocused(false);
-      }
-    };
-
-    viewport.addEventListener('resize', handleViewportResize);
-    return () => viewport.removeEventListener('resize', handleViewportResize);
-  }, [isFocused, autoExpandOnFocus, multiline]);
-
   const textFieldSx = {
-    backgroundColor: '#ffffff',
+    backgroundColor: error ? '#fff1f2' : '#ffffff',
     borderRadius: '6px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
@@ -91,8 +57,13 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
       marginRight: '-10px',
       marginBottom: '15px',
       paddingRight: multiline && rows > 1 ? '30px' : '14px',
-      overflowX: 'hidden',
-      resize: 'none',
+    },
+    // MUI supplies the gold focus border on the outer fieldset. Remove the
+    // browser's inner blue focus outline so focused inputs have one clear
+    // focus treatment.
+    '& .MuiInputBase-input:focus, & .MuiInputBase-inputMultiline:focus, & textarea:focus': {
+      outline: 'none',
+      boxShadow: 'none',
     },
   };
 
@@ -144,29 +115,19 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
     <div className="relative w-full">
       <TextField
         name={name}
+        id={id}
         placeholder={placeholder}
         margin="dense"
         fullWidth
         type={type}
+        autoComplete={autoComplete}
         size="small"
         disabled={disabled}
-        rows={baseRows}
+        rows={rows}
         multiline={multiline}
         sx={textFieldSx}
         value={value}
         onChange={handleChange}
-        onFocus={() => {
-          setIsFocused(true);
-          requestAnimationFrame(resizeTextarea);
-        }}
-        onBlur={() => {
-          setIsFocused(false);
-          if (textareaRef.current) {
-            textareaRef.current.style.height = '';
-            textareaRef.current.style.overflowY = '';
-          }
-        }}
-        inputRef={multiline ? textareaRef : undefined}
         inputProps={{ 
           maxLength,
           onKeyDown,

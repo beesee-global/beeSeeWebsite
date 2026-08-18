@@ -134,9 +134,9 @@ const MainLayout = () => {
         ></div>
       )}
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Navigation setShowSidebar={setShowSidebar} />
-        <main className="ecommerce-admin-content relative z-0 flex-1 overflow-y-auto bg-white">
+        <main className="ecommerce-admin-content relative z-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
           <ModulePermissionGuard>
             <Outlet />
           </ModulePermissionGuard>

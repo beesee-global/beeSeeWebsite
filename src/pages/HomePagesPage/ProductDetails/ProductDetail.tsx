@@ -6,6 +6,7 @@ import { fetchAllProductPublic, fetchSpecificProductPublic } from '../../../serv
 import { useQuery } from "@tanstack/react-query";
 import mockProducts from "../../../data/mockProductData.json";
 import ProductInquiryModal from "./components/ProductInquiryModal";
+import PdfPagePreview, { preloadPdfPreview } from "../../../components/Fields/PdfPagePreview";
 import { LucideIcon } from "../../../utils/lucideIconLoader";
 import { getIconNameForSpec } from "../../../config/specIconMap";
 import axiosClient from "../../../axiosClient";
@@ -28,6 +29,11 @@ type DemoProduct = {
   videoEmbedUrl?: string;
   videoEnabled?: boolean;
   brochureUrl?: string;
+  brochures?: Array<{
+    id: number | null;
+    brochure_url?: string;
+    original_filename: string;
+  }>;
   brochureEnabled?: boolean;
   productSpecsHighlightUrl?: string;
   productSpecsHighlightEnabled?: boolean;
@@ -155,6 +161,25 @@ const normalizeHoverSpecs = (value: unknown): DemoProduct["hoverSpecs"] => {
   return normalized
     .filter((item) => item.key && item.value);
 };
+
+type PublicBrochure = {
+  id: number | null;
+  filename: string;
+  previewUrl: string;
+  downloadUrl: string;
+};
+
+const getPublicApiBaseUrl = () => (
+  import.meta.env.DEV
+    ? "/api"
+    : `${String(import.meta.env.VITE_API_URL_BACKEND || "").replace(/\/$/, "")}/api`
+).replace(/\/$/, "");
+
+const getBrochurePreviewUrl = (pid: string, brochure: PublicBrochure) => (
+  brochure.id == null
+    ? brochure.previewUrl
+    : `${getPublicApiBaseUrl()}/ecom_products/${encodeURIComponent(pid)}/brochures/${brochure.id}/preview`
+);
 
 const getMockHoverSpecs = (keys: unknown, detailedSpecs: unknown) => {
   if (!Array.isArray(keys) || !detailedSpecs || typeof detailedSpecs !== "object") return undefined;
@@ -383,6 +408,9 @@ const ProductDetail: React.FC = () => {
   const [openInquiry, setOpenInquiry] = useState(false);
   const [isDownloadingBrochure, setIsDownloadingBrochure] = useState(false);
   const [brochureDownloadError, setBrochureDownloadError] = useState("");
+  const [brochureOptions, setBrochureOptions] = useState<PublicBrochure[]>([]);
+  const [isBrochureModalOpen, setIsBrochureModalOpen] = useState(false);
+  const [activeBrochurePreview, setActiveBrochurePreview] = useState<PublicBrochure | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState("");
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
@@ -397,6 +425,21 @@ const ProductDetail: React.FC = () => {
     setIsDownloadingBrochure(true);
     setBrochureDownloadError("");
     try {
+      if ((product.brochures?.length || 0) > 1) {
+        const brochureResponse = await axiosClient.get(
+          `/ecom_products/${encodeURIComponent(product.pid)}/brochures`
+        );
+        const brochures = Array.isArray(brochureResponse.data?.brochures)
+          ? brochureResponse.data.brochures
+          : [];
+        setBrochureOptions(brochures);
+        setActiveBrochurePreview(brochures[0] || null);
+        setIsBrochureModalOpen(true);
+        brochures.forEach((brochure) => {
+          preloadPdfPreview(getBrochurePreviewUrl(product.pid, brochure));
+        });
+        return;
+      }
       const brochureResponse = await axiosClient.get(
         `/ecom_products/${encodeURIComponent(product.pid)}/brochure/download`,
         { responseType: "blob" }
@@ -831,6 +874,7 @@ const ProductDetail: React.FC = () => {
       videoEnabled: source.video_enabled !== false && source.video_enabled !== 0 && source.video_enabled !== "0",
       brochureUrl: [source.brochure_url, source.brochureUrl, source.product_brochure]
         .find((value): value is string => typeof value === "string" && value.length > 0),
+      brochures: Array.isArray(source.brochures) ? source.brochures : undefined,
       brochureEnabled: source.brochure_enabled !== false && source.brochure_enabled !== 0 && source.brochure_enabled !== "0",
       productSpecsHighlightUrl,
       productSpecsHighlightEnabled: [
@@ -1120,7 +1164,11 @@ const ProductDetail: React.FC = () => {
                       disabled={isDownloadingBrochure}
                       className="product-brochure-link"
                     >
-                      <Download size={18} /> {isDownloadingBrochure ? "Preparing download..." : "Download product brochure"}
+                      <Download size={18} /> {isDownloadingBrochure
+                        ? "Preparing download..."
+                        : (product.brochures?.length || 0) > 1
+                          ? "Download product brochures"
+                          : "Download product brochure"}
                     </button>
                     {brochureDownloadError && (
                       <span className="product-brochure-download-error" role="alert">{brochureDownloadError}</span>
@@ -1407,6 +1455,86 @@ const ProductDetail: React.FC = () => {
           <MessageCircle size={19} /> Inquire about this product
         </button>
       </div>
+
+      {isBrochureModalOpen && (
+        <div
+          className="product-brochure-modal__backdrop fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="product-brochures-title"
+          onClick={() => setIsBrochureModalOpen(false)}
+        >
+          <div
+            className="product-brochure-modal__panel flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="product-brochure-modal__header flex items-center justify-between px-5 py-4">
+              <div>
+                <h2 id="product-brochures-title" className="text-lg font-semibold">
+                  Product brochures
+                </h2>
+                <p className="mt-1 text-sm">
+                  Select a brochure card to preview it, or download it.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBrochureModalOpen(false)}
+                aria-label="Close product brochures"
+                className="product-brochure-modal__close inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+              >
+                <X size={21} />
+              </button>
+            </div>
+            <div className="product-brochure-modal__body grid min-h-0 gap-4 overflow-y-auto p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+              <div className="space-y-3">
+                {brochureOptions.map((brochure) => (
+                  <div
+                    key={`${brochure.id ?? brochure.filename}-${brochure.filename}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setActiveBrochurePreview(brochure)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setActiveBrochurePreview(brochure);
+                      }
+                    }}
+                    className={`product-brochure-modal__card cursor-pointer rounded-lg border p-3 transition-colors ${activeBrochurePreview?.downloadUrl === brochure.downloadUrl ? "is-selected" : ""}`}
+                  >
+                    <p className="product-brochure-modal__filename truncate text-sm font-semibold" title={brochure.filename}>
+                      {brochure.filename}
+                    </p>
+                    <div className="product-brochure-modal__card-actions mt-3 flex flex-wrap gap-2">
+                      <a
+                        href={brochure.downloadUrl}
+                        download={brochure.filename}
+                        onClick={(event) => event.stopPropagation()}
+                        className="product-brochure-modal__download inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold"
+                      >
+                        <Download size={16} /> Download
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="product-brochure-modal__preview min-h-[360px] overflow-hidden">
+                {activeBrochurePreview ? (
+                  <PdfPagePreview
+                    url={getBrochurePreviewUrl(product?.pid || "", activeBrochurePreview)}
+                    title={`Preview ${activeBrochurePreview.filename}`}
+                    className="product-brochure-modal__pdf min-h-[360px]"
+                  />
+                ) : (
+                  <div className="flex h-full min-h-[360px] items-center justify-center p-6 text-center text-sm">
+                    No brochure preview is available.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isImagePreviewOpen && heroImage && (
         <div className="product-image-modal" role="dialog" aria-modal="true" aria-label={`${product.name} image preview`} onClick={closeImagePreview}>
