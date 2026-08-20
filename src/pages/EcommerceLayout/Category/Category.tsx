@@ -65,7 +65,7 @@ const Category = () => {
     });
 
     // extract array safety
-    const categoryInfo = categoryResponse?.data || []; // <-- this is now Row[]
+    const categoryInfo = Array.isArray(categoryResponse) ? categoryResponse : categoryResponse?.data || [];
  
     // refetch the category list when deleted
     const queryClient = useQueryClient();
@@ -118,7 +118,7 @@ const Category = () => {
         try {
         const response = await deleteCategoryAsync(Number(deleteIds));
 
-        if (response?.success) {
+        if ((response as any)?.data?.success || (response as any)?.success) {
             setDialogOpen(false)
             setDialogMessage('')
             setDialogTitle("")
@@ -130,7 +130,7 @@ const Category = () => {
             // Refetch jobs
             queryClient.invalidateQueries({ queryKey: ['category'] });
         }
-        } catch (error) {
+        } catch (error: any) {
             if (error?.response?.status === 409) {
                 setSnackBarMessage(error?.response?.data.message)
                 setDialogOpen(false)
@@ -155,7 +155,7 @@ const Category = () => {
     }, [searchValue])
    
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="min-h-full bg-slate-50 py-6 sm:py-8">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8"> 
 
                 {/* Snackbar */}
@@ -198,18 +198,17 @@ const Category = () => {
                 </div>
 
                 {/* Header */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Category</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Manage your product category and organization</p>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">Categories</h1>
+                            <p className="text-slate-500">Manage product categories and organization</p>
                         </div>
 
-                        <div className='flex gap-2'>
+                        <div className='flex flex-wrap gap-2'>
                             <button
                                 onClick={() => navigate('/beesee/ecommerce/category/form')}
-                                className="flex items-center px-6 py-3 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90
-                                hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                                className="flex items-center px-5 py-2.5 bg-[#FCD000] hover:bg-[#e9c000] text-gray-950 rounded-lg font-semibold transition-colors shadow-sm"
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Add Category

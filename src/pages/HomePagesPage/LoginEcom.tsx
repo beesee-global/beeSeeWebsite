@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import CustomTextField from '../../components/Fields/CustomTextField';
 import { motion } from 'framer-motion';
-import { Lock, Mail } from 'lucide-react'; 
+import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Snackbar from '../../components/feedback/Snackbar';
+import Snackbar from '../../components/feedback/SnackbarTechnician';
 import { useMutation } from '@tanstack/react-query';
 import { loggedInUser } from '../../services/Ecommerce/userServices';
 import { AlertColor } from '@mui/material/Alert';
-import { userAuth } from '../../hooks/userAuth'
+import { userAuth } from '../../hooks/userAuth';
 
 interface LoginForm {
   email: string;
@@ -19,190 +19,136 @@ interface FormError {
   password?: string;
 }
 
-const Login = () => {
-  const navigate = useNavigate(); 
-  const { login, token, userInfo } = userAuth()
+const LoginEcom = () => {
+  const navigate = useNavigate();
+  const { login, token, userInfo } = userAuth();
+  const [isChecking, setIsChecking] = useState(true);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [formError, setFormError] = useState<FormError>({});
+  const [formData, setFormData] = useState<LoginForm>({ email: '', password: '' });
 
-  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success")
-  const [checked, setChecked] = useState(false)
-
-  const [formError, setFormError] = useState<FormError>({})
-
-  const [formData, setFormData] = useState<LoginForm>({
-    email: '',
-    password: '',
+  const { mutateAsync: loginMutate, isPending } = useMutation({
+    mutationFn: loggedInUser,
   });
 
-  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    // update form data
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    // remove the specific error for this field
-    setFormError((prev) => ({
-      ...prev,
-      [name]: undefined
-    }))
-  };
-
-  // login 
-  const {
-    mutateAsync: loggedMutate,
-    isPending
-  } = useMutation({
-    mutationFn: loggedInUser
-  })
-
-  const handleSubmit = async(e: React.FormEvent) => {
-    try {    
-      e.preventDefault();
-      const errors = validateForm();
-      setFormError(errors)  
-      if (Object.keys(errors).length > 0) return
-
-      const response = await loggedMutate(formData); 
-      if (response?.success) {
-        const userInfo = {
-          id: response.userInfo.id,
-          full_name: response.userInfo.full_name,
-          email: response.userInfo.email,
-          role: response.userInfo.role,
-          url_permission: response.userInfo.url_permission
-        };
-
-        // token is at response.data.token (root level of API response)
-        login({ token: response.token, userInfo });  
-      }
-    } catch (err) {
-      console.error("Login Error:", err);
-      setSnackbarOpen(true)
-      setSnackbarSeverity("error")
-      setSnackbarMessage("Invalid email or password, please try again.")
-    }  
+  const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({ ...previous, [name]: value }));
+    setFormError((previous) => ({ ...previous, [name]: undefined }));
   };
 
   const validateForm = (): FormError => {
-    const errors: FormError = {}
+    const errors: FormError = {};
 
-    if (!formData.email.trim()) errors.email = "Email is required"
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format."
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Invalid email format.';
+    }
 
-    if (!formData.password.trim()) errors.password = "Password is required."
-    
+    if (!formData.password.trim()) {
+      errors.password = 'Password is required.';
+    }
+
     return errors;
-  }
-  
-  // Variants for parent (staggering children)
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2, // delay each child by 0.2s
-      },
-    },
   };
 
-  // Variants for children
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const errors = validateForm();
+    setFormError(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    try {
+      const response = await loginMutate(formData);
+
+      if (response?.success) {
+        login({
+          token: response.token,
+          userInfo: {
+            id: response.userInfo.id,
+            full_name: response.userInfo.full_name,
+            email: response.userInfo.email,
+            role: response.userInfo.role,
+            positions_id: response.userInfo.positions_id,
+            status: response.userInfo.status,
+            permissions: response.userInfo.permissions ?? [],
+            url_permission: response.userInfo.url_permission,
+            url: '/beesee/ecommerce',
+          },
+        }, 'ecommerce');
+        window.location.href = '/beesee/ecommerce';
+      } else {
+        throw new Error(response?.message || 'Login was not successful.');
+      }
+    } catch (error) {
+      console.error('Ecommerce login error:', error);
+      setSnackbarSeverity('error');
+      setSnackbarMessage('Invalid email or password, please try again.');
+      setSnackbarOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (token && userInfo?.url_permission === 'ecommerce') {
+      window.location.href = '/beesee/ecommerce';
+      return;
+    }
+
+    setIsChecking(false);
+  }, [token, userInfo]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+  };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  }; 
+  };
 
-  // Mark as checked when token/userInfo ready
-  useEffect(() => {
-    if (token !== undefined) {
-      setChecked(true);
-    }
-  }, [token]);
-  
-  // ✅ Redirect immediately if token exists
-  useEffect(() => {
-    if (token) {
-      if (userInfo?.url_permission === 'ecommerce')
-      window.location.href = "/beesee/ecommerce"  
-      setChecked(true);
-      return;  
-    }
-  }, [token, navigate]);
-
-  if (!checked) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-      
-      </div>
-    );
+  if (isChecking) {
+    return <div className="flex items-center justify-center h-screen text-gray-500" />;
   }
 
-
   return (
-    <div className='flex justify-center items-center bg-white min-h-screen'>
-      {/* Notification */}
-      <Snackbar 
+    <div className="flex justify-center items-center bg-white min-h-screen p-4">
+      <Snackbar
         open={snackbarOpen}
         message={snackbarMessage}
         type={snackbarSeverity}
         onClose={() => setSnackbarOpen(false)}
       />
 
-      <div className='grid grid-cols-1 md:grid-cols-2 w-full h-screen'>
-        <div className='hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br
-        from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden'>
-          {/* Decorative background element */}
-          <div className='absolute top-0 left-0 w-full h-full opacity-10'>
-            <div className='absolute top-20 left-10 w-72 h-72 bg-yellow-400 rounded-full blur-3xl'></div>
-            <div className='absolute bottom-20 right-10 w-96 h-96 bg-yellow-500 rounded-full blur-3xl'></div>
-          </div>
-          {/* logo */}
-          <div className='relative z-10 mb-8'>
-            <img 
-              src="" 
-              alt="" 
-            />
-          </div>
-
-          {/* Main heading */}
-          <div className='relative z-10 text-center max-w-md'>
-            <h1 className='text-4xl font-bold text-white mb-4 leading-tight'>
-              Welcome to Beesee Global Technologies Inc.
-            </h1>
-            <p className='text-gray-300 text-lg mb-8 leading-relaxed'>
-              Join our community and unlock a world of possibilities. Your journey start here.
-            </p>
-
-            {/* Feature Highlight */}
-          </div>
-        </div>
-
+      <div className="w-full max-w-md flex items-center justify-center p-4 sm:p-8">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="flex flex-col justify-center p-8 w-full h-full"
+          className="flex flex-col w-full"
         >
+          <motion.div variants={itemVariants} className="flex justify-center mb-6 sm:mb-8">
+            <img src="/beeSeeGold.png" alt="BeeSee Logo" className="h-20 sm:h-24 w-auto" />
+          </motion.div>
+
           <motion.h2
             variants={itemVariants}
-            className="bee-title-lg text-[var(--beesee-gold)] text-center  mb-4 sm:mb-6"
+            className="text-[var(--beesee-gold)] mb-3 sm:mb-6 text-center text-5xl sm:text-5xl"
           >
-            Login Your Account
+            Ecommerce Sign In
           </motion.h2>
-          <motion.p 
-            className="text-center mb-6 text-gray-600"
+
+          <motion.p
+            className="text-center mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base"
             variants={itemVariants}
           >
-            Welcome back! Please enter your details
+            Sign in to manage your ecommerce panel
           </motion.p>
 
-          <motion.form 
-            onSubmit={handleSubmit} 
-            className="space-y-7"
-          >
-            {/* Email */}
+          <motion.form onSubmit={handleSubmit} className="space-y-5 sm:space-y-7">
             <motion.div variants={itemVariants}>
               <CustomTextField
                 name="email"
@@ -216,10 +162,9 @@ const Login = () => {
                 icon={<Mail className="w-4 h-4" />}
                 error={!!formError.email}
                 helperText={formError.email}
-              /> 
+              />
             </motion.div>
 
-            {/* Password */}
             <motion.div variants={itemVariants}>
               <CustomTextField
                 name="password"
@@ -233,19 +178,20 @@ const Login = () => {
                 icon={<Lock className="w-4 h-4" />}
                 error={!!formError.password}
                 helperText={formError.password}
-              /> 
+              />
             </motion.div>
 
-            <motion.p 
+            <motion.p
               variants={itemVariants}
-              onClick={() => navigate("/forget-password")}
-              className="text-blue-500 hover:underline cursor-pointer">
+              onClick={() => navigate('/forget-password')}
+              className="text-blue-500 hover:underline cursor-pointer text-sm sm:text-base"
+            >
               Forget Password
             </motion.p>
 
             <motion.button
               variants={itemVariants}
-              className="beesee-button"
+              className="beesee-button w-full py-3 text-sm sm:text-base"
               type="submit"
               disabled={isPending}
             >
@@ -258,4 +204,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginEcom;

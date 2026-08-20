@@ -24,6 +24,7 @@ interface CustomSelectFieldProps {
   disabled?: boolean;
   freeSolo?: boolean;
   maxLength?: number;
+  fontSize?: string | number;
 }
 
 const CustomSelectField: React.FC <CustomSelectFieldProps> = ({ 
@@ -37,13 +38,14 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
   helperText = "",
   disabled = false,
   freeSolo = false,
-  maxLength
+  maxLength,
+  fontSize = '14px'
  }) => {
   const textFieldSx = {
     backgroundColor: "#f5f5f5",
     borderRadius: "6px",
     "& .MuiOutlinedInput-root": {
-      fontSize: "14px",
+      fontSize,
       '& fieldset': {
         borderColor: error ? 'red' : '#d1d5db', // gray-300 by default
       },
@@ -163,10 +165,10 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
     >
       {options.length > 0 ? 
         options.map((option) => (
-        <MenuItem 
-          key={option.value} 
-          value={option.value}
-           sx={{ fontSize: '14px' }}
+          <MenuItem
+            key={option.value}
+            value={option.value}
+           sx={{ fontSize }}
           >
           {option.label}
         </MenuItem>
