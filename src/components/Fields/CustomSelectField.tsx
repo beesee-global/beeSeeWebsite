@@ -14,6 +14,7 @@ interface Option {
 
 interface CustomSelectFieldProps {
   name: string,
+  id?: string,
   placeholder: string,
   value: string | number,
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -29,6 +30,7 @@ interface CustomSelectFieldProps {
 
 const CustomSelectField: React.FC <CustomSelectFieldProps> = ({ 
   name,
+  id,
   placeholder,
   value,
   onChange,
@@ -97,6 +99,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
           renderInput={(params) => (
             <TextField
               {...params}
+              id={id}
               name={name}
               placeholder={placeholder}
               margin='dense'
@@ -135,6 +138,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
     <div className='w-full'>
       <TextField
       select
+      id={id}
       name={name}
       fullWidth
       margin='dense'

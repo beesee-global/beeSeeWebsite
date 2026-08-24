@@ -567,7 +567,7 @@ const ProductForm: React.FC = () => {
         checked={enabled}
         onChange={(_, checked) => handleVisibilityChange(section, checked)}
         disabled={visibilityUpdating === section}
-        inputProps={{ "aria-label": ariaLabel }}
+        slotProps={{ input: { "aria-label": ariaLabel } }}
         sx={{ transform: "scale(1.25)", "& .MuiSwitch-switchBase.Mui-checked": { color: "#10b981" }, "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: "#10b981" } }}
       />
     </div>
