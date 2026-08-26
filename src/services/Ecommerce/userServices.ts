@@ -22,3 +22,8 @@ export const loggedInUser = async (data: any) => {
     throw error
   }
 }
+
+export const fetchEcommerceUsers = async () => {
+  const response = await axiosClient.get("/ecom_users");
+  return response.data;
+};

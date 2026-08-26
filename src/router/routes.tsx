@@ -37,6 +37,7 @@ import MainCategoryForm from '../pages/EcommerceLayout/Category/CategoryForm';
 import MainMyAccount from '../pages/EcommerceLayout/MyAccount/MyAccount';
 import FeaturedProduct from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProducts';
 import FeaturedProductForm from '../pages/EcommerceLayout/HomePageDesign/featured-products/FeaturedProductForm';
+import TeamMembers from '../pages/EcommerceLayout/TeamMembers/TeamMembers';
 
 /* Technician */
 import TechnicianLayout from '../layout/TechnicianLayout';
@@ -195,6 +196,10 @@ const routes = [
             {
                 path: 'my-account',
                 element: <MainMyAccount />
+            },
+            {
+                path: 'team-members',
+                element: <TeamMembers />
             },
             {
                 path: 'feature-product',

@@ -181,6 +181,12 @@ const getBrochurePreviewUrl = (pid: string, brochure: PublicBrochure) => (
     : `${getPublicApiBaseUrl()}/ecom_products/${encodeURIComponent(pid)}/brochures/${brochure.id}/preview`
 );
 
+const getBrochureDownloadUrl = (pid: string, brochure: PublicBrochure) => (
+  brochure.id == null
+    ? brochure.downloadUrl
+    : `${getPublicApiBaseUrl()}/ecom_products/${encodeURIComponent(pid)}/brochures/${brochure.id}/download`
+);
+
 const getMockHoverSpecs = (keys: unknown, detailedSpecs: unknown) => {
   if (!Array.isArray(keys) || !detailedSpecs || typeof detailedSpecs !== "object") return undefined;
   const entries = Object.entries(detailedSpecs as Record<string, Record<string, string>>)
@@ -1507,7 +1513,7 @@ const ProductDetail: React.FC = () => {
                     </p>
                     <div className="product-brochure-modal__card-actions mt-3 flex flex-wrap gap-2">
                       <a
-                        href={brochure.downloadUrl}
+                        href={getBrochureDownloadUrl(product?.pid || "", brochure)}
                         download={brochure.filename}
                         onClick={(event) => event.stopPropagation()}
                         className="product-brochure-modal__download inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold"
@@ -1522,6 +1528,7 @@ const ProductDetail: React.FC = () => {
                 {activeBrochurePreview ? (
                   <PdfPagePreview
                     url={getBrochurePreviewUrl(product?.pid || "", activeBrochurePreview)}
+                    fallbackUrl={activeBrochurePreview.previewUrl}
                     title={`Preview ${activeBrochurePreview.filename}`}
                     className="product-brochure-modal__pdf min-h-[360px]"
                   />

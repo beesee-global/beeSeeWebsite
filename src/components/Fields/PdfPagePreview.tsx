@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 // @ts-ignore: Vite resolves the PDF.js worker URL at build time.
 import * as pdfjsLib from "pdfjs-dist";
 // @ts-ignore: Vite resolves the PDF.js worker URL at build time.
@@ -56,15 +57,20 @@ export const clearPdfPreviewCache = () => {
   pdfDocumentCache.clear();
 };
 
-const PdfPagePreview: React.FC<{ url: string; title: string; className?: string }> = ({
+const PdfPagePreview: React.FC<{ url: string; fallbackUrl?: string; title: string; className?: string }> = ({
   url,
+  fallbackUrl,
   title,
   className = "",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [previewError, setPreviewError] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(url));
 
   useEffect(() => {
+    setIsLoading(Boolean(url));
+    setPreviewError(false);
+
     let disposed = false;
     let frameId: number | null = null;
     let renderQueued = false;
@@ -95,7 +101,12 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
 
       try {
         if (!pdfDocument) {
-          pdfDocument = await getCachedPdfDocument(url);
+          try {
+            pdfDocument = await getCachedPdfDocument(url);
+          } catch (primaryError) {
+            if (!fallbackUrl || fallbackUrl === url) throw primaryError;
+            pdfDocument = await getCachedPdfDocument(fallbackUrl);
+          }
           if (disposed) return;
         }
 
@@ -144,10 +155,12 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
         visibleContext.clearRect(0, 0, canvas.width, canvas.height);
         visibleContext.drawImage(nextCanvas, 0, 0);
         setPreviewError(false);
+        setIsLoading(false);
       } catch (error) {
         if (!disposed && !completed && !(error instanceof Error && error.name === "RenderingCancelledException")) {
           console.error("Failed to render product brochure preview:", error);
           setPreviewError(true);
+          setIsLoading(false);
         }
       } finally {
         renderTask = null;
@@ -185,11 +198,21 @@ const PdfPagePreview: React.FC<{ url: string; title: string; className?: string 
       pdfDocument = null;
       pdfPage = null;
     };
-  }, [url]);
+  }, [url, fallbackUrl]);
 
   return (
     <div className={`relative flex h-full w-full items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 ${className}`}>
       <canvas ref={canvasRef} aria-label={title} className="block max-h-full max-w-full object-contain" />
+      {isLoading && !previewError && (
+        <div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gray-950/80 px-4 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-8 w-8 animate-spin text-[#fcd000]" aria-hidden="true" />
+          <span className="text-sm text-gray-200">Loading brochure preview...</span>
+        </div>
+      )}
       {previewError && (
         <span className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Preview unavailable
