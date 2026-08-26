@@ -23,9 +23,9 @@ const MainLayout = () => {
   useEffect(() => {
     if (!checked) return;
     if (!token) {
-      navigate("/beesee/ecommerce/sign-in", { replace: true });
+      navigate("/ecom/sign-in", { replace: true });
     } else if (userInfo?.url_permission !== "ecommerce") {
-      navigate("/beesee/ecommerce/sign-in", { replace: true });
+      navigate("/ecom/sign-in", { replace: true });
     }
   }, [checked, token, userInfo, navigate]);
 

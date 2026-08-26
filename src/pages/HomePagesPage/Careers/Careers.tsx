@@ -171,14 +171,27 @@ const CareerPage = () => {
     queryFn: () => careersList()
   })
 
-  const jobData = careerResponse?.data ?? []
+  // The public careers endpoint may return either an array or a wrapped
+  // payload. Normalize it before using array methods in the page.
+  const jobData = useMemo(() => {
+    const payload = careerResponse?.data ?? careerResponse;
+
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.items)) return payload.items;
+
+    return [];
+  }, [careerResponse]);
 
   // Filter jobs
   const filteredJobs = useMemo(() => {
     return jobData.filter(job => {
-      const matchesSearch = 
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const title = String(job?.title ?? '');
+      const description = String(job?.description ?? '');
+      const normalizedSearchTerm = searchTerm.toLowerCase();
+      const matchesSearch =
+        title.toLowerCase().includes(normalizedSearchTerm) ||
+        description.toLowerCase().includes(normalizedSearchTerm);
       
       return matchesSearch;
     });
