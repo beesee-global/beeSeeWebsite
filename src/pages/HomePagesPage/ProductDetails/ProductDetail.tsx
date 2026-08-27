@@ -529,18 +529,37 @@ const ProductDetail: React.FC = () => {
   );
 
   // Load the live public catalogue before deriving recommendations from it.
-  const { data: productInfo, isLoading: productLoading, isError: isProductError } = useQuery({
+  const { data: productInfo, isLoading: productLoading, isError: isProductError, isFetched: productFetched } = useQuery({
     queryKey: ["product", id],
     queryFn: () => fetchSpecificProductPublic(id as string),
     enabled: !!id,
-    retry: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
   const { data: publicProducts } = useQuery({
-    queryKey: ["public-products"],
+    // Reuse the catalogue query populated by ProductsHub when the visitor
+    // navigates from the product list. This gives the detail page an immediate
+    // summary while the authoritative detail request completes.
+    queryKey: ["products"],
     queryFn: fetchAllProductPublic,
     enabled: !!id,
     staleTime: 60_000,
   });
+
+  const publicProductList = useMemo(() => {
+    if (Array.isArray(publicProducts)) return publicProducts;
+    if (Array.isArray(publicProducts?.data)) return publicProducts.data;
+    if (Array.isArray(publicProducts?.products)) return publicProducts.products;
+    if (Array.isArray(publicProducts?.data?.products)) return publicProducts.data.products;
+    return [];
+  }, [publicProducts]);
+
+  const publicSummary = useMemo(
+    () => publicProductList.find((item: any) =>
+      String(item?.pid || "").toLowerCase() === String(id || "").toLowerCase()
+    ),
+    [id, publicProductList]
+  );
 
   const relatedProducts = useMemo(() => {
     if (!product?.category) return [];
@@ -834,22 +853,21 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     // Prefer the API response; only use local mock data when the API request fails.
-    setLoading(Boolean(productLoading));
-    const src = productInfo || (isProductError ? fallbackProduct : null);
+    // A catalogue summary is enough to render the page shell immediately;
+    // keep the spinner only when neither the summary nor detail response is
+    // available yet.
+    setLoading(Boolean(productLoading && !publicSummary));
+    const detailPayload = (productInfo as any)?.product
+      || (productInfo as any)?.data?.product
+      || (productInfo as any)?.data
+      || productInfo;
+    const src = detailPayload || publicSummary || (isProductError ? fallbackProduct : null);
     if (!src) {
       setProduct(null);
       return;
     }
 
     const source = src as any;
-    const publicProductList = Array.isArray(publicProducts)
-      ? publicProducts
-      : Array.isArray(publicProducts?.data)
-        ? publicProducts.data
-        : [];
-    const publicSummary = publicProductList.find((item: any) =>
-      String(item?.pid || "").toLowerCase() === String(source.pid || id || "").toLowerCase()
-    );
     const images = Array.isArray(source.images) ? source.images.slice().sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) : [];
     const gallery = images.length
       ? images.map((item: any) => item.image_url)
@@ -936,7 +954,7 @@ const ProductDetail: React.FC = () => {
         window.clearInterval(autoplayRef.current);
       }
     };
-  }, [fallbackProduct, id, isProductError, productInfo, productLoading, publicProducts]);
+  }, [fallbackProduct, id, isProductError, productInfo, productLoading, productFetched, publicSummary]);
 
   useEffect(() => {
     setProductDetailMeta(product, id);
@@ -987,7 +1005,7 @@ const ProductDetail: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isImagePreviewOpen, product]);
 
-  if (loading) {
+  if (loading || !productFetched) {
     return (
       <div className="product-detail-page product-loading">
         <div className="loading-spinner">
