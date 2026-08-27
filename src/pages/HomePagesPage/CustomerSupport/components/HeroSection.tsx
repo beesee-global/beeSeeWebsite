@@ -286,13 +286,24 @@ const HeroSection: React.FC = () => {
             payload.tickets_details = ticketsDetails;
 
             const response = await createEmployeeMutate(payload);
+            const ticketId = response?.data?.ticket_id ?? response?.ticket_id;
 
+            if (!ticketId) {
+                throw new Error('Ticket creation returned no ticket ID.');
+            }
+
+            let imageUploadFailed = false;
             if (uploadedImages.length > 0) {
                 for (const image of uploadedImages) {
                     if (image.file) {
                         const formDataImage = new FormData();
                         formDataImage.append('image', image.file);
-                        await insertImage({ id: response.data.ticket_id, image: formDataImage });
+                        try {
+                            await insertImage({ id: ticketId, image: formDataImage });
+                        } catch (error) {
+                            imageUploadFailed = true;
+                            console.error('Ticket created, but attachment upload failed.', error);
+                        }
                     }
                 }
             }
@@ -318,6 +329,13 @@ const HeroSection: React.FC = () => {
             setCaptchaValue(null);
             setCurrentStep(1);
             setIsSubmitted(true);
+            setSnackBarMessage(
+                imageUploadFailed
+                    ? 'Request submitted, but the attachment could not be uploaded.'
+                    : 'Request submitted successfully.'
+            );
+            setSnackBarType(imageUploadFailed ? 'error' : 'success');
+            setSnackBarOpen(true);
         } catch (error) {
             setSnackBarMessage('Failed to submit, Please try again.');
             setSnackBarType('error');
