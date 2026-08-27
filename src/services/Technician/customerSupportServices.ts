@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { asArray } from "../../utils/apiCollections";
 
 const TICKETS_API_URL = "/tickets";
 
@@ -59,7 +60,7 @@ export const images = async ({ id, image }: { id: string | number, image: FormDa
 export const fetchCategory = async () => {
   try {
     const response = await axiosClient.get(`/categories/cs/public`);
-    return unwrapSupportPayload(response);
+    return asArray(response);
   } catch (error) {
     throw error
   }
@@ -68,7 +69,7 @@ export const fetchCategory = async () => {
 export const fetchDevices = async( id: number ) => {
   try {
     const response = await axiosClient.get(`/products/${id}/public`);
-    return unwrapSupportPayload(response)
+    return asArray(response)
   } catch(error) {
     throw error
   }
@@ -77,7 +78,7 @@ export const fetchDevices = async( id: number ) => {
 export const fetchIssue = async ( id: number ) => {
   try {
     const response = await axiosClient.get(`/issues/${id}/public`)
-    return unwrapSupportPayload(response)
+    return asArray(response)
   } catch (error) {
     throw error
   }
@@ -86,7 +87,7 @@ export const fetchIssue = async ( id: number ) => {
 export const fetchDevice = async () => {
   try {
     const response = await axiosClient.get(`/products/public`);
-    return unwrapSupportPayload(response);
+    return asArray(response);
   } catch (error) {
     throw error;
   }

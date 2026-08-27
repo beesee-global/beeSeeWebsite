@@ -4,6 +4,7 @@ import beeseeGoldLogo from "../../../public/beeseeGoldLogo.png";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserById } from "../../services/Ecommerce/myAccountServices";
+import type { EcommerceUser } from "../../services/Ecommerce/userServices";
 import { userAuth } from "../../hooks/userAuth";
 
 interface NavigationProps {
@@ -23,20 +24,28 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
 
   const id = userInfo?.id;
 
-  const { data: userInformation } = useQuery({
+  const { data: userInformation, isLoading: isUserLoading } = useQuery<EcommerceUser | null>({
     queryKey: ["users", id],
     queryFn: () => fetchUserById(String(id)),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const user: UserData = useMemo(
-    () => ({
-      first_name: userInformation?.data?.first_name || "Loading...",
-      last_name: userInformation?.data?.last_name || "",
-      image: userInformation?.data?.image_url || null,
-    }),
-    [userInformation]
-  );
+  const user: UserData = useMemo(() => {
+    const storedName = userInfo?.full_name?.trim() || "";
+    const storedNameParts = storedName ? storedName.split(/\s+/) : [];
+
+    return {
+      first_name:
+        userInformation?.first_name
+        || storedNameParts[0]
+        || (isUserLoading ? "Loading..." : "User"),
+      last_name:
+        userInformation?.last_name
+        || (storedNameParts.length > 1 ? storedNameParts.slice(1).join(" ") : ""),
+      image: userInformation?.image_url || null,
+    };
+  }, [isUserLoading, userInfo?.full_name, userInformation]);
 
   const preview = useMemo(() => {
     if (user.image instanceof File) {

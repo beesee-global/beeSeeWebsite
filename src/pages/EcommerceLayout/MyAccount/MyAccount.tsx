@@ -200,9 +200,8 @@ const MyAccount = () => {
   const { data: userInformation } = useQuery({
     queryKey: ['users', id],
     queryFn: () => fetchUserById(String(id)), 
+    enabled: !!id,
   });
-
-  console.log(userInformation)
 
   // --- close modal ---
   const handleCloseModal = () => {
@@ -222,9 +221,9 @@ const MyAccount = () => {
   const handleCancel = () => {
     if (userInformation) {
       setAccountData({
-        first_name: userInformation?.data?.first_name || "",
-        last_name: userInformation?.data?.last_name || "",
-        email: userInformation?.data?.email || "",  
+        first_name: userInformation?.first_name || "",
+        last_name: userInformation?.last_name || "",
+        email: userInformation?.email || "",
       });
     }
     setFormError({});
@@ -246,10 +245,10 @@ const MyAccount = () => {
   useEffect(() => {  
     if (userInformation) {
       setAccountData({
-        first_name: userInformation?.data?.first_name ,
-        last_name: userInformation?.data?.last_name ,
-        email: userInformation?.data?.email,  
-        image: userInformation?.data?.image_url
+        first_name: userInformation.first_name || "",
+        last_name: userInformation.last_name || "",
+        email: userInformation.email || "",
+        image: userInformation.image_url || null
       });
     }
   }, [userInformation]);

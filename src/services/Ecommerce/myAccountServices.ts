@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { normalizeApiResponse } from "../../utils/apiCollections";
 
 const API_URL = '/ecom_users'
 
@@ -6,7 +7,7 @@ const API_URL = '/ecom_users'
 export const  fetchUserById = async (id: string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}`);
-        return response.data;
+        return normalizeApiResponse(response);
     }  catch (error) { 
         throw error; 
     }
@@ -21,7 +22,7 @@ export const updateAccountInfo = async (payload: { id: number | string, userData
                 "Content-Type": "multipart/form-data",
             },
         });
-        return response.data;
+        return response;
     } catch (error: any) { 
         throw error;
     }
