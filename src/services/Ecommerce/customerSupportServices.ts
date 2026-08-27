@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { normalizeApiResponse } from "../../utils/apiCollections";
 
 const TICKETS_API_URL = "/tickets";
 const CATEGORIES_API_URL = "/categories";
@@ -10,7 +11,7 @@ export const createCustomerSupport = async (ticketData: any) => {
         "Content-Type": "multipart/form-data",
       }
     });
-    return response;
+    return normalizeApiResponse(response);
   } catch (error) {
     throw error;
   }

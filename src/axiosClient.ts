@@ -9,12 +9,13 @@ const sessionStorageKeyForPath = () => {
 };
 
 const getCurrentAreaToken = () => {
+  let areaToken: string | null = null;
   try {
     const storedSession = localStorage.getItem(sessionStorageKeyForPath());
-    return storedSession ? (JSON.parse(storedSession)?.token as string | null) : null;
-  } catch {
-    return null;
-  }
+    areaToken = storedSession ? (JSON.parse(storedSession)?.token as string | null) : null;
+  } catch { /* fall back to the generic AuthContext token below */ }
+
+  return areaToken || localStorage.getItem("token");
 };
 // In development, always use Vite's same-origin proxy. This avoids direct
 // LAN-origin requests (and their CORS failures) regardless of the configured
@@ -47,9 +48,9 @@ axiosClient.interceptors.request.use(
 );
 
 axiosClient.interceptors.response.use(
-  // Preserve Axios' response shape. Existing services consistently consume
-  // response.data, and returning only the body here creates a mixed contract.
-  (response) => response,
+  // Existing services were written for the response-body contract. Returning
+  // the full Axios response adds an extra `.data` layer to every API result.
+  (response) => response.data,
   (error) => {
     const status = error?.response?.status;
     const requestConfig = error?.config as (typeof error.config & { _retriedWithoutAuth?: boolean }) | undefined;

@@ -1,5 +1,6 @@
 import { error } from "console";
 import axiosClient from "../../axiosClient";
+import { normalizeApiResponse } from "../../utils/apiCollections";
 
 const API_URL = "/users"
 
@@ -25,5 +26,5 @@ export const loggedInUser = async (data: any) => {
 
 export const fetchEcommerceUsers = async () => {
   const response = await axiosClient.get("/ecom_users");
-  return response.data;
+  return normalizeApiResponse(response);
 };

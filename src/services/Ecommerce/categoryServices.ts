@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { normalizeApiResponse } from "../../utils/apiCollections";
 
 const API_URL = "/ecom_category";
 
@@ -20,7 +21,7 @@ export const createCategory = async (data:any) => {
 export const deleteCategory = async (id: number | string) => {
     try {
         const response = await axiosClient.delete(`${API_URL}/${id}`)
-        return response;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -56,7 +57,7 @@ export const fetchEmployeeByPid = async (id: number | string) => {
         // Return the category body, matching the shape expected by
         // CategoryForm. The backend response contains the numeric `id` that
         // must be used for the subsequent PUT request.
-        return response.data;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -71,7 +72,7 @@ export const updateCategory = async (payload: { id: number | string, categoryDat
                 "Content-Type": "application/json"
             }
         });
-        return response;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error;
     }

@@ -1,4 +1,5 @@
 import axiosClient from "../../axiosClient";
+import { asArray, normalizeApiResponse } from "../../utils/apiCollections";
 
 const API_URL = "/ecom_products"
 
@@ -8,7 +9,7 @@ export const createProduct = async (data: any) => {
         const response = await axiosClient.post(`${API_URL}`, data, {
             // Let Axios/browser set the multipart boundary automatically.
         })
-        return response;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -18,7 +19,7 @@ export const createProduct = async (data: any) => {
 export const deleteProduct = async (id: number | string) => {
     try {
         const response = await axiosClient.delete(`${API_URL}/${id}`)
-        return response;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -28,7 +29,7 @@ export const deleteProduct = async (id: number | string) => {
 export const fetchAllProduct = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}`);
-        return response.data;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -37,13 +38,13 @@ export const fetchAllProduct = async () => {
 // get all product public 
 export const fetchAllProductPublic = async () => {
   const response = await axiosClient.get(`${API_URL}/public`);
-  return response.data;
+  return normalizeApiResponse(response);
 };
 
 export const fetchSpecificProductPublic = async (id: string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}/public`);
-        return response.data;
+        return normalizeApiResponse(response);
     } catch (error) {
         throw error
     }
@@ -53,7 +54,7 @@ export const fetchSpecificProductPublic = async (id: string) => {
 export const fetchSpecificProduct = async (id: number | string) => {
     try {
         const response = await axiosClient.get(`${API_URL}/${id}`);
-        return response.data;
+        return normalizeApiResponse(response);
     } catch (error) {
        throw error
     }
@@ -66,7 +67,7 @@ export const updateProduct = async (payload: {id: number | string, productData: 
         const response = await axiosClient.put(`${API_URL}/${id}`, productData, {
             // Let Axios/browser set the multipart boundary automatically.
         });
-        return response.data;
+        return normalizeApiResponse(response);
     } catch (error) {
        throw error
     }
@@ -126,7 +127,7 @@ export const searchProduct = async (term: string) => {
 export const fetchCategory = async () => {
     try {
         const response = await axiosClient.get("/ecom_category");
-        return Array.isArray(response.data?.data) ? response.data.data : response.data;
+        return asArray(response);
     } catch (error) {
         throw error
     }
