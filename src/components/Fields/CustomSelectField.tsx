@@ -14,6 +14,7 @@ interface Option {
 
 interface CustomSelectFieldProps {
   name: string,
+  id?: string,
   placeholder: string,
   value: string | number,
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -24,10 +25,12 @@ interface CustomSelectFieldProps {
   disabled?: boolean;
   freeSolo?: boolean;
   maxLength?: number;
+  fontSize?: string | number;
 }
 
 const CustomSelectField: React.FC <CustomSelectFieldProps> = ({ 
   name,
+  id,
   placeholder,
   value,
   onChange,
@@ -37,13 +40,14 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
   helperText = "",
   disabled = false,
   freeSolo = false,
-  maxLength
+  maxLength,
+  fontSize = '14px'
  }) => {
   const textFieldSx = {
     backgroundColor: "#f5f5f5",
     borderRadius: "6px",
     "& .MuiOutlinedInput-root": {
-      fontSize: "14px",
+      fontSize,
       '& fieldset': {
         borderColor: error ? 'red' : '#d1d5db', // gray-300 by default
       },
@@ -95,6 +99,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
           renderInput={(params) => (
             <TextField
               {...params}
+              id={id}
               name={name}
               placeholder={placeholder}
               margin='dense'
@@ -133,6 +138,7 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
     <div className='w-full'>
       <TextField
       select
+      id={id}
       name={name}
       fullWidth
       margin='dense'
@@ -163,10 +169,10 @@ const CustomSelectField: React.FC <CustomSelectFieldProps> = ({
     >
       {options.length > 0 ? 
         options.map((option) => (
-        <MenuItem 
-          key={option.value} 
-          value={option.value}
-           sx={{ fontSize: '14px' }}
+          <MenuItem
+            key={option.value}
+            value={option.value}
+           sx={{ fontSize }}
           >
           {option.label}
         </MenuItem>

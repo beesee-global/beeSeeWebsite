@@ -4,6 +4,7 @@ import beeseeGoldLogo from "../../../public/beeseeGoldLogo.png";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserById } from "../../services/Ecommerce/myAccountServices";
+import type { EcommerceUser } from "../../services/Ecommerce/userServices";
 import { userAuth } from "../../hooks/userAuth";
 
 interface NavigationProps {
@@ -23,20 +24,28 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
 
   const id = userInfo?.id;
 
-  const { data: userInformation } = useQuery({
+  const { data: userInformation, isLoading: isUserLoading } = useQuery<EcommerceUser | null>({
     queryKey: ["users", id],
     queryFn: () => fetchUserById(String(id)),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const user: UserData = useMemo(
-    () => ({
-      first_name: userInformation?.data?.first_name || "Loading...",
-      last_name: userInformation?.data?.last_name || "",
-      image: userInformation?.data?.image_url || null,
-    }),
-    [userInformation]
-  );
+  const user: UserData = useMemo(() => {
+    const storedName = userInfo?.full_name?.trim() || "";
+    const storedNameParts = storedName ? storedName.split(/\s+/) : [];
+
+    return {
+      first_name:
+        userInformation?.first_name
+        || storedNameParts[0]
+        || (isUserLoading ? "Loading..." : "User"),
+      last_name:
+        userInformation?.last_name
+        || (storedNameParts.length > 1 ? storedNameParts.slice(1).join(" ") : ""),
+      image: userInformation?.image_url || null,
+    };
+  }, [isUserLoading, userInfo?.full_name, userInformation]);
 
   const preview = useMemo(() => {
     if (user.image instanceof File) {
@@ -75,7 +84,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
   }, [preview, user.image]);
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 md:px-4 bg-[#000000] w-full border-b border-gray-300">
+    <div className="ecommerce-navbar flex w-full items-center justify-between border-b border-gray-300 bg-[#000000] px-3 py-2 md:px-4">
       <div className="flex gap-2 items-center">
         <button
           onClick={() => setShowSidebar(true)}
@@ -88,7 +97,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
         <img
           src={beeseeGoldLogo}
           alt="BeeSee Logo"
-          className="w-[150px] h-auto cursor-pointer"
+          className="ecommerce-navbar-logo h-auto w-[150px] cursor-pointer"
         />
       </div>
 
@@ -98,7 +107,7 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             e.stopPropagation();
             setUserNav((prev) => !prev);
           }}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white transition-colors"
+          className="ecommerce-account-trigger flex items-center space-x-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-white transition-colors hover:bg-white/10"
           aria-label="User menu"
           aria-expanded={userNav}
         >
@@ -122,9 +131,9 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
         </button>
 
         {userNav && (
-          <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-20">
+          <div className="ecommerce-account-menu absolute right-0 top-full z-20 mt-2 w-40 rounded-lg border bg-white shadow-lg">
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-100 rounded-t-lg transition-colors"
+              className="ecommerce-account-menu-item flex w-full items-center gap-2 rounded-t-lg px-3 py-2 transition-colors hover:bg-gray-100"
               onClick={() => {
                 navigate("/beesee/ecommerce/my-account");
                 setUserNav(false);
@@ -137,10 +146,10 @@ const Navigation: React.FC<NavigationProps> = ({ setShowSidebar }) => {
             <div className="border-t my-1" />
 
             <button
-              className="flex items-center gap-2 w-full px-3 py-2 text-red-600 hover:bg-gray-100 rounded-b-lg transition-colors"
+              className="ecommerce-account-menu-item flex w-full items-center gap-2 rounded-b-lg px-3 py-2 text-red-600 transition-colors hover:bg-gray-100"
               onClick={() => {
                 logout();
-                navigate("/sign-in", { replace: true });
+                navigate("/beesee/ecommerce/sign-in", { replace: true });
               }}
             >
               <LogOut size={18} />

@@ -17,19 +17,22 @@ import "../../../assets/css/Product.css";
 
 // Import mock data
 import mockProducts from "../../../data/mockProductData.json";
+import { getIconNameForSpec } from '../../../config/specIconMap';
+import { getProductCutout } from '../../../config/productDisplayAssets';
 
 // Mobile detection hook
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
+  );
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const mobileViewport = window.matchMedia("(max-width: 767px)");
+    const checkMobile = (event: MediaQueryListEvent | MediaQueryList) => setIsMobile(event.matches);
+
+    checkMobile(mobileViewport);
+    mobileViewport.addEventListener("change", checkMobile);
+    return () => mobileViewport.removeEventListener("change", checkMobile);
   }, []);
 
   return isMobile;
@@ -79,6 +82,7 @@ const processMockProducts = (mockData: any): Product[] => {
         if (v) hoverSpecsData[k] = String(v);
       });
     }
+    // use central getIconNameForSpec from config/specIconMap
     
     // Map hover spec keys to detailedSpecs
     hoverSpecs.forEach((specKey: string) => {
@@ -114,6 +118,10 @@ const processMockProducts = (mockData: any): Product[] => {
               else if (specsObj['SpO2']) hoverSpecsData['sensors'] = specsObj['SpO2'];
               else if (specsObj['Sensors']) hoverSpecsData['sensors'] = specsObj['Sensors'];
               break;
+            case 'gpu':
+              if (specsObj['Graphics']) hoverSpecsData['gpu'] = specsObj['Graphics'];
+              else if (specsObj['GPU']) hoverSpecsData['gpu'] = specsObj['GPU'];
+              break;
             case 'connectivity':
               if (specsObj['Bluetooth']) hoverSpecsData['connectivity'] = specsObj['Bluetooth'];
               else if (specsObj['WiFi']) hoverSpecsData['connectivity'] = specsObj['WiFi'];
@@ -129,6 +137,8 @@ const processMockProducts = (mockData: any): Product[] => {
               break;
             case 'smart_features':
               if (specsObj['OS']) hoverSpecsData['smart_features'] = specsObj['OS'];
+              else if (specsObj['Operating System']) hoverSpecsData['smart_features'] = specsObj['Operating System'];
+              else if (specsObj['Operating system']) hoverSpecsData['smart_features'] = specsObj['Operating system'];
               break;
             case 'touchscreen':
               if (specsObj['Touch Points']) hoverSpecsData['touchscreen'] = specsObj['Touch Points'];
@@ -137,6 +147,12 @@ const processMockProducts = (mockData: any): Product[] => {
           }
         }
       }
+    });
+
+    // Build spec icon mapping for mock products (string names for lucide loader)
+    const hoverSpecIcons: Record<string, string> = {};
+    Object.keys(hoverSpecsData).forEach((sk) => {
+      hoverSpecIcons[sk] = getIconNameForSpec(sk);
     });
 
     return {
@@ -153,6 +169,7 @@ const processMockProducts = (mockData: any): Product[] => {
       description: product.description,
       keyFeatures: product.keyFeatures,
       specs: hoverSpecsData, // Only include hover specs for the card
+      specIcons: hoverSpecIcons,
       detailedSpecs: product.detailedSpecs, // Full specs for detail page
       hoverSpecs: hoverSpecs,
       inStock: true,
@@ -164,78 +181,118 @@ const processMockProducts = (mockData: any): Product[] => {
   });
 };
 
+const createOrUpdateMeta = (name: string, content: string) => {
+  let tag = document.head.querySelector(`meta[name='${name}']`);
+  if (!tag) {
+    tag = document.createElement('meta');
+    tag.setAttribute('name', name);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute('content', content);
+};
+
+const createOrUpdateProperty = (property: string, content: string) => {
+  let tag = document.head.querySelector(`meta[property='${property}']`);
+  if (!tag) {
+    tag = document.createElement('meta');
+    tag.setAttribute('property', property);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute('content', content);
+};
+
+const createOrUpdateLink = (rel: string, href: string) => {
+  let link = document.head.querySelector(`link[rel='${rel}']`);
+  if (!link) {
+    link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    document.head.appendChild(link);
+  }
+  link.setAttribute('href', href);
+};
+
+const setProductsPageMeta = () => {
+  document.title = "Products - Beesee Global Technology Inc.";
+  createOrUpdateMeta("description", "Browse Beesee Global Technology's smart TVs, laptops, tablets, and wearables. Discover advanced business and education hardware solutions.");
+  createOrUpdateMeta("robots", "index, follow");
+  createOrUpdateLink("canonical", "https://www.beesee.ph/products");
+  createOrUpdateProperty("og:title", "Products | Beesee Global Technology Inc.");
+  createOrUpdateProperty("og:description", "Browse Beesee Global Technology's smart TVs, laptops, tablets, and wearables. Discover advanced business and education hardware solutions.");
+  createOrUpdateProperty("og:url", "https://www.beesee.ph/products");
+  createOrUpdateProperty("og:type", "website");
+  createOrUpdateMeta("twitter:card", "summary_large_image");
+  createOrUpdateMeta("twitter:title", "Products | Beesee Global Technology Inc.");
+  createOrUpdateMeta("twitter:description", "Browse Beesee Global Technology's smart TVs, laptops, tablets, and wearables. Discover advanced business and education hardware solutions.");
+};
+
+const getCategoryFilterId = (value?: string) => {
+  const normalized = String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (normalized.includes("smarttv") || normalized.includes("television") || normalized === "tv") return "smarttv";
+  if (normalized.includes("laptop") || normalized.includes("notebook")) return "laptop";
+  if (normalized.includes("tablet") || normalized.includes("beepad")) return "tablet";
+  if (normalized.includes("watch") || normalized.includes("wearable")) return "smartwatch";
+  return normalized;
+};
+
 const ProductsHub: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-   const categoriesDumpData: Category[] = [
-    { 
-      id: "all", 
-      name: "All Products",  
-      hoverSpecs: []
-    },
-    { 
-      id: "laptop", 
-      name: "Laptops",  
-      icon: "💻",
-      hoverSpecs: ["cpu", "ram", "storage", "display"]
-    },
-    { 
-      id: "smartwatch", 
-      name: "Wearables",  
-      icon: "⌚",
-      hoverSpecs: ["display", "battery", "sensors", "connectivity"]
-    },
-    { 
-      id: "smarttv", 
-      name: "Interactive Smart TVs",  
-      icon: "📺",
-      hoverSpecs: ["display", "resolution", "refresh_rate", "panel_type"]
-    },
-    { 
-      id: "tablet", 
-      name: "Tablets",  
-      icon: "📱",
-      hoverSpecs: ["cpu", "ram", "storage", "display"]
-    },
-/*     { 
-      id: "kiosk", 
-      name: "Kiosk Machines", 
-      count: demoProducts.filter((p) => p.category_id === "kiosk").length,
-      icon: "🏧",
-      hoverSpecs: ["display", "cpu", "storage", "touchscreen"]
-    } */
-  ];
+  useEffect(() => {
+    setProductsPageMeta();
+  }, []);
 
-  const { data: categories } = useQuery({
-    queryKey: ["category"],
-    // queryFn: async () => {
-    //   const categories = await fetchAllCategoryPublic();
-    //   // Normalize categories: ensure each item has `id`, `name`, `icon`.
-    //   const mapped = (categories || []).map((c: any, idx: number) => ({
-    //     id: c.id ?? String(c.name || `cat-${idx}`),
-    //     name: c.name,
-    //     icon: c.icon,
-    //   }));
-    //   // Add "All Products" at the beginning with id 'all'
-    //   return [{ id: 'all', name: "All Products", icon: "Server" }, ...mapped];
-    // },
+  const { data: categoriesFromDb } = useQuery({
+    queryKey: ["public-categories"],
+    queryFn: fetchAllCategoryPublic,
+    staleTime: 60_000,
   });
 
-  const effectiveCategories = useMemo(
-    () => (categories && categories.length > 0 ? categories : categoriesDumpData),
-    [categories, categoriesDumpData]
-  );
+  const effectiveCategories = useMemo<Category[]>(() => {
+    const source = Array.isArray(categoriesFromDb)
+      ? categoriesFromDb
+      : Array.isArray(categoriesFromDb?.data)
+        ? categoriesFromDb.data
+        : [];
+
+    return [
+      { id: "all", name: "All Products", icon: "Boxes", hoverSpecs: [] },
+      ...source
+        .filter((category: any) => category?.name)
+        .map((category: any) => ({
+          id: category.id ?? getCategoryFilterId(category.name),
+          name: String(category.name),
+          icon: category.icon || "Tag",
+          hoverSpecs: [],
+        })),
+    ];
+  }, [categoriesFromDb]);
 
   const {
     data: products
-  } = useQuery({
+  } = useQuery<Product[]>({
     queryKey: ["products"],
-    // queryFn: () => fetchAllProductPublic()
+    queryFn: async () => {
+      const res = await fetchAllProductPublic();
+      // Public APIs may return a raw list or wrap it in `products`/`data`.
+      // Accept both so products created through the admin panel are not
+      // discarded in favour of the bundled mock catalogue.
+      const candidates = [
+        res,
+        res?.products,
+        res?.data,
+        res?.data?.products,
+        res?.data?.data,
+        res?.result,
+        res?.result?.products,
+        res?.payload?.products,
+      ];
+      return (candidates.find(Array.isArray) || []) as Product[];
+    },
+    // Enable fetching from API to show newly created products
+    enabled: true,
   })
 
-  console.log("product", products)
- 
   // Build demo products either from API `products` or fallback to mock data
   const demoProducts = useMemo(() => {
     const normalizeKey = (raw: string) => {
@@ -256,7 +313,20 @@ const ProductsHub: React.FC = () => {
 
     if (products && Array.isArray(products)) {
       return products.map((product: any, index: number) => {
-        const hover = product.hover_specs || [];
+        const productImages = Array.isArray(product.images) ? product.images : [];
+        const gallery = Array.isArray(product.gallery) && product.gallery.length
+          ? product.gallery
+          : productImages.map((image: any) => image.image_url || image.url).filter(Boolean);
+        const configuredImage = product.image_url || product.image || gallery[0] || '';
+        let hover = product.hover_specs || [];
+        if (typeof hover === 'string') {
+          try {
+            hover = JSON.parse(hover);
+          } catch {
+            hover = [];
+          }
+        }
+        if (!Array.isArray(hover)) hover = [];
         const hoverSpecsData: Record<string, string> = {};
         const hoverSpecIcons: Record<string, string> = {};
 
@@ -265,11 +335,15 @@ const ProductsHub: React.FC = () => {
           if (!key) return;
           hoverSpecsData[key] = String(h.value ?? '');
           if (h.icon) hoverSpecIcons[key] = h.icon;
+          if (!hoverSpecIcons[key]) hoverSpecIcons[key] = getIconNameForSpec(key);
         });
 
         // attempt to find category id from fetched categories
+        const sourceCategory = product.category_name || product.category || "";
+        const resolvedCategoryId = getCategoryFilterId(sourceCategory);
         const matchedCat = effectiveCategories.find(
-          (c: any) => c.name === product.category_name || c.name === product.category
+          (c: any) => getCategoryFilterId(String(c.id)) === resolvedCategoryId
+            || getCategoryFilterId(c.name) === resolvedCategoryId
         );
 
         return {
@@ -277,17 +351,25 @@ const ProductsHub: React.FC = () => {
           pid: product.pid,
           name: product.name,
           tagline: product.tagline || '',
-          category_id: matchedCat?.id ?? String(product.category_name || product.category || '').toLowerCase(),
-          category: product.category_name || product.category || 'Unknown',
+          category_id: String(matchedCat?.id ?? resolvedCategoryId),
+          category: sourceCategory || 'Unknown',
           price: product.price ?? 0,
           formattedPrice: formatPrice(product.price ?? 0),
-          image: product.image_url || product.image || '',
-          gallery: product.gallery || [],
+          image: getProductCutout(product.pid) || configuredImage,
+          gallery,
           description: product.description || '',
           keyFeatures: product.keyFeatures || [],
           specs: hoverSpecsData,
           specIcons: hoverSpecIcons,
-          detailedSpecs: product.detailedSpecs || {},
+          quickHighlights: hover.map((h: any) => ({
+            key: String(h.key || h.key_name || '').trim(),
+            value: String(h.value ?? h.spec_value ?? '').trim(),
+            icon: h.icon ? String(h.icon) : undefined,
+          })).filter((h: any) => h.key && h.value),
+          quickProductHighlightEnabled: product.quick_product_highlight_enabled !== false
+            && product.quick_product_highlight_enabled !== 0
+            && product.quick_product_highlight_enabled !== "0",
+          detailedSpecs: product.detailed_specs || product.detailedSpecs || {},
           hoverSpecs: hover.map((h: any) => h.key),
           inStock: product.inStock ?? true,
           rating: product.rating ?? 4.5,
@@ -312,10 +394,6 @@ const ProductsHub: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    document.title = "Products - Beesee Global Technology Inc.";
-  }, []);
-
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     let min = 0;
@@ -330,7 +408,9 @@ const ProductsHub: React.FC = () => {
     }
 
     return demoProducts.filter((p) => {
-      const matchCategory = selectedCategory === "all" || p.category_id === selectedCategory;
+      const matchCategory = selectedCategory === "all"
+        || getCategoryFilterId(p.category_id) === getCategoryFilterId(selectedCategory)
+        || getCategoryFilterId(p.category) === getCategoryFilterId(selectedCategory);
       const matchSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -345,10 +425,50 @@ const ProductsHub: React.FC = () => {
 
   const sortedProducts = useMemo(() => {
     let arr = [...filteredProducts];
-    if (sortBy === "name-asc") arr.sort((a, b) => a.name.localeCompare(b.name));
-    if (sortBy === "name-desc") arr.sort((a, b) => b.name.localeCompare(a.name));
-    if (sortBy === "price-asc") arr.sort((a, b) => a.price - b.price);
-    if (sortBy === "price-desc") arr.sort((a, b) => b.price - a.price);
+
+    // Priority mapping: lower numbers appear first
+    const getProductPriority = (p: Product) => {
+      const cat = (p.category_id ?? p.category ?? "").toString().toLowerCase();
+      // Educational Smart TV / related TVs
+      if (/tv|smarttv|television|interactive/.test(cat)) return 0;
+      // Laptops
+      if (/laptop|notebook/.test(cat)) return 1;
+      // Tablets / Beepad
+      if (/tablet|beepad|ipad/.test(cat)) return 2;
+      // Smartwatches / sport / medical
+      if (/watch|smartwatch|sport|medical/.test(cat)) return 3;
+      return 4; // default
+    };
+
+    const getEducationalTvSize = (p: Product) => {
+      const category = String(p.category || "").toLowerCase();
+      if (!/educational\s*smart\s*tv|smart\s*tv/.test(category)) return null;
+      const match = String(p.name || "").match(/(\d+(?:\.\d+)?)\s*(?:inch(?:es)?|\")/i);
+      return match ? Number(match[1]) : null;
+    };
+
+    // First sort by priority, then by selected sort
+    arr.sort((a, b) => {
+      const pa = getProductPriority(a);
+      const pb = getProductPriority(b);
+      if (pa !== pb) return pa - pb;
+
+      // Keep Educational Smart TVs in customer-friendly size order:
+      // 65, 75, 86, 105, regardless of the API insertion order.
+      const tvSizeA = getEducationalTvSize(a);
+      const tvSizeB = getEducationalTvSize(b);
+      if (tvSizeA !== null && tvSizeB !== null && tvSizeA !== tvSizeB) {
+        return tvSizeA - tvSizeB;
+      }
+
+      if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+      if (sortBy === "name-desc") return b.name.localeCompare(a.name);
+      if (sortBy === "price-asc") return a.price - b.price;
+      if (sortBy === "price-desc") return b.price - a.price;
+
+      return 0;
+    });
+
     return arr;
   }, [sortBy, filteredProducts]);
 
@@ -399,8 +519,8 @@ const ProductsHub: React.FC = () => {
       <HeroProducts />
 
       {/* MAIN SECTION */}
-      <section className="py-16 px-4 md:px-8 lg:px-16 bg-[#000000]">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-[#000000] px-4 py-16 md:px-8 lg:px-16">
+        <div className="mx-auto w-full max-w-[1440px]">
           {isMobile ? (
             // MOBILE VERSION - No animations
             <div>

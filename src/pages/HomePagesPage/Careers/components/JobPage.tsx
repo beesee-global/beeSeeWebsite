@@ -163,16 +163,16 @@ const JobPage: React.FC = () => {
       
       {/* HERO SECTION - Mobile optimized with proper top spacing */}
       <div 
-        className="relative min-h-[20vh] h-auto md:h-[60vh] md:overflow-hidden flex items-center justify-center pb-10 md:pb-0"
+        className="relative min-h-[20vh] h-auto md:min-h-[60vh] md:overflow-visible flex items-center justify-center pb-10 md:pb-14"
         style={{
-          background: isMobile 
+          backgroundImage: isMobile
             ? 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerMobile.jpg")'
             : 'linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)), url("/careerSamp.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'scroll',
-          // Add proper top spacing for mobile
-          paddingTop: isMobile ? '80px' : '12px',
+          // Reserve space for the fixed desktop header so the title is never hidden behind it.
+          paddingTop: isMobile ? '80px' : 'clamp(100px, 8vw, 140px)',
           marginTop: '0px'
         }}
       >
@@ -190,15 +190,17 @@ const JobPage: React.FC = () => {
         
             {/* JOB TITLE - Mobile optimized */}
             <h1
-              className="mb-6 md:mb-10 max-w-3xl mx-auto px-2"
+              className="mb-6 md:mb-10 max-w-4xl mx-auto px-2 break-words"
               style={{
                 fontFamily: '"Bebas Neue", sans-serif',
-                fontSize: isMobile ? 'clamp(40px, 9vw, 90px)' : 'clamp(42px, 10vw, 110px)',
+                fontSize: isMobile ? 'clamp(40px, 9vw, 90px)' : 'clamp(42px, 8vw, 110px)',
                 lineHeight: isMobile ? '1.1' : '1',
                 color: 'var(--beesee-light)',
                 textShadow: isMobile ? '0 6px 25px rgba(0,0,0,0.8)' : '0 4px 30px rgba(0,0,0,0.6)',
                 letterSpacing: '0.02em',
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                overflowWrap: 'anywhere',
+                textWrap: 'balance'
               }}
             >
               {job.title}
@@ -364,7 +366,7 @@ const JobPage: React.FC = () => {
 
         {/* FINAL CTA - Mobile optimized */}
         <section 
-          className="fade-up-init text-center py-8 md:py-10 rounded-xl md:rounded-none"
+          className="fade-up-init text-center py-8 md:py-10 rounded-xl"
           style={{
             background: isMobile 
               ? 'linear-gradient(180deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.8) 100%)' 

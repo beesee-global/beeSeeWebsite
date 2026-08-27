@@ -22,7 +22,7 @@ const TechnicianLayout = () => {
   useEffect(() => {
     // if we don't have a token, go back to home
     if (!token) {
-      navigate("/", { replace: true });
+      navigate("/sign-in", { replace: true });
       localStorage.clear();
       return;
     }
@@ -30,7 +30,7 @@ const TechnicianLayout = () => {
     // if user is admin, redirect to admin dashboard
     if (userInfo?.url_permission !== "technician_url") {
       setIsChecking(false)
-      navigate("/tech/sign-in", { replace: true });
+      navigate("/sign-in", { replace: true });
       localStorage.clear();
       return;
     } 
