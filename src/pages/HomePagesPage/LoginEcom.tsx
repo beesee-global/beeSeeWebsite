@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Snackbar from '../../components/feedback/SnackbarTechnician';
+import SignInLoader from '../../components/feedback/SignInLoader';
 import { useMutation } from '@tanstack/react-query';
 import { loggedInUser } from '../../services/Ecommerce/userServices';
 import { AlertColor } from '@mui/material/Alert';
@@ -64,25 +65,25 @@ const LoginEcom = () => {
     try {
       const response = await loginMutate(formData);
 
-      if (response?.success) {
-        login({
-          token: response.token,
-          userInfo: {
-            id: response.userInfo.id,
-            full_name: response.userInfo.full_name,
-            email: response.userInfo.email,
-            role: response.userInfo.role,
-            positions_id: response.userInfo.positions_id,
-            status: response.userInfo.status,
-            permissions: response.userInfo.permissions ?? [],
-            url_permission: response.userInfo.url_permission,
-            url: '/beesee/ecommerce',
-          },
-        }, 'ecommerce');
-        window.location.href = '/beesee/ecommerce';
-      } else {
+      if (!response?.success) {
         throw new Error(response?.message || 'Login was not successful.');
       }
+
+      login({
+        token: response.token,
+        userInfo: {
+          id: response.userInfo.id,
+          full_name: response.userInfo.full_name,
+          email: response.userInfo.email,
+          role: response.userInfo.role,
+          positions_id: response.userInfo.positions_id,
+          status: response.userInfo.status,
+          permissions: response.userInfo.permissions ?? [],
+          url_permission: response.userInfo.url_permission,
+          url: '/beesee/ecommerce',
+        },
+      });
+      window.location.href = '/beesee/ecommerce';
     } catch (error) {
       console.error('Ecommerce login error:', error);
       setSnackbarSeverity('error');
@@ -116,6 +117,7 @@ const LoginEcom = () => {
 
   return (
     <div className="flex justify-center items-center bg-white min-h-screen p-4">
+      <SignInLoader loading={isPending} />
       <Snackbar
         open={snackbarOpen}
         message={snackbarMessage}
@@ -195,7 +197,7 @@ const LoginEcom = () => {
               type="submit"
               disabled={isPending}
             >
-              Sign in
+              {isPending ? 'Signing in...' : 'Sign in'}
             </motion.button>
           </motion.form>
         </motion.div>
