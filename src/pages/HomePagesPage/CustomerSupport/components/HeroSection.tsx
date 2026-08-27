@@ -97,7 +97,7 @@ const HeroSection: React.FC = () => {
       queryKey: ['categories'],
       queryFn: fetchCategory,
       select: (res) =>
-        res.data.map((item: any) => ({
+        res.map((item: any) => ({
             value: String(item.id),
             label: String(item.id) === '7' ? 'Educational Smart TV' : item.name,
             is_active: item.is_active,
@@ -109,7 +109,7 @@ const HeroSection: React.FC = () => {
       queryFn: () => fetchDevices(Number(formData?.category_id)),
       enabled: !!formData?.category_id,
       select: (res) => {
-          const mapped = res.data.map((item: any) => ({
+          const mapped = res.map((item: any) => ({
               value: item.id,
               label: item.product_name,
           }));
@@ -127,7 +127,7 @@ const HeroSection: React.FC = () => {
       queryFn: () => fetchIssue(Number(formData?.device_id)),
       enabled: !!formData?.device_id,
       select: (res) => {
-          const mapped = res.data.map((item: any) => ({
+          const mapped = res.map((item: any) => ({
               value: item.id,
               label: item.name,
           }));
