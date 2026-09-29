@@ -1243,17 +1243,24 @@ const ProductDetail: React.FC = () => {
           </ParallaxSection>
         )}
 
+        {product.detailsEnabled !== false && product.details && (
+        <section className="product-showcase-section product-details-showcase-section" id="details">
+          <div className="showcase-intro">
+            <span>PRODUCT INFORMATION</span>
+            <h2>Details</h2>
+            <div
+              className="long-specs showcase-long-specs"
+              dangerouslySetInnerHTML={{ __html: sanitizeDetails(product.details) }}
+            />
+          </div>
+        </section>
+        )}
+
         {product.specificationsEnabled !== false && (
         <section className="product-showcase-section" id="specifications">
           <div className="showcase-intro">
             <span>PRODUCT INFORMATION</span>
             <h2>Specifications</h2>
-            {product.detailsEnabled !== false && product.details && (
-              <div
-                className="long-specs showcase-long-specs"
-                dangerouslySetInnerHTML={{ __html: sanitizeDetails(product.details) }}
-              />
-            )}
           </div>
 
           <div className="showcase-scroll-grid">
