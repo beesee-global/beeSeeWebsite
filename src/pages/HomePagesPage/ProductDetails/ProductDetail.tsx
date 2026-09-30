@@ -431,13 +431,14 @@ const ProductDetail: React.FC = () => {
     setIsDownloadingBrochure(true);
     setBrochureDownloadError("");
     try {
-      if ((product.brochures?.length || 0) > 1) {
-        const brochureResponse = await axiosClient.get(
-          `/ecom_products/${encodeURIComponent(product.pid)}/brochures`
-        );
-        const brochures = Array.isArray(brochureResponse.data?.brochures)
-          ? brochureResponse.data.brochures
-          : [];
+      const brochureResponse = await axiosClient.get(
+        `/ecom_products/${encodeURIComponent(product.pid)}/brochures`
+      );
+      const brochures = Array.isArray(brochureResponse.data?.brochures)
+        ? brochureResponse.data.brochures
+        : [];
+
+      if (brochures.length > 1) {
         setBrochureOptions(brochures);
         setActiveBrochurePreview(brochures[0] || null);
         setIsBrochureModalOpen(true);
@@ -446,14 +447,20 @@ const ProductDetail: React.FC = () => {
         });
         return;
       }
-      const brochureResponse = await axiosClient.get(
-        `/ecom_products/${encodeURIComponent(product.pid)}/brochure/download`,
+
+      const brochure = brochures[0];
+      if (!brochure) {
+        throw new Error("No product brochure is available.");
+      }
+
+      const downloadResponse = await axiosClient.get(
+        getBrochureDownloadUrl(product.pid, brochure),
         { responseType: "blob" }
       );
-      if (brochureResponse.status < 200 || brochureResponse.status >= 300) {
-        throw new Error(`Brochure download failed with status ${brochureResponse.status}.`);
+      if (downloadResponse.status < 200 || downloadResponse.status >= 300) {
+        throw new Error(`Brochure download failed with status ${downloadResponse.status}.`);
       }
-      const brochureBlob = brochureResponse.data;
+      const brochureBlob = downloadResponse.data;
       const objectUrl = URL.createObjectURL(brochureBlob);
       const downloadLink = document.createElement("a");
       downloadLink.href = objectUrl;
@@ -1180,7 +1187,7 @@ const ProductDetail: React.FC = () => {
                 {/* <a href="#specifications" className="product-spec-link">
                   View specifications <ChevronRight size={18} />
                 </a> */}
-                {product.brochureUrl && product.brochureEnabled && (
+                {product.brochureEnabled && (product.brochureUrl || (product.brochures?.length || 0) > 0) && (
                   <>
                     <button
                       type="button"
