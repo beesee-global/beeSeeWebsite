@@ -66,10 +66,12 @@ const PdfPagePreview: React.FC<{ url: string; fallbackUrl?: string; title: strin
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [previewError, setPreviewError] = useState(false);
   const [isLoading, setIsLoading] = useState(Boolean(url));
+  const [useNativeFallback, setUseNativeFallback] = useState(false);
 
   useEffect(() => {
     setIsLoading(Boolean(url));
     setPreviewError(false);
+    setUseNativeFallback(false);
 
     let disposed = false;
     let frameId: number | null = null;
@@ -161,6 +163,7 @@ const PdfPagePreview: React.FC<{ url: string; fallbackUrl?: string; title: strin
           console.error("Failed to render product brochure preview:", error);
           setPreviewError(true);
           setIsLoading(false);
+          setUseNativeFallback(Boolean(fallbackUrl || url));
         }
       } finally {
         renderTask = null;
@@ -202,8 +205,16 @@ const PdfPagePreview: React.FC<{ url: string; fallbackUrl?: string; title: strin
 
   return (
     <div className={`relative flex h-full w-full items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 ${className}`}>
-      <canvas ref={canvasRef} aria-label={title} className="block max-h-full max-w-full object-contain" />
-      {isLoading && !previewError && (
+      {useNativeFallback ? (
+        <iframe
+          src={fallbackUrl || url}
+          title={title}
+          className="h-full w-full border-0 bg-white"
+        />
+      ) : (
+        <canvas ref={canvasRef} aria-label={title} className="block max-h-full max-w-full object-contain" />
+      )}
+      {isLoading && !previewError && !useNativeFallback && (
         <div
           className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gray-950/80 px-4 text-center"
           role="status"
@@ -213,7 +224,7 @@ const PdfPagePreview: React.FC<{ url: string; fallbackUrl?: string; title: strin
           <span className="text-sm text-gray-200">Loading brochure preview...</span>
         </div>
       )}
-      {previewError && (
+      {previewError && !useNativeFallback && (
         <span className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Preview unavailable
         </span>
