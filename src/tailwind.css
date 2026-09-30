@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* SortableJS fallback used by Quick Product Highlights.
+   Keep the dragged element the same size and orientation as its source card. */
+.quick-highlight-fallback,
+.quick-highlight-dragging,
+.quick-highlight-chosen {
+  animation: none !important;
+  rotate: none !important;
+  scale: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.quick-highlight-fallback {
+  opacity: 0.92 !important;
+  pointer-events: none !important;
+}
+
+.quick-highlight-ghost {
+  opacity: 0.25 !important;
+}
+
 @layer base {
   /* Ensure proper viewport height on mobile */
   html, body {

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import "../../../../assets/css/featuredProduct.css";
 import "../../../../assets/css/global.css";
 import { useNavigate } from "react-router-dom";
-import { fetchSpecificDisplayPublic } from '../../../../services/Ecommerce/featureProduct'
+import { fetchFeaturedProductsPublic } from '../../../../services/Ecommerce/featuredProductServices'
 import { useQuery } from "@tanstack/react-query";
 
 // TypeScript interfaces
@@ -45,9 +45,9 @@ export default function ProductShowcase() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const { data: featuresProduct } = useQuery({
+  const { data: featuresProduct } = useQuery<any>({
     queryKey: ["features"],
-    // queryFn: () => fetchSpecificDisplayPublic(),
+    queryFn: () => fetchFeaturedProductsPublic(),
     refetchInterval: 10000,
   });
 
@@ -88,7 +88,45 @@ export default function ProductShowcase() {
 
   // Fetch featured data
   useEffect(() => {
-    setFeaturedData(featuresProduct || getDefaultData());
+    if (featuresProduct) {
+      const fallback = getDefaultData();
+      // Map products to ensure image URLs fall back if null
+      const sourceProducts = Array.isArray(featuresProduct.products) && featuresProduct.products.length > 0
+        ? featuresProduct.products
+        : fallback.products;
+      const mappedProducts = sourceProducts.map((p: any, idx: number) => {
+        const fallbackImg = idx === 0 ? "/featuredProduct/LaptopPro.png" : "/featuredProduct/LaptopDuos.png";
+        return {
+          ...p,
+          imageUrl: p.imageUrl || fallbackImg,
+          badges: (p.badges || []).map((b: any, bIdx: number) => ({
+            id: b.id || `badge-${bIdx + 1}`,
+            text: b.text || "",
+            position: b.position || (bIdx + 1)
+          }))
+        };
+      });
+
+      // Map techStats
+      const sourceStats = Array.isArray(featuresProduct.techStats) && featuresProduct.techStats.length > 0
+        ? featuresProduct.techStats
+        : fallback.techStats;
+      const mappedStats = sourceStats.map((s: any, idx: number) => ({
+        id: s.id || `stat-${idx + 1}`,
+        value: s.value || "",
+        label: s.label || "",
+        order: s.order || (idx + 1)
+      }));
+
+      setFeaturedData({
+        title: featuresProduct.title || "FEATURED PRODUCTS",
+        description: featuresProduct.description || fallback.description,
+        products: mappedProducts,
+        techStats: mappedStats
+      });
+    } else {
+      setFeaturedData(getDefaultData());
+    }
     setLoading(false);
   }, [featuresProduct]);
 

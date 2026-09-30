@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Navigation from "../components/ui/NavigationEcommerce";
 import Sidebar from "../components/ui/SidebarEcommerce";
+import ModulePermissionGuard from "../components/auth/ModulePermissionGuard";
 import { userAuth } from "../hooks/userAuth";
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const { token, userInfo, userNav, setUserNav } = userAuth();
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [checked, setChecked] = useState(false);
 
   // Mark as checked when token/userInfo ready
@@ -21,11 +23,9 @@ const MainLayout = () => {
   useEffect(() => {
     if (!checked) return;
     if (!token) {
-      navigate("/", { replace: true });
-      localStorage.clear();
+      navigate("/ecom/sign-in", { replace: true });
     } else if (userInfo?.url_permission !== "ecommerce") {
-      navigate("/ecommerce/sign-in", { replace: true });
-      localStorage.clear();
+      navigate("/ecom/sign-in", { replace: true });
     }
   }, [checked, token, userInfo, navigate]);
 
@@ -57,6 +57,16 @@ const MainLayout = () => {
     document.addEventListener('click', handleClickOutside, true);
     return () => document.removeEventListener('click', handleClickOutside, true);
   }, [showSidebar]);
+
+  useEffect(() => {
+    const expandSidebarOnMobile = () => {
+      if (window.innerWidth < 768) setIsSidebarCollapsed(false);
+    };
+
+    expandSidebarOnMobile();
+    window.addEventListener("resize", expandSidebarOnMobile);
+    return () => window.removeEventListener("resize", expandSidebarOnMobile);
+  }, []);
 
   // Handle Escape key
   useEffect(() => {
@@ -94,14 +104,21 @@ const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="hidden md:block w-64 overflow-y-auto">
-        <Sidebar />
+      <div
+        className={`hidden shrink-0 overflow-y-auto transition-[width] duration-300 md:block ${
+          isSidebarCollapsed ? "w-20" : "w-64"
+        }`}
+      >
+        <Sidebar
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed((previous) => !previous)}
+        />
       </div>
 
       {/* Mobile Sidebar */}
       <div
         data-sidebar
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed inset-y-0 left-0 z-40 w-[min(16rem,calc(100vw-1rem))] max-w-full transform bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700 transition-transform duration-300 ease-in-out md:hidden ${
           showSidebar ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -117,10 +134,12 @@ const MainLayout = () => {
         ></div>
       )}
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Navigation setShowSidebar={setShowSidebar} />
-        <main className="flex-1 overflow-y-auto bg-white">
-          <Outlet />
+        <main className="ecommerce-admin-content relative z-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
+          <ModulePermissionGuard>
+            <Outlet />
+          </ModulePermissionGuard>
         </main>
       </div>
     </div>

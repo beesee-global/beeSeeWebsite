@@ -1,0 +1,10 @@
+{
+  "name": "Beesee Global Inc.",
+  "short_name": "Beesee",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#fcd000",
+  "description": "Beesee Global Technologies Inc.",
+  "icons": []
+}

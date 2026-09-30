@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Snackbar from '../../components/feedback/SnackbarTechnician';
+import SignInLoader from '../../components/feedback/SignInLoader';
 import { useMutation } from '@tanstack/react-query';
 import { loggedInUser } from '../../services/Technician/userServices';
 import { AlertColor } from '@mui/material/Alert';
@@ -64,10 +65,12 @@ const LoginTechnician = () => {
       setFormError(errors);
       if (Object.keys(errors).length > 0) return;
 
-      const response = await loginMutate(formData); 
-      // response.data contains your API response
-      if (response?.success) {  
-        const userInfo = {
+      const response = await loginMutate(formData);
+      if (!response?.success) {
+        throw new Error(response?.message || 'Login was not successful.');
+      }
+
+      const authenticatedUser = {
           id: response.userInfo.id,
           email: formData.email, // Use the email from the form
           full_name: response.userInfo.full_name,
@@ -75,11 +78,9 @@ const LoginTechnician = () => {
           permissions: response.userInfo.permissions,
           url_permission: response.userInfo.url_permission, 
           url: `${response.url}`
-        };  
-        // token is at response.data.token (root level of API response)
-        login({ token: response.token, userInfo });  
-        window.location.href = `${response.url}` 
-      }
+        };
+      login({ token: response.token, userInfo: authenticatedUser });
+      window.location.href = response.url || '/beesee/dashboard';
     } catch (err) {
       setSnackbarOpen(true);
       setSnackbarSeverity("error");
@@ -102,13 +103,13 @@ const LoginTechnician = () => {
     // if we don't have a token, go back to home
     if (token) { 
       if (userInfo?.url_permission === 'technician_url')
-      window.location.href = `${userInfo.url}` 
+      window.location.href = userInfo.url || '/beesee/dashboard';
       return;
     }  
 
     // Done checking
     setIsChecking(false);
-  }, [token, login]);
+  }, [token, userInfo]);
 
     // 👇 Prevent rendering layout until checks are done
   if (isChecking) {
@@ -138,6 +139,7 @@ const LoginTechnician = () => {
 
   return (
     <div className='flex justify-center items-center bg-white min-h-screen p-4'>
+      <SignInLoader loading={isPending} />
       {/* Notification */}
       <Snackbar 
         open={snackbarOpen}
@@ -228,7 +230,7 @@ const LoginTechnician = () => {
               type="submit"
               disabled={isPending}
             >
-              Sign in
+              {isPending ? 'Signing in...' : 'Sign in'}
             </motion.button>
           </motion.form>
         </motion.div>

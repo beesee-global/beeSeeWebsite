@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import Breadcrumb from '../../../../components/Navigation/Breadcrumbs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchAllProduct } from '../../../../services/Ecommerce/productServices';
-import { createFeaturedProduct, updateFeaturedProduct, fetchFeaturedById } from '../../../../services/Ecommerce/featureProduct';
+import {
+  createFeaturedProduct,
+  updateFeaturedProduct,
+  fetchFeaturedProductByPid,
+} from '../../../../services/Ecommerce/featuredProductServices';
 import CustomTextField from '../../../../components/Fields/CustomTextField';
+import ImageCropAdjustDialog from '../../../../components/Fields/ImageCropAdjustDialog';
 import SnackbarTechnician from '../../../../components/feedback/SnackbarTechnician';
 import { userAuth } from '../../../../hooks/userAuth';
 import { Save, SquarePen, Sparkles, Tag, BarChart3, ImagePlus, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import NoPermission from '../../../../components/auth/NoPermission';
 
 interface SelectedProductEntry {
   product_id: number | null;
@@ -21,7 +27,11 @@ const FeaturedProductForm: React.FC = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
 
-  const { snackBarMessage, snackBarType, snackBarOpen, setSnackBarMessage, setSnackBarType, setSnackBarOpen } = userAuth();
+  const { userInfo, snackBarMessage, snackBarType, snackBarOpen, setSnackBarMessage, setSnackBarType, setSnackBarOpen } = userAuth();
+  const permissionDataLoaded = Array.isArray(userInfo?.permissions);
+  const hasFeaturedPermission = !permissionDataLoaded || Boolean(
+    userInfo?.permissions?.some((permission) => permission.parent_id === 'featured-product' && !permission.children_id)
+  );
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -38,10 +48,12 @@ const FeaturedProductForm: React.FC = () => {
 
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [imageToEdit, setImageToEdit] = useState<{ index: number; file: File } | null>(null);
 
   const { data: productResponse = [], isLoading } = useQuery({
     queryKey: ['product'],
-    queryFn: () => fetchAllProduct()
+    queryFn: () => fetchAllProduct(),
+    enabled: hasFeaturedPermission,
   });
 
   const productList = productResponse?.data || productResponse || [];
@@ -49,8 +61,8 @@ const FeaturedProductForm: React.FC = () => {
   // load featured data when editing (id present)
   const { data: featuredResponse } = useQuery({
     queryKey: ['featuredById', id],
-    queryFn: () => fetchFeaturedById(String(id)),
-    enabled: !!id,
+    queryFn: () => fetchFeaturedProductByPid(String(id)),
+    enabled: !!id && hasFeaturedPermission,
     refetchOnWindowFocus: false,
   });
 
@@ -77,9 +89,9 @@ const FeaturedProductForm: React.FC = () => {
       };
     });
 
-    // ensure at least 2 product slots
+    // enforce exactly 2 product slots
     while (mappedProducts.length < 2) mappedProducts.push({ product_id: null, badges: ['', '', ''], file: null });
-    setProducts(mappedProducts.slice(0, Math.max(2, mappedProducts.length)));
+    setProducts(mappedProducts.slice(0, 2));
 
     // map techStats
     const mappedStats = (payload.techStats || []).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((s: any) => ({ label: s.label || '', value: s.value || '' }));
@@ -88,15 +100,15 @@ const FeaturedProductForm: React.FC = () => {
     setTechStats(mappedStats.slice(0, 3));
   }, [featuredResponse, productList]);
 
-  const createMutation = useMutation({ 
-    mutationFn: createFeaturedProduct, 
+  const createMutation = useMutation({
+    mutationFn: createFeaturedProduct,
     onSuccess: () => {
       setSnackBarType('success');
       setSnackBarMessage('Featured product created successfully');
       setSnackBarOpen(true);
-      queryClient.invalidateQueries(['features']);
+      queryClient.invalidateQueries({ queryKey: ['featured'] });
       navigate('/beesee/ecommerce/feature-product');
-    }, 
+    },
     onError: (err: any) => {
       setSnackBarType('error');
       setSnackBarMessage('Failed to create featured product');
@@ -104,15 +116,16 @@ const FeaturedProductForm: React.FC = () => {
     }
   });
 
-  const updateMutation = useMutation({ 
-    mutationFn: ({ id, formData }: any) => updateFeaturedProduct(featuredResponse.id, formData), 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, formData }: any) => updateFeaturedProduct(featuredResponse?.data?.id || id, formData),
     onSuccess: () => {
       setSnackBarType('success');
       setSnackBarMessage('Featured product updated successfully');
       setSnackBarOpen(true);
-      queryClient.invalidateQueries(['features']);
+      queryClient.invalidateQueries({ queryKey: ['featured'] });
+      queryClient.invalidateQueries({ queryKey: ['featuredById'] });
       navigate('/beesee/ecommerce/feature-product');
-    }, 
+    },
     onError: (err: any) => {
       setSnackBarType('error');
       setSnackBarMessage('Failed to update featured product');
@@ -137,20 +150,30 @@ const FeaturedProductForm: React.FC = () => {
   };
 
   const handleFileChange = (index: number, file?: File | null) => {
+    if (file) {
+      setImageToEdit({ index, file });
+      return;
+    }
     setProducts(prev => {
       const copy = [...prev];
-      copy[index].file = file || null;
-      
-      // Create preview URL
-      if (file) {
-        const previewUrl = URL.createObjectURL(file);
-        copy[index].previewUrl = previewUrl;
-      } else {
-        copy[index].previewUrl = undefined;
-      }
-      
+      copy[index].file = null;
+      copy[index].previewUrl = undefined;
       return copy;
     });
+  };
+
+  const applyEditedImage = (file: File) => {
+    if (!imageToEdit) return;
+    setProducts(prev => {
+      const copy = [...prev];
+      copy[imageToEdit.index] = {
+        ...copy[imageToEdit.index],
+        file,
+        previewUrl: URL.createObjectURL(file),
+      };
+      return copy;
+    });
+    setImageToEdit(null);
   };
 
   const handleTechStatChange = (i: number, key: 'label' | 'value', val: string) => {
@@ -219,9 +242,11 @@ const FeaturedProductForm: React.FC = () => {
     return product?.name || null;
   };
 
+  if (!hasFeaturedPermission) return <NoPermission />;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 py-4 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 sm:py-8">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <SnackbarTechnician 
           open={snackBarOpen} 
           type={snackBarType as any} 
@@ -233,44 +258,44 @@ const FeaturedProductForm: React.FC = () => {
         <div className="mb-6">
           <Breadcrumb 
             items={[ 
-              { label: 'Home Page Design', href: '/beesee/ecommerce/homepage' }, 
+              { label: 'Featured Products', href: '/beesee/ecommerce/feature-product' },
               { label: 'Featured Products', isActive: true } 
             ]} 
           />
         </div>
 
         {/* Header Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 mb-8 relative overflow-hidden">
+        <div className="relative mb-6 overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:mb-8 sm:p-6 lg:p-8">
           {/* Decorative gradient */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 rounded-full blur-3xl -z-0"></div>
           
-          <div className="relative z-10 flex items-center justify-between">
+          <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
-              <div className="p-3  bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90
+              <div className="p-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90
                                 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
-                <Sparkles className="w-8 h-8 text-white" />
+                <Sparkles className="w-6 h-6 text-white sm:w-8 sm:h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                   {id ? 'Update Featured Products' : 'Create Featured Products'}
                 </h1>
-                <p className="text-base text-gray-600 dark:text-gray-400">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   Configure featured products with badges, tech stats and gallery images
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
               <button 
                 onClick={() => navigate('/beesee/ecommerce/feature-product')}
-                className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 font-medium"
+                className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 font-medium"
               >
                 Cancel
               </button>
               <button 
                 onClick={buildAndSubmit}
                 disabled={createMutation.isPending || updateMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full sm:w-auto justify-center items-center gap-2 px-4 sm:px-6 py-2.5 bg-gradient-to-r from-[#FCD000] to-[#FCD000]/90 hover:from-[#FCD000]/90 hover:to-[#FCD000] text-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md sm:hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-5 h-5" />
                 {id ? 'Update Changes' : 'Create Featured'}
@@ -301,6 +326,9 @@ const FeaturedProductForm: React.FC = () => {
                     value={title} 
                     onChange={(e:any) => setTitle(e.target.value)} 
                     placeholder="e.g., FEATURED PRODUCTS" 
+                    type="text"
+                    multiline={false}
+                    rows={1}
                   />
                 </div>
                 
@@ -315,6 +343,7 @@ const FeaturedProductForm: React.FC = () => {
                     placeholder="Describe your featured products section..." 
                     multiline={true} 
                     rows={4} 
+                    type="text"
                   />
                 </div>
               </div>
@@ -374,20 +403,28 @@ const FeaturedProductForm: React.FC = () => {
                     {/* Gallery Image Upload */}
                     <div>
                       <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Gallery Image
+                        Featured Display Image
                       </label>
                       <div className="flex items-center gap-4">
                         <label className="flex-1 cursor-pointer">
                           <div className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-400 dark:hover:border-purple-500 transition-colors bg-white dark:bg-gray-800">
                             <ImagePlus className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {p.file ? p.file.name : 'Choose image...'}
+                              {p.file
+                                ? p.file.name
+                                : p.previewUrl
+                                  ? 'Replace current image...'
+                                : 'Upload, crop, and adjust image...'}
                             </span>
                           </div>
                           <input 
                             type="file" 
                             accept="image/*" 
-                            onChange={(e) => handleFileChange(idx, e.target.files ? e.target.files[0] : undefined)}
+                            onChange={(e) => {
+                              handleFileChange(idx, e.target.files ? e.target.files[0] : undefined);
+                              // Allow selecting the same file again after cancelling an edit.
+                              e.currentTarget.value = '';
+                            }}
                             className="hidden"
                           />
                         </label>
@@ -416,6 +453,9 @@ const FeaturedProductForm: React.FC = () => {
                         <span className="font-medium">{getSelectedProductName(p.product_id)}</span>
                       </div>
                     )}
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      This image is shown in the public Featured Products section. Uploading a new one replaces the current image.
+                    </p>
                   </div>
                 ))}
               </div>
@@ -495,6 +535,11 @@ const FeaturedProductForm: React.FC = () => {
             </div>
           </div>
         )}
+        <ImageCropAdjustDialog
+          file={imageToEdit?.file ?? null}
+          onCancel={() => setImageToEdit(null)}
+          onApply={applyEditedImage}
+        />
       </div>
     </div>
   );

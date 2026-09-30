@@ -376,11 +376,25 @@
 @media (max-width: 640px) {
 
   .featured-showcase-optimized {
+    min-height: auto;
+    height: auto;
+    overflow: visible;
+    align-items: flex-start;
     padding: 2rem 1rem;
   }
 
+  .featured-content-optimized,
+  .text-content-optimized {
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+
   .watches-stage-optimized {
-    min-height: 420px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 360px;
+    overflow: hidden;
   }
 
   .watch-red-optimized {
@@ -396,13 +410,13 @@
   }
 
   .orbital-ring.ring-1 {
-    width: 300px;
-    height: 300px;
+    width: 270px;
+    height: 270px;
   }
 
   .orbital-ring.ring-2 {
-    width: 420px;
-    height: 420px;
+    width: 370px;
+    height: 370px;
   }
 
   .featured-description-optimized {
@@ -452,19 +466,22 @@
     padding: 3px 8px;
   }
 
-  .badge-1 { right: -10%; }
-  .badge-2 { left: -12%; }
-  .badge-4 { left: -12%; }
-  .badge-5 { right: -12%; }
+  .badge-1 { right: 4%; }
+  /* Product 1's Premium badge is position 2 in the backend response. */
+  .badge-2 { left: 4%; }
+  .badge-3 { right: 4%; }
+  .badge-4 { left: 4%; }
+  .badge-5 { right: 4%; }
+  .badge-6 { left: 4%; }
 
   .orbital-ring.ring-1 {
-    width: 260px;
-    height: 260px;
+    width: 235px;
+    height: 235px;
   }
 
   .orbital-ring.ring-2 {
-    width: 350px;
-    height: 350px;
+    width: 320px;
+    height: 320px;
   }
 
   .featured-title-optimized {

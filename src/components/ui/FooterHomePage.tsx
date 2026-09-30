@@ -25,7 +25,7 @@ const FooterHomePage = () => {
         {/* ===========================
                 MAIN CONTENT
         ============================ */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-14">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12">
             
             {/* ========== LOGO & COMPANY INFO ========== */}
@@ -43,17 +43,22 @@ const FooterHomePage = () => {
               </p>
 
               {/* Address */}
-              <div className="flex items-start gap-3 pt-2">
-                <FontAwesomeIcon icon={faLocationDot} className="text-[#FDCC00] w-4 mt-0.5 flex-shrink-0" />
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=%2365-D+Scout+Borromeo%2C+South+Triangle%2C+Quezon+City"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-3 pt-2 text-left text-gray-600 hover:text-[#FDCC00] transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FDCC00]/30 rounded-md"
+              >
+                <FontAwesomeIcon icon={faLocationDot} className="text-current w-4 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-gray-700 text-sm font-medium">
+                  <p className="text-gray-700 group-hover:text-[#FDCC00] text-sm font-medium transition-colors duration-200">
                     #65-D Scout Borromeo,
                   </p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 group-hover:text-[#FDCC00] text-sm transition-colors duration-200">
                     South Triangle, Quezon City
                   </p>
                 </div>
-              </div>
+              </a>
             </div>
 
             {/* ========== QUICK LINKS (HIDDEN ON MOBILE) ========== */}
@@ -68,8 +73,9 @@ const FooterHomePage = () => {
                   { name: "About Us", to: "/about-beesee" },
                   { name: "Products", to: "/products" },
                   { name: "Solutions", to: "/solution" },
-                  { name: "Customer Support", to: "/customer-support" },
+                  { name: "Customer Support", to: "/support" },
                   { name: "FAQs", to: "/faqs" },
+                  {name: "Careers", to: "/bsg/career"},
                 ].map((item, i) => (
                   <Link
                     key={i}
@@ -165,7 +171,7 @@ const FooterHomePage = () => {
         {/* ===========================
                 COPYRIGHT SECTION - NOW IN ONE LINE
         ============================ */}
-        <div className="border-t border-gray-100 pt-6 pb-8">
+        <div className="border-t border-gray-200 pt-6 pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
               {/* Left side - Copyright text */}

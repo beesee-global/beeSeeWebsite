@@ -55,14 +55,20 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [
         'p', 'br', 'strong', 'em', 'u', 'i', 'b',
+        'span',
         'ul', 'ol', 'li',
         'a',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'blockquote', 'hr',
+        'table', 'caption', 'colgroup', 'col', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
         // Media & layout — required for image/video alignment support
         'div', 'img', 'video', 'source',
       ],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'src', 'alt', 'controls', 'type'],
+      ALLOWED_ATTR: [
+        'href', 'target', 'rel', 'style', 'src', 'alt', 'controls', 'type',
+        'colspan', 'rowspan', 'scope', 'width', 'height', 'align', 'valign',
+        'border', 'cellpadding', 'cellspacing',
+      ],
       ALLOW_DATA_ATTR: false,
     })
   }
@@ -114,8 +120,8 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
     if (!input) return ''
     const hasHtml = /<[^>]+>/.test(input)
     if (hasHtml) return input
-    const looksLikeList = /^\s*(\d+\.\s+|[*-]\s+)/m.test(input)
-    if (!looksLikeList) return input
+    // Plain-text clipboard data still needs block elements; otherwise the
+    // browser collapses line breaks and tabs when it is inserted as HTML.
     return toHtmlWithLists(input)
   }
 
@@ -221,8 +227,14 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
+    // Prefer the browser's HTML clipboard payload so formatting copied from
+    // Word, Google Docs, or another rich editor is retained. Plain text is a
+    // fallback for sources that do not provide a formatted clipboard value.
+    const html = e.clipboardData.getData('text/html')
     const text = e.clipboardData.getData('text/plain')
-    const normalized = normalizeEditorValue(text)
+    const normalized = html
+      ? sanitizeHTML(html)
+      : normalizeEditorValue(text)
     document.execCommand('insertHTML', false, normalized)
     updateContent()
   }
@@ -501,6 +513,11 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start t
         [contenteditable] h4 { font-size: 1em; font-weight: bold; margin: 1em 0; }
         [contenteditable] h5 { font-size: 0.83em; font-weight: bold; margin: 1.17em 0; }
         [contenteditable] h6 { font-size: 0.67em; font-weight: bold; margin: 1.33em 0; }
+        [contenteditable] table { width: 100% !important; max-width: 100%; border-collapse: collapse; margin: 1em 0; table-layout: auto; color: #111827; background: transparent !important; background-image: none !important; }
+        [contenteditable] table *, [contenteditable] table tr, [contenteditable] table th, [contenteditable] table td { background: transparent !important; background-color: transparent !important; background-image: none !important; }
+        [contenteditable] th, [contenteditable] td { width: auto !important; border: 1px solid #d1d5db; padding: 0.65rem 0.75rem; vertical-align: top; text-align: left; color: #111827 !important; }
+        [contenteditable] th *, [contenteditable] td * { color: #111827 !important; background-color: transparent !important; }
+        [contenteditable] th { font-weight: 700; }
         [contenteditable] a { color: #2563eb; text-decoration: underline; }
         [contenteditable] hr { border: none; border-top: 2px solid #ccc; margin: 1em 0; }
         [contenteditable] img {

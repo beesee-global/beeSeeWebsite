@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Toolbar, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
+import { Toolbar, Button, Box, IconButton, Drawer, List, ListItemButton, ListItemText } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -12,9 +12,10 @@ const HeaderHomePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isInitialMount = useRef(true);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const drawerAnimationRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const drawerAnimationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedScrollPosition = useRef<number>(0);
+  const isNavigatingRef = useRef(false);
   
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isShrunk, setIsShrunk] = useState(false);
@@ -26,7 +27,6 @@ const HeaderHomePage = () => {
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -120,9 +120,10 @@ const HeaderHomePage = () => {
       
       requestAnimationFrame(() => {
         window.scrollTo({
-          top: savedScrollPosition.current,
-          behavior: 'instant'
+          top: isNavigatingRef.current ? 0 : savedScrollPosition.current,
+          behavior: 'auto'
         });
+        if (isNavigatingRef.current) isNavigatingRef.current = false;
       });
     }
     
@@ -181,6 +182,8 @@ const HeaderHomePage = () => {
       if (isDrawerAnimating) return;
       
       if (drawerOpen) {
+        // Do not restore the previous page's scroll position after navigation.
+        isNavigatingRef.current = true;
         setIsDrawerAnimating(true);
         setDrawerOpen(false);
         
@@ -214,7 +217,9 @@ const HeaderHomePage = () => {
       window.open(target, '_blank');
     } else {
       navigate(target);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
     }
   };
 
@@ -332,18 +337,21 @@ const HeaderHomePage = () => {
 
   /* Navigation Items */
   const navLeft = [
-    { label: 'ABOUT', to: '/about-beesee' },
-    { label: 'PRODUCTS', to: '/products' },
-    { label: 'SERVICES', to: '/solution' },
+    { id: 'about', label: 'ABOUT', to: '/about-beesee' },
+    { id: 'products', label: 'PRODUCTS', to: '/products' },
+    { id: 'services', label: 'SERVICES', to: '/solution' },
   ];
 
   const navRight = [
-    { label: 'INQUIRIES', to: '/inquiries' },
-    { label: 'FAQS', to: '/faqs' },
-    { label: 'SUPPORT', to: '/support' },
+    { id: 'inquiries', label: 'INQUIRIES', to: '/inquiries' },
+    { id: 'faqs', label: 'FAQS', to: '/faqs' },
+    { id: 'support', label: 'SUPPORT', to: '/support' },
   ];
 
-  const mobileNavItems = [{ label: 'HOME', to: '/' }, ...navLeft, ...navRight];
+  const visibleNavLeft = navLeft;
+  const visibleNavRight = navRight;
+
+  const mobileNavItems = [{ id: 'home', label: 'HOME', to: '/' }, ...visibleNavLeft, ...visibleNavRight];
 
   return (
     <>
@@ -351,7 +359,7 @@ const HeaderHomePage = () => {
       {!isMobile && (
         <header 
           id="main-header" 
-          className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out bg-transparent backdrop-blur-2xl"
+          className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out bg-black/20 backdrop-blur-2xl border-b border-white/10"
           role="banner"
         >
           <Toolbar 
@@ -362,7 +370,7 @@ const HeaderHomePage = () => {
             {/* LEFT NAV */}
             <Box className="flex flex-1 justify-end">
               <nav className="flex items-center gap-8 lg:gap-16 mr-8 lg:mr-20">
-                {navLeft.map((item) => {
+                {visibleNavLeft.map((item) => {
                   const active = location.pathname.startsWith(item.to);
                   return (
                     <Button
@@ -370,11 +378,16 @@ const HeaderHomePage = () => {
                       disableRipple
                       onClick={() => handleNavClick(item.to)}
                       aria-label={`Navigate to ${item.label}`}
-                      className={`!font-bold font-segoe !normal-case relative group !transition-all !duration-300 ${
+                      className={`!font-bold font-segoe !normal-case relative group !transition-all !duration-300 px-2 py-1 rounded-full ${
                         active ? '!text-[#FFD700]' : '!text-white'
                       } ${isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'}`}
                     >
                       {item.label}
+                      <span
+                        className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                          active ? 'bg-[#FFD700]/12' : 'bg-transparent group-hover:bg-white/10'
+                        }`}
+                      />
                       <span
                         className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
                           active ? 'w-full' : 'w-0 group-hover:w-full'
@@ -405,7 +418,7 @@ const HeaderHomePage = () => {
             {/* RIGHT NAV */}
             <Box className="flex flex-1 justify-start">
               <nav className="flex items-center gap-8 lg:gap-20 ml-8 lg:ml-20">
-                {navRight.map((item) => {
+                {visibleNavRight.map((item) => {
                   const active = location.pathname === item.to;
                   return (
                     <Button
@@ -413,11 +426,11 @@ const HeaderHomePage = () => {
                       disableRipple
                       onClick={() => handleNavClick(item.to)}
                       aria-label={`Navigate to ${item.label}`}
-                      className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 ${
+                      className={`!flex !items-center !font-bold font-segoe tracking-wide !normal-case group relative !transition-all !duration-300 px-2 py-1 rounded-full ${
                         active ? '!text-[#FFD700]' : '!text-white'
                       } ${isShrunk ? '!text-[0.75rem] lg:!text-[0.8rem]' : '!text-[0.9rem] lg:!text-[1rem]'}`}
                     >
-                      <span className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-300 bg-[#FFD700] blur-xl rounded-full" />
+                      <span className={`absolute inset-0 transition-all duration-300 rounded-full ${active ? 'bg-[#FFD700]/12' : 'bg-transparent group-hover:bg-white/10'}`} />
                       {item.label}
                       <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#FFD700] rounded-full transition-all duration-300 ${
                         active ? 'w-full' : 'w-0 group-hover:w-full'
@@ -482,7 +495,7 @@ const HeaderHomePage = () => {
             <Drawer
               anchor="left"
               open={drawerOpen}
-              onClose={handleCloseDrawer}
+              onClose={() => handleCloseDrawer()}
               variant="temporary"
               PaperProps={{
                 sx: {
@@ -573,7 +586,7 @@ const HeaderHomePage = () => {
                           ease: 'easeOut',
                         }}
                       >
-                        <ListItem
+                        <ListItemButton
                           onClick={() => handleNavClick(item.to)}
                           className={`
                             hover:!bg-[#2A2A2A] transition-all duration-200
@@ -598,7 +611,6 @@ const HeaderHomePage = () => {
                             userSelect: 'none',
                             WebkitTapHighlightColor: 'transparent',
                           }}
-                          button
                           disabled={isDrawerAnimating}
                         >
                           <ListItemText
@@ -618,7 +630,7 @@ const HeaderHomePage = () => {
                               },
                             }}
                           />
-                        </ListItem>
+                        </ListItemButton>
                       </motion.div>
                     );
                   })}

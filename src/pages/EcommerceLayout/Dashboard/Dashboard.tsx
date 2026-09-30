@@ -1,15 +1,11 @@
 import {
   Home,
-  Key,
+  Package,
+  Tag,
 } from 'lucide-react'  
 import Breadcrumb from "../../../components/Navigation/Breadcrumbs"
-import PieChart, { PieChartData } from "../../../components/charts/PieChart"
-import BarChart from "../../../components/charts/BarChart";
-import { useState } from 'react';
-import { format } from 'date-fns';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { fetchGraph } from '../../../services/Ecommerce/dashboardServices'
+import { fetchAllProduct } from '../../../services/Ecommerce/productServices'
+import { fetchAllCategory } from '../../../services/Ecommerce/categoryServices'
 import { useQuery } from '@tanstack/react-query';
 
 const Dashboard = () => {
@@ -17,30 +13,29 @@ const Dashboard = () => {
     { label: "Home", isActive: true, icon: <Home className="w-4 h-4"/> }
   ];
   
-  const {
-    data: dashboardResponse,
-    isLoading
-  } = useQuery({
-    queryKey: ["dashboard"],
-    queryFn: () => fetchGraph()
-  }) 
- 
-  // pie chart
-  const chartData: PieChartData[] = dashboardResponse
-    ? Object.entries(dashboardResponse.types).map(([key, value]) => ({
-      name: key == "technical_support" ? "Technical Support" : "Request Repair",
-      value: Number(value), // convert string to number
-    }))
-    : [];
+  const { data: productResponse, isLoading: productsLoading, isError: productsError } = useQuery({
+    queryKey: ["product"],
+    queryFn: fetchAllProduct,
+  });
 
-  // bar chart
-  const categories = dashboardResponse?.categories || [];
-  const series = dashboardResponse?.series || [];
+  const { data: categoryResponse, isLoading: categoriesLoading, isError: categoriesError } = useQuery({
+    queryKey: ["category"],
+    queryFn: fetchAllCategory,
+  });
 
-
+  const totalProducts = Array.isArray(productResponse)
+    ? productResponse.length
+    : Array.isArray(productResponse?.data)
+      ? productResponse.data.length
+      : 0;
+  const totalCategories = Array.isArray(categoryResponse)
+    ? categoryResponse.length
+    : Array.isArray(categoryResponse?.data)
+      ? categoryResponse.data.length
+      : 0;
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-full bg-slate-50 py-6 sm:py-8">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Breadcrumb */}
@@ -49,39 +44,50 @@ const Dashboard = () => {
         </div>
 
         {/* header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
                 Dashboard
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Manage your dashboard
+              <p className="text-slate-500">
+                Overview of inquiries and project status
               </p>
             </div>
 
           </div>
         </div>
 
-        {/* Statistics card */}
-        <div className="grid lg:grid-cols-2 mb-6 gap-6">
-          <div className='bg-white rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 py-5'>
-            <PieChart 
-              title="Inquiries"
-              data={chartData}
-              colors={["#36a2eb", "#ffcd56", "#11fa11ff"]}
-              donut
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Total Products</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {productsLoading ? "..." : productsError ? "-" : totalProducts}
+                </p>
+              </div>
+              <div className="rounded-xl bg-amber-100 p-3 text-amber-600">
+                <Package className="w-6 h-6" />
+              </div>
+            </div>
           </div>
-          <div className='bg-white rounded-xl shadown-sm border border-gray-200 dak:border-gray-700 py-5'>
-            <BarChart
-              title="Project Status Overview"
-              categories={categories}
-              series={series}
-              height={400}
-            />
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Total Categories</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {categoriesLoading ? "..." : categoriesError ? "-" : totalCategories}
+                </p>
+              </div>
+              <div className="rounded-xl bg-amber-100 p-3 text-amber-600">
+                <Tag className="w-6 h-6" />
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   )

@@ -8,7 +8,6 @@ import SectionTwo from "./components/SectionTwo";
 export default function HomePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-
   useEffect(() => {
     // Force reflow to ensure scroll is registered
     window.scrollTo(0, 0);

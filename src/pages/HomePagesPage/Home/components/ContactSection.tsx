@@ -179,7 +179,7 @@ const Inquiries = () => {
   return (
     <section
       id="contact-section"
-      className="relative w-full py-24 text-white overflow-hidden"
+      className="relative w-full py-20 sm:py-24 md:py-28 lg:py-32 text-white overflow-hidden"
     >
       {/* SCOPED BACKGROUND*/}
       <div

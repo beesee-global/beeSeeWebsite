@@ -287,6 +287,48 @@ export default function TableDefault({
               </table>
             )}
           </div>
+
+          {/* Mobile rows: the desktop table is intentionally hidden below md. */}
+          <div className="md:hidden space-y-3 px-3 py-3">
+            {visibleRows.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10">
+                <Mail size={40} style={{ color: COLORS.textMuted }} strokeWidth={1.5} />
+                <p className="mt-3 text-sm" style={{ color: COLORS.textMuted }}>
+                  No data found
+                </p>
+              </div>
+            ) : (
+              visibleRows.map((row) => {
+                const isSelected = selectedRowId === row.id;
+
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    onClick={() => handleRowClick(row)}
+                    className="block w-full rounded-lg border px-3 py-3 text-left transition-colors"
+                    style={{
+                      background: isSelected ? COLORS.selected : COLORS.surface,
+                      borderColor: isSelected ? '#93c5fd' : COLORS.border,
+                    }}
+                  >
+                    <div className="space-y-2">
+                      {safeColumns.map((column) => (
+                        <div key={column.id} className="flex items-start justify-between gap-4">
+                          <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-gray-500">
+                            {column.label}
+                          </span>
+                          <span className="min-w-0 truncate text-right text-sm text-gray-900">
+                            {String(row[column.id] ?? '-')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
           
           {/* Pagination */}
           <div className="w-full flex justify-end mt-4 border-t border-gray-100 pt-3">      

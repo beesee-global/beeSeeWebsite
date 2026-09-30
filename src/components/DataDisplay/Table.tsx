@@ -204,7 +204,7 @@ const EnhancedTable: React.FC<EnhancedTableProps> = ({ rows, columns, handleRowE
                       >
                         <button 
                           title='Edit'
-                          onClick={() => handleRowEdit(row.pid)}
+                            onClick={() => handleRowEdit(row.pid ?? row.id)}
                           className='p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
                         transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20'>
                           <Edit3 className='w-5 h-5'/>

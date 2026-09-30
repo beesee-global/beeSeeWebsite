@@ -26,6 +26,7 @@ import {
   createCustomerSupport, 
   fetchDevice 
 } from '../../../../services/Ecommerce/customerSupportServices'
+import { asArray } from '../../../../utils/apiCollections';
 
 interface CustomerType {
   first_name: string;
@@ -218,7 +219,7 @@ const CustomerSupportForm = () => {
     queryFn: () => fetchDevice(),
     select: (data) => {
       // Map API result into label/value pairs
-      const mapped = data.map((item: { id: number; name: string }) => ({
+      const mapped = asArray<{ id: number; name: string }>(data).map((item) => ({
         value: item.id,   // ✅ foreign key (number)
         label: item.name, // ✅ user-friendly name
       }));

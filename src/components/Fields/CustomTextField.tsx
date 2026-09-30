@@ -3,10 +3,12 @@ import { TextField, InputAdornment } from '@mui/material';
 
 interface CustomTextFieldProps {
   name: string;
+  id?: string;
   placeholder: string;
   value: string | number;
   rows: number;
   type: string;
+  autoComplete?: string;
   maxLength?: number;
   disabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -20,6 +22,7 @@ interface CustomTextFieldProps {
 
 const CustomTextField: React.FC<CustomTextFieldProps> = ({
   name,
+  id,
   placeholder,
   value,
   onChange,
@@ -27,6 +30,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   maxLength,
   disabled,
   type,
+  autoComplete,
   rows,
   icon,
   error = false,
@@ -35,7 +39,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
   onPaste,
 }) => {
   const textFieldSx = {
-    backgroundColor: '#ffffff',
+    backgroundColor: error ? '#fff1f2' : '#ffffff',
     borderRadius: '6px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
@@ -53,6 +57,13 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
       marginRight: '-10px',
       marginBottom: '15px',
       paddingRight: multiline && rows > 1 ? '30px' : '14px',
+    },
+    // MUI supplies the gold focus border on the outer fieldset. Remove the
+    // browser's inner blue focus outline so focused inputs have one clear
+    // focus treatment.
+    '& .MuiInputBase-input:focus, & .MuiInputBase-inputMultiline:focus, & textarea:focus': {
+      outline: 'none',
+      boxShadow: 'none',
     },
   };
 
@@ -104,10 +115,12 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
     <div className="relative w-full">
       <TextField
         name={name}
+        id={id}
         placeholder={placeholder}
         margin="dense"
         fullWidth
         type={type}
+        autoComplete={autoComplete}
         size="small"
         disabled={disabled}
         rows={rows}

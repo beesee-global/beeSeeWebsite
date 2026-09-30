@@ -3,7 +3,7 @@ import FooterHomePage from "../components/ui/FooterHomePage";
 import FooterHomePageProducts from "../components/ui/FooterHomePageProducts";
 import HeaderHomePage from "../components/ui/HeaderHomePage";
 import { Outlet } from "react-router-dom"; 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { userAuth } from "../hooks/userAuth"; 
 import Snackbar from "../components/feedback/Snackbar";
 
@@ -18,8 +18,24 @@ const HomePageLayout = () => {
   const [showHeader, setShowHeader] = useState(true);
   const lastScrollY = useRef(0);
 
-  const hideLayoutRoutes = []; 
-  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/forget-password", "/tech/sign-in", "/bsg/user-form", "/sign-in", "/applicants/action"];
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    };
+
+    // Reset immediately and once after the new route has painted. This avoids
+    // mobile browser history restoration leaving a new page at the footer.
+    resetScroll();
+    lastScrollY.current = 0;
+
+    const frame = window.requestAnimationFrame(resetScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.search]);
+
+  const hideLayoutRoutes: string[] = [];
+  const hideHeaderRoutes = ["/sign-up/2046", "/ecom/sign-in", "/beesee/ecommerce/sign-in", "/forget-password", "/tech/sign-in", "/beesee/technician/sign-in", "/bsg/user-form", "/sign-in", "/applicants/action"];
 
   const shouldHideLayout = hideLayoutRoutes.some((path) =>
     location.pathname.startsWith(path)
@@ -33,12 +49,12 @@ const HomePageLayout = () => {
 
   const isProjectDetailPage = /^\/project\/[^/]+$/.test(location.pathname);
   
-  // Check if header should be hidden
+  // Keep the public header visible on product detail pages as well. Product
+  // detail pages still use the shared public-site layout and footer.
   const hideHeader =
     hideHeaderRoutes.some((path) =>
       location.pathname.startsWith(path)
     ) ||
-    isProductDetailPage ||
     isActivityDetailPage ||
     isProjectDetailPage;
 
