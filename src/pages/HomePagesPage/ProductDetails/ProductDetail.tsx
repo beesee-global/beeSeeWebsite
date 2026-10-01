@@ -1158,7 +1158,10 @@ const ProductDetail: React.FC = () => {
               variants={fadeUp}
               className="info-column"
             >
-            <motion.div variants={fadeUp} className="info-card">
+            <motion.div
+              variants={fadeUp}
+              className={`info-card ${showProductBrochure && !showBasicInformation ? "brochure-only-card" : ""}`}
+            >
               {showBasicInformation && (
                 <>
               <div className="product-eyebrow">

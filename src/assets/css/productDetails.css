@@ -2104,6 +2104,23 @@
   border-radius: 16px;
 }
 
+/* A brochure-only action should sit on the page surface, not inside a full-width panel. */
+.product-detail-page .brochure-only-card {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.product-detail-page .brochure-only-card .product-actions {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+.product-detail-page .brochure-only-card .product-brochure-download-error {
+  text-align: right;
+}
+
 .product-detail-page .title,
 .product-detail-page .product-spec-link {
   color: #fff;
