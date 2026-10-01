@@ -1041,6 +1041,13 @@ const ProductDetail: React.FC = () => {
     );
   }
 
+  const showBasicInformation = product.basicInformationEnabled !== false;
+  const showProductBrochure = Boolean(
+    product.brochureEnabled
+      && (product.brochureUrl || (product.brochures?.length || 0) > 0)
+  );
+  const hasGallery = product.galleryEnabled !== false;
+
   return (
     <div className="product-detail-page">
       {/* Back to Top Button */}
@@ -1068,13 +1075,13 @@ const ProductDetail: React.FC = () => {
 
       <div className="container">
         {/* Main Grid: Gallery + Info */}
-        {(product.galleryEnabled !== false || product.basicInformationEnabled !== false) && (
+        {(hasGallery || showBasicInformation || showProductBrochure) && (
         <ParallaxBlock
-          className={`main-grid ${product.galleryEnabled === false || product.basicInformationEnabled === false ? "single-visible-section" : ""}`}
+          className={`main-grid ${Number(hasGallery) + Number(showBasicInformation || showProductBrochure) < 2 ? "single-visible-section" : ""}`}
           distance={24}
         >
           {/* Media Column - Carousel */}
-          {product.galleryEnabled !== false && (
+          {hasGallery && (
             <motion.article
               initial="hidden"
               animate="show"
@@ -1147,7 +1154,7 @@ const ProductDetail: React.FC = () => {
           )}
 
           {/* Info Column */}
-          {product.basicInformationEnabled !== false && (
+          {(showBasicInformation || showProductBrochure) && (
             <motion.aside
               initial="hidden"
               animate="show"
@@ -1155,6 +1162,8 @@ const ProductDetail: React.FC = () => {
               className="info-column"
             >
             <motion.div variants={fadeUp} className="info-card">
+              {showBasicInformation && (
+                <>
               <div className="product-eyebrow">
                {product.category || "BEESEE TECHNOLOGY"}
               </div>
@@ -1179,15 +1188,19 @@ const ProductDetail: React.FC = () => {
                   </ul>
                 </div>
               )} */}
+                </>
+              )}
 
               <div className="product-actions">
-                <button type="button" className="product-inquiry-button" onClick={() => setOpenInquiry(true)}>
-                  <MessageCircle size={19} /> Inquire about this product
-                </button>
+                {showBasicInformation && (
+                  <button type="button" className="product-inquiry-button" onClick={() => setOpenInquiry(true)}>
+                    <MessageCircle size={19} /> Inquire about this product
+                  </button>
+                )}
                 {/* <a href="#specifications" className="product-spec-link">
                   View specifications <ChevronRight size={18} />
                 </a> */}
-                {product.brochureEnabled && (product.brochureUrl || (product.brochures?.length || 0) > 0) && (
+                {showProductBrochure && (
                   <>
                     <button
                       type="button"
