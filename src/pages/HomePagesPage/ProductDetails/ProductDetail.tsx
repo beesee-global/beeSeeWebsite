@@ -434,8 +434,8 @@ const ProductDetail: React.FC = () => {
       const brochureResponse = await axiosClient.get(
         `/ecom_products/${encodeURIComponent(product.pid)}/brochures`
       );
-      const brochures = Array.isArray(brochureResponse.data?.brochures)
-        ? brochureResponse.data.brochures
+      const brochures = Array.isArray(brochureResponse?.brochures)
+        ? brochureResponse.brochures
         : [];
 
       if (brochures.length > 1) {
@@ -457,10 +457,7 @@ const ProductDetail: React.FC = () => {
         getBrochureDownloadUrl(product.pid, brochure),
         { responseType: "blob" }
       );
-      if (downloadResponse.status < 200 || downloadResponse.status >= 300) {
-        throw new Error(`Brochure download failed with status ${downloadResponse.status}.`);
-      }
-      const brochureBlob = downloadResponse.data;
+      const brochureBlob = downloadResponse;
       const objectUrl = URL.createObjectURL(brochureBlob);
       const downloadLink = document.createElement("a");
       downloadLink.href = objectUrl;
